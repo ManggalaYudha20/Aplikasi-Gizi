@@ -9,7 +9,7 @@ class AboutPage extends StatelessWidget {
     return Scaffold(
       appBar: const CustomAppBar(
         title: 'Tentang Kami',
-        subtitle: 'di aplikasi myGizi',
+        subtitle: 'di Aplikasi MyGizi',
       ),
       body: const Center(
         child: Text(

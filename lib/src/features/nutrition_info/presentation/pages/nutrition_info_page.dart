@@ -9,7 +9,7 @@ class NutritionInfoPage extends StatelessWidget {
     return Scaffold(
       appBar: const CustomAppBar(
         title: 'Info Gizi',
-        subtitle: 'di aplikasi my gizi',
+        subtitle: 'di Aplikasi MyGizi',
       ),
       body: const Center(
         child: Text(
