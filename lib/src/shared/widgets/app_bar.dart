@@ -37,11 +37,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ],
       ),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(20),
-        ),
-      ),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 16.0),

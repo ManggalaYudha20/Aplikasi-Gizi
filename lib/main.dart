@@ -5,6 +5,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_info/presentation/
 import 'package:aplikasi_diagnosa_gizi/src/features/about/presentation/pages/about_page.dart';
 
 void main() {
+  
   runApp(const MyApp());
 }
 

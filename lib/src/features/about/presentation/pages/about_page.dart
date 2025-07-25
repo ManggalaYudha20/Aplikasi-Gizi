@@ -9,12 +9,25 @@ class AboutPage extends StatelessWidget {
     return Scaffold(
       appBar: const CustomAppBar(
         title: 'Tentang Kami',
-        subtitle: 'di Aplikasi MyGizi',
+        subtitle: 'Profil Rumah Sakit',
       ),
-      body: const Center(
-        child: Text(
-          'Tentang Kami Screen',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverFillRemaining(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Image.asset(
+                      'assets/images/about.png',
+                      fit: BoxFit.contain,
+                      width: double.infinity,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
