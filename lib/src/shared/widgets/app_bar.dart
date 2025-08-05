@@ -15,6 +15,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       toolbarHeight: 100,
       backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+      iconTheme: const IconThemeData(color: Colors.white),
       title: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
