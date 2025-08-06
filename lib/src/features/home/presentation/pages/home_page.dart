@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/home/presentation/pages/data_form_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -14,10 +15,31 @@ class HomePage extends StatelessWidget {
       ),
       body: const SafeArea(
         child: Center(
-          child: Text(
-            'Beranda Screen',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(height: 40),
+              // Content can be added here later
+            ],
           ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const DataFormPage(),
+            ),
+          );
+        },
+        shape: const CircleBorder(),
+        elevation: 8,
+        backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+        child: const Icon(
+          Icons.add,
+          size: 28,
+          color: Colors.white,
         ),
       ),
     );
