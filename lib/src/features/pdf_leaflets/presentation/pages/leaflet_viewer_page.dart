@@ -15,7 +15,7 @@ class LeafletViewerPage extends StatelessWidget {
       body: const SafeArea(
         child: Center(
           child: Text(
-            'Leaflet Viewer Screen',
+            'Berisi Leaftlet tentang Gizi',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
         ),

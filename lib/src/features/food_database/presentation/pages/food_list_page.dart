@@ -15,7 +15,7 @@ class FoodListPage extends StatelessWidget {
       body: const SafeArea(
         child: Center(
           child: Text(
-            'Food List Screen',
+            'berisi  bahan makanan penukar',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
         ),

@@ -8,7 +8,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(56, 217, 217, 217),
+      backgroundColor: const Color.fromARGB(150, 255, 255, 255),
       appBar: const CustomAppBar(
         title: 'Selamat Datang',
         subtitle: 'di Aplikasi MyGizi',
