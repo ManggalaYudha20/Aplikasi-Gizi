@@ -225,9 +225,11 @@ class _BmrFormPageState extends State<BmrFormPage> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 32),
                 
                 // Result
                 if (_bmrResult != null) ...[
+                  const Divider(),
                   const SizedBox(height: 32),
                   Container(
                     padding: const EdgeInsets.all(16),

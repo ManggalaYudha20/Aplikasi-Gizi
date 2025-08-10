@@ -62,7 +62,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Hitung BMI',
+        title: 'Hitung IMT',
         subtitle: 'Indeks Massa Tubuh',
       ),
       body: SafeArea(
@@ -75,7 +75,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
               children: [
                 const SizedBox(height: 20),
                 const Text(
-                  'Data Input BMI',
+                  'Data Input IMT',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -171,9 +171,11 @@ class _BmiFormPageState extends State<BmiFormPage> {
                     ),
                   ],
                 ),
-                
+                const SizedBox(height: 32),
+
                 // Result
                 if (_bmiResult != null) ...[
+                  const Divider(),
                   const SizedBox(height: 32),
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -185,7 +187,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
                     child: Column(
                       children: [
                         const Text(
-                          'Hasil Perhitungan BMI',
+                          'Hasil Perhitungan IMT',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -212,7 +214,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
                         ),
                         const SizedBox(height: 8),
                         const Text(
-                          'Indeks Massa Tubuh (BMI) adalah ukuran untuk mengevaluasi berat badan ideal berdasarkan tinggi badan.',
+                          'Indeks Massa Tubuh (IMT) adalah ukuran untuk mengevaluasi berat badan ideal berdasarkan tinggi badan.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,

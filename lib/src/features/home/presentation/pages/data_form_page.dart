@@ -26,6 +26,16 @@ class _DataFormPageState extends State<DataFormPage> {
     super.dispose();
   }
 
+  void _resetForm() {
+    setState(() {
+      _nameController.clear();
+      _ageController.clear();
+      _weightController.clear();
+      _heightController.clear();
+      _selectedGender = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -167,29 +177,59 @@ class _DataFormPageState extends State<DataFormPage> {
                 ),
                 const SizedBox(height: 32),
                 
-                // Submit Button
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // Process the form data
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Data berhasil disimpan'),
+                // Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _resetForm,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          side: const BorderSide(color: Color.fromARGB(255, 0, 148, 68)),
                         ),
-                      );
-                      Navigator.pop(context);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                        child: const Text(
+                          'Reset',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Color.fromARGB(255, 0, 148, 68),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'Simpan Data',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            // Process the form data
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Data berhasil disimpan'),
+                              ),
+                            );
+                            Navigator.pop(context);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+                        ),
+                        child: const Text(
+                          'Simpan Data',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

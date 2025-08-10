@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/bmi_form_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/bmr_form_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/tdee_form_page.dart';
 
 class FormulaCalculationPage extends StatelessWidget {
   const FormulaCalculationPage({super.key});
@@ -17,13 +18,6 @@ class FormulaCalculationPage extends StatelessWidget {
         'route': '/imt-form',
       },
       {
-        'name': 'Harris\nBenedict',
-        'fullName': 'Harris Benedict',
-        'icon': Icons.person,
-        'color': Colors.green,
-        'route': '/harris-benedict-form',
-      },
-      {
         'name': 'BMR',
         'fullName': 'Basal Metabolic Rate',
         'icon': Icons.local_fire_department,
@@ -31,12 +25,21 @@ class FormulaCalculationPage extends StatelessWidget {
         'route': '/bmr-form',
       },
       {
-        'name': 'TEE',
-        'fullName': 'Total Energy Expenditure',
+        'name': 'TDEE',
+        'fullName': 'Total Daily Energy Expenditure',
         'icon': Icons.battery_charging_full,
         'color': Colors.purple,
         'route': '/tee-form',
       },
+      /*
+      {
+        'name': 'Harris\nBenedict',
+        'fullName': 'Harris Benedict',
+        'icon': Icons.person,
+        'color': Colors.green,
+        'route': '/harris-benedict-form',
+      },
+      
       {
         'name': 'Protein',
         'fullName': 'Kebutuhan Protein',
@@ -51,6 +54,7 @@ class FormulaCalculationPage extends StatelessWidget {
         'color': Colors.brown,
         'route': '/fat-form',
       },
+      */
     ];
 
     return Scaffold(
@@ -184,6 +188,29 @@ class FormulaCalculationPage extends StatelessWidget {
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
             const BmrFormPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            
+            var tween = Tween(begin: begin, end: end).chain(
+              CurveTween(curve: curve),
+            );
+            
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 300),
+        ),
+      );
+    } else if (route == '/tee-form') {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+            const TdeeFormPage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
