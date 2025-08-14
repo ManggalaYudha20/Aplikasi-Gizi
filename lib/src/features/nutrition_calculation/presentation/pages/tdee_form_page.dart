@@ -121,7 +121,7 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Perhitungan TDEE',
+        title: 'Hitung TDEE',
         subtitle: 'Total Daily Energy Expenditure',
       ),
       body: SafeArea(

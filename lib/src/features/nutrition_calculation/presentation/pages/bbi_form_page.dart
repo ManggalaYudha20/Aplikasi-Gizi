@@ -1,59 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 
-class BmiFormPage extends StatefulWidget {
-  const BmiFormPage({super.key});
+class BbiFormPage extends StatefulWidget {
+  const BbiFormPage({super.key});
 
   @override
-  State<BmiFormPage> createState() => _BmiFormPageState();
+  State<BbiFormPage> createState() => _BbiFormPageState();
 }
 
-class _BmiFormPageState extends State<BmiFormPage> {
+class _BbiFormPageState extends State<BbiFormPage> {
   final _formKey = GlobalKey<FormState>();
-  final _weightController = TextEditingController();
   final _heightController = TextEditingController();
 
-  double? _bmiResult;
-  String? _bmiCategory;
+  String? _selectedGender;
+  double? _bbiResult;
 
   @override
   void dispose() {
-    _weightController.dispose();
     _heightController.dispose();
     super.dispose();
   }
 
-  void _calculateBMI() {
+  void _calculateBBI() {
     if (_formKey.currentState!.validate()) {
-      final weight = double.parse(_weightController.text);
-      final height = double.parse(_heightController.text) / 100; // Convert cm to m
+      final height = double.parse(_heightController.text);
       
-      final bmi = weight / (height * height);
+      double bbi;
       
-      String category;
-      if (bmi < 18.5) {
-        category = 'Kurus';
-      } else if (bmi >= 18.5 && bmi < 25) {
-        category = 'Normal';
-      } else if (bmi >= 25 && bmi < 30) {
-        category = 'Gemuk';
+      if (_selectedGender == 'Laki-laki') {
+        // Formula untuk laki-laki: [tinggi badan (cm) - 100] - [(tinggi badan (cm) - 100) × 10%]
+        bbi = (height - 100) - ((height - 100) * 0.10);
       } else {
-        category = 'Obesitas';
+        // Formula untuk perempuan: [tinggi badan (cm) - 100] - [(tinggi badan (cm) - 100) × 15%]
+        bbi = (height - 100) - ((height - 100) * 0.15);
       }
       
       setState(() {
-        _bmiResult = bmi;
-        _bmiCategory = category;
+        _bbiResult = bbi;
       });
     }
   }
 
   void _resetForm() {
     setState(() {
-      _weightController.clear();
       _heightController.clear();
-      _bmiResult = null;
-      _bmiCategory = null;
+      _selectedGender = null;
+      _bbiResult = null;
     });
   }
 
@@ -62,8 +54,8 @@ class _BmiFormPageState extends State<BmiFormPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Hitung IMT',
-        subtitle: 'Indeks Massa Tubuh',
+        title: 'Hitung BBI',
+        subtitle: 'Berat Badan Ideal',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -75,35 +67,13 @@ class _BmiFormPageState extends State<BmiFormPage> {
               children: [
                 const SizedBox(height: 20),
                 const Text(
-                  'Data Input IMT',
+                  'Data Input BBI',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 20),
-                
-                // Berat Badan
-                TextFormField(
-                  controller: _weightController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Berat Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.monitor_weight),
-                    suffixText: 'kg',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Berat badan tidak boleh kosong';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Masukkan angka yang valid';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
                 
                 // Tinggi Badan
                 TextFormField(
@@ -121,6 +91,38 @@ class _BmiFormPageState extends State<BmiFormPage> {
                     }
                     if (double.tryParse(value) == null) {
                       return 'Masukkan angka yang valid';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                
+                // Jenis Kelamin
+                DropdownButtonFormField<String>(
+                  value: _selectedGender,
+                  decoration: const InputDecoration(
+                    labelText: 'Jenis Kelamin',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.wc),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'Laki-laki',
+                      child: Text('Laki-laki'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Perempuan',
+                      child: Text('Perempuan'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedGender = value;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Pilih jenis kelamin';
                     }
                     return null;
                   },
@@ -152,7 +154,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: _calculateBMI,
+                        onPressed: _calculateBBI,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -172,9 +174,9 @@ class _BmiFormPageState extends State<BmiFormPage> {
                   ],
                 ),
                 const SizedBox(height: 32),
-
+                
                 // Result
-                if (_bmiResult != null) ...[
+                if (_bbiResult != null) ...[
                   const Divider(),
                   const SizedBox(height: 32),
                   Container(
@@ -187,7 +189,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
                     child: Column(
                       children: [
                         const Text(
-                          'Hasil Perhitungan IMT',
+                          'Hasil Perhitungan BBI',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -196,7 +198,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '${_bmiResult!.toStringAsFixed(2)} kg/m²',
+                          '${_bbiResult!.toStringAsFixed(2)} kg',
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -204,17 +206,8 @@ class _BmiFormPageState extends State<BmiFormPage> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          'Kategori: $_bmiCategory',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 0, 148, 68),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
                         const Text(
-                          'Indeks Massa Tubuh (IMT) adalah ukuran untuk mengevaluasi berat badan ideal berdasarkan tinggi badan.',
+                          'Berat Badan Ideal (BBI) adalah berat badan yang dianggap optimal untuk tinggi badan dan jenis kelamin.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,
@@ -224,60 +217,6 @@ class _BmiFormPageState extends State<BmiFormPage> {
                       ],
                     ),
                   ),
-
-                  const SizedBox(height: 32),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 174, 174, 174).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color.fromARGB(255, 0, 0, 0)),
-                    ),
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Kategori Indeks Massa Tubuh\nMenurut WHO',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 0, 0, 0),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Berat Badan Kurang (Underweight): < 18,5\n'
-                          'Kurus Parah (Severe thinness): < 16,0\n'
-                          'Kurus Sedang (Moderate thinness) 16,0 - 16,9\n'
-                          'Kurus Ringan (Mild thinness): 17,0 - 18,4\n\n'
-                          'Berat Badan Normal (Normal range): 18,5 - 24,9 \n\n'
-                          'Berat Badan Berlebih (Overweight): ≥ 25,0\n\n'
-                          'Pre-obesitas (Pre-obese) 25,0 - 29,9\n'
-                          'Obesitas (Obese): ≥ 30,0\n'
-                          'Obesitas Kelas I :30,0 - 34,9\n'
-                          'Obesitas Kelas II: 35,0 - 39,9\n'
-                          'Obesitas Kelas III: (Ekstrem): ≥ 40,0',
-                          textAlign: TextAlign.left,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.normal,
-                            color: Color.fromARGB(255, 0, 0, 0),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'sumber menurut WHO',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-
                 ],
               ],
             ),

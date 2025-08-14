@@ -3,6 +3,8 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/bmi_form_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/bmr_form_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/tdee_form_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/bbi_form_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/nutrition_status_form_page.dart';
 
 class FormulaCalculationPage extends StatelessWidget {
   const FormulaCalculationPage({super.key});
@@ -31,30 +33,31 @@ class FormulaCalculationPage extends StatelessWidget {
         'color': Colors.purple,
         'route': '/tee-form',
       },
-      /*
+
       {
-        'name': 'Harris\nBenedict',
-        'fullName': 'Harris Benedict',
-        'icon': Icons.person,
+        'name': 'BBI',
+        'fullName': 'Berat Badan Ideal\n (Usia > 18 Tahun)',
+        'icon': Icons.monitor_weight,
         'color': Colors.green,
-        'route': '/harris-benedict-form',
+        'route': '/bbi-form',
       },
       
       {
-        'name': 'Protein',
-        'fullName': 'Kebutuhan Protein',
-        'icon': Icons.egg,
+        'name': 'Status Gizi',
+        'fullName': 'Status Gizi\n (Usia 0-60 Bulan)',
+        'icon': Icons.child_care,
         'color': Colors.red,
-        'route': '/protein-form',
+        'route': '/statusgizi-form',
       },
+      
       {
-        'name': 'Lemak',
-        'fullName': 'Kebutuhan Lemak',
-        'icon': Icons.water_drop,
+        'name': 'IMT/U',
+        'fullName': 'Indeks Massa Tubuh\nBerdasarkan Usia (5-18 Tahun)',
+        'icon': Icons.calculate,
         'color': Colors.brown,
-        'route': '/fat-form',
+        'route': '/imtu-form',
       },
-      */
+      
     ];
 
     return Scaffold(
@@ -211,6 +214,52 @@ class FormulaCalculationPage extends StatelessWidget {
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
             const TdeeFormPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            
+            var tween = Tween(begin: begin, end: end).chain(
+              CurveTween(curve: curve),
+            );
+            
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 300),
+        ),
+      );
+    } else if (route == '/bbi-form') {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+            const BbiFormPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            
+            var tween = Tween(begin: begin, end: end).chain(
+              CurveTween(curve: curve),
+            );
+            
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 300),
+        ),
+      );
+    } else if (route == '/statusgizi-form') {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+            const NutritionStatusFormPage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
