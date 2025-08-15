@@ -200,11 +200,41 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
 
   Map<String, dynamic> _calculateWeightForHeight(double height, double weight, String gender) {
     try {
-      // Note: Weight-for-height reference data is not available in the current dataset
-      // Using BMI-for-age as alternative since we don't have weight-for-height data
-      final bmi = weight / pow(height / 100, 2);
-      final age = _ageInMonths ?? 0;
-      return _calculateBMIForAge(age, bmi, gender);
+      final referenceData = gender == 'Laki-laki'
+          ? NutritionStatusData.bbPbTbUBoys
+          : NutritionStatusData.bbPbTbUGirls;
+      
+      // Find the closest height in the reference data
+      double closestHeight = referenceData.keys.first;
+      double minDifference = (height - closestHeight).abs();
+      
+      for (final h in referenceData.keys) {
+        final difference = (height - h).abs();
+        if (difference < minDifference) {
+          minDifference = difference;
+          closestHeight = h;
+        }
+      }
+      
+      // Allow interpolation for heights within 1cm of reference
+      if (minDifference > 1.0) {
+        return {
+          'zScore': null,
+          'category': 'Data referensi tidak tersedia untuk tinggi ini',
+          'value': weight,
+        };
+      }
+      
+      final percentiles = referenceData[closestHeight]!;
+      final median = percentiles[3];
+      final sd = percentiles[4] - median;
+      final zScore = (weight - median) / sd;
+      
+      return {
+        'zScore': zScore,
+        'category': _getWeightForHeightCategory(zScore),
+        'value': weight,
+      };
     } catch (e) {
       return {
         'zScore': null,
@@ -262,6 +292,15 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   }
 
   String _getBMIForAgeCategory(double zScore) {
+    if (zScore < -3) return 'Gizi buruk (severely wasted)';
+    if (zScore < -2) return 'Gizi kurang (wasted)';
+    if (zScore <= 1) return 'Gizi baik (normal)';
+    if (zScore <= 2) return 'Berisiko gizi lebih';
+    if (zScore <= 3) return 'Gizi lebih (overweight)';
+    return 'Obesitas (obese)';
+  }
+
+  String _getWeightForHeightCategory(double zScore) {
     if (zScore < -3) return 'Gizi buruk (severely wasted)';
     if (zScore < -2) return 'Gizi kurang (wasted)';
     if (zScore <= 1) return 'Gizi baik (normal)';
