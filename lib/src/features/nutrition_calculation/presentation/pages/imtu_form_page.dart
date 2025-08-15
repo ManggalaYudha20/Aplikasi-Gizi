@@ -148,8 +148,8 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'IMT/U (BMI-for-Age)',
-        subtitle: '5-18 Tahun',
+        title: 'IMT/U',
+        subtitle: 'Usia 5 - 18 Tahun',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -298,12 +298,34 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                 Row(
                   children: [
                     Expanded(
+                      child: OutlinedButton(
+                        onPressed: _resetForm,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          side: const BorderSide(color: Color.fromARGB(255, 0, 148, 68)),
+                        ),
+                        child: const Text(
+                          'Reset',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Color.fromARGB(255, 0, 148, 68),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _calculateIMTU,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.brown,
-                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          backgroundColor: const Color.fromARGB(255, 0, 148, 68),
                         ),
                         child: _isLoading
                             ? const SizedBox(
@@ -314,17 +336,13 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                 ),
                               )
-                            : const Text('Hitung IMT/U'),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _resetForm,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        child: const Text('Reset'),
+                            : const Text(
+                                'Hitung',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -337,50 +355,104 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                   const SizedBox(height: 16),
                   const Text(
                     'Hasil Perhitungan',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.brown.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.brown.shade200),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'IMT: ${_calculationResult!['bmi']?.toStringAsFixed(2) ?? '-'} kg/m²',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Z-Score: ${_calculationResult!['zScore']?.toStringAsFixed(2) ?? '-'}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Kategori: ${_calculationResult!['category'] ?? '-'}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.brown,
-                          ),
-                        ),
-                      ],
-                    ),
+                  
+                  // IMT/U Result
+                  _buildResultCard(
+                    title: 'Indeks Massa Tubuh menurut Umur (IMT/U)',
+                    data: _calculationResult!,
+                    additionalInfo: 'IMT: ${_calculationResult!['bmi']?.toStringAsFixed(2) ?? '-'} kg/m²',
                   ),
                 ],
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResultCard({
+    required String title,
+    required Map<String, dynamic> data,
+    String? additionalInfo,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.brown,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (additionalInfo != null) ...[
+              Text(
+                additionalInfo,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            Row(
+              children: [
+                const Text(
+                  'Z-Score: ',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  data['zScore']?.toStringAsFixed(2) ?? '-',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.brown,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Text(
+                  'Kategori: ',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    data['category'] ?? '-',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.brown,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
