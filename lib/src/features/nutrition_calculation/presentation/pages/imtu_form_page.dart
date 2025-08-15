@@ -65,7 +65,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
 
       // Calculate BMI
       final bmi = weight / ((height / 100) * (height / 100));
-      
+
       // Calculate IMT/U z-score
       final result = _calculateIMTUZScore(
         ageYears: ageYears,
@@ -147,10 +147,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar: const CustomAppBar(
-        title: 'IMT/U',
-        subtitle: 'Usia 5 - 18 Tahun',
-      ),
+      appBar: const CustomAppBar(title: 'IMT/U', subtitle: 'Usia 5-18 Tahun'),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -256,6 +253,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                   decoration: const InputDecoration(
                     labelText: 'Berat Badan',
                     border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.monitor_weight),
                     suffixText: 'kg',
                   ),
                   keyboardType: TextInputType.number,
@@ -278,6 +276,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                   decoration: const InputDecoration(
                     labelText: 'Tinggi Badan',
                     border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.height),
                     suffixText: 'cm',
                   ),
                   keyboardType: TextInputType.number,
@@ -305,7 +304,9 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          side: const BorderSide(color: Color.fromARGB(255, 0, 148, 68)),
+                          side: const BorderSide(
+                            color: Color.fromARGB(255, 0, 148, 68),
+                          ),
                         ),
                         child: const Text(
                           'Reset',
@@ -325,7 +326,12 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            0,
+                            148,
+                            68,
+                          ),
                         ),
                         child: _isLoading
                             ? const SizedBox(
@@ -333,7 +339,9 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               )
                             : const Text(
@@ -355,18 +363,16 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                   const SizedBox(height: 16),
                   const Text(
                     'Hasil Perhitungan',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // IMT/U Result
                   _buildResultCard(
                     title: 'Indeks Massa Tubuh menurut Umur (IMT/U)',
                     data: _calculationResult!,
-                    additionalInfo: 'IMT: ${_calculationResult!['bmi']?.toStringAsFixed(2) ?? '-'} kg/m²',
+                    additionalInfo:
+                        'IMT: ${_calculationResult!['bmi']?.toStringAsFixed(2) ?? '-'} kg/m²',
                   ),
                 ],
               ],
@@ -386,7 +392,14 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Color.fromARGB(
+            255, 0, 148, 68
+          ), // Warna border (disamakan dengan warna teks)
+          width: 2.0,
+        ),
       ),
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -397,7 +410,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.brown,
+                color: Color.fromARGB(255, 0, 148, 68),
               ),
             ),
             const SizedBox(height: 12),
@@ -415,17 +428,14 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
               children: [
                 const Text(
                   'Z-Score: ',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                 ),
                 Text(
                   data['zScore']?.toStringAsFixed(2) ?? '-',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Colors.brown,
+                    color: Color.fromARGB(255, 0, 148, 68),
                   ),
                 ),
               ],
@@ -435,10 +445,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
               children: [
                 const Text(
                   'Kategori: ',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                 ),
                 Expanded(
                   child: Text(
@@ -446,7 +453,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.brown,
+                      color: Color.fromARGB(255, 0, 148, 68),
                     ),
                   ),
                 ),
