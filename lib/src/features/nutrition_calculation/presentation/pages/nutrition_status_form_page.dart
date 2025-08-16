@@ -586,7 +586,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Color.fromARGB(255, 0, 148, 68), width: 2.0),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),

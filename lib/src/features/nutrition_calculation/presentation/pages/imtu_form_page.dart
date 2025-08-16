@@ -126,8 +126,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
     if (zScore < -3) return 'Gizi buruk (severely wasted)';
     if (zScore < -2) return 'Gizi kurang (wasted)';
     if (zScore <= 1) return 'Gizi baik (normal)';
-    if (zScore <= 2) return 'Berisiko gizi lebih';
-    if (zScore <= 3) return 'Gizi lebih (overweight)';
+    if (zScore <= 2) return 'Gizi lebih (overweight)';
     return 'Obesitas (obese)';
   }
 
@@ -154,49 +153,17 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Gender Selection
+                const SizedBox(height: 20),
                 const Text(
-                  'Jenis Kelamin',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  'Data Input IMT/U  5-18 Tahun',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: RadioListTile<String>(
-                        title: const Text('Laki-laki'),
-                        value: 'Laki-laki',
-                        groupValue: _selectedGender,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedGender = value;
-                          });
-                        },
-                      ),
-                    ),
-                    Expanded(
-                      child: RadioListTile<String>(
-                        title: const Text('Perempuan'),
-                        value: 'Perempuan',
-                        groupValue: _selectedGender,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedGender = value;
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
+
+                const SizedBox(height: 20),
 
                 // Age Input
-                const Text(
-                  'Usia',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -206,6 +173,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                         decoration: const InputDecoration(
                           labelText: 'Tahun',
                           border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.calendar_today),
                           suffixText: 'tahun',
                         ),
                         keyboardType: TextInputType.number,
@@ -244,6 +212,38 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 16),
+
+                // Gender Selection
+                DropdownButtonFormField<String>(
+                  value: _selectedGender,
+                  decoration: const InputDecoration(
+                    labelText: 'Jenis Kelamin',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.wc),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'Laki-laki',
+                      child: Text('Laki-laki'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Perempuan',
+                      child: Text('Perempuan'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedGender = value;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Pilih jenis kelamin';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
 
@@ -362,7 +362,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                   const Divider(),
                   const SizedBox(height: 16),
                   const Text(
-                    'Hasil Perhitungan',
+                    'Hasil IMT Berdasarkan Usia 5-18 Tahun',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
@@ -392,12 +392,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Color.fromARGB(
-            255, 0, 148, 68
-          ), // Warna border (disamakan dengan warna teks)
-          width: 2.0,
-        ),
+        side: BorderSide(color: Color.fromARGB(255, 0, 148, 68), width: 2.0),
       ),
       color: Colors.white,
       child: Padding(
@@ -410,7 +405,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 0, 148, 68),
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
             ),
             const SizedBox(height: 12),
@@ -428,14 +423,14 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
               children: [
                 const Text(
                   'Z-Score: ',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500,color: Color(0xFF9E9E9E),),
                 ),
                 Text(
                   data['zScore']?.toStringAsFixed(2) ?? '-',
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 0, 148, 68),
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF9E9E9E),
                   ),
                 ),
               ],
@@ -445,7 +440,11 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
               children: [
                 const Text(
                   'Kategori: ',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 0, 148, 68),
+                  ),
                 ),
                 Expanded(
                   child: Text(
