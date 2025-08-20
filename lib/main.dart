@@ -3,9 +3,12 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/bottom_navbar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/home/presentation/pages/home_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_info/presentation/pages/nutrition_info_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/about/presentation/pages/about_page.dart';
+import 'package:aplikasi_diagnosa_gizi/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
-  
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
