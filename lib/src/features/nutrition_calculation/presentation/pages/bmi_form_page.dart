@@ -62,7 +62,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Hitung IMT',
+        title: 'IMT',
         subtitle: 'Indeks Massa Tubuh',
       ),
       body: SafeArea(

@@ -54,7 +54,7 @@ class _BbiFormPageState extends State<BbiFormPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Hitung BBI',
+        title: 'BBI',
         subtitle: 'Berat Badan Ideal',
       ),
       body: SafeArea(

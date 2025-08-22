@@ -121,7 +121,7 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Hitung TDEE',
+        title: 'TDEE',
         subtitle: 'Total Daily Energy Expenditure',
       ),
       body: SafeArea(
@@ -333,6 +333,7 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
+                          side: const BorderSide(color: Color.fromARGB(255, 0, 148, 68)),
                         ),
                         child: const Text(
                           'Reset',

@@ -62,7 +62,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Hitung BMR',
+        title: 'BMR',
         subtitle: 'Basal Metabolic Rate',
       ),
       body: SafeArea(
