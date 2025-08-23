@@ -14,7 +14,12 @@ class FoodDetailPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
-        title: Text(foodItem.name),
+        title: Text(
+          foodItem.name,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: const Color.fromARGB(255, 0, 148, 68),
         foregroundColor: Colors.white,
       ),
