@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/disease_calculation_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/formula_calculation_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_page.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_viewer_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_page.dart';
 
 class NutritionInfoPage extends StatelessWidget {
   const NutritionInfoPage({super.key});
@@ -116,7 +116,7 @@ class NutritionInfoPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const LeafletViewerPage(),
+                        builder: (context) => const LeafletListPage(),
                       ),
                     );
                   },

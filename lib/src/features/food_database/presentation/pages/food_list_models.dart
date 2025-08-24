@@ -1,5 +1,3 @@
-// lib/models/food_item.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FoodItem {
