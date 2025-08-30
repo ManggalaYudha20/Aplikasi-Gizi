@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
+import 'diabetes_calculation_page.dart';
 
 class DiseaseCalculationPage extends StatelessWidget {
   const DiseaseCalculationPage({super.key});
@@ -124,22 +125,39 @@ class DiseaseCalculationPage extends StatelessWidget {
     String route,
     String title,
   ) {
-    // For now, show a dialog with the disease name
-    // In a real app, you would navigate to specific form pages
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Penyakit: $title'),
-        content: Text(
-          'Navigasi ke halaman input untuk $title akan diimplementasikan.',
+    if (route == '/diabetes-form') {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const DiabetesCalculationPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            );
+          },
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+      );
+    } else {
+      // For other diseases, show dialog for now
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Penyakit: $title'),
+          content: Text(
+            'Navigasi ke halaman input untuk $title akan diimplementasikan.',
           ),
-        ],
-      ),
-    );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 }
