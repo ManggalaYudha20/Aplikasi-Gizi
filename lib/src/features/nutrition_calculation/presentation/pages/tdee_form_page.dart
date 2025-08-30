@@ -345,6 +345,7 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                       ),
                     ),
                     const SizedBox(width: 16),
+                    
                     Expanded(
                       child: ElevatedButton(
                         onPressed: calculateTDEE,
