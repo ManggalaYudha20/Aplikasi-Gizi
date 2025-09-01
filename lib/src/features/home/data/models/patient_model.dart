@@ -47,8 +47,8 @@ class Patient {
       diagnosisMedis: data['diagnosisMedis'] ?? '',
       beratBadan: data['beratBadan'] ?? 0,
       tinggiBadan: data['tinggiBadan'] ?? 0,
-      jenisKelamin: data['jenisKelamin'] ?? 'Perempuan', // Tambahkan ini
-      aktivitas: data['aktivitas'] ?? 'Bed rest', // Tambahkan ini
+      jenisKelamin: data['jenisKelamin'] ?? 'Laki-laki', // Tambahkan ini
+      aktivitas: data['aktivitas'] ?? 'Sangat Jarang', // Tambahkan ini
       imt: data['imt'] ?? 0,
       skorIMT: data['skorIMT'] ?? 0,
       skorKehilanganBB: data['skorKehilanganBB'] ?? 0,
@@ -86,7 +86,7 @@ class Patient {
   double get tdee {
     double activityFactor = 1.2; // Default (Sangat Jarang)
     switch (aktivitas) {
-      case 'Bed rest':
+      case 'Sangat Jarang':
         activityFactor = 1.2;
         break;
       case 'Ringan':
@@ -97,6 +97,9 @@ class Patient {
         break;
       case 'Berat':
         activityFactor = 1.725;
+        break;
+      case 'Sangat Aktif':
+        activityFactor = 1.9;
         break;
     }
     return bmr * activityFactor;

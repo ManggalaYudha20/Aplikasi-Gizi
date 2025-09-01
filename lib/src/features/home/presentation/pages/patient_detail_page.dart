@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart'; // Impor model pasien
 import 'pdf_generator.dart'; // Helper untuk membuat PDF
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 
 class PatientDetailPage extends StatelessWidget {
   final Patient patient;
@@ -11,10 +12,10 @@ class PatientDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(patient.namaLengkap),
-        backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-        foregroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      appBar:  CustomAppBar(
+        title: patient.namaLengkap,
+        subtitle: 'Data Lengkap Pasien',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
