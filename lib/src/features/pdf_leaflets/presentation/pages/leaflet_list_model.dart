@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 
 class Leaflet {
   final String id;
@@ -18,9 +17,6 @@ class Leaflet {
   // sama persis dengan yang ada di Firestore Anda
   factory Leaflet.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
-    
-    // Debug: Print raw data from Firestore
-    debugPrint('Firestore document ${doc.id}: $data');
     
     return Leaflet(
       id: doc.id,

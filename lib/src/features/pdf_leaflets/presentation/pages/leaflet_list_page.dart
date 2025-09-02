@@ -79,20 +79,6 @@ class _LeafletListPageState extends State<LeafletListPage> {
         title: 'Leaflet Informasi Gizi',
         subtitle: 'Pilih leaflet untuk dibaca',
       ),
-      /*
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const LeafletDebugPage(),
-            ),
-          );
-        },
-        backgroundColor: Colors.red,
-        child: const Icon(Icons.bug_report),
-      ),
-      */
       body: SafeArea(
         child: Column(
           children: [
