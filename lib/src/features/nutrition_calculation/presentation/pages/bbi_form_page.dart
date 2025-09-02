@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 
 class BbiFormPage extends StatefulWidget {
   const BbiFormPage({super.key});
@@ -11,6 +12,8 @@ class BbiFormPage extends StatefulWidget {
 class _BbiFormPageState extends State<BbiFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _heightController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _resultCardKey = GlobalKey();
 
   String? _selectedGender;
   double? _bbiResult;
@@ -18,7 +21,20 @@ class _BbiFormPageState extends State<BbiFormPage> {
   @override
   void dispose() {
     _heightController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToResult() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_resultCardKey.currentContext != null) {
+        Scrollable.ensureVisible(
+          _resultCardKey.currentContext!,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   void _calculateBBI() {
@@ -38,11 +54,13 @@ class _BbiFormPageState extends State<BbiFormPage> {
       setState(() {
         _bbiResult = bbi;
       });
+      _scrollToResult();
     }
   }
 
   void _resetForm() {
     setState(() {
+      _formKey.currentState?.reset();
       _heightController.clear();
       _selectedGender = null;
       _bbiResult = null;
@@ -59,6 +77,7 @@ class _BbiFormPageState extends State<BbiFormPage> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
@@ -130,55 +149,19 @@ class _BbiFormPageState extends State<BbiFormPage> {
                 const SizedBox(height: 32),
                 
                 // Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _resetForm,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          side: const BorderSide(color: Color.fromARGB(255, 0, 148, 68)),
-                        ),
-                        child: const Text(
-                          'Reset',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Color.fromARGB(255, 0, 148, 68),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _calculateBBI,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-                        ),
-                        child: const Text(
-                          'Hitung',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                FormActionButtons(onReset: _resetForm, onSubmit: _calculateBBI),
                 const SizedBox(height: 32),
                 
                 // Result
                 if (_bbiResult != null) ...[
-                  const Divider(),
-                  const SizedBox(height: 32),
+
+                  Container(
+                    key: _resultCardKey, 
+                    child: const Column(
+                      children: [Divider(), SizedBox(height: 32)],
+                    ),
+                  ),
+
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -217,6 +200,7 @@ class _BbiFormPageState extends State<BbiFormPage> {
                       ],
                     ),
                   ),
+                  
                 ],
               ],
             ),

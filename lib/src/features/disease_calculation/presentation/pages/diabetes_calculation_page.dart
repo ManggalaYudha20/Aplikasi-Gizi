@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 
 class DiabetesCalculationPage extends StatefulWidget {
   const DiabetesCalculationPage({super.key});
@@ -16,6 +17,8 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   final _ageController = TextEditingController();
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _resultCardKey = GlobalKey();
 
   // Form fields
   String? _selectedGender;
@@ -50,7 +53,20 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     _ageController.dispose();
     _weightController.dispose();
     _heightController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToResult() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_resultCardKey.currentContext != null) {
+        Scrollable.ensureVisible(
+          _resultCardKey.currentContext!,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   double _calculateBBIdeal(double height, String gender) {
@@ -193,6 +209,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
       _generateRecommendation();
 
       setState(() {});
+      _scrollToResult();
     }
   }
 
@@ -288,6 +305,7 @@ Catatan:
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
@@ -376,7 +394,7 @@ Catatan:
                 TextFormField(
                   controller: _heightController,
                   decoration: const InputDecoration(
-                    labelText: 'Tinggi Badan (cm)',
+                    labelText: 'Tinggi Badan',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.height),
                     suffixText: 'cm',
@@ -534,62 +552,22 @@ Catatan:
                 const SizedBox(height: 24),
 
                 // Calculate Button
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _resetForm,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          side: const BorderSide(
-                            color: Color.fromARGB(255, 0, 148, 68),
-                          ),
-                        ),
-                        child: const Text(
-                          'Reset',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Color.fromARGB(255, 0, 148, 68),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
+                FormActionButtons(onReset: _resetForm, onSubmit: _calculateDiabetesNutrition),
 
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _calculateDiabetesNutrition,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            0,
-                            148,
-                            68,
-                          ),
-                        ),
-                        child: const Text(
-                          'Hitung',
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 32),
 
                 // Results
                 if (_bbIdeal != null &&
                     _bmr != null &&
                     _totalCalories != null) ...[
-                  const Divider(),
-                  const SizedBox(height: 32),
+
+                  Container(
+                    key: _resultCardKey, 
+                    child: const Column(
+                      children: [Divider(), SizedBox(height: 32)],
+                    ),
+                  ),
+                  
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(

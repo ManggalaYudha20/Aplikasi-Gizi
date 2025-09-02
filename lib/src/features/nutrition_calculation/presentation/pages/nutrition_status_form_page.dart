@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_status_models.dart';
 import 'package:intl/intl.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 
 class NutritionStatusFormPage extends StatefulWidget {
   const NutritionStatusFormPage({super.key});
@@ -14,6 +15,8 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _resultCardKey = GlobalKey();
   
   DateTime? _birthDate;
   DateTime? _measurementDate;
@@ -26,7 +29,20 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   void dispose() {
     _weightController.dispose();
     _heightController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToResult() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_resultCardKey.currentContext != null) {
+        Scrollable.ensureVisible(
+          _resultCardKey.currentContext!,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   Future<void> _selectDate(BuildContext context, bool isBirthDate) async {
@@ -97,6 +113,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
       setState(() {
         _calculationResults = results;
       });
+      _scrollToResult();
     }
   }
 
@@ -310,6 +327,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
 
   void _resetForm() {
     setState(() {
+      _formKey.currentState?.reset();
       _birthDate = null;
       _measurementDate = null;
       _weightController.clear();
@@ -330,6 +348,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
@@ -359,7 +378,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
-                      color: _birthDate == null ? Colors.grey : Colors.green,
+                      color: _birthDate == null ? Colors.grey : Color.fromARGB(255, 0, 148, 68),
                     ),
                   ),
                 ),
@@ -378,7 +397,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
-                      color: _measurementDate == null ? Colors.grey : Colors.green,
+                      color: _measurementDate == null ? Colors.grey : Color.fromARGB(255, 0, 148, 68),
                     ),
                   ),
                 ),
@@ -482,55 +501,19 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                 const SizedBox(height: 32),
                 
                 // Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _resetForm,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          side: const BorderSide(color: Color.fromARGB(255, 0, 148, 68)),
-                        ),
-                        child: const Text(
-                          'Reset',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Color.fromARGB(255, 0, 148, 68),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _calculateNutritionStatus,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-                        ),
-                        child: const Text(
-                          'Hitung',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                FormActionButtons(onReset: _resetForm, onSubmit: _calculateNutritionStatus),
+
                 const SizedBox(height: 32),
                 
                 // Results
                 if (_calculationResults != null) ...[
-                  const Divider(),
-                  const SizedBox(height: 16),
+                  Container(
+                    key: _resultCardKey, 
+                    child: const Column(
+                      children: [Divider(), SizedBox(height: 32)],
+                    ),
+                  ),
+
                   const Text(
                     'Hasil Status Gizi',
                     style: TextStyle(

@@ -76,7 +76,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(240, 245, 245, 245),
+      backgroundColor: const Color.fromARGB(150, 255, 255, 255),
       appBar: const CustomAppBar(
         title: 'Selamat Datang',
         subtitle: 'di Aplikasi MyGizi',

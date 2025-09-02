@@ -4,6 +4,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/presenta
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/formula_calculation_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/menu_button.dart';
 
 class NutritionInfoPage extends StatelessWidget {
   const NutritionInfoPage({super.key});
@@ -21,176 +22,76 @@ class NutritionInfoPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Disease Calculation Button
-              SizedBox(
-                width: 200,
-                height: 100,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const DiseaseCalculationPage(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.medical_services,
-                        size: 30,
-                        color: Colors.white,
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Perhitungan Penyakit',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
               
-              // Food Database Button
-              SizedBox(
-                width: 200,
-                height: 100,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FoodListPage(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.food_bank,
-                        size: 30,
-                        color: Colors.white,
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Database Makanan',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // Disease Calculation Button
+                  MenuButton(
+                    text: 'Perhitungan\nPenyakit',
+                    icon: Icons.medical_services,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DiseaseCalculationPage(),
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                ),
+
+                  // Food Database Button
+                  MenuButton(
+                    text: 'Database\nMakanan',
+                    icon: Icons.food_bank,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FoodListPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
+
               const SizedBox(height: 20),
-              
-              // PDF Leaflets Button
-              SizedBox(
-                width: 200,
-                height: 100,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LeafletListPage(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.picture_as_pdf,
-                        size: 30,
-                        color: Colors.white,
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Leaflet Informasi',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // PDF Leaflets Button
+                  MenuButton(
+                    text: 'Leaflet\nInformasi',
+                    icon: Icons.picture_as_pdf,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LeafletListPage(),
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              
-              // Formula Calculation Button
-              SizedBox(
-                width: 200,
-                height: 100,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FormulaCalculationPage(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.calculate,
-                        size: 30,
-                        color: Colors.white,
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Perhitungan Formula',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                 
+
+                  // Formula Calculation Button
+                  MenuButton(
+                    text: 'Perhitungan\nFormula',
+                    icon: Icons.calculate,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FormulaCalculationPage(),
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                ),
+                ],
               ),
+              
             ],
           ),
         ),

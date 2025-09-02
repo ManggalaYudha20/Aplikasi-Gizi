@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 
 class TdeeFormPage extends StatefulWidget {
   const TdeeFormPage({super.key});
@@ -14,6 +15,8 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
   final _heightController = TextEditingController();
   final _ageController = TextEditingController();
   final _temperatureController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _resultCardKey = GlobalKey();
 
   String? _selectedGender;
   String? _selectedActivityFactor;
@@ -56,7 +59,20 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
     _heightController.dispose();
     _ageController.dispose();
     _temperatureController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToResult() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_resultCardKey.currentContext != null) {
+        Scrollable.ensureVisible(
+          _resultCardKey.currentContext!,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   double calculateBMR() {
@@ -98,6 +114,7 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
         _calculatedBmr = bmr;
         _calculatedTdee = tdee;
       });
+      _scrollToResult();
     }
   }
 
@@ -126,6 +143,7 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
@@ -323,58 +341,20 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                   const SizedBox(height: 16),
 
                 // Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: resetForm,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          side: const BorderSide(color: Color.fromARGB(255, 0, 148, 68)),
-                        ),
-                        child: const Text(
-                          'Reset',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Color.fromARGB(255, 0, 148, 68),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: calculateTDEE,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            0,
-                            148,
-                            68,
-                          ),
-                        ),
-                        child: const Text(
-                          'Hitung',
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                FormActionButtons(onReset: resetForm, onSubmit: calculateTDEE),
+
                 const SizedBox(height: 32),
 
                 // Results
                 if (_calculatedTdee != null) ...[
-                  const Divider(),
-                  const SizedBox(height: 32),
+
+                  Container(
+                    key: _resultCardKey, 
+                    child: const Column(
+                      children: [Divider(), SizedBox(height: 32)],
+                    ),
+                  ),
+
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 
 class BmrFormPage extends StatefulWidget {
   const BmrFormPage({super.key});
@@ -13,6 +14,8 @@ class _BmrFormPageState extends State<BmrFormPage> {
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
   final _ageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _resultCardKey = GlobalKey();
 
   String? _selectedGender;
   double? _bmrResult;
@@ -22,7 +25,20 @@ class _BmrFormPageState extends State<BmrFormPage> {
     _weightController.dispose();
     _heightController.dispose();
     _ageController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToResult() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_resultCardKey.currentContext != null) {
+        Scrollable.ensureVisible(
+          _resultCardKey.currentContext!,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   void _calculateBMR() {
@@ -44,11 +60,13 @@ class _BmrFormPageState extends State<BmrFormPage> {
       setState(() {
         _bmrResult = bmr;
       });
+      _scrollToResult();
     }
   }
 
   void _resetForm() {
     setState(() {
+      _formKey.currentState?.reset();
       _weightController.clear();
       _heightController.clear();
       _ageController.clear();
@@ -67,6 +85,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
@@ -179,58 +198,24 @@ class _BmrFormPageState extends State<BmrFormPage> {
                     return null;
                   },
                 ),
+                
                 const SizedBox(height: 32),
                 
                 // Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _resetForm,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          side: const BorderSide(color: Color.fromARGB(255, 0, 148, 68)),
-                        ),
-                        child: const Text(
-                          'Reset',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Color.fromARGB(255, 0, 148, 68),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _calculateBMR,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-                        ),
-                        child: const Text(
-                          'Hitung',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                FormActionButtons(onReset: _resetForm, onSubmit: _calculateBMR),
+
                 const SizedBox(height: 32),
                 
                 // Result
                 if (_bmrResult != null) ...[
-                  const Divider(),
-                  const SizedBox(height: 32),
+
+                  Container(
+                    key: _resultCardKey, 
+                    child: const Column(
+                      children: [Divider(), SizedBox(height: 32)],
+                    ),
+                  ),
+
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(

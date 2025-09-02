@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 
 class BmiFormPage extends StatefulWidget {
   const BmiFormPage({super.key});
@@ -12,48 +13,73 @@ class _BmiFormPageState extends State<BmiFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _resultCardKey = GlobalKey();
 
   double? _bmiResult;
   String? _bmiCategory;
+  Color? _resultColor;
 
   @override
   void dispose() {
     _weightController.dispose();
     _heightController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToResult() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_resultCardKey.currentContext != null) {
+        Scrollable.ensureVisible(
+          _resultCardKey.currentContext!,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   void _calculateBMI() {
     if (_formKey.currentState!.validate()) {
       final weight = double.parse(_weightController.text);
-      final height = double.parse(_heightController.text) / 100; // Convert cm to m
-      
+      final height =
+          double.parse(_heightController.text) / 100; // Convert cm to m
+
       final bmi = weight / (height * height);
-      
+
       String category;
       if (bmi < 18.5) {
         category = 'Kurus';
+        _resultColor = Colors.red;
       } else if (bmi >= 18.5 && bmi < 25) {
         category = 'Normal';
+        _resultColor = Color.fromARGB(255, 0, 148, 68);
       } else if (bmi >= 25 && bmi < 30) {
         category = 'Gemuk';
+        _resultColor = Colors.orange;
       } else {
         category = 'Obesitas';
+        _resultColor = Colors.red;
       }
-      
+
       setState(() {
         _bmiResult = bmi;
         _bmiCategory = category;
+        _resultColor = _resultColor;
       });
+      _scrollToResult();
     }
   }
 
   void _resetForm() {
     setState(() {
+      _formKey.currentState?.reset();
       _weightController.clear();
       _heightController.clear();
       _bmiResult = null;
       _bmiCategory = null;
+      _resultColor = null;
     });
   }
 
@@ -61,12 +87,10 @@ class _BmiFormPageState extends State<BmiFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar: const CustomAppBar(
-        title: 'IMT',
-        subtitle: 'Indeks Massa Tubuh',
-      ),
+      appBar: const CustomAppBar(title: 'IMT', subtitle: 'Indeks Massa Tubuh'),
       body: SafeArea(
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
@@ -76,13 +100,10 @@ class _BmiFormPageState extends State<BmiFormPage> {
                 const SizedBox(height: 20),
                 const Text(
                   'Data Input IMT',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Berat Badan
                 TextFormField(
                   controller: _weightController,
@@ -104,7 +125,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Tinggi Badan
                 TextFormField(
                   controller: _heightController,
@@ -126,112 +147,84 @@ class _BmiFormPageState extends State<BmiFormPage> {
                   },
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _resetForm,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          side: const BorderSide(color: Color.fromARGB(255, 0, 148, 68)),
-                        ),
-                        child: const Text(
-                          'Reset',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Color.fromARGB(255, 0, 148, 68),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _calculateBMI,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-                        ),
-                        child: const Text(
-                          'Hitung',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                FormActionButtons(onReset: _resetForm, onSubmit: _calculateBMI),
+
                 const SizedBox(height: 32),
 
                 // Result
                 if (_bmiResult != null) ...[
-                  const Divider(),
-                  const SizedBox(height: 32),
+                  Container(
+                    key: _resultCardKey, 
+                    child: const Column(
+                      children: [Divider(), SizedBox(height: 32)],
+                    ),
+                  ),
+
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 0, 148, 68).withOpacity(0.1),
+                      color: _resultColor!.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color.fromARGB(255, 0, 148, 68)),
+                      border: Border.all(
+                        color: _resultColor!,
+                      ),
                     ),
                     child: Column(
                       children: [
-                        const Text(
+                         Text(
                           'Hasil Perhitungan IMT',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 0, 148, 68),
+                            color: _resultColor!,
                           ),
                         ),
                         const SizedBox(height: 8),
+
                         Text(
                           '${_bmiResult!.toStringAsFixed(2)} kg/m²',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 0, 148, 68),
+                            color: _resultColor!,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Kategori: $_bmiCategory',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 0, 148, 68),
+                            color: _resultColor!,
                           ),
                         ),
                         const SizedBox(height: 8),
                         const Text(
                           'Indeks Massa Tubuh (IMT) adalah ukuran untuk mengevaluasi berat badan ideal berdasarkan tinggi badan.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black54,
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                       ],
                     ),
                   ),
 
                   const SizedBox(height: 32),
+                  
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 174, 174, 174).withOpacity(0.1),
+                      color: const Color.fromARGB(
+                        255,
+                        174,
+                        174,
+                        174,
+                      ).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color.fromARGB(255, 0, 0, 0)),
+                      border: Border.all(
+                        color: const Color.fromARGB(255, 0, 0, 0),
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -268,16 +261,12 @@ class _BmiFormPageState extends State<BmiFormPage> {
                         const Text(
                           'sumber menurut WHO',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black54,
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                       ],
                     ),
                   ),
-
-
+                  
                 ],
               ],
             ),

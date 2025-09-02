@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 
 class FoodDetailPage extends StatefulWidget {
   final FoodItem foodItem;
@@ -66,16 +67,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar: AppBar(
-        title: Text(
-          widget.foodItem.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-        foregroundColor: Colors.white,
-      ),
+      appBar: CustomAppBar(title: widget.foodItem.name, subtitle: '100 gram'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

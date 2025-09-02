@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_status_models.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 
 class IMTUFormPage extends StatefulWidget {
   const IMTUFormPage({super.key});
@@ -15,10 +16,11 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
   final _heightController = TextEditingController();
   final _ageYearsController = TextEditingController();
   final _ageMonthsController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _resultCardKey = GlobalKey();
 
   String? _selectedGender;
   Map<String, dynamic>? _calculationResult;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -26,13 +28,25 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
     _heightController.dispose();
     _ageYearsController.dispose();
     _ageMonthsController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToResult() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_resultCardKey.currentContext != null) {
+        Scrollable.ensureVisible(
+          _resultCardKey.currentContext!,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   void _calculateIMTU() {
     if (_formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true;
       });
 
       final weight = double.tryParse(_weightController.text) ?? 0;
@@ -46,7 +60,6 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
           const SnackBar(content: Text('Pilih jenis kelamin terlebih dahulu')),
         );
         setState(() {
-          _isLoading = false;
         });
         return;
       }
@@ -58,7 +71,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
           const SnackBar(content: Text('Usia harus antara 5-18 tahun')),
         );
         setState(() {
-          _isLoading = false;
+          
         });
         return;
       }
@@ -76,8 +89,9 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
 
       setState(() {
         _calculationResult = result;
-        _isLoading = false;
+        
       });
+      _scrollToResult();
     }
   }
 
@@ -149,6 +163,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
       appBar: const CustomAppBar(title: 'IMT/U', subtitle: 'Usia 5-18 Tahun'),
       body: SafeArea(
         child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
@@ -291,76 +306,23 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
                 // Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _resetForm,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          side: const BorderSide(
-                            color: Color.fromARGB(255, 0, 148, 68),
-                          ),
-                        ),
-                        child: const Text(
-                          'Reset',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Color.fromARGB(255, 0, 148, 68),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _calculateIMTU,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            0,
-                            148,
-                            68,
-                          ),
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                            : const Text(
-                                'Hitung',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
+                FormActionButtons(onReset: _resetForm, onSubmit: _calculateIMTU),
+
+                const SizedBox(height: 32),
 
                 // Results
                 if (_calculationResult != null) ...[
-                  const SizedBox(height: 24),
-                  const Divider(),
-                  const SizedBox(height: 16),
+
+                  Container(
+                    key: _resultCardKey, 
+                    child: const Column(
+                      children: [Divider(), SizedBox(height: 32)],
+                    ),
+                  ),
+                  
                   const Text(
                     'Hasil IMT Berdasarkan Usia 5-18 Tahun',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
