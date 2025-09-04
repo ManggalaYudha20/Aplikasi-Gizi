@@ -1,3 +1,5 @@
+// lib/src/features/home/presentation/pages/data_form_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -21,9 +23,13 @@ class _DataFormPageState extends State<DataFormPage> {
   final _diagnosisMedisController = TextEditingController();
   final _beratBadanController = TextEditingController();
   final _tinggiBadanController = TextEditingController();
+  // BARU: Controller untuk berat badan 3-6 bulan lalu
+  final _beratBadanDuluController = TextEditingController();
 
   String? _jenisKelamin;
   String? _aktivitas;
+  // BARU: State untuk menyimpan pilihan kehilangan nafsu makan
+  String? _kehilanganNafsuMakan;
   DateTime? _selectedDate;
 
   @override
@@ -34,10 +40,12 @@ class _DataFormPageState extends State<DataFormPage> {
     _diagnosisMedisController.dispose();
     _beratBadanController.dispose();
     _tinggiBadanController.dispose();
+    // BARU: Dispose controller baru
+    _beratBadanDuluController.dispose();
     super.dispose();
   }
 
-  // Fungsi baru untuk mereset semua field
+  // Fungsi untuk mereset semua field
   void _resetForm() {
     setState(() {
       _formKey.currentState?.reset();
@@ -47,6 +55,9 @@ class _DataFormPageState extends State<DataFormPage> {
       _diagnosisMedisController.clear();
       _beratBadanController.clear();
       _tinggiBadanController.clear();
+      // BARU: Reset field baru
+      _beratBadanDuluController.clear();
+      _kehilanganNafsuMakan = null;
       _jenisKelamin = null;
       _aktivitas = null;
       _selectedDate = null;
@@ -58,24 +69,46 @@ class _DataFormPageState extends State<DataFormPage> {
       setState(() => _isLoading = true);
 
       try {
-        // --- Data Collection ---
+        // --- Pengumpulan Data ---
         final noRM = _noRMController.text;
         final namaLengkap = _namaLengkapController.text;
         final diagnosisMedis = _diagnosisMedisController.text;
         final beratBadan = double.parse(_beratBadanController.text);
         final tinggiBadan = double.parse(_tinggiBadanController.text);
+        // BARU: Ambil data berat badan dulu
+        final beratBadanDulu = double.tryParse(_beratBadanDuluController.text);
 
-        // --- Calculations ---
+        // --- Perhitungan ---
         final tinggiBadanMeter = tinggiBadan / 100;
         final imt = beratBadan / (tinggiBadanMeter * tinggiBadanMeter);
 
-        // Asumsi skor default, sesuaikan jika ada logika inputnya
-        final skorIMT = (imt < 18.5 || imt > 25) ? 1 : 0;
-        const skorKehilanganBB = 0; // Contoh, perlu inputan lebih lanjut
-        const skorEfekPenyakit = 1; // Contoh, perlu inputan lebih lanjut
+        // DIUBAH: Logika skor IMT
+        final int skorIMT;
+        if (imt < 18.5) {
+          skorIMT = 2;
+        } else if (imt >= 18.5 && imt < 25) {
+          skorIMT = 1;
+        } else { // imt >= 25
+          skorIMT = 0;
+        }
+
+        // DIUBAH: Logika perhitungan skor kehilangan BB
+        int skorKehilanganBB = 0; // Default skor 0
+        if (beratBadanDulu != null && beratBadanDulu > 0) {
+          final persentaseKehilangan = ((beratBadanDulu - beratBadan) / beratBadanDulu) * 100;
+          if (persentaseKehilangan > 10) {
+            skorKehilanganBB = 2;
+          } else if (persentaseKehilangan >= 5) {
+            skorKehilanganBB = 1;
+          }
+        }
+
+        // DIUBAH: Logika skor efek penyakit dari input kehilangan nafsu makan
+        final skorEfekPenyakit = (_kehilanganNafsuMakan == 'Ya') ? 2 : 0;
+        
         final totalSkor = skorIMT + skorKehilanganBB + skorEfekPenyakit;
 
-        // --- Prepare data for Firestore ---
+        // --- Siapkan data untuk Firestore ---
         final patientData = {
           'noRM': noRM,
           'namaLengkap': namaLengkap,
@@ -92,15 +125,14 @@ class _DataFormPageState extends State<DataFormPage> {
           'skorKehilanganBB': skorKehilanganBB,
           'skorEfekPenyakit': skorEfekPenyakit,
           'totalSkor': totalSkor,
-          'tanggalPemeriksaan': Timestamp.now(), // Store the current time
+          'tanggalPemeriksaan': Timestamp.now(),
         };
 
-        // --- Send to Firestore ---
+        // --- Kirim ke Firestore ---
         await FirebaseFirestore.instance
             .collection('patients')
             .add(patientData);
 
-        // --- Show Success and Navigate Back ---
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -111,7 +143,6 @@ class _DataFormPageState extends State<DataFormPage> {
           Navigator.pop(context);
         }
       } catch (e) {
-        // --- Show Error ---
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -179,7 +210,7 @@ class _DataFormPageState extends State<DataFormPage> {
               const SizedBox(height: 16),
               _buildDropdownFormField(
                 value: _jenisKelamin,
-                prefixIcon: Icon(Icons.wc),
+                prefixIcon: const Icon(Icons.wc),
                 label: 'Jenis Kelamin',
                 items: ['Laki-laki', 'Perempuan'],
                 onChanged: (value) => setState(() => _jenisKelamin = value),
@@ -188,27 +219,52 @@ class _DataFormPageState extends State<DataFormPage> {
               _buildTextFormField(
                 controller: _diagnosisMedisController,
                 label: 'Diagnosis Medis',
-                prefixIcon: Icon(Icons.sick),
+                prefixIcon: const Icon(Icons.sick),
               ),
               const SizedBox(height: 16),
               _buildTextFormField(
                 controller: _beratBadanController,
-                label: 'Berat Badan',
+                label: 'Berat Badan Saat Ini',
                 keyboardType: TextInputType.number,
-                prefixIcon: Icon(Icons.monitor_weight),
+                prefixIcon: const Icon(Icons.monitor_weight),
                 suffixText: 'kg',
+              ),
+              const SizedBox(height: 16),
+              // BARU: Form untuk berat badan terdahulu
+              _buildTextFormField(
+                controller: _beratBadanDuluController,
+                label: 'Berat Badan 3-6 Bulan Lalu',
+                keyboardType: TextInputType.number,
+                prefixIcon: const Icon(Icons.history),
+                suffixText: 'kg',
+                // Validator ini opsional, data tetap bisa disimpan jika kosong
+                validator: (value) {
+                  if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
+                    return 'Masukkan angka yang valid';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               _buildTextFormField(
                 controller: _tinggiBadanController,
                 label: 'Tinggi Badan',
                 keyboardType: TextInputType.number,
-                prefixIcon: Icon(Icons.height),
+                prefixIcon: const Icon(Icons.height),
                 suffixText: 'cm',
               ),
               const SizedBox(height: 16),
+              // BARU: Dropdown untuk kehilangan nafsu makan
               _buildDropdownFormField(
-                prefixIcon: Icon(Icons.directions_run),
+                prefixIcon: const Icon(Icons.food_bank_outlined),
+                value: _kehilanganNafsuMakan,
+                label: 'Nafsu Makan / Asupan Berkurang?',
+                items: ['Ya', 'Tidak'],
+                onChanged: (value) => setState(() => _kehilanganNafsuMakan = value),
+              ),
+              const SizedBox(height: 16),
+              _buildDropdownFormField(
+                prefixIcon: const Icon(Icons.directions_run),
                 value: _aktivitas,
                 label: 'Tingkat Aktivitas',
                 items: [
@@ -221,7 +277,6 @@ class _DataFormPageState extends State<DataFormPage> {
                 onChanged: (value) => setState(() => _aktivitas = value),
               ),
               const SizedBox(height: 32),
-              // --- Tombol Reset dan Simpan ---
               Row(
                 children: [
                   Expanded(
@@ -287,9 +342,10 @@ class _DataFormPageState extends State<DataFormPage> {
     bool readOnly = false,
     VoidCallback? onTap,
     Icon? prefixIcon,
-    Icon? suffixIcon,
     TextInputType? keyboardType,
     String? suffixText,
+    // DIUBAH: Tambahkan parameter validator
+    String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
@@ -298,14 +354,17 @@ class _DataFormPageState extends State<DataFormPage> {
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(),
-        suffixIcon: suffixIcon,
+        border: const OutlineInputBorder(),
         prefixIcon: prefixIcon,
         suffixText: suffixText,
       ),
-      validator: (value) {
+      // DIUBAH: Gunakan validator yang diberikan atau default validator
+      validator: validator ?? (value) {
         if (value == null || value.isEmpty) {
           return '$label tidak boleh kosong';
+        }
+        if (keyboardType == TextInputType.number && double.tryParse(value) == null) {
+          return 'Masukkan angka yang valid';
         }
         return null;
       },
@@ -323,7 +382,7 @@ class _DataFormPageState extends State<DataFormPage> {
       value: value,
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(),
+        border: const OutlineInputBorder(),
         prefixIcon: prefixIcon,
       ),
       items: items.map((String item) {
