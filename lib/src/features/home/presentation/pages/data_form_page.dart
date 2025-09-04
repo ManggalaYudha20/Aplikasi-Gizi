@@ -177,6 +177,7 @@ class _DataFormPageState extends State<DataFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
         title: 'Form Data Pasien',
         subtitle: 'Isi data dengan lengkap',
