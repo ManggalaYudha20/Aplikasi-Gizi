@@ -35,8 +35,8 @@ class PatientDetailPage extends StatelessWidget {
             // --- Bagian Hasil Perhitungan Gizi ---
             _buildSectionTitle('Hasil Perhitungan Gizi'),
             _buildInfoRow('Berat Badan', '${patient.beratBadan} kg'),
-            _buildInfoRow('Tinggi Badan', '${patient.tinggiBadan} cm'),
-            _buildInfoRow('IMT (Indeks Massa Tubuh)', patient.imt.toStringAsFixed(2), isBold: true),
+            _buildInfoRow('Tinggi Badan', '${patient.tinggiBadan.toStringAsFixed(0)} cm'),
+            _buildInfoRow('IMT (Indeks Massa Tubuh)', '${patient.imt.toStringAsFixed(2)} kg/m²', isBold: true),
             _buildInfoRow('BBI (Berat Badan Ideal)', '${patient.bbi.toStringAsFixed(1)} kg', isBold: true),
             _buildInfoRow('BMR (Kebutuhan Kalori Basal)', '${patient.bmr.toStringAsFixed(2)} kkal', isBold: true),
             _buildInfoRow('TDEE (Total Kebutuhan Energi)', '${patient.tdee.toStringAsFixed(2)} kkal', isBold: true),

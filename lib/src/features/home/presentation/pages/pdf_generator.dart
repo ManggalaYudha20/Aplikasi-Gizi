@@ -5,10 +5,18 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart'; // Impor model pasien
+import 'package:flutter/services.dart';
 
 class PdfGenerator {
   static Future<File> generate(Patient patient) async {
     final pdf = pw.Document();
+
+   // BARU: Muat kedua gambar dari assets
+    final sulutLogoData = await rootBundle.load('assets/images/sulut.png');
+    final logoData = await rootBundle.load('assets/images/logo.png');
+    
+    final sulutLogoImage = pw.MemoryImage(sulutLogoData.buffer.asUint8List());
+    final logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
 
     pdf.addPage(
       pw.Page(
@@ -16,15 +24,34 @@ class PdfGenerator {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // Header
-              pw.Center(
-                child: pw.Text('Rumah Sakit Umum Daerah ODSK', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
-              ),
-              pw.Center(
-                child: pw.Text('Provinsi Sulawesi Utara', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
-              ),
-              pw.Center(
-                child: pw.Text('Jl. Bethesda no 77 Manado', style: pw.TextStyle(fontSize: 10)),
+              // Header with logos
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.center,
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                children: [
+                  // Left logo
+                  pw.Container(
+                    width: 50,
+                    height: 50,
+                    child: pw.Image(sulutLogoImage, fit: pw.BoxFit.contain),
+                  ),
+                  pw.SizedBox(width: 10), 
+                  // Center text
+                   pw.Column(
+                      children: [
+                        pw.Text('Rumah Sakit Umum Daerah ODSK', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+                        pw.Text('Provinsi Sulawesi Utara', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+                        pw.Text('Jl. Bethesda no 77 Manado', style: pw.TextStyle(fontSize: 10)),
+                      ],
+                    ),
+                  
+                  // Right logo
+                  pw.Container(
+                    width: 50,
+                    height: 50,
+                    child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+                  ),
+                ],
               ),
               pw.SizedBox(height: 10),
               pw.Divider(),
@@ -50,21 +77,21 @@ class PdfGenerator {
               _buildInfoRow('No RM', ': ${patient.noRM}'),
               _buildInfoRow('Nama Lengkap', ': ${patient.namaLengkap}'),
               _buildInfoRow('Tanggal Lahir', ': ${patient.tanggalLahirFormatted}'),
-              _buildInfoRow('Diagnosis Medis', ': ${patient.diagnosisMedis}'),
 
-              pw.SizedBox(height: 20),
-
-              _buildInfoRow('BB = ${patient.beratBadan} kg', 'TB = ${patient.tinggiBadan} cm', 'IMT = ${patient.imt.toStringAsFixed(1)} kg/m2'),
               pw.SizedBox(height: 10),
-              _buildInfoRow('Tinggi Lutut = ... cm', 'LLA = ... cm'),
+              _buildInfoRow('Diagnosis Medis', ': ${patient.diagnosisMedis}'),
+              pw.SizedBox(height: 5),
+              _buildInfoRow('BB = ${patient.beratBadan} kg', 'TB = ${patient.tinggiBadan.toStringAsFixed(0)} cm'),
+              pw.SizedBox(height: 5),
+              _buildInfoRow('IMT = ${patient.imt.toStringAsFixed(2)} kg/m2','Tinggi Lutut =  ...  cm', 'LLA =  ...  cm'),
               pw.SizedBox(height: 20),
 
               // Scoring Table
               _buildScoringTable(patient),
-              pw.SizedBox(height: 20),
+              pw.SizedBox(height: 15),
 
               // Interpretation
-              pw.Text('Interpretasi :', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, decoration: pw.TextDecoration.underline)),
+              pw.Text('Interpretasi :', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 5),
               _buildInterpretation(patient.totalSkor),
 
@@ -75,9 +102,11 @@ class PdfGenerator {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
-                    pw.Text('Tanggal : ${DateFormat('d/M/y').format(patient.tanggalPemeriksaan)}'),
-                    pw.SizedBox(height: 40),
-                    pw.Text('( Dietisien/Nutrisionis )'),
+                    pw.Text('Tanggal : ${DateFormat('d-M-y').format(patient.tanggalPemeriksaan)}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.SizedBox(height: 10),
+                    pw.Text('Tanda tangan', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.SizedBox(height: 30),
+                    pw.Text('( Dietisen/Nutrisionis )', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                   ],
                 ),
               ),
@@ -86,7 +115,7 @@ class PdfGenerator {
         },
       ),
     );
-    return saveDocument(name: 'skrining_gizi_${patient.noRM}.pdf', pdf: pdf);
+    return saveDocument(name: 'skrining_gizi_${patient.namaLengkap}_${patient.noRM}.pdf', pdf: pdf);
   }
 
   static pw.Widget _buildScoringTable(Patient patient) {
@@ -138,12 +167,58 @@ class PdfGenerator {
   }
 
   static pw.Widget _buildInterpretation(int score) {
-    String text = '';
-    if(score == 0) text = 'Skor 0 : Resiko rendah; Ulangi skrining setiap 7 hari atau bila ada tanda-tanda resiko malnutrisi.';
-    else if(score == 1) text = 'Skor 1 : Resiko menengah; Bekerjasama dengan tim terapi gizi, Monitoring asupan setiap 3 hari. Jika tidak ada peningkatan, lanjutkan pengkajian dan ulangi skrining setiap 7 hari.';
-    else if(score >= 2 && score <= 3) text = 'Skor 2-3 : Resiko tinggi; Bekerjasama dengan tim terapi gizi, mendapatkan asuhan gizi, monitoring asupan setiap 3 hari dan ulangi skrining setiap 7 hari.';
-    else if(score >= 4) text = 'Skor >= 4 : Resiko sangat tinggi; Dilaporkan ke Dokter Spesialis Gizi Klinik untuk tindakan lebih lanjut. Dianjurkan melakukan asuhan gizi. Monitoring asupan setiap 3 hari dan ulangi skrining setiap 7 hari.';
-    return pw.Text(text);
+    String scoreLabel;
+    String riskText;
+    String description;
+
+    if (score == 0) {
+      scoreLabel = 'Skor 0';
+      riskText = 'Resiko rendah;';
+      description = ' Ulangi skrining setiap 7 hari atau bila ada tanda-tanda resiko malnutrisi.';
+    } else if (score == 1) {
+      scoreLabel = 'Skor 1';
+      riskText = 'Resiko menengah;';
+      description = ' Bekerjasama dengan tim terapi gizi, Monitoring asupan setiap 3 hari. Jika tidak ada peningkatan, lanjutkan pengkajian dan ulangi skrining setiap 7 hari.';
+    } else if (score >= 2 && score <= 3) {
+      scoreLabel = 'Skor 2-3';
+      riskText = 'Resiko tinggi;';
+      description = ' Bekerjasama dengan tim terapi gizi, mendapatkan asuhan gizi, monitoring asupan setiap 3 hari dan ulangi skrining setiap 7 hari.';
+    } else { // score >= 4
+      scoreLabel = 'Skor >= 4';
+      riskText = 'Resiko sangat tinggi;';
+      description = ' Dilaporkan ke Dokter Spesialis Gizi Klinik untuk tindakan lebih lanjut. Dianjurkan melakukan asuhan gizi. Monitoring asupan setiap 3 hari dan ulangi skrining setiap 7 hari.';
+    }
+    
+    // Menggunakan pw.Row agar formatnya sama dengan _buildInfoRow
+    return pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Expanded(
+          flex: 3,
+          child: pw.Text(
+            '$scoreLabel ',
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+          ),
+        ),
+        pw.Expanded(
+          flex: 14, 
+          // Menggunakan RichText untuk menggabungkan teks bold dan normal
+          child: pw.RichText(
+            text: pw.TextSpan(
+              children: [
+                pw.TextSpan(
+                  text: ': $riskText',
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                ),
+                pw.TextSpan(
+                  text: description,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   static pw.Widget _buildInfoRow(String label1, String value1, [String? label2, String? value2]) {
