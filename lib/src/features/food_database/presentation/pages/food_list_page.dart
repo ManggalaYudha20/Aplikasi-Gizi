@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_detail_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/add_food_item_page.dart'; // Import halaman baru
 
 class FoodListPage extends StatefulWidget {
   const FoodListPage({super.key});
@@ -14,6 +15,10 @@ class FoodListPage extends StatefulWidget {
 class _FoodListPageState extends State<FoodListPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  
+  // --- PERSIAPAN UNTUK LEVEL AKSES ---
+  // Nantinya, nilai ini akan didapat dari status login pengguna (misal: Firebase Auth).
+  final bool isAhliGizi = true; // Ganti menjadi 'false' untuk menyembunyikan tombol
 
   @override
   void initState() {
@@ -51,50 +56,17 @@ class _FoodListPageState extends State<FoodListPage> {
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Error: ${snapshot.error}',
-                            style: const TextStyle(color: Colors.red),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    );
+                    return Center(child: Text('Error: ${snapshot.error}'));
                   }
 
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        color: Color.fromARGB(255, 0, 148, 68),
-                      ),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (snapshot.data!.docs.isEmpty) {
-                    return const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.restaurant_menu, size: 48, color: Colors.grey),
-                          SizedBox(height: 16),
-                          Text(
-                            'Tidak ada data makanan',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
+                    return const Center(child: Text('Tidak ada data makanan'));
                   }
 
-                  // Filter food items based on search query
                   final filteredDocs = snapshot.data!.docs.where((doc) {
                     final foodItem = FoodItem.fromFirestore(
                       doc as DocumentSnapshot<Map<String, dynamic>>,
@@ -104,29 +76,7 @@ class _FoodListPageState extends State<FoodListPage> {
                   }).toList();
 
                   if (filteredDocs.isEmpty && _searchQuery.isNotEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.search_off, size: 48, color: Colors.grey),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Tidak ada hasil untuk "$_searchQuery"',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextButton(
-                            onPressed: () {
-                              _searchController.clear();
-                            },
-                            child: const Text('Clear pencarian'),
-                          ),
-                        ],
-                      ),
-                    );
+                    return Center(child: Text('Tidak ada hasil untuk "$_searchQuery"'));
                   }
 
                   return ListView.builder(
@@ -149,26 +99,10 @@ class _FoodListPageState extends State<FoodListPage> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) => FoodDetailPage(
+                              MaterialPageRoute(
+                                builder: (context) => FoodDetailPage(
                                   foodItem: foodItem,
                                 ),
-                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                  const begin = Offset(1.0, 0.0);
-                                  const end = Offset.zero;
-                                  const curve = Curves.easeInOut;
-                                  
-                                  var tween = Tween(begin: begin, end: end).chain(
-                                    CurveTween(curve: curve),
-                                  );
-                                  
-                                  return SlideTransition(
-                                    position: animation.drive(tween),
-                                    child: child,
-                                  );
-                                },
-                                transitionDuration: const Duration(milliseconds: 300),
-                                reverseTransitionDuration: const Duration(milliseconds: 300),
                               ),
                             );
                           },
@@ -177,6 +111,7 @@ class _FoodListPageState extends State<FoodListPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // ... (kode tampilan item list tetap sama) ...
                                 Row(
                                   children: [
                                     Container(
@@ -271,12 +206,26 @@ class _FoodListPageState extends State<FoodListPage> {
           ],
         ),
       ),
+      // --- TAMBAHKAN TOMBOL INI UNTUK CREATE DATA ---
+      floatingActionButton: isAhliGizi
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddFoodItemPage()),
+                );
+              },
+              backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null, // Jika bukan ahli gizi, tombol tidak akan tampil
     );
   }
-
+  
+  // ... (kode _buildSearchBar dan _buildNutritionInfo tetap sama) ...
   Widget _buildSearchBar() {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 5),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),

@@ -4,12 +4,14 @@ class FormActionButtons extends StatelessWidget {
   final VoidCallback onReset;
   final VoidCallback onSubmit;
   final String submitText;
+  final bool isLoading;
 
   const FormActionButtons({
     super.key,
     required this.onReset,
     required this.onSubmit,
     this.submitText = 'Hitung',
+    this.isLoading = false,
   });
 
   @override
@@ -18,7 +20,7 @@ class FormActionButtons extends StatelessWidget {
       children: [
         Expanded(
           child: OutlinedButton(
-            onPressed: onReset,
+            onPressed: isLoading ? null : onReset,
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -30,13 +32,22 @@ class FormActionButtons extends StatelessWidget {
         const SizedBox(width: 16),
         Expanded(
           child: ElevatedButton(
-            onPressed: onSubmit,
+            onPressed: isLoading ? null : onSubmit,
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               backgroundColor: const Color.fromARGB(255, 0, 148, 68),
             ),
-            child: Text(submitText, style: const TextStyle(fontSize: 16, color: Colors.white)),
+            child: isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 3,
+                    ),
+                  )
+                : Text(submitText, style: const TextStyle(fontSize: 16, color: Colors.white)),
           ),
         ),
       ],
