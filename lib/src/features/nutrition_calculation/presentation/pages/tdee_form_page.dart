@@ -152,7 +152,7 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
               children: [
                 const SizedBox(height: 20),
                 const Text(
-                  'Data Input TDEE',
+                  'Input Data TDEE',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),

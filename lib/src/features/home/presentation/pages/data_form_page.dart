@@ -185,10 +185,16 @@ class _DataFormPageState extends State<DataFormPage> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: 20),
+                const Text(
+                  'Input Data Pasien',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
               _buildTextFormField(
                 controller: _noRMController,
                 label: 'No. Rekam Medis (RM)',

@@ -94,7 +94,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
               children: [
                 const SizedBox(height: 20),
                 const Text(
-                  'Data Input BMR',
+                  'Input Data BMR',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,

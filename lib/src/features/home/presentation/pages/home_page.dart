@@ -152,8 +152,6 @@ class _HomePageState extends State<HomePage> {
             MaterialPageRoute(builder: (context) => const DataFormPage()),
           );
         },
-        shape: const CircleBorder(),
-        elevation: 8,
         backgroundColor: const Color.fromARGB(255, 0, 148, 68),
         child: const Icon(Icons.add, size: 28, color: Colors.white),
       ),

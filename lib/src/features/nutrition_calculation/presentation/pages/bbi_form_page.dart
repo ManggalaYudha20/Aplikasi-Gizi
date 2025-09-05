@@ -86,7 +86,7 @@ class _BbiFormPageState extends State<BbiFormPage> {
               children: [
                 const SizedBox(height: 20),
                 const Text(
-                  'Data Input BBI',
+                  'Input Data BBI',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,

@@ -357,7 +357,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
               children: [
                 const SizedBox(height: 20),
                 const Text(
-                  'Data Input Status Gizi',
+                  'Input Data Status Gizi',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,

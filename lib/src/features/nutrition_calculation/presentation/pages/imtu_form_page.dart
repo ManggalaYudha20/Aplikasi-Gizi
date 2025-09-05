@@ -172,7 +172,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
               children: [
                 const SizedBox(height: 20),
                 const Text(
-                  'Data Input IMT/U  5-18 Tahun',
+                  'Input Data IMT/U  5-18 Tahun',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
 

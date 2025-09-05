@@ -99,7 +99,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
               children: [
                 const SizedBox(height: 20),
                 const Text(
-                  'Data Input IMT',
+                  'Input Data IMT',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),

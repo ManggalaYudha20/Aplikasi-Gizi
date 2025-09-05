@@ -1,9 +1,11 @@
+// lib/src/features/pdf_leaflets/presentation/pages/leaflet_list_page.dart
+
+import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/add_leaflet_page.dart'; // Import halaman baru
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/pdf_viewer_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-//import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_debug_page.dart';
 
 class LeafletListPage extends StatefulWidget {
   const LeafletListPage({super.key});
@@ -13,6 +15,11 @@ class LeafletListPage extends StatefulWidget {
 }
 
 class _LeafletListPageState extends State<LeafletListPage> {
+  // --- PERSIAPAN UNTUK LEVEL AKSES ---
+  // Untuk saat ini, kita buat variabel sederhana.
+  // Nantinya, nilai ini akan didapat dari status login pengguna.
+  final bool isAhliGizi = true; // Ganti menjadi 'false' untuk menyembunyikan tombol
+  
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -34,7 +41,7 @@ class _LeafletListPageState extends State<LeafletListPage> {
 
   Widget _buildSearchBar() {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -50,7 +57,7 @@ class _LeafletListPageState extends State<LeafletListPage> {
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Cari leaflet...',
+          hintText: 'Cari judul atau deskripsi leaflet...',
           prefixIcon: const Icon(Icons.search, color: Colors.grey),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
@@ -74,7 +81,7 @@ class _LeafletListPageState extends State<LeafletListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
         title: 'Leaflet Informasi Gizi',
         subtitle: 'Pilih leaflet untuk dibaca',
@@ -85,65 +92,47 @@ class _LeafletListPageState extends State<LeafletListPage> {
             _buildSearchBar(),
             Expanded(
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance.collection('leaflets').orderBy('title').snapshots(),
+                stream: FirebaseFirestore.instance.collection('leaflets').snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  
                   if (snapshot.hasError) {
-                    return Center(
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                          const SizedBox(height: 16),
-                          Text('Error: ${snapshot.error}', textAlign: TextAlign.center),
-                          const SizedBox(height: 8),
-                          const Text('Pastikan Anda memiliki koneksi internet', textAlign: TextAlign.center),
+                          Icon(Icons.picture_as_pdf_outlined, size: 60, color: Colors.grey),
+                          SizedBox(height: 16),
+                          Text('Belum ada leaflet tersedia', style: TextStyle(fontSize: 18, color: Colors.grey)),
                         ],
                       ),
                     );
                   }
                   
-                  if (!snapshot.hasData) {
-                    return const Center(child: Text('Tidak ada data yang tersedia.'));
-                  }
-                  
-                  final leaflets = snapshot.data!.docs;
-                  
-                  if (leaflets.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.description_outlined, size: 48, color: Colors.grey),
-                          const SizedBox(height: 16),
-                          const Text('Belum ada leaflet tersedia.'),
-                          const SizedBox(height: 8),
-                          const Text('Pastikan ada dokumen di koleksi "leaflets" di Firestore'),
-                        ],
-                      ),
-                    );
-                  }
-
-                  // Filter leaflets based on search query
-                  final filteredLeaflets = leaflets.where((doc) {
+                  final allLeaflets = snapshot.data!.docs;
+                  final filteredLeaflets = allLeaflets.where((doc) {
                     final leaflet = Leaflet.fromFirestore(doc);
-                    return leaflet.title.toLowerCase().contains(_searchQuery) ||
-                           leaflet.description.toLowerCase().contains(_searchQuery);
+                    final query = _searchQuery.toLowerCase();
+                    return leaflet.title.toLowerCase().contains(query) ||
+                           leaflet.description.toLowerCase().contains(query);
                   }).toList();
-
+                  
                   if (filteredLeaflets.isEmpty && _searchQuery.isNotEmpty) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.search_off, size: 48, color: Colors.grey),
+                          const Icon(Icons.search_off, size: 60, color: Colors.grey),
                           const SizedBox(height: 16),
-                          Text('Tidak ada leaflet yang cocok dengan "$_searchQuery"'),
-                          const SizedBox(height: 8),
-                          const Text('Coba kata kunci lain'),
+                          Text(
+                            'Tidak ada leaflet yang cocok dengan pencarian "$_searchQuery"',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.grey),
+                          ),
                         ],
                       ),
                     );
@@ -153,71 +142,8 @@ class _LeafletListPageState extends State<LeafletListPage> {
                     padding: const EdgeInsets.all(16),
                     itemCount: filteredLeaflets.length,
                     itemBuilder: (context, index) {
-                      try {
-                        final leaflet = Leaflet.fromFirestore(filteredLeaflets[index]);
-                        
-                        // Debug: Print leaflet data
-                        //debugPrint('Leaflet ${index + 1}: ${leaflet.title} - ${leaflet.url}');
-
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(12),
-                            leading: const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40),
-                            title: Text(leaflet.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text(leaflet.description, maxLines: 2, overflow: TextOverflow.ellipsis),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () {
-                              if (leaflet.url.isNotEmpty) {
-                                Navigator.push(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder: (context, animation, secondaryAnimation) => PdfViewerPage(
-                                      url: leaflet.url,
-                                      title: leaflet.title,
-                                    ),
-                                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                      const begin = Offset(1.0, 0.0);
-                                      const end = Offset.zero;
-                                      const curve = Curves.easeInOut;
-                                      
-                                      var tween = Tween(begin: begin, end: end).chain(
-                                        CurveTween(curve: curve),
-                                      );
-                                      
-                                      return SlideTransition(
-                                        position: animation.drive(tween),
-                                        child: child,
-                                      );
-                                    },
-                                    transitionDuration: const Duration(milliseconds: 300),
-                                    reverseTransitionDuration: const Duration(milliseconds: 300),
-                                  ),
-                                );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('URL PDF tidak valid.')),
-                                );
-                              }
-                            },
-                          ),
-                        );
-                      } catch (e) {
-                        debugPrint('Error parsing leaflet ${index + 1}: $e');
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: ListTile(
-                            leading: const Icon(Icons.error, color: Colors.red),
-                            title: Text('Error parsing document ${index + 1}'),
-                            subtitle: Text('Error: $e'),
-                          ),
-                        );
-                      }
-                      
+                      final leaflet = Leaflet.fromFirestore(filteredLeaflets[index]);
+                      return _LeafletListItem(leaflet: leaflet);
                     },
                   );
                 },
@@ -225,6 +151,64 @@ class _LeafletListPageState extends State<LeafletListPage> {
             ),
           ],
         ),
+      ),
+      // --- TAMBAHKAN TOMBOL INI ---
+      floatingActionButton: isAhliGizi
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddLeafletPage()),
+                );
+              },
+              backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null, // Jika bukan ahli gizi, tombol tidak akan tampil
+    );
+  }
+}
+
+// Widget _LeafletListItem tetap sama seperti sebelumnya
+class _LeafletListItem extends StatelessWidget {
+  final Leaflet leaflet;
+  const _LeafletListItem({required this.leaflet});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        leading: const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40),
+        title: Text(leaflet.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(
+          leaflet.description,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () {
+          if (leaflet.url.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PdfViewerPage(
+                  url: leaflet.url,
+                  title: leaflet.title,
+                ),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('URL PDF tidak ditemukan.')),
+            );
+          }
+        },
       ),
     );
   }
