@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/add_food_item_page.dart';
 
 class FoodDetailPage extends StatefulWidget {
   final FoodItem foodItem;
@@ -18,11 +19,26 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
   final TextEditingController _portionController = TextEditingController();
   Map<String, double>? _calculatedNutrition;
   bool _showResults = false;
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _resultCardKey = GlobalKey();
 
   @override
   void dispose() {
     _portionController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToResult() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_resultCardKey.currentContext != null) {
+        Scrollable.ensureVisible(
+          _resultCardKey.currentContext!,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   void _calculateNutrition() {
@@ -53,6 +69,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       };
       _showResults = true;
     });
+    _scrollToResult();
   }
 
   void _resetCalculation() {
@@ -69,6 +86,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: CustomAppBar(title: widget.foodItem.name, subtitle: '100 gram'),
       body: SingleChildScrollView(
+        controller: _scrollController,
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,13 +105,50 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    widget.foodItem.name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 0, 148, 68),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.foodItem.name,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromARGB(255, 0, 148, 68),
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddFoodItemPage(foodItem: widget.foodItem),
+                            ),
+                          ).then((result) {
+                            if (result == true && mounted) {
+                              // Refresh the page by popping with true to signal refresh
+                              Navigator.pop(context, true);
+                            }
+                          });
+                        },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.edit, color: Color.fromARGB(255, 0, 148, 68)),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Edit',
+                              style: TextStyle(
+                                color: const Color.fromARGB(255, 0, 148, 68),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -163,6 +218,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             // Custom Portion Calculator
             Container(
               padding: const EdgeInsets.all(16),
+              key: _resultCardKey, 
               decoration: BoxDecoration(
                 color: const Color.fromARGB(255, 0, 148, 68).withOpacity(0.05),
                 borderRadius: BorderRadius.circular(12),

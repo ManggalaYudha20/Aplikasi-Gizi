@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
 
 class AddFoodItemPage extends StatefulWidget {
-  const AddFoodItemPage({super.key});
+  final FoodItem? foodItem;
+  const AddFoodItemPage({super.key, this.foodItem});
 
   @override
   State<AddFoodItemPage> createState() => _AddFoodItemPageState();
@@ -20,6 +22,23 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
   final _lemakController = TextEditingController();
   final _seratController = TextEditingController();
   bool _isLoading = false;
+  bool get _isEditMode => widget.foodItem != null;
+
+  @override
+  void initState() {
+    super.initState();
+    // BARU: Jika ini mode edit, isi semua field dengan data yang ada
+    if (_isEditMode) {
+      final item = widget.foodItem!;
+      _namaController.text = item.name;
+      _kodeController.text = item.code;
+      _porsiGramController.text = item.portionGram.toString();
+      _proteinController.text = item.protein.toString();
+      _lemakController.text = item.fat.toString();
+      _kaloriController.text = item.calories.toString();
+      _seratController.text = item.fiber.toString();
+    }
+  }
 
   @override
   void dispose() {
@@ -39,30 +58,60 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
         _isLoading = true;
       });
 
+      final foodData = {
+        'nama': _namaController.text,
+        'kode': _kodeController.text,
+        'porsi_gram': num.tryParse(_porsiGramController.text) ?? 0,
+        'kalori': num.tryParse(_kaloriController.text) ?? 0,
+        'protein': num.tryParse(_proteinController.text) ?? 0,
+        'lemak': num.tryParse(_lemakController.text) ?? 0,
+        'serat': num.tryParse(_seratController.text) ?? 0,
+      };
+
       try {
-        await FirebaseFirestore.instance.collection('food_items').add({
-          'nama': _namaController.text,
-          'kode': _kodeController.text,
-          'porsi_gram': num.tryParse(_porsiGramController.text) ?? 0,
-          'kalori': num.tryParse(_kaloriController.text) ?? 0,
-          'protein': num.tryParse(_proteinController.text) ?? 0,
-          'lemak': num.tryParse(_lemakController.text) ?? 0,
-          'serat': num.tryParse(_seratController.text) ?? 0,
-        });
+        // DIUBAH: Logika untuk menyimpan atau memperbarui data
+        if (_isEditMode) {
+          // Mode Edit: perbarui dokumen yang ada
+          await FirebaseFirestore.instance
+              .collection('food_items')
+              .doc(widget.foodItem!.id)
+              .update(foodData);
+        } else {
+          // Mode Tambah: buat dokumen baru
+          await FirebaseFirestore.instance
+              .collection('food_items')
+              .add(foodData);
+        }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data makanan berhasil ditambahkan!')),
-        );
-        Navigator.pop(context);
-
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Data makanan berhasil ${_isEditMode ? 'diperbarui' : 'disimpan'}!',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Kembali ke halaman sebelumnya
+          if (_isEditMode) {
+            Navigator.pop(context, true); // Kirim 'true' untuk refresh
+          } else {
+            Navigator.pop(context);
+          }
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menambahkan data: $e')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal menyimpan data: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       } finally {
-        setState(() {
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
       }
     }
   }
@@ -82,9 +131,9 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar: const CustomAppBar(
-        title: 'Tambah Data Makanan',
-        subtitle: 'Isi detail bahan makanan',
+      appBar: CustomAppBar(
+        title: _isEditMode ? 'Edit Makanan' : 'Tambah Makanan Baru',
+        subtitle: 'Isi data dengan lengkap',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -94,23 +143,56 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 20),
-                const Text(
-                  'Input Data Makanan',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-              _buildTextFormField(controller: _namaController, label: 'Nama Makanan', icon: Icons.restaurant),
-              _buildTextFormField(controller: _kodeController, label: 'Kode Makanan', icon: Icons.qr_code),
-              _buildTextFormField(controller: _porsiGramController, label: 'Porsi (gram)', icon: Icons.scale, isNumber: true),
-              _buildTextFormField(controller: _kaloriController, label: 'Kalori (kkal)', icon: Icons.local_fire_department, isNumber: true),
-              _buildTextFormField(controller: _proteinController, label: 'Protein (g)', icon: Icons.egg, isNumber: true),
-              _buildTextFormField(controller: _lemakController, label: 'Lemak (g)', icon: Icons.water_drop, isNumber: true),
-              _buildTextFormField(controller: _seratController, label: 'Serat (g)', icon: Icons.grass, isNumber: true),
+              const Text(
+                'Input Data Makanan',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              _buildTextFormField(
+                controller: _namaController,
+                label: 'Nama Makanan',
+                icon: Icons.restaurant,
+              ),
+              _buildTextFormField(
+                controller: _kodeController,
+                label: 'Kode Makanan',
+                icon: Icons.qr_code,
+              ),
+              _buildTextFormField(
+                controller: _porsiGramController,
+                label: 'Porsi (gram)',
+                icon: Icons.scale,
+                isNumber: true,
+              ),
+              _buildTextFormField(
+                controller: _kaloriController,
+                label: 'Kalori (kkal)',
+                icon: Icons.local_fire_department,
+                isNumber: true,
+              ),
+              _buildTextFormField(
+                controller: _proteinController,
+                label: 'Protein (g)',
+                icon: Icons.egg,
+                isNumber: true,
+              ),
+              _buildTextFormField(
+                controller: _lemakController,
+                label: 'Lemak (g)',
+                icon: Icons.water_drop,
+                isNumber: true,
+              ),
+              _buildTextFormField(
+                controller: _seratController,
+                label: 'Serat (g)',
+                icon: Icons.grass,
+                isNumber: true,
+              ),
               const SizedBox(height: 32),
               FormActionButtons(
                 onReset: _resetForm,
                 onSubmit: _submitFoodItem,
-                submitText: 'Tambah Data',
+                submitText: _isEditMode ? 'Simpan' : 'Tambah Data',
                 isLoading: _isLoading,
               ),
             ],
@@ -135,7 +217,9 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
           border: const OutlineInputBorder(),
           prefixIcon: Icon(icon),
         ),
-        keyboardType: isNumber ? TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+        keyboardType: isNumber
+            ? TextInputType.numberWithOptions(decimal: true)
+            : TextInputType.text,
         validator: (value) {
           if (value == null || value.isEmpty) {
             return '$label tidak boleh kosong';
