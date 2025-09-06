@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart'; // Impor model pasien
 import 'pdf_generator.dart'; // Helper untuk membuat PDF
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 
 class PatientDetailPage extends StatelessWidget {
   final Patient patient;
@@ -13,7 +14,7 @@ class PatientDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar:  CustomAppBar(
+      appBar: CustomAppBar(
         title: patient.namaLengkap,
         subtitle: 'Data Lengkap Pasien',
       ),
@@ -29,17 +30,36 @@ class PatientDetailPage extends StatelessWidget {
             _buildInfoRow('Usia', '${patient.usia} tahun'),
             _buildInfoRow('Jenis Kelamin', patient.jenisKelamin),
             _buildInfoRow('Diagnosis Medis', patient.diagnosisMedis),
-            
+
             const SizedBox(height: 20),
 
             // --- Bagian Hasil Perhitungan Gizi ---
             _buildSectionTitle('Hasil Perhitungan Gizi'),
             _buildInfoRow('Berat Badan', '${patient.beratBadan} kg'),
-            _buildInfoRow('Tinggi Badan', '${patient.tinggiBadan.toStringAsFixed(0)} cm'),
-            _buildInfoRow('IMT (Indeks Massa Tubuh)', '${patient.imt.toStringAsFixed(2)} kg/m²', isBold: true),
-            _buildInfoRow('BBI (Berat Badan Ideal)', '${patient.bbi.toStringAsFixed(1)} kg', isBold: true),
-            _buildInfoRow('BMR (Kebutuhan Kalori Basal)', '${patient.bmr.toStringAsFixed(2)} kkal', isBold: true),
-            _buildInfoRow('TDEE (Total Kebutuhan Energi)', '${patient.tdee.toStringAsFixed(2)} kkal', isBold: true),
+            _buildInfoRow(
+              'Tinggi Badan',
+              '${patient.tinggiBadan.toStringAsFixed(0)} cm',
+            ),
+            _buildInfoRow(
+              'IMT (Indeks Massa Tubuh)',
+              '${patient.imt.toStringAsFixed(2)} kg/m²',
+              isBold: true,
+            ),
+            _buildInfoRow(
+              'BBI (Berat Badan Ideal)',
+              '${patient.bbi.toStringAsFixed(1)} kg',
+              isBold: true,
+            ),
+            _buildInfoRow(
+              'BMR (Kebutuhan Kalori Basal)',
+              '${patient.bmr.toStringAsFixed(2)} kkal',
+              isBold: true,
+            ),
+            _buildInfoRow(
+              'TDEE (Total Kebutuhan Energi)',
+              '${patient.tdee.toStringAsFixed(2)} kkal',
+              isBold: true,
+            ),
             _buildInfoRow('Aktivitas', patient.aktivitas),
 
             const SizedBox(height: 20),
@@ -47,25 +67,96 @@ class PatientDetailPage extends StatelessWidget {
             // --- Bagian Skrining Gizi Lanjut ---
             _buildSectionTitle('Skrining Gizi Lanjut'),
             _buildInfoRow('Skor IMT', patient.skorIMT.toString()),
-            _buildInfoRow('Skor Kehilangan BB', patient.skorKehilanganBB.toString()),
-            _buildInfoRow('Skor Efek Penyakit Akut', patient.skorEfekPenyakit.toString()),
+            _buildInfoRow(
+              'Skor Kehilangan BB',
+              patient.skorKehilanganBB.toString(),
+            ),
+            _buildInfoRow(
+              'Skor Efek Penyakit Akut',
+              patient.skorEfekPenyakit.toString(),
+            ),
             const Divider(),
-            _buildInfoRow('Total Skor', patient.totalSkor.toString(), isBold: true),
-            _buildInfoRow('Interpretasi', patient.interpretasi, isBold: true, valueColor: Colors.red),
+            _buildInfoRow(
+              'Total Skor',
+              patient.totalSkor.toString(),
+              isBold: true,
+            ),
+            _buildInfoRow(
+              'Interpretasi',
+              patient.interpretasi,
+              isBold: true,
+              valueColor: Colors.red,
+            ),
 
-            const SizedBox(height: 100),
+            const SizedBox(height: 20),
+
+            // --- Tombol Aksi ---
+            FormActionButtons(
+              singleButtonMode: true,
+              submitText: 'Save as PDF',
+              submitIcon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+              onSubmit: () async {
+                final pdfFile = await PdfGenerator.generate(patient);
+                PdfGenerator.openFile(pdfFile);
+              },
+            ),
+
+            const SizedBox(height: 20),
+
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Add hapus functionality here
+                    },
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.delete, size: 20),
+                        SizedBox(width: 8),
+                        Text('Hapus'),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Add Edit functionality here
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.edit, size: 20),
+                        SizedBox(width: 8),
+                        Text('Edit'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final pdfFile = await PdfGenerator.generate(patient);
-          PdfGenerator.openFile(pdfFile);
-        },
-        label: const Text('Save as PDF'),
-        icon: const Icon(Icons.picture_as_pdf),
-        backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-        foregroundColor: Colors.white,
       ),
     );
   }
@@ -75,18 +166,30 @@ class PatientDetailPage extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 148, 68)),
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Color.fromARGB(255, 0, 148, 68),
+        ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {bool isBold = false, Color? valueColor}) {
+  Widget _buildInfoRow(
+    String label,
+    String value, {
+    bool isBold = false,
+    Color? valueColor,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 16, color: Colors.black54)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 16, color: Colors.black54),
+          ),
           Text(
             value,
             style: TextStyle(
