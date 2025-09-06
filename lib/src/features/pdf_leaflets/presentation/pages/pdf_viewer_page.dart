@@ -48,7 +48,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                 );
                 if (result == true && mounted) {
                   // If edit was successful, refresh the page or go back
-                  Navigator.pop(context);
+                  Navigator.of(context).pop();
                 }
               },
               backgroundColor: const Color.fromARGB(255, 0, 148, 68),
