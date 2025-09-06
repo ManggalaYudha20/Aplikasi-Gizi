@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/add_food_item_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/delete_item_service.dart';
 
 class FoodDetailPage extends StatefulWidget {
   final FoodItem foodItem;
@@ -62,10 +63,10 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     
     setState(() {
       _calculatedNutrition = {
-        'kalori': (widget.foodItem.nutritionPer100g['kalori'] ?? 0) * ratio,
-        'protein': (widget.foodItem.nutritionPer100g['protein'] ?? 0) * ratio,
-        'lemak': (widget.foodItem.nutritionPer100g['lemak'] ?? 0) * ratio,
-        'serat': (widget.foodItem.nutritionPer100g['serat'] ?? 0) * ratio,
+        'kalori': (widget.foodItem.nutritionPer100g['kalori'] ?? 0.0) * ratio,
+        'protein': (widget.foodItem.nutritionPer100g['protein'] ?? 0.0) * ratio,
+        'lemak': (widget.foodItem.nutritionPer100g['lemak'] ?? 0.0) * ratio,
+        'serat': (widget.foodItem.nutritionPer100g['serat'] ?? 0.0) * ratio,
       };
       _showResults = true;
     });
@@ -96,10 +97,10 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 0, 148, 68).withOpacity(0.1),
+                color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color.fromARGB(255, 0, 148, 68).withOpacity(0.3),
+                  color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -200,7 +201,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             const SizedBox(height: 12),
             _buildNutritionCard(
               'Lemak',
-              widget.foodItem.fat,
+               widget.foodItem.fat,
               'gram',
               Icons.water_drop,
               Colors.red,
@@ -220,10 +221,10 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               padding: const EdgeInsets.all(16),
               key: _resultCardKey, 
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 0, 148, 68).withOpacity(0.05),
+                color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color.fromARGB(255, 0, 148, 68).withOpacity(0.2),
+                  color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.2),
                 ),
               ),
               child: Column(
@@ -336,6 +337,27 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                 ],
               ),
             ),
+            
+            const SizedBox(height: 24),
+            
+            // Action Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.delete_forever, color: Colors.white),
+                    label: const Text('Hapus', style: TextStyle(color: Colors.white)),
+                    // Memanggil logika hapus dari file terpisah
+                    onPressed: () => FoodItemService.deleteFoodItem(context, widget.foodItem),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade700,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -352,10 +374,10 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -363,7 +385,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 24),
