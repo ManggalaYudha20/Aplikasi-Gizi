@@ -165,7 +165,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: _resultColor!.withOpacity(0.1),
+                      color: _resultColor!.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: _resultColor!,
@@ -220,7 +220,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
                         174,
                         174,
                         174,
-                      ).withOpacity(0.1),
+                      ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: const Color.fromARGB(255, 0, 0, 0),

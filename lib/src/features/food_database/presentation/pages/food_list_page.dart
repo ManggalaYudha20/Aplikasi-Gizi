@@ -119,7 +119,7 @@ class _FoodListPageState extends State<FoodListPage> {
                                       height: 50,
                                       decoration: BoxDecoration(
                                         color: const Color.fromARGB(255, 0, 148, 68)
-                                            .withOpacity(0.1),
+                                            .withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: const Icon(
@@ -231,7 +231,7 @@ class _FoodListPageState extends State<FoodListPage> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, 2),

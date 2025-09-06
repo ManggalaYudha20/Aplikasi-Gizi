@@ -576,7 +576,7 @@ Catatan:
                         0,
                         148,
                         68,
-                      ).withOpacity(0.1),
+                      ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: const Color.fromARGB(255, 0, 148, 68),
@@ -647,7 +647,7 @@ Catatan:
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                               color: _weightCorrection! > 0
-                                  ? Colors.green
+                                  ? Color.fromARGB(255, 0, 148, 68)
                                   : Colors.red,
                             ),
                           ),
@@ -669,7 +669,7 @@ Catatan:
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w900,
-                              color: Color.fromARGB(255, 0, 148, 68),
+                              color: Colors.black,
                             ),
                           ),
                         ),

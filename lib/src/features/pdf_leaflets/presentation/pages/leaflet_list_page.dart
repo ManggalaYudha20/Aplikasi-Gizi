@@ -1,5 +1,3 @@
-// lib/src/features/pdf_leaflets/presentation/pages/leaflet_list_page.dart
-
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/add_leaflet_page.dart'; // Import halaman baru
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/pdf_viewer_page.dart';
@@ -47,7 +45,7 @@ class _LeafletListPageState extends State<LeafletListPage> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, 2),
@@ -200,6 +198,7 @@ class _LeafletListItem extends StatelessWidget {
                 builder: (context) => PdfViewerPage(
                   url: leaflet.url,
                   title: leaflet.title,
+                  leaflet: leaflet, // Pass the complete leaflet object
                 ),
               ),
             );

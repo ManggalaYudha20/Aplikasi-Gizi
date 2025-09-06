@@ -358,7 +358,7 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF009444).withOpacity(0.1),
+                      color: const Color(0xFF009444).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0xFF009444)),
                     ),

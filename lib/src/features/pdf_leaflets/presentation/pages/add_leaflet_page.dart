@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_model.dart';
 
 class AddLeafletPage extends StatefulWidget {
-  const AddLeafletPage({super.key});
+  final Leaflet? leaflet; // Optional parameter for editing
+
+  const AddLeafletPage({
+    super.key,
+    this.leaflet, // Pass existing leaflet for editing
+  });
 
   @override
   State<AddLeafletPage> createState() => _AddLeafletPageState();
@@ -16,6 +22,19 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
   final _descriptionController = TextEditingController();
   final _urlController = TextEditingController();
   bool _isLoading = false;
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check if we're in edit mode
+    if (widget.leaflet != null) {
+      _isEditing = true;
+      _titleController.text = widget.leaflet!.title;
+      _descriptionController.text = widget.leaflet!.description;
+      _urlController.text = widget.leaflet!.url;
+    }
+  }
 
   @override
   void dispose() {
@@ -54,24 +73,59 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
         // Transform Google Drive URL jika perlu
         final transformedUrl = _transformGoogleDriveUrl(_urlController.text);
 
-        // Menambahkan dokumen baru ke koleksi 'leaflets'
-        await FirebaseFirestore.instance.collection('leaflets').add({
-          'title': _titleController.text,
-          'description': _descriptionController.text,
-          'url': transformedUrl,
-        });
+        if (_isEditing) {
+          // Update existing leaflet
+          await FirebaseFirestore.instance
+              .collection('leaflets')
+              .doc(widget.leaflet!.id)
+              .update({
+            'title': _titleController.text,
+            'description': _descriptionController.text,
+            'url': transformedUrl,
+          });
 
-        // Tampilkan notifikasi sukses dan kembali ke halaman sebelumnya
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Leaflet berhasil ditambahkan!')),
-        );
-        Navigator.pop(context);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Leaflet berhasil diperbarui!'),
+                  backgroundColor: Colors.green,
+                  ),
+            );
+          }
+        } else {
+          // Add new leaflet
+          await FirebaseFirestore.instance.collection('leaflets').add({
+            'title': _titleController.text,
+            'description': _descriptionController.text,
+            'url': transformedUrl,
+          });
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Leaflet berhasil ditambahkan!'),
+                  backgroundColor: Colors.green,
+                  ),
+            );
+          }
+        }
+
+        if (mounted) {
+          Navigator.pop(context, true);
+        }
 
       } catch (e) {
-        // Tampilkan notifikasi jika terjadi error
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menambahkan leaflet: $e')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_isEditing
+                ? 'Gagal memperbarui leaflet: $e'
+                : 'Gagal menambahkan leaflet: $e'),
+                backgroundColor: Colors.red,
+                ),
+          );
+        }
       } finally {
         setState(() {
           _isLoading = false;
@@ -91,9 +145,9 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar: const CustomAppBar(
-        title: 'Tambah Leaflet Baru',
-        subtitle: 'Isi data leaflet di bawah',
+      appBar: CustomAppBar(
+        title: _isEditing ? 'Edit Leaflet' : 'Tambah Leaflet Baru',
+        subtitle: _isEditing ? 'Perbarui data leaflet di bawah' : 'Isi data leaflet di bawah',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -155,7 +209,7 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
               FormActionButtons(
                 onReset: _resetForm,
                 onSubmit: _isLoading ? () {} : _submitLeaflet,
-                submitText: 'Tambah',
+                submitText: _isEditing ? 'Perbarui' : 'Tambah',
               ),
             ],
           ),

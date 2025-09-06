@@ -408,7 +408,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: Colors.blue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.blue),
                     ),
@@ -572,7 +572,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
         border: Border.all(color: Color.fromARGB(255, 0, 148, 68), width: 2.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
