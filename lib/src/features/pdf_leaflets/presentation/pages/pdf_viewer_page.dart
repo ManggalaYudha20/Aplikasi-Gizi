@@ -30,8 +30,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: CustomAppBar(
-        title: 'Leaflet Informasi Gizi' ,
-        subtitle: widget.title ,
+        title: 'Leaflet Informasi Gizi',
+        subtitle: widget.title,
       ),
       body: SfPdfViewer.network(
         widget.url,
@@ -42,15 +42,14 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       floatingActionButton: isAhliGizi && widget.leaflet != null
           ? FloatingActionButton(
               onPressed: () async {
+                // Jadikan async
                 final result = await EditLeafletService.showEditPage(
                   context,
                   widget.leaflet!,
                 );
+                // Cek mounted setelah await
                 if (result == true && mounted) {
-                  // If edit was successful, refresh the page or go back
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                  }
+                  Navigator.of(context).pop();
                 }
               },
               backgroundColor: const Color.fromARGB(255, 0, 148, 68),

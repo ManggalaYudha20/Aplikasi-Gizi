@@ -7,10 +7,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/p
 class FoodDetailPage extends StatefulWidget {
   final FoodItem foodItem;
 
-  const FoodDetailPage({
-    super.key,
-    required this.foodItem,
-  });
+  const FoodDetailPage({super.key, required this.foodItem});
 
   @override
   State<FoodDetailPage> createState() => _FoodDetailPageState();
@@ -46,7 +43,9 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     final String portionText = _portionController.text;
     if (portionText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Masukkan takaran makanan terlebih dahulu')),
+        const SnackBar(
+          content: Text('Masukkan takaran makanan terlebih dahulu'),
+        ),
       );
       return;
     }
@@ -60,7 +59,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     }
 
     final double ratio = portionGram / 100.0;
-    
+
     setState(() {
       _calculatedNutrition = {
         'kalori': (widget.foodItem.nutritionPer100g['kalori'] ?? 0.0) * ratio,
@@ -97,10 +96,20 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.1),
+                color: const Color.fromARGB(
+                  255,
+                  0,
+                  148,
+                  68,
+                ).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.3),
+                  color: const Color.fromARGB(
+                    255,
+                    0,
+                    148,
+                    68,
+                  ).withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -120,25 +129,27 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          // Jadikan async
+                          final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => AddFoodItemPage(foodItem: widget.foodItem),
+                              builder: (context) =>
+                                  AddFoodItemPage(foodItem: widget.foodItem),
                             ),
-                          ).then((result) {
-                            if (result == true && mounted) {
-                              // Refresh the page by popping with true to signal refresh
-                              if (mounted) {
-                                Navigator.of(context).pop(true);
-                              }
-                            }
-                          });
+                          );
+                          // Cek mounted setelah await
+                          if (result == true && mounted) {
+                            Navigator.of(context).pop(true);
+                          }
                         },
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.edit, color: Color.fromARGB(255, 0, 148, 68)),
+                            const Icon(
+                              Icons.edit,
+                              color: Color.fromARGB(255, 0, 148, 68),
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Edit',
@@ -156,23 +167,17 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                   const SizedBox(height: 8),
                   Text(
                     'Kode: ${widget.foodItem.code}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   Text(
                     'Porsi: ${widget.foodItem.portionGram} gram',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Nutrition Information
             const Text(
               'Informasi Gizi',
@@ -183,7 +188,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Nutrition Cards
             _buildNutritionCard(
               'Kalori',
@@ -203,7 +208,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             const SizedBox(height: 12),
             _buildNutritionCard(
               'Lemak',
-               widget.foodItem.fat,
+              widget.foodItem.fat,
               'gram',
               Icons.water_drop,
               Colors.red,
@@ -217,16 +222,26 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               Colors.green,
             ),
             const SizedBox(height: 24),
-            
+
             // Custom Portion Calculator
             Container(
               padding: const EdgeInsets.all(16),
-              key: _resultCardKey, 
+              key: _resultCardKey,
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.05),
+                color: const Color.fromARGB(
+                  255,
+                  0,
+                  148,
+                  68,
+                ).withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.2),
+                  color: const Color.fromARGB(
+                    255,
+                    0,
+                    148,
+                    68,
+                  ).withValues(alpha: 0.2),
                 ),
               ),
               child: Column(
@@ -241,7 +256,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Input field for custom portion
                   TextFormField(
                     controller: _portionController,
@@ -259,14 +274,15 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                       if (value == null || value.isEmpty) {
                         return 'Masukkan takaran makanan';
                       }
-                      if (double.tryParse(value) == null || double.parse(value) <= 0) {
+                      if (double.tryParse(value) == null ||
+                          double.parse(value) <= 0) {
                         return 'Masukkan angka yang valid';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Calculate and Reset buttons
                   Row(
                     children: [
@@ -274,7 +290,12 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                         child: OutlinedButton(
                           onPressed: _resetCalculation,
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color.fromARGB(255, 0, 148, 68),
+                            foregroundColor: const Color.fromARGB(
+                              255,
+                              0,
+                              148,
+                              68,
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -286,14 +307,19 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                           child: const Text('Reset'),
                         ),
                       ),
-                     
+
                       const SizedBox(width: 12),
 
-                       Expanded(
+                      Expanded(
                         child: ElevatedButton(
                           onPressed: _calculateNutrition,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              0,
+                              148,
+                              68,
+                            ),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
@@ -303,10 +329,9 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                           child: const Text('Hitung'),
                         ),
                       ),
-                      
                     ],
                   ),
-                  
+
                   // Calculated results
                   if (_showResults && _calculatedNutrition != null) ...[
                     const SizedBox(height: 24),
@@ -339,22 +364,30 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Action Buttons
             Row(
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.delete_forever, color: Colors.white),
-                    label: const Text('Hapus', style: TextStyle(color: Colors.white)),
+                    label: const Text(
+                      'Hapus',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     // Memanggil logika hapus dari file terpisah
-                    onPressed: () => FoodItemService.deleteFoodItem(context, widget.foodItem),
+                    onPressed: () => FoodItemService.deleteFoodItem(
+                      context,
+                      widget.foodItem,
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.shade700,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
@@ -378,9 +411,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -399,10 +430,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 Text(
                   '${value.toStringAsFixed(1)} $unit',
@@ -426,13 +454,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
-          ),
+          Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
           Text(
             value,
             style: const TextStyle(

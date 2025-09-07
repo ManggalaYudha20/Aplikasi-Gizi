@@ -110,10 +110,10 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
-                      try {
-                        // Store context before async operation
+                      // Store context before async operation
                         final scaffoldContext = ScaffoldMessenger.of(context);
-                        
+
+                      try {            
                         // Show loading indicator
                         scaffoldContext.showSnackBar(
                           const SnackBar(
@@ -129,24 +129,23 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                         await PdfGenerator.openFile(pdfFile);
                         
                         // Show success message
-                        if (mounted) {
+                        if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('File PDF Berhasil dibuat!'),
                               backgroundColor: Colors.green,
                             ),
                           );
-                        }
+                        
                       } catch (e) {
                         // Show error message
-                        if (mounted) {
+                        if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('File PDF Gagal dibuat: ${e.toString()}'),
                               backgroundColor: Colors.red,
                             ),
                           );
-                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(
