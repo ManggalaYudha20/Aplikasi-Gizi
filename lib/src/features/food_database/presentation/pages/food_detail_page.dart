@@ -129,7 +129,9 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                           ).then((result) {
                             if (result == true && mounted) {
                               // Refresh the page by popping with true to signal refresh
-                              Navigator.of(context).pop(true);
+                              if (mounted) {
+                                Navigator.of(context).pop(true);
+                              }
                             }
                           });
                         },

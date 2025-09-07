@@ -4,18 +4,26 @@ class FormActionButtons extends StatelessWidget {
   final VoidCallback? onReset;
   final VoidCallback? onSubmit;
   final String submitText;
+  final String resetText;
   final bool isLoading;
   final bool singleButtonMode;
   final Widget? submitIcon;
+  final Widget? resetIcon;
+  final Color? resetButtonColor;
+  final Color? submitButtonColor;
 
   const FormActionButtons({
     super.key,
     this.onReset,
     this.onSubmit,
     this.submitText = 'Hitung',
+    this.resetText = 'Reset',
     this.isLoading = false,
     this.singleButtonMode = false,
     this.submitIcon,
+    this.resetIcon,
+    this.resetButtonColor,
+    this.submitButtonColor,
   }) : assert(singleButtonMode ? (onSubmit != null && onReset == null) : (onSubmit != null && onReset != null),
            'In single button mode, only onSubmit should be provided. In dual button mode, both onReset and onSubmit are required.');
 
@@ -63,9 +71,18 @@ class FormActionButtons extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                side: const BorderSide(color: Color.fromARGB(255, 0, 148, 68)),
+                side: BorderSide(color: resetButtonColor ?? const Color.fromARGB(255, 0, 148, 68)),
               ),
-              child: const Text('Reset', style: TextStyle(fontSize: 16, color: Color.fromARGB(255, 0, 148, 68))),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (resetIcon != null) ...[
+                    resetIcon!,
+                    const SizedBox(width: 8),
+                  ],
+                  Text(resetText, style: TextStyle(fontSize: 16, color: resetButtonColor ?? const Color.fromARGB(255, 0, 148, 68))),
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -75,7 +92,7 @@ class FormActionButtons extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+                backgroundColor: submitButtonColor ?? const Color.fromARGB(255, 0, 148, 68),
               ),
               child: isLoading
                   ? const SizedBox(

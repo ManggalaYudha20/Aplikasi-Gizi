@@ -5,9 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart';
 
 class DataFormPage extends StatefulWidget {
-  const DataFormPage({super.key});
+  final Patient? patient; // Optional patient for editing
+
+  const DataFormPage({super.key, this.patient});
 
   @override
   State<DataFormPage> createState() => _DataFormPageState();
@@ -32,6 +35,30 @@ class _DataFormPageState extends State<DataFormPage> {
   // BARU: State untuk menyimpan pilihan kehilangan nafsu makan
   String? _kehilanganNafsuMakan;
   DateTime? _selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize form with existing patient data if provided
+    if (widget.patient != null) {
+      _initializeFormWithPatientData();
+    }
+  }
+
+  void _initializeFormWithPatientData() {
+    final patient = widget.patient!;
+    _noRMController.text = patient.noRM;
+    _namaLengkapController.text = patient.namaLengkap;
+    _tanggalLahirController.text = patient.tanggalLahirFormatted;
+    _diagnosisMedisController.text = patient.diagnosisMedis;
+    _beratBadanController.text = patient.beratBadan.toString();
+    _tinggiBadanController.text = patient.tinggiBadan.toString();
+    _jenisKelamin = patient.jenisKelamin;
+    _aktivitas = patient.aktivitas;
+    _selectedDate = patient.tanggalLahir;
+    // Note: We don't have beratBadanDulu and kehilanganNafsuMakan in Patient model
+    // These fields will remain empty for editing
+  }
 
   @override
   void dispose() {
@@ -130,18 +157,50 @@ class _DataFormPageState extends State<DataFormPage> {
         };
 
         // --- Kirim ke Firestore ---
-        await FirebaseFirestore.instance
-            .collection('patients')
-            .add(patientData);
+        if (widget.patient != null) {
+          // Update existing patient
+          await FirebaseFirestore.instance
+              .collection('patients')
+              .doc(widget.patient!.id)
+              .update(patientData);
+        } else {
+          // Create new patient
+          await FirebaseFirestore.instance
+              .collection('patients')
+              .add(patientData);
+        }
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Data pasien berhasil disimpan!'),
+            SnackBar(
+              content: Text(widget.patient != null
+                  ? 'Data pasien berhasil diperbarui!'
+                  : 'Data pasien berhasil disimpan!'),
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.pop(context);
+          
+          // Create updated patient object to return
+          final updatedPatient = Patient(
+            id: widget.patient?.id ?? '', // Will be empty for new patients
+            noRM: noRM,
+            namaLengkap: namaLengkap,
+            tanggalLahir: _selectedDate ?? DateTime.now(),
+            diagnosisMedis: diagnosisMedis,
+            beratBadan: beratBadan,
+            tinggiBadan: tinggiBadan,
+            jenisKelamin: _jenisKelamin ?? 'Laki-laki',
+            aktivitas: _aktivitas ?? 'Sangat Jarang',
+            imt: imt,
+            skorIMT: skorIMT,
+            skorKehilanganBB: skorKehilanganBB,
+            skorEfekPenyakit: skorEfekPenyakit,
+            totalSkor: totalSkor,
+            tanggalPemeriksaan: DateTime.now(),
+          );
+          
+          // Navigate back to previous screen with updated patient data
+          Navigator.of(context).pop(updatedPatient);
         }
       } catch (e) {
         if (mounted) {
@@ -179,9 +238,9 @@ class _DataFormPageState extends State<DataFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar: const CustomAppBar(
-        title: 'Form Data Pasien',
-        subtitle: 'Isi data dengan lengkap',
+      appBar: CustomAppBar(
+        title: widget.patient != null ? 'Edit Data Pasien' : 'Form Data Pasien',
+        subtitle: widget.patient != null ? 'Perbarui data pasien' : 'Isi data dengan lengkap',
       ),
       body: Form(
         key: _formKey,
@@ -288,7 +347,7 @@ class _DataFormPageState extends State<DataFormPage> {
               FormActionButtons(
                 onReset: _resetForm,
                 onSubmit: _savePatientData,
-                submitText: 'Simpan',
+                submitText: widget.patient != null ? 'Perbarui' : 'Simpan',
                 isLoading: _isLoading,
               ),
             ],
