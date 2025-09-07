@@ -23,12 +23,13 @@ class PatientDeleteLogic {
             TextButton(
               onPressed: () async {
                 // Store the dialog context before async operation
-                final dialogContext = context;
+                final navigator = Navigator.of(context);
                 await _deletePatient(
-                  context: dialogContext,
+                  context: context,
                   patient: patient,
                   onDeleteSuccess: onDeleteSuccess,
                 );
+                navigator.pop(); // Close the dialog
               },
               child: const Text('Hapus', style: TextStyle(color: Colors.red)),
             ),
@@ -44,9 +45,10 @@ class PatientDeleteLogic {
     required Patient patient,
     required VoidCallback onDeleteSuccess,
   }) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
       // Show loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(
           content: Text('Menghapus Data Pasien...'),
           duration: Duration(seconds: 1),
@@ -59,14 +61,8 @@ class PatientDeleteLogic {
           .doc(patient.id)
           .delete();
       
-      // Store context before popping
-      final scaffoldContext = ScaffoldMessenger.of(context);
-      
-      // Close dialog first
-      Navigator.of(context).pop();
-      
       // Show success message using stored context
-      scaffoldContext.showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(
           content: Text('Berhasil Menghapus Data Pasien!'),
           backgroundColor: Colors.green,
@@ -76,14 +72,8 @@ class PatientDeleteLogic {
       // Call success callback
       onDeleteSuccess();
     } catch (e) {
-      // Store context before popping
-      final scaffoldContext = ScaffoldMessenger.of(context);
-      
-      // Close dialog first
-      Navigator.of(context).pop();
-      
       // Show error message using stored context
-      scaffoldContext.showSnackBar(
+      scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text('Gagal Menghapus Data Pasien: ${e.toString()}'),
           backgroundColor: Colors.red,
@@ -97,12 +87,13 @@ class PatientDeleteLogic {
     required BuildContext context,
     required Patient patient,
   }) async {
+    final navigator = Navigator.of(context);
     await showDeleteConfirmationDialog(
       context: context,
       patient: patient,
       onDeleteSuccess: () {
         // Navigate back to patient list after successful deletion
-        Navigator.of(context).pop();
+        navigator.pop();
       },
     );
   }

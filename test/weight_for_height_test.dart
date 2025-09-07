@@ -149,12 +149,16 @@ void main() {
             reason: 'Z-score should be a finite number');
 
         // Log results with context
+        /*
+        
         print(
           '${testCase.targetHeight}cm ${testCase.gender} - '
           'median: ${parameters['median']!.toStringAsFixed(2)}, '
           'sd: ${parameters['standardDeviation']!.toStringAsFixed(2)}, '
           'zScore: ${zScore.toStringAsFixed(2)}',
         );
+        
+        */
 
         // Additional validation: Z-score should be within reasonable bounds
         expect(zScore.abs(), lessThanOrEqualTo(5.0),
