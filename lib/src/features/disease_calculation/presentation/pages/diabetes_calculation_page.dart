@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/diabetes_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 
@@ -12,6 +13,7 @@ class DiabetesCalculationPage extends StatefulWidget {
 
 class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   final _formKey = GlobalKey<FormState>();
+  final _calculatorService = DiabetesCalculatorService();
 
   // Form controllers
   final _ageController = TextEditingController();
@@ -25,17 +27,11 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   String? _selectedActivity;
   String? _bloodSugar;
   String? _bloodPressure;
-  String? _hospitalizedStatus; // Changed from bool to String for dropdown
-  double _stressMetabolic = 20.0; // Default 20%
+  String? _hospitalizedStatus;
+  double _stressMetabolic = 20.0;
 
   // Calculation results
-  double? _bbIdeal;
-  double? _bmr;
-  double? _totalCalories;
-  double? _ageCorrection;
-  double? _activityCorrection;
-  double? _weightCorrection;
-  String? _bmiCategory;
+  DiabetesCalculationResult? _result;
   String? _recommendation;
 
   final List<String> _genders = ['Laki-laki', 'Perempuan'];
@@ -69,188 +65,60 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     });
   }
 
-  double _calculateBBIdeal(double height, String gender) {
-    // Rumus BB Ideal:
-    // (TB-100)-10% jika TB Laki-laki ≥ 160cm dan TB perempuan ≥ 150cm
-    // (TB-100) jika TB laki-laki < 160cm dan TB Perempuan < 150cm
-
-    double bbIdeal;
-
-    if (gender == 'Laki-laki') {
-      if (height >= 160) {
-        bbIdeal = (height - 100) * 0.9; // (TB-100)-10%
-      } else {
-        bbIdeal = height - 100; // (TB-100)
-      }
-    } else {
-      // Perempuan
-      if (height >= 150) {
-        bbIdeal = (height - 100) * 0.9; // (TB-100)-10%
-      } else {
-        bbIdeal = height - 100; // (TB-100)
-      }
-    }
-
-    return bbIdeal;
-  }
-
-  String _calculateBMICategory(double weight, double height) {
-    double bmi = weight / ((height / 100) * (height / 100));
-
-    if (bmi < 18.5) {
-      return 'Kurang';
-    } else if (bmi >= 18.5 && bmi < 23) {
-      return 'Normal';
-    } else if (bmi >= 23 && bmi < 25) {
-      return 'Lebih';
-    } else {
-      return 'Gemuk';
-    }
-  }
-
-  double _calculateWeightCorrection(String bmiCategory, double bmr) {
-    // 3. Menghitung Koreksi
-    // c. Berat Badan (Abaikan jika hasil kategori IMT normal)
-    // kategori x kalori basal = (-/+) kalori
-    // gemuk ; (-) 20%
-    // Lebih : (-) 10%
-    // Kurang : (+) 20%
-
-    if (bmiCategory == 'Normal') {
-      return 0;
-    }
-
-    switch (bmiCategory) {
-      case 'Gemuk':
-        return -0.2 * bmr; // (-) 20%
-      case 'Lebih':
-        return -0.1 * bmr; // (-) 10%
-      case 'Kurang':
-        return 0.2 * bmr; // (+) 20%
-      default:
-        return 0;
-    }
-  }
-
   void _calculateDiabetesNutrition() {
     if (_formKey.currentState!.validate()) {
-      final age = int.parse(_ageController.text);
-      final weight = double.parse(_weightController.text);
-      final height = double.parse(_heightController.text);
+      final result = _calculatorService.calculate(
+        age: int.parse(_ageController.text),
+        weight: double.parse(_weightController.text),
+        height: double.parse(_heightController.text),
+        gender: _selectedGender!,
+        activity: _selectedActivity!,
+        hospitalizedStatus: _hospitalizedStatus!,
+        stressMetabolic: _stressMetabolic,
+        bloodSugar: _bloodSugar!,
+        bloodPressure: _bloodPressure!,
+      );
 
-      // Calculate BB Ideal
-      _bbIdeal = _calculateBBIdeal(height, _selectedGender!);
+      setState(() {
+        _result = result;
+        _generateRecommendation();
+      });
 
-      // Calculate BMI Category
-      _bmiCategory = _calculateBMICategory(weight, height);
-
-      // Calculate BMR based on gender and BB Ideal
-      if (_selectedGender == 'Laki-laki') {
-        _bmr = _bbIdeal! * 30;
-      } else {
-        _bmr = _bbIdeal! * 25;
-      }
-
-      // 3. Menghitung Koreksi
-      // b. Aktifitas
-      double activityFactor = 0; // Default
-      switch (_selectedActivity) {
-        case 'Bed rest':
-          activityFactor = 0.1;
-          break;
-        case 'Ringan':
-          activityFactor = 0.2;
-          break;
-        case 'Sedang':
-          activityFactor = 0.3;
-          break;
-        case 'Berat':
-          activityFactor = 0.4;
-          break;
-      }
-
-      // Calculate activity correction: faktor aktivitas x kalori basal = (+) kalori
-      _activityCorrection = activityFactor * _bmr!;
-
-      // Calculate weight correction based on BMI category
-      _weightCorrection = _calculateWeightCorrection(_bmiCategory!, _bmr!);
-
-      // Calculate total calories with activity correction
-      _totalCalories = _bmr! + _activityCorrection! + _weightCorrection!;
-
-      // Calculate age correction (3. Menghitung Koreksi)
-      _ageCorrection = 0;
-      if (age > 40) {
-        _ageCorrection = _bmr! * 0.05; // -5% x kalori basal
-        _totalCalories = _totalCalories! - _ageCorrection!;
-      }
-
-      // 3. Menghitung Koreksi
-      // d. Stress Metabolik (abaikan jika bukan pasien rawat inap)
-      // stress metabolik (10-40%) x kalori basal = (+) kalori
-      double stressMetabolicCorrection = 0;
-      if (_hospitalizedStatus == 'Ya') {
-        stressMetabolicCorrection = (_stressMetabolic / 100) * _bmr!;
-        _totalCalories = _totalCalories! + stressMetabolicCorrection;
-      }
-
-      // Adjust for blood sugar and pressure conditions
-      if (_bloodSugar == 'Tidak terkendali') {
-        _totalCalories =
-            _totalCalories! * 0.9; // Reduce 10% for uncontrolled diabetes
-      }
-
-      if (_bloodPressure == 'Tinggi') {
-        _totalCalories =
-            _totalCalories! * 0.95; // Reduce 5% for high blood pressure
-      }
-
-      // Generate recommendation
-      _generateRecommendation();
-
-      setState(() {});
       _scrollToResult();
     }
   }
 
   void _generateRecommendation() {
-    if (_totalCalories == null) return;
+    if (_result == null) return;
 
-    final calories = _totalCalories!.round();
+    final calories = _result!.totalCalories.round();
     final age = int.tryParse(_ageController.text) ?? 0;
 
     String ageCorrectionNote = '';
-    if (age > 40 && _ageCorrection != null && _ageCorrection! > 0) {
+    if (age > 40 && _result!.ageCorrection > 0) {
       ageCorrectionNote =
-          '''
-- Koreksi usia: -${_ageCorrection!.round()} kkal/hari (karena usia > 40 tahun)
-''';
+          ' - Koreksi usia: -${_result!.ageCorrection.round()} kkal/hari (karena usia > 40 tahun)\n';
     }
 
     String weightCorrectionNote = '';
-    if (_weightCorrection != null && _weightCorrection! != 0) {
-      String correctionType = _weightCorrection! > 0 ? '+' : '';
+    if (_result!.weightCorrection != 0) {
+      String correctionType = _result!.weightCorrection > 0 ? '+' : '';
       weightCorrectionNote =
-          '''
-- Koreksi berat badan: $correctionType${_weightCorrection!.round()} kkal/hari (karena IMT ${_bmiCategory!.toLowerCase()})
-''';
+          ' - Koreksi berat badan: $correctionType${_result!.weightCorrection.round()} kkal/hari (karena IMT ${_result!.bmiCategory.toLowerCase()})\n';
     }
 
     String stressMetabolicNote = '';
     if (_hospitalizedStatus == 'Ya') {
-      double stressMetabolicCorrection = (_stressMetabolic / 100) * _bmr!;
+      double stressMetabolicCorrection = (_stressMetabolic / 100) * _result!.bmr;
       stressMetabolicNote =
-          '''
-- Koreksi stress metabolik: +${stressMetabolicCorrection.round()} kkal/hari (${_stressMetabolic.round()}%)
-''';
+          ' - Koreksi stress metabolik: +${stressMetabolicCorrection.round()} kkal/hari (${_stressMetabolic.round()}%)\n';
     }
 
-    _recommendation =
-        '''
+    _recommendation = '''
 Rekomendasi Nutrisi untuk Pasien Diabetes:
 
 Kalori Total: $calories kkal/hari
-- Koreksi aktivitas: +${_activityCorrection!.round()} kkal/hari ($_selectedActivity)
+- Koreksi aktivitas: +${_result!.activityCorrection.round()} kkal/hari ($_selectedActivity)
 $ageCorrectionNote$weightCorrectionNote$stressMetabolicNote
 Distribusi Makronutrien:
 - Karbohidrat: ${(calories * 0.45).round()} - ${(calories * 0.65).round()} kkal (${(calories * 0.45 / 4).round()} - ${(calories * 0.65 / 4).round()}g)
@@ -268,13 +136,9 @@ Catatan:
 
   void _resetForm() {
     _formKey.currentState?.reset();
-
-    // Reset all controllers
     _ageController.clear();
     _weightController.clear();
     _heightController.clear();
-
-    // Reset all form fields
     setState(() {
       _selectedGender = null;
       _selectedActivity = null;
@@ -282,15 +146,7 @@ Catatan:
       _bloodPressure = null;
       _hospitalizedStatus = null;
       _stressMetabolic = 20.0;
-
-      // Reset calculation results
-      _bbIdeal = null;
-      _bmr = null;
-      _totalCalories = null;
-      _ageCorrection = null;
-      _activityCorrection = null;
-      _weightCorrection = null;
-      _bmiCategory = null;
+      _result = null;
       _recommendation = null;
     });
   }
@@ -318,8 +174,6 @@ Catatan:
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
-
-                // Usia
                 TextFormField(
                   controller: _ageController,
                   decoration: const InputDecoration(
@@ -330,9 +184,7 @@ Catatan:
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Masukkan usia';
-                    }
+                    if (value == null || value.isEmpty) return 'Masukkan usia';
                     final age = int.tryParse(value);
                     if (age == null || age < 1 || age > 120) {
                       return 'Masukkan usia yang valid (1-120 tahun)';
@@ -341,8 +193,6 @@ Catatan:
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // Jenis Kelamin
                 DropdownButtonFormField<String>(
                   value: _selectedGender,
                   decoration: const InputDecoration(
@@ -353,21 +203,11 @@ Catatan:
                   items: _genders.map((gender) {
                     return DropdownMenuItem(value: gender, child: Text(gender));
                   }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedGender = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Pilih jenis kelamin';
-                    }
-                    return null;
-                  },
+                  onChanged: (value) => setState(() => _selectedGender = value),
+                  validator: (value) =>
+                      value == null ? 'Pilih jenis kelamin' : null,
                 ),
                 const SizedBox(height: 16),
-
-                // Berat Badan
                 TextFormField(
                   controller: _weightController,
                   decoration: const InputDecoration(
@@ -389,8 +229,6 @@ Catatan:
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // Tinggi Badan
                 TextFormField(
                   controller: _heightController,
                   decoration: const InputDecoration(
@@ -412,8 +250,6 @@ Catatan:
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // Faktor Aktivitas
                 DropdownButtonFormField<String>(
                   value: _selectedActivity,
                   decoration: const InputDecoration(
@@ -423,25 +259,14 @@ Catatan:
                   ),
                   items: _activityLevels.map((activity) {
                     return DropdownMenuItem(
-                      value: activity,
-                      child: Text(activity),
-                    );
+                        value: activity, child: Text(activity));
                   }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedActivity = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Pilih faktor aktivitas';
-                    }
-                    return null;
-                  },
+                  onChanged: (value) =>
+                      setState(() => _selectedActivity = value),
+                  validator: (value) =>
+                      value == null ? 'Pilih faktor aktivitas' : null,
                 ),
                 const SizedBox(height: 16),
-
-                // Gula Darah
                 DropdownButtonFormField<String>(
                   value: _bloodSugar,
                   decoration: const InputDecoration(
@@ -452,21 +277,11 @@ Catatan:
                   items: _bloodSugarOptions.map((option) {
                     return DropdownMenuItem(value: option, child: Text(option));
                   }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _bloodSugar = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Pilih status gula darah';
-                    }
-                    return null;
-                  },
+                  onChanged: (value) => setState(() => _bloodSugar = value),
+                  validator: (value) =>
+                      value == null ? 'Pilih status gula darah' : null,
                 ),
                 const SizedBox(height: 16),
-
-                // Tekanan Darah
                 DropdownButtonFormField<String>(
                   value: _bloodPressure,
                   decoration: const InputDecoration(
@@ -477,21 +292,11 @@ Catatan:
                   items: _bloodPressureOptions.map((option) {
                     return DropdownMenuItem(value: option, child: Text(option));
                   }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _bloodPressure = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Pilih status tekanan darah';
-                    }
-                    return null;
-                  },
+                  onChanged: (value) => setState(() => _bloodPressure = value),
+                  validator: (value) =>
+                      value == null ? 'Pilih status tekanan darah' : null,
                 ),
                 const SizedBox(height: 16),
-
-                // Pasien Rawat Inap
                 DropdownButtonFormField<String>(
                   value: _hospitalizedStatus,
                   decoration: const InputDecoration(
@@ -505,22 +310,13 @@ Catatan:
                   onChanged: (value) {
                     setState(() {
                       _hospitalizedStatus = value;
-                      // Reset stress metabolik to default when not hospitalized
-                      if (value == 'Tidak') {
-                        _stressMetabolic = 20.0;
-                      }
+                      if (value == 'Tidak') _stressMetabolic = 20.0;
                     });
                   },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Pilih status rawat inap';
-                    }
-                    return null;
-                  },
+                  validator: (value) =>
+                      value == null ? 'Pilih status rawat inap' : null,
                 ),
                 const SizedBox(height: 16),
-
-                // Stress Metabolik - Only show if hospitalized
                 if (_hospitalizedStatus == 'Ya') ...[
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -528,9 +324,7 @@ Catatan:
                       Text(
                         'Stress Metabolik: ${_stressMetabolic.round()}%',
                         style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       Slider(
                         value: _stressMetabolic,
@@ -538,49 +332,32 @@ Catatan:
                         max: 40,
                         divisions: 30,
                         label: '${_stressMetabolic.round()}%',
-                        onChanged: (value) {
-                          setState(() {
-                            _stressMetabolic = value;
-                          });
-                        },
+                        onChanged: (value) =>
+                            setState(() => _stressMetabolic = value),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                 ],
-
                 const SizedBox(height: 24),
-
-                // Calculate Button
-                FormActionButtons(onReset: _resetForm, onSubmit: _calculateDiabetesNutrition),
-
+                FormActionButtons(
+                    onReset: _resetForm, onSubmit: _calculateDiabetesNutrition),
                 const SizedBox(height: 32),
-
-                // Results
-                if (_bbIdeal != null &&
-                    _bmr != null &&
-                    _totalCalories != null) ...[
-
+                if (_result != null) ...[
                   Container(
-                    key: _resultCardKey, 
+                    key: _resultCardKey,
                     child: const Column(
                       children: [Divider(), SizedBox(height: 32)],
                     ),
                   ),
-                  
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(
-                        255,
-                        0,
-                        148,
-                        68,
-                      ).withValues(alpha: 0.1),
+                      color: const Color.fromARGB(255, 0, 148, 68)
+                          .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: const Color.fromARGB(255, 0, 148, 68),
-                      ),
+                          color: const Color.fromARGB(255, 0, 148, 68)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -596,85 +373,33 @@ Catatan:
                             ),
                           ),
                         ),
+                        const Divider(height: 24),
                         const SizedBox(height: 8),
-                        Text(
-                          'BB Ideal: ${_bbIdeal!.round()} kg',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Color.fromARGB(255, 0, 148, 68),
-                            ),
-                        ),
-                        Text(
-                          'BMR: ${_bmr!.round()} kkal/hari',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Color.fromARGB(255, 0, 148, 68),
-                            ),
-                        ),
-                        Text(
-                          'Kategori IMT: $_bmiCategory',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Color.fromARGB(255, 0, 148, 68),
-                            ),
-                        ),
-                        Text(
-                          'Koreksi Aktivitas: +${_activityCorrection!.round()} kkal/hari',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Color.fromARGB(255, 0, 148, 68),
+                        _buildNutritionRow('BB Ideal', '${_result!.bbIdeal.round()} kg'),
+                        _buildNutritionRow('BMR', '${_result!.bmr.round()} kkal/hari'),
+                        _buildNutritionRow('Kategori IMT', _result!.bmiCategory),
+                        _buildNutritionRow('Koreksi Aktivitas', '+${_result!.activityCorrection.round()} kkal/hari'),
+                        if (_result!.ageCorrection > 0)
+                          _buildNutritionRow('Koreksi Usia', '-${_result!.ageCorrection.round()} kkal/hari'),
+                        if (_result!.weightCorrection != 0)
+                          _buildNutritionRow(
+                            'Koreksi Berat Badan',
+                            '${_result!.weightCorrection.round()} kkal/hari',
                           ),
-                        ),
-                        if (_ageCorrection != null && _ageCorrection! > 0) ...[
-                          Text(
-                            'Koreksi Usia: -${_ageCorrection!.round()} kkal/hari',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Color.fromARGB(255, 0, 148, 68),
-                            ),
-                          ),
-                        ],
-                        if (_weightCorrection != null &&
-                            _weightCorrection! != 0) ...[
-                          Text(
-                            'Koreksi Berat Badan: ${_weightCorrection!.round()} kkal/hari',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: _weightCorrection! > 0
-                                  ? Color.fromARGB(255, 0, 148, 68)
-                                  : Colors.red,
-                            ),
-                          ),
-                        ],
-                        if (_hospitalizedStatus == 'Ya') ...[
-                          Text(
-                            'Koreksi Stress Metabolik: +${((_stressMetabolic / 100) * _bmr!).round()} kkal/hari',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Color.fromARGB(255, 0, 148, 68),
-                            ),
-                          ),
-                        ],
+                        if (_hospitalizedStatus == 'Ya')
+                          _buildNutritionRow(
+                              'Koreksi Stress Metabolik', '+${((_stressMetabolic / 100) * _result!.bmr).round()} kkal/hari'),
                         const SizedBox(height: 8),
                         Center(
                           child: Text(
-                            'Total Kalori: ${_totalCalories!.round()} kkal/hari',
+                            'Total Kalori: ${_result!.totalCalories.round()} kkal/hari',
                             style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.black,
-                            ),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black),
                           ),
                         ),
                         const SizedBox(height: 8),
-
                         const Text(
                           'Total kebutuhan energi digunakan untuk mengetahui jenis diet Diabetes Melitus',
                           textAlign: TextAlign.center,
@@ -684,8 +409,46 @@ Catatan:
                     ),
                   ),
                   const SizedBox(height: 16),
+                  
+                  // CONTAINER BARU UNTUK JENIS DIET
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade300),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                        child: Text(
+                          'Jenis ${_result!.dietInfo.name}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        ),
+                        const Divider(height: 24),
+                        _buildNutritionRow('Protein', '${_result!.dietInfo.protein} g'),
+                        _buildNutritionRow('Lemak', '${_result!.dietInfo.fat} g'),
+                        _buildNutritionRow('Karbohidrat', '${_result!.dietInfo.carbohydrate} g'),
 
-                  if (_recommendation != null) ...[
+                        const SizedBox(height: 8),
+
+                        const Text(
+                          'Jenis Diet Diabetes Melitus menurut kandungan energi, protein, lemak, dan karbohidrat',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  if (_recommendation != null)
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -712,12 +475,31 @@ Catatan:
                         ],
                       ),
                     ),
-                  ],
                 ],
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+  // Widget helper untuk baris nutrisi di kartu diet
+  Widget _buildNutritionRow(String label, String value, {Color? valueColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 16)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: valueColor ?? const Color.fromARGB(255, 0, 0, 0),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -237,7 +237,8 @@ class _BmiFormPageState extends State<BmiFormPage> {
                             color: Color.fromARGB(255, 0, 0, 0),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const Divider(height: 8),
+                        const SizedBox(height: 15),
                         Text(
                           'Berat Badan Kurang (Underweight): < 18,5\n'
                           'Kurus Parah (Severe thinness): < 16,0\n'
