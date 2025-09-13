@@ -15,6 +15,33 @@ class DietInfo {
   });
 }
 
+// KELAS BARU: Untuk standar diet golongan bahan makanan
+class FoodGroupDiet {
+  final String calorieLevel;
+  final double nasiP;
+  final double ikanP;
+  final double dagingP;
+  final String sayuranA;
+  final double sayuranB;
+  final double buah;
+  final double susu;
+  final double minyak;
+  final double tempeP;
+
+  FoodGroupDiet({
+    required this.calorieLevel,
+    required this.nasiP,
+    required this.ikanP,
+    required this.dagingP,
+    required this.sayuranA,
+    required this.sayuranB,
+    required this.buah,
+    required this.susu,
+    required this.minyak,
+    required this.tempeP,
+  });
+}
+
 class DiabetesCalculationResult {
   final double bbIdeal;
   final double bmr;
@@ -24,6 +51,7 @@ class DiabetesCalculationResult {
   final double weightCorrection;
   final String bmiCategory;
   final DietInfo dietInfo;
+  final FoodGroupDiet foodGroupDiet;
 
   DiabetesCalculationResult({
     required this.bbIdeal,
@@ -34,6 +62,7 @@ class DiabetesCalculationResult {
     required this.weightCorrection,
     required this.bmiCategory,
     required this.dietInfo,
+    required this.foodGroupDiet,
   });
 }
 
@@ -94,7 +123,8 @@ class DiabetesCalculatorService {
       totalCalories *= 0.95;
     }
 
-     final dietInfo = _getDietType(totalCalories);
+    final dietInfo = _getDietType(totalCalories);
+    final foodGroupDiet = _getFoodGroupDiet(totalCalories);
 
     return DiabetesCalculationResult(
       bbIdeal: bbIdeal,
@@ -105,6 +135,7 @@ class DiabetesCalculatorService {
       weightCorrection: weightCorrection,
       bmiCategory: bmiCategory,
       dietInfo: dietInfo,
+      foodGroupDiet: foodGroupDiet,
     );
   }
 
@@ -159,29 +190,182 @@ class DiabetesCalculatorService {
     }
   }
 
-   // DIUBAH: Fungsi ini sekarang mengembalikan objek DietInfo
+  // DIUBAH: Fungsi ini sekarang mengembalikan objek DietInfo
   DietInfo _getDietType(double totalCalories) {
     if (totalCalories < 1200) {
-      return DietInfo(name: 'Diet I (1100 kkal)', protein: 43, fat: 30, carbohydrate: 172);
+      return DietInfo(
+        name: 'Diet I (1100 kkal)',
+        protein: 43,
+        fat: 30,
+        carbohydrate: 172,
+      );
     }
     if (totalCalories < 1400) {
-      return DietInfo(name: 'Diet II (1300 kkal)', protein: 45, fat: 35, carbohydrate: 192);
+      return DietInfo(
+        name: 'Diet II (1300 kkal)',
+        protein: 45,
+        fat: 35,
+        carbohydrate: 192,
+      );
     }
     if (totalCalories < 1600) {
-      return DietInfo(name: 'Diet III (1500 kkal)', protein: 51.5, fat: 36.5, carbohydrate: 235);
+      return DietInfo(
+        name: 'Diet III (1500 kkal)',
+        protein: 51.5,
+        fat: 36.5,
+        carbohydrate: 235,
+      );
     }
     if (totalCalories < 1800) {
-      return DietInfo(name: 'Diet IV (1700 kkal)', protein: 55.5, fat: 36.5, carbohydrate: 275);
+      return DietInfo(
+        name: 'Diet IV (1700 kkal)',
+        protein: 55.5,
+        fat: 36.5,
+        carbohydrate: 275,
+      );
     }
     if (totalCalories < 2000) {
-      return DietInfo(name: 'Diet V (1900 kkal)', protein: 60, fat: 48, carbohydrate: 299);
+      return DietInfo(
+        name: 'Diet V (1900 kkal)',
+        protein: 60,
+        fat: 48,
+        carbohydrate: 299,
+      );
     }
     if (totalCalories < 2200) {
-      return DietInfo(name: 'Diet VI (2100 kkal)', protein: 62, fat: 53, carbohydrate: 319);
+      return DietInfo(
+        name: 'Diet VI (2100 kkal)',
+        protein: 62,
+        fat: 53,
+        carbohydrate: 319,
+      );
     }
     if (totalCalories < 2400) {
-      return DietInfo(name: 'Diet VII (2300 kkal)', protein: 73, fat: 59, carbohydrate: 369);
+      return DietInfo(
+        name: 'Diet VII (2300 kkal)',
+        protein: 73,
+        fat: 59,
+        carbohydrate: 369,
+      );
     }
-    return DietInfo(name: 'Diet VIII (2500 kkal)', protein: 80, fat: 62, carbohydrate: 396);
+    return DietInfo(
+      name: 'Diet VIII (2500 kkal)',
+      protein: 80,
+      fat: 62,
+      carbohydrate: 396,
+    );
+  }
+
+  FoodGroupDiet _getFoodGroupDiet(double totalCalories) {
+    if (totalCalories < 1200) {
+      return FoodGroupDiet(
+        calorieLevel: '1100 kkal',
+        nasiP: 2.5,
+        ikanP: 2,
+        dagingP: 1,
+        tempeP: 2,
+        sayuranA: 'S',
+        sayuranB: 2,
+        buah: 4,
+        susu: 0,
+        minyak: 3,
+      );
+    }
+    if (totalCalories < 1400) {
+      return FoodGroupDiet(
+        calorieLevel: '1300 kkal',
+        nasiP: 3,
+        ikanP: 2,
+        dagingP: 1,
+        tempeP: 2,
+        sayuranA: 'S',
+        sayuranB: 2,
+        buah: 4,
+        susu: 0,
+        minyak: 4,
+      );
+    }
+    if (totalCalories < 1600) {
+      return FoodGroupDiet(
+        calorieLevel: '1500 kkal',
+        nasiP: 4,
+        ikanP: 2,
+        dagingP: 1,
+        tempeP: 2.5,
+        sayuranA: 'S',
+        sayuranB: 2,
+        buah: 4,
+        susu: 0,
+        minyak: 4,
+      );
+    }
+    if (totalCalories < 1800) {
+      return FoodGroupDiet(
+        calorieLevel: '1700 kkal',
+        nasiP: 5,
+        ikanP: 2,
+        dagingP: 1,
+        tempeP: 2.5,
+        sayuranA: 'S',
+        sayuranB: 2,
+        buah: 4,
+        susu: 0,
+        minyak: 4,
+      );
+    }
+    if (totalCalories < 2000) {
+      return FoodGroupDiet(
+        calorieLevel: '1900 kkal',
+        nasiP: 5.5,
+        ikanP: 2,
+        dagingP: 1,
+        tempeP: 3,
+        sayuranA: 'S',
+        sayuranB: 2,
+        buah: 4,
+        susu: 0,
+        minyak: 6,
+      );
+    }
+    if (totalCalories < 2200) {
+      return FoodGroupDiet(
+        calorieLevel: '2100 kkal',
+        nasiP: 6,
+        ikanP: 2,
+        dagingP: 1,
+        tempeP: 3,
+        sayuranA: 'S',
+        sayuranB: 2,
+        buah: 4,
+        susu: 0,
+        minyak: 7,
+      );
+    }
+    if (totalCalories < 2400) {
+      return FoodGroupDiet(
+        calorieLevel: '2300 kkal',
+        nasiP: 7,
+        ikanP: 2,
+        dagingP: 1,
+        tempeP: 3,
+        sayuranA: 'S',
+        sayuranB: 2,
+        buah: 4,
+        susu: 1,
+        minyak: 7,
+      );
+    }
+    return FoodGroupDiet(
+      calorieLevel: '2500 kkal',
+      nasiP: 7.5,
+      ikanP: 2,
+      dagingP: 1,
+      tempeP: 5,
+      sayuranA: 'S',
+      sayuranB: 2,
+      buah: 4,
+      susu: 1,
+      minyak: 7,
+    );
   }
 }

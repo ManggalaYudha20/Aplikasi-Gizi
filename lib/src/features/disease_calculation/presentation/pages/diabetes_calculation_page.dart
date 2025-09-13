@@ -109,12 +109,14 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
 
     String stressMetabolicNote = '';
     if (_hospitalizedStatus == 'Ya') {
-      double stressMetabolicCorrection = (_stressMetabolic / 100) * _result!.bmr;
+      double stressMetabolicCorrection =
+          (_stressMetabolic / 100) * _result!.bmr;
       stressMetabolicNote =
           ' - Koreksi stress metabolik: +${stressMetabolicCorrection.round()} kkal/hari (${_stressMetabolic.round()}%)\n';
     }
 
-    _recommendation = '''
+    _recommendation =
+        '''
 Rekomendasi Nutrisi untuk Pasien Diabetes:
 
 Kalori Total: $calories kkal/hari
@@ -259,7 +261,9 @@ Catatan:
                   ),
                   items: _activityLevels.map((activity) {
                     return DropdownMenuItem(
-                        value: activity, child: Text(activity));
+                      value: activity,
+                      child: Text(activity),
+                    );
                   }).toList(),
                   onChanged: (value) =>
                       setState(() => _selectedActivity = value),
@@ -324,7 +328,9 @@ Catatan:
                       Text(
                         'Stress Metabolik: ${_stressMetabolic.round()}%',
                         style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Slider(
                         value: _stressMetabolic,
@@ -341,7 +347,9 @@ Catatan:
                 ],
                 const SizedBox(height: 24),
                 FormActionButtons(
-                    onReset: _resetForm, onSubmit: _calculateDiabetesNutrition),
+                  onReset: _resetForm,
+                  onSubmit: _calculateDiabetesNutrition,
+                ),
                 const SizedBox(height: 32),
                 if (_result != null) ...[
                   Container(
@@ -353,11 +361,16 @@ Catatan:
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 0, 148, 68)
-                          .withValues(alpha: 0.1),
+                      color: const Color.fromARGB(
+                        255,
+                        0,
+                        148,
+                        68,
+                      ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                          color: const Color.fromARGB(255, 0, 148, 68)),
+                        color: const Color.fromARGB(255, 0, 148, 68),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -375,28 +388,46 @@ Catatan:
                         ),
                         const Divider(height: 24),
                         const SizedBox(height: 8),
-                        _buildNutritionRow('BB Ideal', '${_result!.bbIdeal.round()} kg'),
-                        _buildNutritionRow('BMR', '${_result!.bmr.round()} kkal/hari'),
-                        _buildNutritionRow('Kategori IMT', _result!.bmiCategory),
-                        _buildNutritionRow('Koreksi Aktivitas', '+${_result!.activityCorrection.round()} kkal/hari'),
+                        _buildNutritionRow(
+                          'BB Ideal',
+                          '${_result!.bbIdeal.round()} kg',
+                        ),
+                        _buildNutritionRow(
+                          'BMR',
+                          '${_result!.bmr.round()} kkal/hari',
+                        ),
+                        _buildNutritionRow(
+                          'Kategori IMT',
+                          _result!.bmiCategory,
+                        ),
+                        _buildNutritionRow(
+                          'Koreksi Aktivitas',
+                          '+${_result!.activityCorrection.round()} kkal/hari',
+                        ),
                         if (_result!.ageCorrection > 0)
-                          _buildNutritionRow('Koreksi Usia', '-${_result!.ageCorrection.round()} kkal/hari'),
+                          _buildNutritionRow(
+                            'Koreksi Usia',
+                            '-${_result!.ageCorrection.round()} kkal/hari',
+                          ),
                         if (_result!.weightCorrection != 0)
                           _buildNutritionRow(
                             'Koreksi Berat Badan',
-                            '${_result!.weightCorrection.round()} kkal/hari',
+                            '+${_result!.weightCorrection.round()} kkal/hari',
                           ),
                         if (_hospitalizedStatus == 'Ya')
                           _buildNutritionRow(
-                              'Koreksi Stress Metabolik', '+${((_stressMetabolic / 100) * _result!.bmr).round()} kkal/hari'),
+                            'Koreksi Stress Metabolik',
+                            '+${((_stressMetabolic / 100) * _result!.bmr).round()} kkal/hari',
+                          ),
                         const SizedBox(height: 8),
                         Center(
                           child: Text(
                             'Total Kalori: ${_result!.totalCalories.round()} kkal/hari',
                             style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.black),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -409,7 +440,7 @@ Catatan:
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // CONTAINER BARU UNTUK JENIS DIET
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -422,24 +453,109 @@ Catatan:
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Center(
-                        child: Text(
-                          'Jenis ${_result!.dietInfo.name}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
+                          child: Text(
+                            'Jenis ${_result!.dietInfo.name}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
                           ),
                         ),
-                        ),
                         const Divider(height: 24),
-                        _buildNutritionRow('Protein', '${_result!.dietInfo.protein} g'),
-                        _buildNutritionRow('Lemak', '${_result!.dietInfo.fat} g'),
-                        _buildNutritionRow('Karbohidrat', '${_result!.dietInfo.carbohydrate} g'),
+                        _buildNutritionRow(
+                          'Protein',
+                          '${_result!.dietInfo.protein} g',
+                        ),
+                        _buildNutritionRow(
+                          'Lemak',
+                          '${_result!.dietInfo.fat} g',
+                        ),
+                        _buildNutritionRow(
+                          'Karbohidrat',
+                          '${_result!.dietInfo.carbohydrate} g',
+                        ),
 
                         const SizedBox(height: 8),
 
                         const Text(
                           'Jenis Diet Diabetes Melitus menurut kandungan energi, protein, lemak, dan karbohidrat',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // CONTAINER BARU UNTUK STANDAR DIET GOLONGAN BAHAN MAKANAN
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.purple.shade300),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Text(
+                            'Standar Diet (${_result!.foodGroupDiet.calorieLevel})',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.purple,
+                            ),
+                          ),
+                        ),
+                        const Divider(height: 24),
+                        _buildNutritionRow(
+                          'Nasi atau penukar',
+                          '${_formatNumber(_result!.foodGroupDiet.nasiP)} P',
+                        ),
+                        _buildNutritionRow(
+                          'Ikan atau penukar',
+                          '${_formatNumber(_result!.foodGroupDiet.ikanP)} P',
+                        ),
+                        _buildNutritionRow(
+                          'Daging atau penukar',
+                          '${_formatNumber(_result!.foodGroupDiet.dagingP)} P',
+                        ),
+                        _buildNutritionRow(
+                          'Tempe atau penukar',
+                          '${_formatNumber(_result!.foodGroupDiet.tempeP)} P',
+                        ),
+                        _buildNutritionRow(
+                          'Sayuran/penukar A',
+                          ' ${_result!.foodGroupDiet.sayuranA}',
+                        ),
+                        _buildNutritionRow(
+                          'Sayuran/penukar B',
+                          '${_formatNumber(_result!.foodGroupDiet.sayuranB)} P',
+                        ),
+                        _buildNutritionRow(
+                          'Buah atau penukar',
+                          '${_formatNumber(_result!.foodGroupDiet.buah)} P',
+                        ),
+                        _buildNutritionRow(
+                          'Susu atau penukar',
+                          '${_formatNumber(_result!.foodGroupDiet.susu)} P',
+                        ),
+                        _buildNutritionRow(
+                          'Minyak atau penukar',
+                          '${_formatNumber(_result!.foodGroupDiet.minyak)} P',
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Keterangan : (P = Penukar) (S = Sekehendak) ',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 10, color: Colors.black54, fontWeight: FontWeight.w600,),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Jumlah bahan makanan sehari menurut Standar Diet Diabetes Melitus (dalam satuan penukar II)',
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
@@ -483,6 +599,7 @@ Catatan:
       ),
     );
   }
+
   // Widget helper untuk baris nutrisi di kartu diet
   Widget _buildNutritionRow(String label, String value, {Color? valueColor}) {
     return Padding(
@@ -502,5 +619,14 @@ Catatan:
         ],
       ),
     );
+  }
+
+  // Helper function to format numbers conditionally
+  String _formatNumber(double value) {
+    if (value == value.toInt()) {
+      return value.toInt().toString();
+    } else {
+      return value.toStringAsFixed(1);
+    }
   }
 }
