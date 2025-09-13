@@ -40,12 +40,19 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
             // --- Bagian Data Pasien ---
             _buildSectionTitle('Data Pasien'),
             _buildInfoRow('No. RM', _currentPatient.noRM),
-            _buildInfoRow('Tanggal Lahir', _currentPatient.tanggalLahirFormatted),
+            _buildInfoRow(
+              'Tanggal Lahir',
+              _currentPatient.tanggalLahirFormatted,
+            ),
             _buildInfoRow('Usia', '${_currentPatient.usia} tahun'),
             _buildInfoRow('Jenis Kelamin', _currentPatient.jenisKelamin),
             _buildInfoRow('Diagnosis Medis', _currentPatient.diagnosisMedis),
 
-            const SizedBox(height: 20),
+            const Divider(
+              height: 20, // Jarak vertikal total untuk divider
+              thickness: 2, // Ketebalan garis divider
+              color: Colors.green, // Warna garis divider 🎨
+            ),
 
             // --- Bagian Hasil Perhitungan Gizi ---
             _buildSectionTitle('Hasil Perhitungan Gizi'),
@@ -76,7 +83,11 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
             ),
             _buildInfoRow('Aktivitas', _currentPatient.aktivitas),
 
-            const SizedBox(height: 20),
+            const Divider(
+              height: 20, // Jarak vertikal total untuk divider
+              thickness: 2, // Ketebalan garis divider
+              color: Colors.green, // Warna garis divider 🎨
+            ),
 
             // --- Bagian Skrining Gizi Lanjut ---
             _buildSectionTitle('Skrining Gizi Lanjut'),
@@ -111,9 +122,9 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                   child: ElevatedButton(
                     onPressed: () async {
                       // Store context before async operation
-                        final scaffoldContext = ScaffoldMessenger.of(context);
+                      final scaffoldContext = ScaffoldMessenger.of(context);
 
-                      try {            
+                      try {
                         // Show loading indicator
                         scaffoldContext.showSnackBar(
                           const SnackBar(
@@ -121,31 +132,34 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                             duration: Duration(seconds: 1),
                           ),
                         );
-                        
+
                         // Generate PDF
-                        final pdfFile = await PdfGenerator.generate(_currentPatient);
-                        
+                        final pdfFile = await PdfGenerator.generate(
+                          _currentPatient,
+                        );
+
                         // Open the PDF file
                         await PdfGenerator.openFile(pdfFile);
-                        
+
                         // Show success message
                         if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('File PDF Berhasil dibuat!'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('File PDF Berhasil dibuat!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
                       } catch (e) {
                         // Show error message
                         if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('File PDF Gagal dibuat: ${e.toString()}'),
-                              backgroundColor: Colors.red,
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'File PDF Gagal dibuat: ${e.toString()}',
                             ),
-                          );
+                            backgroundColor: Colors.red,
+                          ),
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -195,7 +209,7 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                     builder: (context) => DataFormPage(patient: widget.patient),
                   ),
                 );
-                
+
                 // If patient data was updated, refresh the UI
                 if (updatedPatient != null && mounted) {
                   setState(() {
@@ -204,7 +218,6 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                 }
               },
             ),
-            
           ],
         ),
       ),

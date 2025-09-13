@@ -42,6 +42,50 @@ class FoodGroupDiet {
   });
 }
 
+// KELAS BARU: Untuk menyimpan data per waktu makan (SUDAH DIPERBAIKI)
+class MealDistribution {
+  final double nasiP;
+  final double ikanP;
+  final double dagingP;
+  final String sayuranA; // DIUBAH: dari double ke String
+  final double sayuranB;
+  final double buah;
+  final double susu;
+  final double tempeP;
+  final double minyak;
+
+  MealDistribution({
+    this.nasiP = 0,
+    this.ikanP = 0,
+    this.dagingP = 0,
+    this.sayuranA = '', // DIUBAH: default value ke string kosong
+    this.sayuranB = 0,
+    this.buah = 0,
+    this.susu = 0,
+    this.tempeP = 0,
+    this.minyak = 0,
+  });
+}
+
+// KELAS BARU: Untuk menyimpan pembagian makanan sepanjang hari
+class DailyMealDistribution {
+  final String calorieLevel;
+  final MealDistribution pagi;
+  final MealDistribution snackPagi;
+  final MealDistribution siang;
+  final MealDistribution snackSore;
+  final MealDistribution malam;
+
+  DailyMealDistribution({
+    required this.calorieLevel,
+    required this.pagi,
+    required this.snackPagi,
+    required this.siang,
+    required this.snackSore,
+    required this.malam,
+  });
+}
+
 class DiabetesCalculationResult {
   final double bbIdeal;
   final double bmr;
@@ -52,6 +96,7 @@ class DiabetesCalculationResult {
   final String bmiCategory;
   final DietInfo dietInfo;
   final FoodGroupDiet foodGroupDiet;
+  final DailyMealDistribution dailyMealDistribution;
 
   DiabetesCalculationResult({
     required this.bbIdeal,
@@ -63,6 +108,7 @@ class DiabetesCalculationResult {
     required this.bmiCategory,
     required this.dietInfo,
     required this.foodGroupDiet,
+    required this.dailyMealDistribution,
   });
 }
 
@@ -125,6 +171,7 @@ class DiabetesCalculatorService {
 
     final dietInfo = _getDietType(totalCalories);
     final foodGroupDiet = _getFoodGroupDiet(totalCalories);
+    final dailyMealDistribution = _getDailyMealDistribution(totalCalories);
 
     return DiabetesCalculationResult(
       bbIdeal: bbIdeal,
@@ -136,6 +183,7 @@ class DiabetesCalculatorService {
       bmiCategory: bmiCategory,
       dietInfo: dietInfo,
       foodGroupDiet: foodGroupDiet,
+      dailyMealDistribution: dailyMealDistribution,
     );
   }
 
@@ -368,4 +416,88 @@ class DiabetesCalculatorService {
       minyak: 7,
     );
   }
+
+   // FUNGSI INI DIUBAH TOTAL DENGAN DATA YANG BENAR
+  DailyMealDistribution _getDailyMealDistribution(double totalCalories) {
+    if (totalCalories < 1200) { // 1100 kkal
+      return DailyMealDistribution(
+        calorieLevel: '1100 kkal',
+        pagi: MealDistribution(nasiP: 0.5, ikanP: 1, sayuranA: 'S', minyak: 1),
+        snackPagi: MealDistribution(buah: 1),
+        siang: MealDistribution(nasiP: 1, dagingP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 1),
+        snackSore: MealDistribution(buah: 1),
+        malam: MealDistribution(nasiP: 1, ikanP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 1),
+      );
+    }
+    if (totalCalories < 1400) { // 1300 kkal
+      return DailyMealDistribution(
+        calorieLevel: '1300 kkal',
+        pagi: MealDistribution(nasiP: 1, ikanP: 1, sayuranA: 'S', minyak: 1),
+        snackPagi: MealDistribution(buah: 1),
+        siang: MealDistribution(nasiP: 1, dagingP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 2),
+        snackSore: MealDistribution(buah: 1),
+        malam: MealDistribution(nasiP: 1, ikanP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 1),
+      );
+    }
+    if (totalCalories < 1600) { // 1500 kkal
+      return DailyMealDistribution(
+        calorieLevel: '1500 kkal',
+        pagi: MealDistribution(nasiP: 1, ikanP: 1, tempeP: 0.5, sayuranA: 'S', minyak: 1),
+        snackPagi: MealDistribution(buah: 1),
+        siang: MealDistribution(nasiP: 2, dagingP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 2),
+        snackSore: MealDistribution(buah: 1),
+        malam: MealDistribution(nasiP: 1, ikanP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 1),
+      );
+    }
+    if (totalCalories < 1800) { // 1700 kkal
+      return DailyMealDistribution(
+        calorieLevel: '1700 kkal',
+        pagi: MealDistribution(nasiP: 1, ikanP: 1, tempeP: 0.5, sayuranA: 'S', minyak: 1),
+        snackPagi: MealDistribution(buah: 1),
+        siang: MealDistribution(nasiP: 2, dagingP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 2),
+        snackSore: MealDistribution(buah: 1),
+        malam: MealDistribution(nasiP: 2, ikanP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 1),
+      );
+    }
+    if (totalCalories < 2000) { // 1900 kkal
+      return DailyMealDistribution(
+        calorieLevel: '1900 kkal',
+        pagi: MealDistribution(nasiP: 1.5, ikanP: 1, tempeP: 1, sayuranA: 'S', minyak: 2),
+        snackPagi: MealDistribution(buah: 1),
+        siang: MealDistribution(nasiP: 2, dagingP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 2),
+        snackSore: MealDistribution(buah: 1),
+        malam: MealDistribution(nasiP: 2, ikanP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 2),
+      );
+    }
+    if (totalCalories < 2200) { // 2100 kkal
+      return DailyMealDistribution(
+        calorieLevel: '2100 kkal',
+        pagi: MealDistribution(nasiP: 1.5, ikanP: 1, tempeP: 1, sayuranA: 'S', minyak: 2),
+        snackPagi: MealDistribution(buah: 1),
+        siang: MealDistribution(nasiP: 2.5, dagingP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 3),
+        snackSore: MealDistribution(buah: 1),
+        malam: MealDistribution(nasiP: 2, ikanP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 2),
+      );
+    }
+    if (totalCalories < 2400) { // 2300 kkal
+      return DailyMealDistribution(
+        calorieLevel: '2300 kkal',
+        pagi: MealDistribution(nasiP: 1.5, ikanP: 1, tempeP: 1, sayuranA: 'S', minyak: 2),
+        snackPagi: MealDistribution(buah: 1, susu: 1),
+        siang: MealDistribution(nasiP: 3, dagingP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah:1, minyak: 3),
+        snackSore: MealDistribution(buah: 1),
+        malam: MealDistribution(nasiP: 2.5, ikanP: 1, tempeP: 1, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 2),
+      );
+    }
+    // Default to 2500 kkal
+    return DailyMealDistribution(
+      calorieLevel: '2500 kkal',
+      pagi: MealDistribution(nasiP: 2, ikanP: 1, tempeP: 1, sayuranA: 'S', minyak: 2),
+      snackPagi: MealDistribution(buah: 1, susu: 1),
+      siang: MealDistribution(nasiP: 3, dagingP: 1, tempeP: 2, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 3),
+      snackSore: MealDistribution(buah: 1),
+      malam: MealDistribution(nasiP: 2.5, ikanP: 1, tempeP: 2, sayuranA: 'S', sayuranB: 1, buah: 1, minyak: 2),
+    );
+  }
+
 }
