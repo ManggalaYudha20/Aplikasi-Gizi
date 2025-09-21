@@ -300,11 +300,35 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     return 'Risiko Berat badan lebih';
   }
 
+  Color _getWeightForAgeColor(String category) {
+    if (category.contains('sangat kurang') || category.contains('severely underweight')) {
+      return Colors.red;
+    } else if (category.contains('kurang') || category.contains('underweight')) {
+      return Colors.orange;
+    } else if (category.contains('normal')) {
+      return Color.fromARGB(255, 0, 148, 68);
+    } else {
+      return Colors.red;
+    }
+  }
+
   String _getHeightForAgeCategory(double zScore) {
     if (zScore < -3) return 'Sangat pendek (severely stunted)';
     if (zScore < -2) return 'Pendek (stunted)';
     if (zScore <= 3) return 'Normal';
     return 'Tinggi';
+  }
+
+  Color _getHeightForAgeColor(String category) {
+    if (category.contains('Sangat pendek') || category.contains('severely stunted')) {
+      return Colors.red;
+    } else if (category.contains('Pendek') || category.contains('stunted')) {
+      return Colors.orange;
+    } else if (category.contains('Normal')) {
+      return Color.fromARGB(255, 0, 148, 68);
+    } else {
+      return Colors.red;
+    }
   }
 
   String _getBMIForAgeCategory(double zScore) {
@@ -316,6 +340,18 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     return 'Obesitas (obese)';
   }
 
+  Color _getBMIForAgeColor(String category) {
+    if (category.contains('Gizi buruk') || category.contains('severely wasted')) {
+      return Colors.red;
+    } else if (category.contains('Gizi kurang') || category.contains('wasted') || category.contains('Berisiko gizi lebih') ) {
+      return Colors.orange;
+    } else if (category.contains('Gizi baik') || category.contains('normal')) {
+      return Color.fromARGB(255, 0, 148, 68);
+    } else {
+      return Colors.red;
+    }
+  }
+
   String _getWeightForHeightCategory(double zScore) {
     if (zScore < -3) return 'Gizi buruk (severely wasted)';
     if (zScore < -2) return 'Gizi kurang (wasted)';
@@ -323,6 +359,18 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     if (zScore <= 2) return 'Berisiko gizi lebih';
     if (zScore <= 3) return 'Gizi lebih (overweight)';
     return 'Obesitas (obese)';
+  }
+
+  Color _getWeightForHeightColor(String category) {
+    if (category.contains('Gizi buruk') || category.contains('severely wasted')) {
+      return Colors.red;
+    } else if (category.contains('Gizi kurang') || category.contains('wasted') || category.contains('Berisiko gizi lebih')) {
+      return Colors.orange;
+    } else if (category.contains('Gizi baik') || category.contains('normal')) {
+      return Color.fromARGB(255, 0, 148, 68);
+    } else {
+      return Colors.red;
+    }
   }
 
   void _resetForm() {
@@ -564,28 +612,34 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     required Map<String, dynamic> data,
     String? additionalInfo,
   }) {
+    // Determine which color function to use based on the title
+    Color resultColor = Color.fromARGB(255, 0, 148, 68); // Default color
+    if (title.contains('BB/U')) {
+      resultColor = _getWeightForAgeColor(data['category'] ?? '');
+    } else if (title.contains('TB/U')) {
+      resultColor = _getHeightForAgeColor(data['category'] ?? '');
+    } else if (title.contains('IMT/U')) {
+      resultColor = _getBMIForAgeColor(data['category'] ?? '');
+    } else if (title.contains('BB/TB')) {
+      resultColor = _getWeightForHeightColor(data['category'] ?? '');
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: resultColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Color.fromARGB(255, 0, 148, 68), width: 2.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: resultColor, width: 2.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
           ),
           const SizedBox(height: 8),
@@ -599,10 +653,10 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
           const SizedBox(height: 4),
           Text(
             'Kategori: ${data['category'] ?? '-'}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 0, 148, 68),
+              color: resultColor,
             ),
           ),
           if (additionalInfo != null) ...[

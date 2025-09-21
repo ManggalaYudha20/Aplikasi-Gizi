@@ -325,8 +325,8 @@ class _DataFormPageState extends State<DataFormPage> {
               _buildDropdownFormField(
                 prefixIcon: const Icon(Icons.food_bank_outlined),
                 value: _kehilanganNafsuMakan,
-                label: 'Nafsu Makan / Asupan Berkurang?',
-                items: ['Ya', 'Tidak'],
+                label: 'Tidak ada asupan nutrisi > 5 hari?',
+                items: ['Ya', 'Ada Asupan'],
                 onChanged: (value) => setState(() => _kehilanganNafsuMakan = value),
               ),
               const SizedBox(height: 16),

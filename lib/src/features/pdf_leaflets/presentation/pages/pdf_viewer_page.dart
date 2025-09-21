@@ -3,6 +3,7 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/edit_leaflet_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/delete_leaflet_service.dart';
 
 class PdfViewerPage extends StatefulWidget {
   final String url;
@@ -39,21 +40,44 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         canShowScrollHead: true,
         canShowPaginationDialog: true,
       ),
+
       floatingActionButton: isAhliGizi && widget.leaflet != null
-          ? FloatingActionButton(
-              onPressed: () async {
-                // Jadikan async
-                final result = await EditLeafletService.showEditPage(
-                  context,
-                  widget.leaflet!,
-                );
-                // Cek mounted setelah await
-                if (result == true && mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-              backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-              child: const Icon(Icons.edit, color: Colors.white),
+          ? Row(
+              mainAxisAlignment:
+                  MainAxisAlignment.end, // Agar tombol tetap di kanan
+              children: [
+                // Tombol Hapus (Delete)
+                FloatingActionButton(
+                  onPressed: () {
+                    // Menampilkan dialog konfirmasi hapus
+                    DeleteLeafletService.handleLeafletDelete(
+                      context: context,
+                      leaflet: widget.leaflet!,
+                    );
+                  },
+                  backgroundColor: Colors.red,
+                  heroTag: null, // Penting agar tidak konflik dengan FAB lain
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+
+                const SizedBox(width: 16),
+
+                FloatingActionButton(
+                  onPressed: () async {
+                    // Jadikan async
+                    final result = await EditLeafletService.showEditPage(
+                      context,
+                      widget.leaflet!,
+                    );
+                    // Cek mounted setelah await
+                    if (result == true && mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+                  child: const Icon(Icons.edit, color: Colors.white),
+                ),
+              ],
             )
           : null,
     );

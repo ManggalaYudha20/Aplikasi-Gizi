@@ -144,6 +144,18 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
     return 'Obesitas (obese)';
   }
 
+  Color _getIMTUColor(String category) {
+    if (category.contains('gizi buruk') || category.contains('severely wasted')) {
+      return Colors.red;
+    } else if (category.contains('gizi kurang') || category.contains('wasted')) {
+      return Colors.orange;
+    } else if (category.contains('gizi baik') || category.contains('normal')) {
+      return const Color.fromARGB(255, 0, 148, 68);
+    } else {
+      return Colors.red;
+    }
+  }
+
   void _resetForm() {
     _formKey.currentState?.reset();
     _weightController.clear();
@@ -350,15 +362,17 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
     required Map<String, dynamic> data,
     String? additionalInfo,
   }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Color.fromARGB(255, 0, 148, 68), width: 2.0),
+    // Determine color based on category
+    Color resultColor = _getIMTUColor(data['category'] ?? '');
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: resultColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: resultColor, width: 2.0),
       ),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -400,21 +414,21 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
             const SizedBox(height: 4),
             Row(
               children: [
-                const Text(
+                 Text(
                   'Kategori: ',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 0, 148, 68),
+                    color: resultColor,
                   ),
                 ),
                 Expanded(
                   child: Text(
                     data['category'] ?? '-',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 0, 148, 68),
+                      color: resultColor,
                     ),
                   ),
                 ),
@@ -422,7 +436,6 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
             ),
           ],
         ),
-      ),
     );
   }
 }
