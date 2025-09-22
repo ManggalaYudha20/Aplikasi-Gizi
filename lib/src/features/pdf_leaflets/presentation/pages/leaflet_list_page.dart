@@ -81,7 +81,7 @@ class _LeafletListPageState extends State<LeafletListPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Leaflet Informasi Gizi',
+        title: 'Leaflet Edukasi Gizi',
         subtitle: 'Pilih leaflet untuk dibaca',
       ),
       body: SafeArea(

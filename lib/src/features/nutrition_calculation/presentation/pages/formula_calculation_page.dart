@@ -29,7 +29,7 @@ class FormulaCalculationPage extends StatelessWidget {
       },
       {
         'name': 'TDEE',
-        'fullName': 'Total Daily Energy Expenditure',
+        'fullName': 'Total Daily\nEnergy Expenditure',
         'icon': Icons.battery_charging_full,
         'color': Colors.purple,
         'route': '/tee-form',
@@ -64,7 +64,7 @@ class FormulaCalculationPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Perhitungan Formula',
+        title: 'Kalkulator Gizi',
         subtitle: 'di Aplikasi MyGizi',
       ),
       body: SafeArea(

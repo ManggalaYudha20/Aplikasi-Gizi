@@ -239,7 +239,7 @@ class _DataFormPageState extends State<DataFormPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: CustomAppBar(
-        title: widget.patient != null ? 'Edit Data Pasien' : 'Form Data Pasien',
+        title: widget.patient != null ? 'Edit Data Pasien' : 'Form Pasien Dewasa',
         subtitle: widget.patient != null ? 'Perbarui data pasien' : 'Isi data dengan lengkap',
       ),
       body: Form(

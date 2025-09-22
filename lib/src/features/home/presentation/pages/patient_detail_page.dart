@@ -46,6 +46,11 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
             ),
             _buildInfoRow('Usia', '${_currentPatient.usia} tahun'),
             _buildInfoRow('Jenis Kelamin', _currentPatient.jenisKelamin),
+            _buildInfoRow('Berat Badan', '${_currentPatient.beratBadan} kg'),
+            _buildInfoRow(
+              'Tinggi Badan',
+              '${_currentPatient.tinggiBadan.toStringAsFixed(0)} cm',
+            ),
             _buildInfoRow('Diagnosis Medis', _currentPatient.diagnosisMedis),
 
             const Divider(
@@ -56,11 +61,6 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
 
             // --- Bagian Hasil Perhitungan Gizi ---
             _buildSectionTitle('Hasil Perhitungan Gizi'),
-            _buildInfoRow('Berat Badan', '${_currentPatient.beratBadan} kg'),
-            _buildInfoRow(
-              'Tinggi Badan',
-              '${_currentPatient.tinggiBadan.toStringAsFixed(0)} cm',
-            ),
             _buildInfoRow(
               'IMT (Indeks Massa Tubuh)',
               '${_currentPatient.imt.toStringAsFixed(2)} kg/m²',

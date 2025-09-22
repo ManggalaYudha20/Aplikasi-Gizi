@@ -28,7 +28,7 @@ class NutritionInfoPage extends StatelessWidget {
                 children: [
                   // Disease Calculation Button
                   MenuButton(
-                    text: 'Perhitungan\nPenyakit',
+                    text: 'Hitung Gizi\n Penyakit',
                     icon: Icons.medical_services,
                     onPressed: () {
                       Navigator.push(
@@ -63,7 +63,7 @@ class NutritionInfoPage extends StatelessWidget {
                 children: [
                   // PDF Leaflets Button
                   MenuButton(
-                    text: 'Leaflet\nInformasi',
+                    text: 'Leaflet\nEdukasi Gizi',
                     icon: Icons.picture_as_pdf,
                     onPressed: () {
                       Navigator.push(
@@ -78,7 +78,7 @@ class NutritionInfoPage extends StatelessWidget {
 
                   // Formula Calculation Button
                   MenuButton(
-                    text: 'Perhitungan\nFormula',
+                    text: 'Kalkulator\nGizi',
                     icon: Icons.calculate,
                     onPressed: () {
                       Navigator.push(

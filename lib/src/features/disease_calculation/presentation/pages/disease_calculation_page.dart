@@ -10,7 +10,7 @@ class DiseaseCalculationPage extends StatelessWidget {
     final List<Map<String, dynamic>> diseases = [
       {
         'name': 'Diabetes',
-        'fullName': 'Penyakit Diabetes',
+        'fullName': 'Diabetes Melitus',
         'icon': Icons.medication,
         'color': Colors.blue,
         'route': '/diabetes-form',
@@ -27,7 +27,7 @@ class DiseaseCalculationPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Perhitungan Penyakit',
+        title: 'Hitung Gizi Penyakit',
         subtitle: 'di Aplikasi MyGizi',
       ),
       body: SafeArea(
