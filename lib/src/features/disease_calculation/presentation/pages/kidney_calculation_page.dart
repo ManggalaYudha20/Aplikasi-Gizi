@@ -25,6 +25,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
   // Form fields state
   bool? _isDialysis;
   String? _gender;
+  double? _selectedProteinFactor = 0.6;
   KidneyDietResult? _result;
 
   @override
@@ -44,6 +45,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
         height: height,
         isDialysis: _isDialysis!,
         gender: _gender!,
+        proteinFactor: _isDialysis! ? null : _selectedProteinFactor,
         age: age,
       );
 
@@ -62,6 +64,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     setState(() {
       _isDialysis = null;
       _gender = null;
+      _selectedProteinFactor = 0.6;
       _result = null;
     });
   }
@@ -113,11 +116,45 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                     DropdownMenuItem(value: true, child: Text('Ya')),
                     DropdownMenuItem(value: false, child: Text('Tidak')),
                   ],
-                  onChanged: (value) => setState(() => _isDialysis = value),
+                  onChanged: (value) {
+                    setState(() {
+                      _isDialysis = value;
+                      // Jika memilih 'Tidak', pastikan faktor protein punya nilai default
+                      if (value == false) {
+                        _selectedProteinFactor ??= 0.6;
+                      }
+                    });
+                  },
                   validator: (value) =>
                       value == null ? 'Pilih status cuci darah' : null,
                 ),
                 const SizedBox(height: 16),
+
+                // -- FORM OPSI PROTEIN DINAMIS --
+                // Muncul hanya jika pasien TIDAK menjalani cuci darah
+                if (_isDialysis == false)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: DropdownButtonFormField<double>(
+                      value: _selectedProteinFactor,
+                      decoration: const InputDecoration(
+                        labelText: 'Faktor Kebutuhan Protein',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.rule),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 0.6, child: Text('0.6 (Rendah)')),
+                        DropdownMenuItem(value: 0.7, child: Text('0.7 (Sedang)')),
+                        DropdownMenuItem(value: 0.8, child: Text('0.8 (Tinggi)')),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedProteinFactor = value;
+                        });
+                      },
+                      validator: (value) => value == null ? 'Pilih faktor protein' : null,
+                    ),
+                  ),
                 // New: Gender Selection
                 DropdownButtonFormField<String>(
                   value: _gender,

@@ -29,6 +29,7 @@ class KidneyCalculatorService {
     required bool isDialysis,
     required String gender,
     required int age,
+    double? proteinFactor,
   }) {
     // Langkah 1: Hitung Berat Badan Ideal (BBI) menggunakan rumus Broca.
     final double idealBodyWeight = _calculateIdealBodyWeight(height, gender);
@@ -49,7 +50,9 @@ class KidneyCalculatorService {
       proteinNeeds = 1.2 * idealBodyWeight;
     } else {
       // Untuk pasien pre-dialisis (belum cuci darah), kebutuhan protein akan diisi melalui form input.
-      proteinNeeds = 0.6 * idealBodyWeight;
+      assert(proteinFactor != null,
+          'Protein factor must be provided for non-dialysis patients.');
+      proteinNeeds = proteinFactor! * idealBodyWeight;
     }
 
     // Langkah 3: Tentukan kategori diet terdekat dari hasil perhitungan.
