@@ -231,7 +231,18 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     );
   }
 
-  Widget _buildResultCard() {
+ // Salin dan ganti seluruh method _buildResultCard() yang ada dengan kode ini
+Widget _buildResultCard() {
+    // Membuat variabel untuk teks rekomendasi diet secara dinamis.
+    final String recommendationText = _result!.isDialysis
+        ? 'Diet Hemodialisis (HD)\nprotein ${_result!.recommendedDiet} gram'
+        : 'Diet Protein Rendah ${_result!.recommendedDiet} gram';
+
+    // Membuat variabel untuk teks penjelasan faktor protein secara dinamis.
+    final String factorExplanationText = _result!.isDialysis
+        ? '*Pasien hemodialisis membutuhkan asupan protein lebih tinggi (1.2 g/kg BBI).'
+        : '*Pasien pre-dialisis membutuhkan asupan protein lebih rendah (${_selectedProteinFactor}g/kg BBI) untuk memperlambat laju penyakit.';
+
     return Container(
       key: _resultCardKey,
       padding: const EdgeInsets.all(16),
@@ -261,10 +272,12 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
             'Kebutuhan Protein Harian',
             '${_result!.proteinNeeds.toStringAsFixed(1)} gram',
           ),
-          _buildInfoRow(
-            'BMR',
-            '${_result!.bmr.toStringAsFixed(1)} kkal/hari',
-          ),
+          // Pastikan untuk hanya menampilkan BMR jika nilainya ada di _result
+          if (_result!.bmr > 0)
+            _buildInfoRow(
+              'BMR',
+              '${_result!.bmr.toStringAsFixed(1)} kkal/hari',
+            ),
           const SizedBox(height: 16),
           const Text(
             'Rekomendasi Diet:',
@@ -277,8 +290,9 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
               color: const Color.fromARGB(255, 0, 148, 68),
               borderRadius: BorderRadius.circular(8),
             ),
+            // Menggunakan variabel recommendationText yang sudah dinamis
             child: Text(
-              'Diet Protein ${_result!.recommendedDiet} gram',
+              recommendationText,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 20,
@@ -288,11 +302,13 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
             ),
           ),
           const SizedBox(height: 16),
+          // Menggunakan variabel factorExplanationText yang sudah dinamis
           Text(
-            _result!.isDialysis
-                ? '*Pasien hemodialisis membutuhkan asupan protein lebih tinggi (1.2 g/kg BBI).'
-                : '*Pasien pre-dialisis membutuhkan asupan protein lebih rendah (0.6 g/kg BBI) untuk memperlambat laju penyakit.',
-            style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.black54),
+            factorExplanationText,
+            style: const TextStyle(
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+                color: Colors.black54),
           )
         ],
       ),
