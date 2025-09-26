@@ -143,16 +143,26 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                         prefixIcon: Icon(Icons.rule),
                       ),
                       items: const [
-                        DropdownMenuItem(value: 0.6, child: Text('0.6 (Rendah)')),
-                        DropdownMenuItem(value: 0.7, child: Text('0.7 (Sedang)')),
-                        DropdownMenuItem(value: 0.8, child: Text('0.8 (Tinggi)')),
+                        DropdownMenuItem(
+                          value: 0.6,
+                          child: Text('0.6 (Rendah)'),
+                        ),
+                        DropdownMenuItem(
+                          value: 0.7,
+                          child: Text('0.7 (Sedang)'),
+                        ),
+                        DropdownMenuItem(
+                          value: 0.8,
+                          child: Text('0.8 (Tinggi)'),
+                        ),
                       ],
                       onChanged: (value) {
                         setState(() {
                           _selectedProteinFactor = value;
                         });
                       },
-                      validator: (value) => value == null ? 'Pilih faktor protein' : null,
+                      validator: (value) =>
+                          value == null ? 'Pilih faktor protein' : null,
                     ),
                   ),
                 // New: Gender Selection
@@ -164,11 +174,18 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                     prefixIcon: Icon(Icons.person),
                   ),
                   items: const [
-                    DropdownMenuItem(value: 'Laki-laki', child: Text('Laki-laki')),
-                    DropdownMenuItem(value: 'Perempuan', child: Text('Perempuan')),
+                    DropdownMenuItem(
+                      value: 'Laki-laki',
+                      child: Text('Laki-laki'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Perempuan',
+                      child: Text('Perempuan'),
+                    ),
                   ],
                   onChanged: (value) => setState(() => _gender = value),
-                  validator: (value) => value == null ? 'Pilih jenis kelamin' : null,
+                  validator: (value) =>
+                      value == null ? 'Pilih jenis kelamin' : null,
                 ),
                 const SizedBox(height: 16),
                 // Input Tinggi Badan
@@ -222,7 +239,21 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                 ),
                 const SizedBox(height: 32),
                 // Tampilan Hasil
-                if (_result != null) _buildResultCard(),
+                if (_result != null) ...[
+                  _buildResultCard(),
+                  const SizedBox(height: 32),
+                  if (_result!.nutritionInfo != null)
+                    _buildNutritionCard(_result!.nutritionInfo!)
+                  else
+                    const Padding(
+                      padding: EdgeInsets.only(top: 16.0),
+                      child: Center(
+                        child: Text(
+                          'Data nilai gizi untuk diet ini tidak tersedia.',
+                        ),
+                      ),
+                    ),
+                ],
               ],
             ),
           ),
@@ -231,11 +262,11 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     );
   }
 
- // Salin dan ganti seluruh method _buildResultCard() yang ada dengan kode ini
-Widget _buildResultCard() {
+  // Salin dan ganti seluruh method _buildResultCard() yang ada dengan kode ini
+  Widget _buildResultCard() {
     // Membuat variabel untuk teks rekomendasi diet secara dinamis.
     final String recommendationText = _result!.isDialysis
-        ? 'Diet Hemodialisis (HD)\nprotein ${_result!.recommendedDiet} gram'
+        ? 'Diet Hemodialisis (HD)\nProtein ${_result!.recommendedDiet} gram'
         : 'Diet Protein Rendah ${_result!.recommendedDiet} gram';
 
     // Membuat variabel untuk teks penjelasan faktor protein secara dinamis.
@@ -268,16 +299,16 @@ Widget _buildResultCard() {
             'Berat Badan Ideal (BBI)',
             '${_result!.idealBodyWeight.toStringAsFixed(1)} kg',
           ),
-          _buildInfoRow(
-            'Kebutuhan Protein Harian',
-            '${_result!.proteinNeeds.toStringAsFixed(1)} gram',
-          ),
           // Pastikan untuk hanya menampilkan BMR jika nilainya ada di _result
           if (_result!.bmr > 0)
             _buildInfoRow(
               'BMR',
               '${_result!.bmr.toStringAsFixed(1)} kkal/hari',
             ),
+          _buildInfoRow(
+            'Kebutuhan Protein Harian',
+            '${_result!.proteinNeeds.toStringAsFixed(1)} gram',
+          ),
           const SizedBox(height: 16),
           const Text(
             'Rekomendasi Diet:',
@@ -306,10 +337,52 @@ Widget _buildResultCard() {
           Text(
             factorExplanationText,
             style: const TextStyle(
-                fontSize: 12,
-                fontStyle: FontStyle.italic,
-                color: Colors.black54),
-          )
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+              color: Colors.black54,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // TAMBAHKAN WIDGET BARU INI (sekitar baris 350)
+
+  Widget _buildNutritionCard(KidneyDietNutrition nutritionInfo) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue.withAlpha(25),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blue.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Asupan Gizi per Hari (Diet Protein ${_result!.recommendedDiet}g) ',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
+          ),
+          const Divider(height: 24),
+          const SizedBox(height: 12),
+          _buildInfoRow('Energi', '${nutritionInfo.energi} kkal'),
+          _buildInfoRow('Protein', '${nutritionInfo.protein} g'),
+          _buildInfoRow('Lemak', '${nutritionInfo.lemak} g'),
+          _buildInfoRow('Karbohidrat', '${nutritionInfo.karbohidrat} g'),
+          _buildInfoRow('Kalsium', '${nutritionInfo.kalsium} mg'),
+          _buildInfoRow('Zat Besi', '${nutritionInfo.zatBesi} mg'),
+          _buildInfoRow('Fosfor', '${nutritionInfo.fosfor} mg'),
+          _buildInfoRow('Vitamin A', '${nutritionInfo.vitaminA} RE'),
+          _buildInfoRow('Tiamin', '${nutritionInfo.tiamin} mg'),
+          _buildInfoRow('Vitamin C', '${nutritionInfo.vitaminC} mg'),
+          _buildInfoRow('Natrium', '${nutritionInfo.natrium} mg'),
+          _buildInfoRow('Kalium', '${nutritionInfo.kalium} mg'),
         ],
       ),
     );

@@ -32,7 +32,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
 
   // Calculation results
   DiabetesCalculationResult? _result;
-  String? _recommendation;
+ 
 
   final List<String> _genders = ['Laki-laki', 'Perempuan'];
   final List<String> _activityLevels = [
@@ -81,60 +81,13 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
 
       setState(() {
         _result = result;
-        _generateRecommendation();
       });
 
       _scrollToResult();
     }
   }
 
-  void _generateRecommendation() {
-    if (_result == null) return;
 
-    final calories = _result!.totalCalories.round();
-    final age = int.tryParse(_ageController.text) ?? 0;
-
-    String ageCorrectionNote = '';
-    if (age > 40 && _result!.ageCorrection > 0) {
-      ageCorrectionNote =
-          ' - Koreksi usia: -${_result!.ageCorrection.round()} kkal/hari (karena usia > 40 tahun)\n';
-    }
-
-    String weightCorrectionNote = '';
-    if (_result!.weightCorrection != 0) {
-      String correctionType = _result!.weightCorrection > 0 ? '+' : '';
-      weightCorrectionNote =
-          ' - Koreksi berat badan: $correctionType${_result!.weightCorrection.round()} kkal/hari (karena IMT ${_result!.bmiCategory.toLowerCase()})\n';
-    }
-
-    String stressMetabolicNote = '';
-    if (_hospitalizedStatus == 'Ya') {
-      double stressMetabolicCorrection =
-          (_stressMetabolic / 100) * _result!.bmr;
-      stressMetabolicNote =
-          ' - Koreksi stress metabolik: +${stressMetabolicCorrection.round()} kkal/hari (${_stressMetabolic.round()}%)\n';
-    }
-
-    _recommendation =
-        '''
-Rekomendasi Nutrisi untuk Pasien Diabetes:
-
-Kalori Total: $calories kkal/hari
-- Koreksi aktivitas: +${_result!.activityCorrection.round()} kkal/hari ($_selectedActivity)
-$ageCorrectionNote$weightCorrectionNote$stressMetabolicNote
-Distribusi Makronutrien:
-- Karbohidrat: ${(calories * 0.45).round()} - ${(calories * 0.65).round()} kkal (${(calories * 0.45 / 4).round()} - ${(calories * 0.65 / 4).round()}g)
-- Protein: ${(calories * 0.15).round()} - ${(calories * 0.20).round()} kkal (${(calories * 0.15 / 4).round()} - ${(calories * 0.20 / 4).round()}g)
-- Lemak: ${(calories * 0.20).round()} - ${(calories * 0.35).round()} kkal (${(calories * 0.20 / 9).round()} - ${(calories * 0.35 / 9).round()}g)
-
-Catatan:
-- Pilih karbohidrat kompleks (nasi merah, gandum, umbi-umbian)
-- Batasi konsumsi gula sederhana
-- Konsumsi serat 25-30g per hari
-- Minum air putih minimal 8 gelas per hari
-- Lakukan pemantauan gula darah secara rutin
-''';
-  }
 
   void _resetForm() {
     _formKey.currentState?.reset();
@@ -149,7 +102,6 @@ Catatan:
       _hospitalizedStatus = null;
       _stressMetabolic = 20.0;
       _result = null;
-      _recommendation = null;
     });
   }
 
@@ -158,7 +110,7 @@ Catatan:
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(
-        title: 'Diabetes Melitus',
+        title: 'Diet Diabetes Melitus',
         subtitle: 'di Aplikasi MyGizi',
       ),
       body: SafeArea(
@@ -172,7 +124,7 @@ Catatan:
               children: [
                 const SizedBox(height: 20),
                 const Text(
-                  'Data Input Diabetes Melitus',
+                  'Input Data Diabetes Melitus',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
@@ -351,6 +303,7 @@ Catatan:
                   onSubmit: _calculateDiabetesNutrition,
                 ),
                 const SizedBox(height: 32),
+
                 if (_result != null) ...[
                   Container(
                     key: _resultCardKey,
@@ -602,36 +555,7 @@ Catatan:
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  if (_recommendation != null)
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.green.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Rekomendasi:',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _recommendation!,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
                 ],
               ],
             ),
