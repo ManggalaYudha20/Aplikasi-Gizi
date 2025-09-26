@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'diabetes_calculation_page.dart';
+import 'kidney_calculation_page.dart';
 
 class DiseaseCalculationPage extends StatelessWidget {
   const DiseaseCalculationPage({super.key});
@@ -130,6 +131,22 @@ class DiseaseCalculationPage extends StatelessWidget {
         context,
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => const DiabetesCalculationPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            );
+          },
+        ),
+      );
+    } else if (route == '/kidney-form') { // <-- TAMBAHKAN KONDISI INI
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const KidneyCalculationPage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
               position: Tween<Offset>(
