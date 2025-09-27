@@ -4,6 +4,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:flutter/material.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/kidney_meal_planner_service.dart';
 
 class KidneyCalculationPage extends StatefulWidget {
   const KidneyCalculationPage({super.key});
@@ -15,6 +16,7 @@ class KidneyCalculationPage extends StatefulWidget {
 class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
   final _formKey = GlobalKey<FormState>();
   final _calculatorService = KidneyCalculatorService();
+  List<FoodItem>? _mealPlan;
 
   // Controllers
   final _heightController = TextEditingController();
@@ -49,8 +51,11 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
         age: age,
       );
 
+      final mealPlan = KidneyMealPlans.getPlan(result.recommendedDiet);
+
       setState(() {
         _result = result;
+        _mealPlan = mealPlan;
       });
 
       _scrollToResult();
@@ -66,6 +71,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
       _gender = null;
       _selectedProteinFactor = 0.6;
       _result = null;
+      _mealPlan = null;
     });
   }
 
@@ -240,20 +246,25 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                 const SizedBox(height: 32),
                 // Tampilan Hasil
                 if (_result != null) ...[
+                  const Divider(height: 32),
+                  const SizedBox(height: 32),
                   _buildResultCard(),
                   const SizedBox(height: 32),
                   if (_result!.nutritionInfo != null)
-                    _buildNutritionCard(_result!.nutritionInfo!)
-                  else
-                    const Padding(
-                      padding: EdgeInsets.only(top: 16.0),
-                      child: Center(
-                        child: Text(
-                          'Data nilai gizi untuk diet ini tidak tersedia.',
-                        ),
+                    _buildNutritionCard(_result!.nutritionInfo!),
+                  if (_mealPlan != null) ...[
+                    const SizedBox(height: 32),
+                    _buildMealPlanCard(_mealPlan!),
+                  ],
+                ] else if (_result != null)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 16.0),
+                    child: Center(
+                      child: Text(
+                        'Data nilai gizi untuk diet ini tidak tersedia.',
                       ),
                     ),
-                ],
+                  ),
               ],
             ),
           ),
@@ -403,4 +414,84 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
       ),
     );
   }
+
+  // Letakkan method ini di dalam kelas _KidneyCalculationPageState
+
+Widget _buildMealPlanCard(List<FoodItem> mealPlan) {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.purple.withAlpha(25),
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: Colors.purple.shade300),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Pembagian Makanan Sehari\n(Diet Protein ${_result!.recommendedDiet}g)',
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.purple,
+          ),
+        ),
+        const Divider(height: 24),
+        Table(
+          columnWidths: const {
+            0: FlexColumnWidth(3),
+            1: FlexColumnWidth(2),
+            2: FlexColumnWidth(3),
+          },
+          border: TableBorder.all(
+            color: Colors.purple.shade100,
+            width: 1,
+          ),
+          children: [
+            // Table Header
+            const TableRow(
+              decoration: BoxDecoration(color: Color.fromARGB(255, 196, 86, 216)),
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Bahan Makanan', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Berat (g)', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('URT', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                ),
+              ],
+            ),
+            // Table Rows from data
+            ...mealPlan.map((item) {
+              return TableRow(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(item.name),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(item.weight.toString(), textAlign: TextAlign.center),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(item.urt),
+                  ),
+                ],
+              );
+            }).toList(),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+
 }
