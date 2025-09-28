@@ -132,7 +132,7 @@ class _DataFormPageState extends State<DataFormPage> {
         }
 
         // DIUBAH: Logika skor efek penyakit dari input kehilangan nafsu makan
-        final skorEfekPenyakit = (_kehilanganNafsuMakan == 'Ya') ? 2 : 0;
+        final skorEfekPenyakit = (_kehilanganNafsuMakan == 'Ya') ? 0 : 2;
         
         final totalSkor = skorIMT + skorKehilanganBB + skorEfekPenyakit;
 
@@ -325,8 +325,8 @@ class _DataFormPageState extends State<DataFormPage> {
               _buildDropdownFormField(
                 prefixIcon: const Icon(Icons.food_bank_outlined),
                 value: _kehilanganNafsuMakan,
-                label: 'Tidak ada asupan nutrisi > 5 hari?',
-                items: ['Ya', 'Ada Asupan'],
+                label: 'Ada asupan nutrisi > 5 hari?',
+                items: ['Ya', 'Tidak Ada'],
                 onChanged: (value) => setState(() => _kehilanganNafsuMakan = value),
               ),
               const SizedBox(height: 16),
