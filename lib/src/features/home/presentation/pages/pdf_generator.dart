@@ -81,10 +81,17 @@ class PdfGenerator {
               pw.SizedBox(height: 10),
               _buildInfoRow('Diagnosis Medis', ': ${patient.diagnosisMedis}'),
               pw.SizedBox(height: 5),
-              _buildInfoRow('BB = ${patient.beratBadan} kg', 'TB = ${patient.tinggiBadan.toStringAsFixed(0)} cm'),
+             _buildInfoRow(
+                  'BB = ${patient.beratBadan} kg',
+                  'TB = ${patient.tinggiBadan.toStringAsFixed(0)} cm',
+                  'IMT = ${patient.imt.toStringAsFixed(2)} kg/m2'
+              ),
               pw.SizedBox(height: 5),
-              _buildInfoRow('IMT = ${patient.imt.toStringAsFixed(2)} kg/m2','Tinggi Lutut =  ...  cm', 'LLA =  ...  cm'),
-              pw.SizedBox(height: 20),
+              _buildInfoRow(
+                  'LILA = ${patient.lila != null ? patient.lila!.toStringAsFixed(1) : '....'} cm',
+                  'Tinggi Lutut (TL) = ${patient.tl != null ? patient.tl!.toStringAsFixed(1) : '....'} cm'
+              ),
+              pw.SizedBox(height: 15),
 
               // Scoring Table
               _buildScoringTable(patient),
@@ -121,8 +128,8 @@ class PdfGenerator {
   static pw.Widget _buildScoringTable(Patient patient) {
     final data = [
       ['1', 'Skor IMT', ''],
-      ['', 'IMT > 20 (Obesitas >30)', patient.skorIMT == 0 ? '0' : ''],
-      ['', 'IMT 18.5 - 30', patient.skorIMT == 1 ? '1' : ''], // Asumsi dari gambar
+      ['', 'IMT > 25 (Obesitas >30)', patient.skorIMT == 0 ? '0' : ''],
+      ['', 'IMT 18.5 - 24', patient.skorIMT == 1 ? '1' : ''], // Asumsi dari gambar
       ['', 'IMT < 18.5', patient.skorIMT == 2 ? '2' : ''], // Asumsi
       ['2', 'Skor kehilangan berat badan yang tidak direncanakan 3-6 bulan terakhir', ''],
       ['', 'BB hilang < 5%', patient.skorKehilanganBB == 0 ? '0' :  ''],

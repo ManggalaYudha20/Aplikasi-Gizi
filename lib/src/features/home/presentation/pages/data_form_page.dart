@@ -29,6 +29,8 @@ class _DataFormPageState extends State<DataFormPage> {
   final _tinggiBadanController = TextEditingController();
   // BARU: Controller untuk berat badan 3-6 bulan lalu
   final _beratBadanDuluController = TextEditingController();
+  final _lilaController = TextEditingController();
+  final _tlController = TextEditingController();
 
   String? _jenisKelamin;
   String? _aktivitas;
@@ -56,6 +58,14 @@ class _DataFormPageState extends State<DataFormPage> {
     _jenisKelamin = patient.jenisKelamin;
     _aktivitas = patient.aktivitas;
     _selectedDate = patient.tanggalLahir;
+    
+    // Perbaikan: LILA dan TL harus diambil dari model juga
+    if (patient.lila != null) {
+      _lilaController.text = patient.lila.toString();
+    }
+    if (patient.tl != null) {
+      _tlController.text = patient.tl.toString();
+    }
     // Note: We don't have beratBadanDulu and kehilanganNafsuMakan in Patient model
     // These fields will remain empty for editing
   }
@@ -70,6 +80,8 @@ class _DataFormPageState extends State<DataFormPage> {
     _tinggiBadanController.dispose();
     // BARU: Dispose controller baru
     _beratBadanDuluController.dispose();
+    _lilaController.dispose();
+    _tlController.dispose();
     super.dispose();
   }
 
@@ -85,6 +97,8 @@ class _DataFormPageState extends State<DataFormPage> {
       _tinggiBadanController.clear();
       // BARU: Reset field baru
       _beratBadanDuluController.clear();
+      _lilaController.clear();
+      _tlController.clear();
       _kehilanganNafsuMakan = null;
       _jenisKelamin = null;
       _aktivitas = null;
@@ -92,6 +106,16 @@ class _DataFormPageState extends State<DataFormPage> {
     });
   }
 
+  int _calculateAgeInYears(DateTime? birthDate) {
+   if (birthDate == null) return 0;
+   final today = DateTime.now();
+   int age = today.year - birthDate.year;
+   if (today.month < birthDate.month || (today.month == birthDate.month && today.day < birthDate.day)) {
+    age--;
+   }
+   return age;
+   }
+  
   Future<void> _savePatientData() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
@@ -101,10 +125,49 @@ class _DataFormPageState extends State<DataFormPage> {
         final noRM = _noRMController.text;
         final namaLengkap = _namaLengkapController.text;
         final diagnosisMedis = _diagnosisMedisController.text;
-        final beratBadan = double.parse(_beratBadanController.text);
-        final tinggiBadan = double.parse(_tinggiBadanController.text);
         // BARU: Ambil data berat badan dulu
         final beratBadanDulu = double.tryParse(_beratBadanDuluController.text);
+        final usia = _calculateAgeInYears(_selectedDate);
+
+        double? beratBadan;
+        double? tinggiBadan;
+
+        // BARU: Logika untuk menentukan BB dan TB
+       if (_beratBadanController.text.isNotEmpty) {
+          beratBadan = double.parse(_beratBadanController.text);
+        } else if (_lilaController.text.isNotEmpty) {
+          final lila = double.parse(_lilaController.text);
+          // Menggunakan rumus yang disederhanakan sesuai permintaan
+          beratBadan = (2.81 * lila) - 18.6;
+        }
+
+        if (_tinggiBadanController.text.isNotEmpty) {
+          tinggiBadan = double.parse(_tinggiBadanController.text);
+        } else if (_tlController.text.isNotEmpty &&
+            _jenisKelamin != null &&
+            usia > 0) {
+          // Gunakan rumus estimasi TB dari TL jika TB tidak ada
+          final tl = double.parse(_tlController.text);
+          if (_jenisKelamin == 'Laki-laki') {
+            tinggiBadan = (2.02 * tl) - (0.04 * usia) + 64.19;
+          } else {
+            tinggiBadan = (1.83 * tl) - (0.24 * usia) + 84.88;
+          }
+        }
+
+        // Final check to ensure we have both values
+        if (beratBadan == null || tinggiBadan == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Tinggi dan Berat badan tidak boleh kosong.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            setState(() => _isLoading = false);
+          }
+          return;
+        }
 
         // --- Perhitungan ---
         final tinggiBadanMeter = tinggiBadan / 100;
@@ -116,14 +179,16 @@ class _DataFormPageState extends State<DataFormPage> {
           skorIMT = 2;
         } else if (imt >= 18.5 && imt < 25) {
           skorIMT = 1;
-        } else { // imt >= 25
+        } else {
+          // imt >= 25
           skorIMT = 0;
         }
 
         // DIUBAH: Logika perhitungan skor kehilangan BB
         int skorKehilanganBB = 0; // Default skor 0
         if (beratBadanDulu != null && beratBadanDulu > 0) {
-          final persentaseKehilangan = ((beratBadanDulu - beratBadan) / beratBadanDulu) * 100;
+          final persentaseKehilangan =
+              ((beratBadanDulu - beratBadan) / beratBadanDulu) * 100;
           if (persentaseKehilangan > 10) {
             skorKehilanganBB = 2;
           } else if (persentaseKehilangan >= 5) {
@@ -133,7 +198,7 @@ class _DataFormPageState extends State<DataFormPage> {
 
         // DIUBAH: Logika skor efek penyakit dari input kehilangan nafsu makan
         final skorEfekPenyakit = (_kehilanganNafsuMakan == 'Ya') ? 0 : 2;
-        
+
         final totalSkor = skorIMT + skorKehilanganBB + skorEfekPenyakit;
 
         // --- Siapkan data untuk Firestore ---
@@ -154,6 +219,10 @@ class _DataFormPageState extends State<DataFormPage> {
           'skorEfekPenyakit': skorEfekPenyakit,
           'totalSkor': totalSkor,
           'tanggalPemeriksaan': Timestamp.now(),
+          'lila': double.tryParse(
+            _lilaController.text,
+          ), // BARU: Simpan LILA ke Firestore
+          'tl': double.tryParse(_tlController.text),
         };
 
         // --- Kirim ke Firestore ---
@@ -173,13 +242,15 @@ class _DataFormPageState extends State<DataFormPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(widget.patient != null
-                  ? 'Data pasien berhasil diperbarui!'
-                  : 'Data pasien berhasil disimpan!'),
+              content: Text(
+                widget.patient != null
+                    ? 'Data pasien berhasil diperbarui!'
+                    : 'Data pasien berhasil disimpan!',
+              ),
               backgroundColor: Colors.green,
             ),
           );
-          
+
           // Create updated patient object to return
           final updatedPatient = Patient(
             id: widget.patient?.id ?? '', // Will be empty for new patients
@@ -198,7 +269,7 @@ class _DataFormPageState extends State<DataFormPage> {
             totalSkor: totalSkor,
             tanggalPemeriksaan: DateTime.now(),
           );
-          
+
           // Navigate back to previous screen with updated patient data
           Navigator.of(context).pop(updatedPatient);
         }
@@ -239,8 +310,12 @@ class _DataFormPageState extends State<DataFormPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: CustomAppBar(
-        title: widget.patient != null ? 'Edit Data Pasien' : 'Form Pasien Dewasa',
-        subtitle: widget.patient != null ? 'Perbarui data pasien' : 'Isi data dengan lengkap',
+        title: widget.patient != null
+            ? 'Edit Data Pasien'
+            : 'Form Pasien Dewasa',
+        subtitle: widget.patient != null
+            ? 'Perbarui data pasien'
+            : 'Isi data dengan lengkap',
       ),
       body: Form(
         key: _formKey,
@@ -250,11 +325,11 @@ class _DataFormPageState extends State<DataFormPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 20),
-                const Text(
-                  'Input Data Pasien',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
+              const Text(
+                'Input Data Pasien',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
               _buildTextFormField(
                 controller: _noRMController,
                 label: 'No. Rekam Medis (RM)',
@@ -295,6 +370,36 @@ class _DataFormPageState extends State<DataFormPage> {
                 keyboardType: TextInputType.number,
                 prefixIcon: const Icon(Icons.monitor_weight),
                 suffixText: 'kg',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return null; // Izinkan kosong jika menggunakan LILA
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Masukkan angka yang valid';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              // BARU: Form untuk LILA
+              _buildTextFormField(
+                controller: _lilaController,
+                label: 'Lingkar Lengan Atas (LILA)',
+                keyboardType: TextInputType.number,
+                prefixIcon: const Icon(Icons.fitness_center),
+                suffixText: 'cm',
+                validator: (value) {
+                  if (_beratBadanController.text.isEmpty &&
+                      (value == null || value.isEmpty)) {
+                    return 'LILA tidak boleh kosong jika BB tidak diisi';
+                  }
+                  if (value != null &&
+                      value.isNotEmpty &&
+                      double.tryParse(value) == null) {
+                    return 'Masukkan angka yang valid';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               // BARU: Form untuk berat badan terdahulu
@@ -306,19 +411,52 @@ class _DataFormPageState extends State<DataFormPage> {
                 suffixText: 'kg',
                 // Validator ini opsional, data tetap bisa disimpan jika kosong
                 validator: (value) {
-                  if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
+                  if (value != null &&
+                      value.isNotEmpty &&
+                      double.tryParse(value) == null) {
                     return 'Masukkan angka yang valid';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
+              // Field untuk Tinggi Badan normal
               _buildTextFormField(
                 controller: _tinggiBadanController,
                 label: 'Tinggi Badan',
                 keyboardType: TextInputType.number,
                 prefixIcon: const Icon(Icons.height),
                 suffixText: 'cm',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return null; // Izinkan kosong jika menggunakan TL
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Masukkan angka yang valid';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              // BARU: Form untuk Tinggi Lutut
+              _buildTextFormField(
+                controller: _tlController,
+                label: 'Tinggi Lutut (TL)',
+                keyboardType: TextInputType.number,
+                prefixIcon: const Icon(Icons.accessibility),
+                suffixText: 'cm',
+                validator: (value) {
+                  if (_tinggiBadanController.text.isEmpty &&
+                      (value == null || value.isEmpty)) {
+                    return 'TL tidak boleh kosong jika Tinggi Badan tidak diisi';
+                  }
+                  if (value != null &&
+                      value.isNotEmpty &&
+                      double.tryParse(value) == null) {
+                    return 'Masukkan angka yang valid';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               // BARU: Dropdown untuk kehilangan nafsu makan
@@ -327,7 +465,8 @@ class _DataFormPageState extends State<DataFormPage> {
                 value: _kehilanganNafsuMakan,
                 label: 'Ada asupan nutrisi > 5 hari?',
                 items: ['Ya', 'Tidak Ada'],
-                onChanged: (value) => setState(() => _kehilanganNafsuMakan = value),
+                onChanged: (value) =>
+                    setState(() => _kehilanganNafsuMakan = value),
               ),
               const SizedBox(height: 16),
               _buildDropdownFormField(
@@ -380,15 +519,18 @@ class _DataFormPageState extends State<DataFormPage> {
         suffixText: suffixText,
       ),
       // DIUBAH: Gunakan validator yang diberikan atau default validator
-      validator: validator ?? (value) {
-        if (value == null || value.isEmpty) {
-          return '$label tidak boleh kosong';
-        }
-        if (keyboardType == TextInputType.number && double.tryParse(value) == null) {
-          return 'Masukkan angka yang valid';
-        }
-        return null;
-      },
+      validator:
+          validator ??
+          (value) {
+            if (value == null || value.isEmpty) {
+              return '$label tidak boleh kosong';
+            }
+            if (keyboardType == TextInputType.number &&
+                double.tryParse(value) == null) {
+              return 'Masukkan angka yang valid';
+            }
+            return null;
+          },
     );
   }
 

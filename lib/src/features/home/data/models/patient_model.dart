@@ -18,6 +18,8 @@ class Patient {
   final int skorEfekPenyakit;
   final int totalSkor;
   final DateTime tanggalPemeriksaan;
+  final num? lila;
+  final num? tl;
 
   Patient({
     required this.id,
@@ -35,6 +37,8 @@ class Patient {
     required this.skorEfekPenyakit,
     required this.totalSkor,
     required this.tanggalPemeriksaan,
+    this.lila, // Tambahkan ini sebagai properti opsional
+    this.tl,
   });
 
   factory Patient.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -55,7 +59,30 @@ class Patient {
       skorEfekPenyakit: data['skorEfekPenyakit'] ?? 0,
       totalSkor: data['totalSkor'] ?? 0,
       tanggalPemeriksaan: (data['tanggalPemeriksaan'] as Timestamp).toDate(),
+      lila: data['lila'] as num?,
+      tl: data['tl'] as num?,
     );
+  }
+
+   Map<String, dynamic> toMap() {
+    return {
+      'noRM': noRM,
+      'namaLengkap': namaLengkap,
+      'tanggalLahir': tanggalLahir,
+      'diagnosisMedis': diagnosisMedis,
+      'beratBadan': beratBadan,
+      'tinggiBadan': tinggiBadan,
+      'jenisKelamin': jenisKelamin,
+      'aktivitas': aktivitas,
+      'imt': imt,
+      'skorIMT': skorIMT,
+      'skorKehilanganBB': skorKehilanganBB,
+      'skorEfekPenyakit': skorEfekPenyakit,
+      'totalSkor': totalSkor,
+      'tanggalPemeriksaan': tanggalPemeriksaan,
+      'lila': lila,
+      'tl': tl,
+    };
   }
 
   // --- GETTER UNTUK KALKULASI ---

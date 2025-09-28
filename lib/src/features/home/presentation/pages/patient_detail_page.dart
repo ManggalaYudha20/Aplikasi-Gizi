@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart'; // Impor model pasien
-import 'pdf_generator.dart'; // Helper untuk membuat PDF
-import 'patient_delete_logic.dart'; // Separate delete logic
+import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart';
+import 'pdf_generator.dart';
+import 'patient_delete_logic.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
-import 'data_form_page.dart'; // Import the data form page for editing
+import 'data_form_page.dart';
 
 class PatientDetailPage extends StatefulWidget {
   final Patient patient;
@@ -46,17 +46,30 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
             ),
             _buildInfoRow('Usia', '${_currentPatient.usia} tahun'),
             _buildInfoRow('Jenis Kelamin', _currentPatient.jenisKelamin),
-            _buildInfoRow('Berat Badan', '${_currentPatient.beratBadan} kg'),
+            _buildInfoRow(
+              'Berat Badan',
+            '${_currentPatient.beratBadan} kg',
+            ),
             _buildInfoRow(
               'Tinggi Badan',
-              '${_currentPatient.tinggiBadan.toStringAsFixed(0)} cm',
+            '${_currentPatient.tinggiBadan.toStringAsFixed(0)} cm',
             ),
+            if (_currentPatient.lila != null)
+              _buildInfoRow(
+                'Lingkar Lengan Atas (LILA)',
+                '${_currentPatient.lila!.toStringAsFixed(1)} cm',
+              ),
+            if (_currentPatient.tl != null)
+              _buildInfoRow(
+                'Tinggi Lutut (TL)',
+                '${_currentPatient.tl!.toStringAsFixed(1)} cm',
+              ),
             _buildInfoRow('Diagnosis Medis', _currentPatient.diagnosisMedis),
 
             const Divider(
-              height: 20, // Jarak vertikal total untuk divider
-              thickness: 2, // Ketebalan garis divider
-              color: Colors.green, // Warna garis divider 🎨
+              height: 20,
+              thickness: 2,
+              color: Colors.green,
             ),
 
             // --- Bagian Hasil Perhitungan Gizi ---
@@ -68,25 +81,25 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
             ),
             _buildInfoRow(
               'BBI (Berat Badan Ideal)',
-              '${_currentPatient.bbi.toStringAsFixed(1)} kg',
+              _currentPatient.bbi != 0.0 ? '${_currentPatient.bbi.toStringAsFixed(1)} kg' : '-',
               isBold: true,
             ),
             _buildInfoRow(
               'BMR (Kebutuhan Kalori Basal)',
-              '${_currentPatient.bmr.toStringAsFixed(2)} kkal',
+              _currentPatient.bmr != 0.0 ? '${_currentPatient.bmr.toStringAsFixed(2)} kkal' : '-',
               isBold: true,
             ),
             _buildInfoRow(
               'TDEE (Total Kebutuhan Energi)',
-              '${_currentPatient.tdee.toStringAsFixed(2)} kkal',
+              _currentPatient.tdee != 0.0 ? '${_currentPatient.tdee.toStringAsFixed(2)} kkal' : '-',
               isBold: true,
             ),
             _buildInfoRow('Aktivitas', _currentPatient.aktivitas),
 
             const Divider(
-              height: 20, // Jarak vertikal total untuk divider
-              thickness: 2, // Ketebalan garis divider
-              color: Colors.green, // Warna garis divider 🎨
+              height: 20,
+              thickness: 2,
+              color: Colors.green,
             ),
 
             // --- Bagian Skrining Gizi Lanjut ---
@@ -121,11 +134,9 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
-                      // Store context before async operation
                       final scaffoldContext = ScaffoldMessenger.of(context);
 
                       try {
-                        // Show loading indicator
                         scaffoldContext.showSnackBar(
                           const SnackBar(
                             content: Text('Membuat File PDF...'),
@@ -133,26 +144,22 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                           ),
                         );
 
-                        // Generate PDF
                         final pdfFile = await PdfGenerator.generate(
                           _currentPatient,
                         );
 
-                        // Open the PDF file
                         await PdfGenerator.openFile(pdfFile);
 
-                        // Show success message
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        scaffoldContext.showSnackBar(
                           const SnackBar(
                             content: Text('File PDF Berhasil dibuat!'),
                             backgroundColor: Colors.green,
                           ),
                         );
                       } catch (e) {
-                        // Show error message
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        scaffoldContext.showSnackBar(
                           SnackBar(
                             content: Text(
                               'File PDF Gagal dibuat: ${e.toString()}',
@@ -195,22 +202,19 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
               resetButtonColor: Colors.red,
               submitButtonColor: const Color.fromARGB(255, 0, 148, 68),
               onReset: () {
-                // Delete functionality using separate logic
                 PatientDeleteLogic.handlePatientDelete(
                   context: context,
                   patient: _currentPatient,
                 );
               },
               onSubmit: () async {
-                // Navigate to edit page with patient data and wait for result
                 final updatedPatient = await Navigator.push<Patient>(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => DataFormPage(patient: widget.patient),
+                    builder: (context) => DataFormPage(patient: _currentPatient),
                   ),
                 );
 
-                // If patient data was updated, refresh the UI
                 if (updatedPatient != null && mounted) {
                   setState(() {
                     _currentPatient = updatedPatient;
