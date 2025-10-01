@@ -160,7 +160,7 @@ class _FoodListPageState extends State<FoodListPage> {
                                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                                   children: [
                                     _buildNutritionInfo(
-                                      'Kalori',
+                                      'Energi',
                                       '${foodItem.calories.toStringAsFixed(0)} kkal',
                                       Icons.local_fire_department,
                                       Colors.orange,
@@ -206,7 +206,7 @@ class _FoodListPageState extends State<FoodListPage> {
           ],
         ),
       ),
-      // --- TAMBAHKAN TOMBOL INI UNTUK CREATE DATA ---
+          // --- TAMBAHKAN TOMBOL INI UNTUK CREATE DATA ---
       floatingActionButton: isAhliGizi
           ? FloatingActionButton(
               onPressed: () {

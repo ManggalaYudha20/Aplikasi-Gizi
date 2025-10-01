@@ -15,7 +15,7 @@ class FoodDetailPage extends StatefulWidget {
 
 class _FoodDetailPageState extends State<FoodDetailPage> {
   final TextEditingController _portionController = TextEditingController();
-  Map<String, double>? _calculatedNutrition;
+  Map<String, num>? _calculatedNutrition;
   bool _showResults = false;
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _resultCardKey = GlobalKey();
@@ -50,7 +50,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       return;
     }
 
-    final double? portionGram = double.tryParse(portionText);
+    final num? portionGram = num.tryParse(portionText);
     if (portionGram == null || portionGram <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Masukkan angka yang valid')),
@@ -58,14 +58,41 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       return;
     }
 
-    final double ratio = portionGram / 100.0;
+    // Perbaikan: Tambahkan pengecekan untuk portionGram agar tidak nol
+    if (widget.foodItem.portionGram == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tidak dapat menghitung, porsi asli makanan adalah 0 gram.'),
+        ),
+      );
+      return;
+    }
+
+    final num ratio = portionGram / widget.foodItem.portionGram;
 
     setState(() {
       _calculatedNutrition = {
-        'kalori': (widget.foodItem.nutritionPer100g['kalori'] ?? 0.0) * ratio,
-        'protein': (widget.foodItem.nutritionPer100g['protein'] ?? 0.0) * ratio,
-        'lemak': (widget.foodItem.nutritionPer100g['lemak'] ?? 0.0) * ratio,
-        'serat': (widget.foodItem.nutritionPer100g['serat'] ?? 0.0) * ratio,
+        'air': widget.foodItem.air * ratio,
+        'energi': widget.foodItem.calories * ratio,
+        'protein': widget.foodItem.protein * ratio,
+        'lemak': widget.foodItem.fat * ratio,
+        'karbohidrat': widget.foodItem.karbohidrat * ratio,
+        'serat': widget.foodItem.fiber * ratio,
+        'abu': widget.foodItem.abu * ratio,
+        'kalsium': widget.foodItem.kalsium * ratio,
+        'fosfor': widget.foodItem.fosfor * ratio,
+        'besi': widget.foodItem.besi * ratio,
+        'natrium': widget.foodItem.natrium * ratio,
+        'kalium': widget.foodItem.kalium * ratio,
+        'tembaga': widget.foodItem.tembaga * ratio,
+        'seng': widget.foodItem.seng * ratio,
+        'retinol': widget.foodItem.retinol * ratio,
+        'betaKaroten': widget.foodItem.betaKaroten * ratio,
+        'karotenTotal': widget.foodItem.karotenTotal * ratio,
+        'thiamin': widget.foodItem.thiamin * ratio,
+        'riboflavin': widget.foodItem.riboflavin * ratio,
+        'niasin': widget.foodItem.niasin * ratio,
+        'vitaminC': widget.foodItem.vitaminC * ratio,
       };
       _showResults = true;
     });
@@ -191,7 +218,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
 
             // Nutrition Cards
             _buildNutritionCard(
-              'Kalori',
+              'Energi',
               widget.foodItem.calories,
               'kkal',
               Icons.local_fire_department,
@@ -221,6 +248,11 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               Icons.grass,
               Colors.green,
             ),
+            const SizedBox(height: 24),
+
+            // DIPERBARUI: Menampilkan semua detail nutrisi dalam tabel
+            _buildNutritionDetailTable(widget.foodItem),
+
             const SizedBox(height: 24),
 
             // Custom Portion Calculator
@@ -345,8 +377,12 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                     ),
                     const SizedBox(height: 12),
                     _buildNutritionRow(
-                      'Kalori',
-                      '${_calculatedNutrition!['kalori']?.toStringAsFixed(1) ?? '0'} kkal',
+                      'Air',
+                      '${_calculatedNutrition!['air']?.toStringAsFixed(2) ?? '0'} g',
+                    ),
+                    _buildNutritionRow(
+                      'Energi',
+                      '${_calculatedNutrition!['energi']?.toStringAsFixed(1) ?? '0'} kkal',
                     ),
                     _buildNutritionRow(
                       'Protein',
@@ -357,8 +393,72 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                       '${_calculatedNutrition!['lemak']?.toStringAsFixed(2) ?? '0'} g',
                     ),
                     _buildNutritionRow(
+                      'Karbohidrat',
+                      '${_calculatedNutrition!['karbohidrat']?.toStringAsFixed(2) ?? '0'} g',
+                    ),
+                    _buildNutritionRow(
                       'Serat',
                       '${_calculatedNutrition!['serat']?.toStringAsFixed(2) ?? '0'} g',
+                    ),
+                    _buildNutritionRow(
+                      'Abu',
+                      '${_calculatedNutrition!['abu']?.toStringAsFixed(2) ?? '0'} g',
+                    ),
+                    _buildNutritionRow(
+                      'Kalsium (Ca)',
+                      '${_calculatedNutrition!['kalsium']?.toStringAsFixed(2) ?? '0'} mg',
+                    ),
+                    _buildNutritionRow(
+                      'Fosfor (P)',
+                      '${_calculatedNutrition!['fosfor']?.toStringAsFixed(2) ?? '0'} mg',
+                    ),
+                    _buildNutritionRow(
+                      'Besi (Fe)',
+                      '${_calculatedNutrition!['besi']?.toStringAsFixed(2) ?? '0'} mg',
+                    ),
+                    _buildNutritionRow(
+                      'Natrium (Na)',
+                      '${_calculatedNutrition!['natrium']?.toStringAsFixed(2) ?? '0'} mg',
+                    ),
+                    _buildNutritionRow(
+                      'Kalium (Ka)',
+                      '${_calculatedNutrition!['kalium']?.toStringAsFixed(2) ?? '0'} mg',
+                    ),
+                    _buildNutritionRow(
+                      'Tembaga (Cu)',
+                      '${_calculatedNutrition!['tembaga']?.toStringAsFixed(2) ?? '0'} mg',
+                    ),
+                    _buildNutritionRow(
+                      'Seng (Zn)',
+                      '${_calculatedNutrition!['seng']?.toStringAsFixed(2) ?? '0'} mg',
+                    ),
+                    _buildNutritionRow(
+                      'Retinol (vit. A)',
+                      '${_calculatedNutrition!['retinol']?.toStringAsFixed(2) ?? '0'} mcg',
+                    ),
+                    _buildNutritionRow(
+                      'β-karoten',
+                      '${_calculatedNutrition!['betaKaroten']?.toStringAsFixed(2) ?? '0'} mcg',
+                    ),
+                    _buildNutritionRow(
+                      'Karoten total',
+                      '${_calculatedNutrition!['karotenTotal']?.toStringAsFixed(2) ?? '0'} mcg',
+                    ),
+                    _buildNutritionRow(
+                      'Thiamin (vit. B1)',
+                      '${_calculatedNutrition!['thiamin']?.toStringAsFixed(2) ?? '0'} mg',
+                    ),
+                    _buildNutritionRow(
+                      'Riboflavin (vit. B2)',
+                      '${_calculatedNutrition!['riboflavin']?.toStringAsFixed(2) ?? '0'} mg',
+                    ),
+                    _buildNutritionRow(
+                      'Niasin',
+                      '${_calculatedNutrition!['niasin']?.toStringAsFixed(2) ?? '0'} mg',
+                    ),
+                    _buildNutritionRow(
+                      'Vitamin C',
+                      '${_calculatedNutrition!['vitaminC']?.toStringAsFixed(2) ?? '0'} mg',
                     ),
                   ],
                 ],
@@ -467,4 +567,65 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       ),
     );
   }
+
+  Widget _buildNutritionDetailTable(FoodItem item) {
+  // Perbaikan: Gunakan getter nutritionPer100g dari model
+  final Map<String, num> nutritionPer100g = item.nutritionPer100g;
+
+  return Container(
+    // Perbaikan: Mengganti Card dengan Container
+    decoration: BoxDecoration(
+                color: const Color.fromARGB(
+                  255,
+                  0,
+                  148,
+                  68,
+                ).withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color.fromARGB(
+                    255,
+                    0,
+                    148,
+                    68,
+                  ).withValues(alpha: 0.2),
+                ),
+              ),
+    child: Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Detail Nutrisi per 100 gram',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          _buildNutritionRow('Air', '${nutritionPer100g['air']?.toStringAsFixed(1) ?? '0.0'} g'),
+          _buildNutritionRow('Energi', '${nutritionPer100g['energi']?.toStringAsFixed(1) ?? '0.0'} kkal'),
+          _buildNutritionRow('Protein', '${nutritionPer100g['protein']?.toStringAsFixed(1) ?? '0.0'} g'),
+          _buildNutritionRow('Lemak', '${nutritionPer100g['lemak']?.toStringAsFixed(1) ?? '0.0'} g'),
+          _buildNutritionRow('Karbohidrat', '${nutritionPer100g['karbohidrat']?.toStringAsFixed(1) ?? '0.0'} g'),
+          _buildNutritionRow('Serat', '${nutritionPer100g['serat']?.toStringAsFixed(1) ?? '0.0'} g'),
+          _buildNutritionRow('Abu', '${nutritionPer100g['abu']?.toStringAsFixed(1) ?? '0.0'} g'),
+          _buildNutritionRow('Kalsium (Ca)', '${nutritionPer100g['kalsium']?.toStringAsFixed(1) ?? '0.0'} mg'),
+          _buildNutritionRow('Fosfor (P)', '${nutritionPer100g['fosfor']?.toStringAsFixed(1) ?? '0.0'} mg'),
+          _buildNutritionRow('Besi (Fe)', '${nutritionPer100g['besi']?.toStringAsFixed(1) ?? '0.0'} mg'),
+          _buildNutritionRow('Natrium (Na)', '${nutritionPer100g['natrium']?.toStringAsFixed(1) ?? '0.0'} mg'),
+          _buildNutritionRow('Kalium (Ka)', '${nutritionPer100g['kalium']?.toStringAsFixed(1) ?? '0.0'} mg'),
+          _buildNutritionRow('Tembaga (Cu)', '${nutritionPer100g['tembaga']?.toStringAsFixed(1) ?? '0.0'} mg'),
+          _buildNutritionRow('Seng (Zn)', '${nutritionPer100g['seng']?.toStringAsFixed(1) ?? '0.0'} mg'),
+          _buildNutritionRow('Retinol (vit. A)', '${nutritionPer100g['retinol']?.toStringAsFixed(1) ?? '0.0'} mcg'),
+          _buildNutritionRow('β-karoten', '${nutritionPer100g['betaKaroten']?.toStringAsFixed(1) ?? '0.0'} mcg'),
+          _buildNutritionRow('Karoten total', '${nutritionPer100g['karotenTotal']?.toStringAsFixed(1) ?? '0.0'} mcg'),
+          _buildNutritionRow('Thiamin (vit. B1)', '${nutritionPer100g['thiamin']?.toStringAsFixed(1) ?? '0.0'} mg'),
+          _buildNutritionRow('Riboflavin (vit. B2)', '${nutritionPer100g['riboflavin']?.toStringAsFixed(1) ?? '0.0'} mg'),
+          _buildNutritionRow('Niasin', '${nutritionPer100g['niasin']?.toStringAsFixed(1) ?? '0.0'} mg'),
+          _buildNutritionRow('Vitamin C', '${nutritionPer100g['vitaminC']?.toStringAsFixed(1) ?? '0.0'} mg'),
+          _buildNutritionRow('BDD', '${nutritionPer100g['bdd']?.toStringAsFixed(1) ?? '0.0'} %'),
+        ],
+      ),
+    ),
+  );
+ }
 }
