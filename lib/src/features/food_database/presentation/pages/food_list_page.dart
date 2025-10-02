@@ -15,10 +15,11 @@ class FoodListPage extends StatefulWidget {
 class _FoodListPageState extends State<FoodListPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  
+
   // --- PERSIAPAN UNTUK LEVEL AKSES ---
   // Nantinya, nilai ini akan didapat dari status login pengguna (misal: Firebase Auth).
-  final bool isAhliGizi = true; // Ganti menjadi 'false' untuk menyembunyikan tombol
+  final bool isAhliGizi =
+      true; // Ganti menjadi 'false' untuk menyembunyikan tombol
 
   @override
   void initState() {
@@ -71,12 +72,17 @@ class _FoodListPageState extends State<FoodListPage> {
                     final foodItem = FoodItem.fromFirestore(
                       doc as DocumentSnapshot<Map<String, dynamic>>,
                     );
-                    return foodItem.name.toLowerCase().contains(_searchQuery) ||
-                           foodItem.code.toLowerCase().contains(_searchQuery);
+                    final searchQueryLower = _searchQuery.toLowerCase();
+                    return foodItem.name.toLowerCase().contains(searchQueryLower) ||
+                           foodItem.code.toLowerCase().contains(searchQueryLower) ||
+                           foodItem.kelompokMakanan.toLowerCase().contains(searchQueryLower) ||
+                           foodItem.mentahOlahan.toLowerCase().contains(searchQueryLower) ;
                   }).toList();
 
                   if (filteredDocs.isEmpty && _searchQuery.isNotEmpty) {
-                    return Center(child: Text('Tidak ada hasil untuk "$_searchQuery"'));
+                    return Center(
+                      child: Text('Tidak ada hasil untuk "$_searchQuery"'),
+                    );
                   }
 
                   return ListView.builder(
@@ -100,9 +106,8 @@ class _FoodListPageState extends State<FoodListPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => FoodDetailPage(
-                                  foodItem: foodItem,
-                                ),
+                                builder: (context) =>
+                                    FoodDetailPage(foodItem: foodItem),
                               ),
                             );
                           },
@@ -118,8 +123,12 @@ class _FoodListPageState extends State<FoodListPage> {
                                       width: 50,
                                       height: 50,
                                       decoration: BoxDecoration(
-                                        color: const Color.fromARGB(255, 0, 148, 68)
-                                            .withValues(alpha: 0.1),
+                                        color: const Color.fromARGB(
+                                          255,
+                                          0,
+                                          148,
+                                          68,
+                                        ).withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: const Icon(
@@ -131,7 +140,8 @@ class _FoodListPageState extends State<FoodListPage> {
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             foodItem.name,
@@ -157,7 +167,8 @@ class _FoodListPageState extends State<FoodListPage> {
                                 ),
                                 const SizedBox(height: 12),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
                                   children: [
                                     _buildNutritionInfo(
                                       'Energi',
@@ -186,12 +197,34 @@ class _FoodListPageState extends State<FoodListPage> {
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                Text(
-                                  'Porsi: ${foodItem.portionGram} gram',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Text(
+                                      'Porsi: ${foodItem.portionGram} gram',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Kategori: ${foodItem.kelompokMakanan}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Status: ${foodItem.mentahOlahan}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -206,13 +239,15 @@ class _FoodListPageState extends State<FoodListPage> {
           ],
         ),
       ),
-          // --- TAMBAHKAN TOMBOL INI UNTUK CREATE DATA ---
+      // --- TAMBAHKAN TOMBOL INI UNTUK CREATE DATA ---
       floatingActionButton: isAhliGizi
           ? FloatingActionButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const AddFoodItemPage()),
+                  MaterialPageRoute(
+                    builder: (context) => const AddFoodItemPage(),
+                  ),
                 );
               },
               backgroundColor: const Color.fromARGB(255, 0, 148, 68),
@@ -221,7 +256,7 @@ class _FoodListPageState extends State<FoodListPage> {
           : null, // Jika bukan ahli gizi, tombol tidak akan tampil
     );
   }
-  
+
   // ... (kode _buildSearchBar dan _buildNutritionInfo tetap sama) ...
   Widget _buildSearchBar() {
     return Container(
@@ -280,13 +315,7 @@ class _FoodListPageState extends State<FoodListPage> {
             color: Colors.black87,
           ),
         ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 10,
-            color: Colors.grey,
-          ),
-        ),
+        Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
       ],
     );
   }

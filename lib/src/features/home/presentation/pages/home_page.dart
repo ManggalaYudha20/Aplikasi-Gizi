@@ -114,8 +114,10 @@ class _HomePageState extends State<HomePage> {
                   // Filter pasien berdasarkan query pencarian
                   final filteredPatients = patients.where((doc) {
                     final patient = Patient.fromFirestore(doc);
-                    return patient.namaLengkap.toLowerCase().contains(_searchQuery) ||
-                           patient.noRM.toLowerCase().contains(_searchQuery);
+                    final searchQueryLower = _searchQuery.toLowerCase();
+                    return patient.namaLengkap.toLowerCase().contains(searchQueryLower) ||
+                           patient.noRM.toLowerCase().contains(searchQueryLower) ||
+                           patient.diagnosisMedis.toLowerCase().contains(searchQueryLower);
                   }).toList();
 
                   if (filteredPatients.isEmpty && _searchQuery.isNotEmpty) {

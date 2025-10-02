@@ -485,7 +485,7 @@ Widget _buildMealPlanCard(List<FoodItem> mealPlan) {
                   ),
                 ],
               );
-            }).toList(),
+            }),
           ],
         ),
       ],

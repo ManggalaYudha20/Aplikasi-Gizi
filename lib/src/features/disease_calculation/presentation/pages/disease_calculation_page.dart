@@ -18,7 +18,7 @@ class DiseaseCalculationPage extends StatelessWidget {
       },
       {
         'name': 'Ginjal',
-        'fullName': 'Penyakit Ginjal',
+        'fullName': 'Ginjal Kronis',
         'icon': Icons.water_drop,
         'color': Colors.green,
         'route': '/kidney-form',

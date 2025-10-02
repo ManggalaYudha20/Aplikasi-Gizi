@@ -19,6 +19,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
 
   String? _selectedGender;
   double? _bmrResult;
+  String _selectedFormula = 'Mifflin-St Jeor';
 
   @override
   void dispose() {
@@ -49,12 +50,26 @@ class _BmrFormPageState extends State<BmrFormPage> {
       
       double bmr;
       
-      if (_selectedGender == 'Laki-laki') {
-        // Formula untuk laki-laki: 66.47 + (13.75 × BB) + (5.003 × TB) − (6.755 × U)
-        bmr = 66.47 + (13.75 * weight) + (5.003 * height) - (6.755 * age);
-      } else {
-        // Formula untuk perempuan: 655.1 + (9.563 × BB) + (1.850 × TB) − (4.676 × U)
-        bmr = 655.1 + (9.563 * weight) + (1.850 * height) - (4.676 * age);
+      // Logika perhitungan diperbarui untuk mendukung dua formula
+      if (_selectedFormula == 'Harris-Benedict') {
+        // Menggunakan formula Harris-Benedict (seperti kode awal Anda)
+        if (_selectedGender == 'Laki-laki') {
+          // Formula untuk laki-laki: 66.47 + (13.75 × BB) + (5.003 × TB) − (6.755 × U)
+          bmr = 66.47 + (13.75 * weight) + (5.003 * height) - (6.755 * age);
+        } else {
+          // Formula untuk perempuan: 655.1 + (9.563 × BB) + (1.850 × TB) − (4.676 × U)
+          bmr = 655.1 + (9.563 * weight) + (1.850 * height) - (4.676 * age);
+        }
+      } else { 
+        // Menggunakan formula Mifflin-St Jeor
+        // Formula: (9.99 x BB) + (6.25 x TB) - (4.92 x U) +/- Konstanta
+        if (_selectedGender == 'Laki-laki') {
+          // Pria: (9.99 x BB) + (6.25 x TB) - (4.92 x U) + 5
+          bmr = (9.99 * weight) + (6.25 * height) - (4.92 * age) + 5;
+        } else {
+          // Wanita: (9.99 x BB) + (6.25 x TB) - (4.92 x U) - 161
+          bmr = (9.99 * weight) + (6.25 * height) - (4.92 * age) - 161;
+        }
       }
       
       setState(() {
@@ -72,7 +87,28 @@ class _BmrFormPageState extends State<BmrFormPage> {
       _ageController.clear();
       _selectedGender = null;
       _bmrResult = null;
+      _selectedFormula = 'Mifflin-St Jeor';
     });
+  }
+
+  // Widget untuk menampilkan informasi formula yang dipilih
+  Widget _buildFormulaInfo() {
+    String formulaName = _selectedFormula;
+    String description;
+    
+    if (formulaName == 'Harris-Benedict') {
+      description = 'Menggunakan rumus Harris-Benedict (1919).';
+    } else {
+      description = 'Menggunakan rumus Mifflin-St Jeor (dianggap lebih akurat untuk populasi modern).';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Text(
+        '$formulaName dipilih. $description',
+        style: const TextStyle(fontSize: 12, color: Colors.black54),
+      ),
+    );
   }
 
   @override
@@ -101,7 +137,33 @@ class _BmrFormPageState extends State<BmrFormPage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                
+                // Pilihan Formula BMR (Widget baru)
+                DropdownButtonFormField<String>(
+                  value: _selectedFormula,
+                  decoration: const InputDecoration(
+                    labelText: 'Pilih Formula BMR',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.calculate),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'Mifflin-St Jeor',
+                      child: Text('Mifflin-St Jeor'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Harris-Benedict',
+                      child: Text('Harris-Benedict'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedFormula = value!;
+                      _bmrResult = null; // Reset hasil saat formula berubah
+                    });
+                  },
+                ),
+                _buildFormulaInfo(), // Menampilkan keterangan formula
+                const SizedBox(height: 16),
                 // Berat Badan
                 TextFormField(
                   controller: _weightController,
@@ -225,8 +287,9 @@ class _BmrFormPageState extends State<BmrFormPage> {
                     ),
                     child: Column(
                       children: [
-                        const Text(
-                          'Hasil Perhitungan BMR',
+                         Text(
+                          'Hasil Perhitungan BMR \n($_selectedFormula)',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
