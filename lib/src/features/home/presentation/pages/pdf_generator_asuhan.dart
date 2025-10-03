@@ -393,50 +393,6 @@ static pw.Widget _buildAssessmentItemRow(String label1, String value1, [String? 
     );
   }
 
-  // FUNGSI BANTUAN BARU untuk Asesmen Gizi (Satu Kolom)
-  static pw.Widget _buildAssessmentCategory(String title, List<String> items) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        // Judul Kategori
-        pw.Container(
-          width: double.infinity,
-          decoration: pw.BoxDecoration(
-            border: pw.Border(top: pw.BorderSide(width: 0.5)),
-          ),
-          padding: const pw.EdgeInsets.fromLTRB(4, 4, 4, 2),
-          child: pw.Text(
-            title,
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
-          ),
-        ),
-        // Item di dalam kategori
-        pw.Padding(
-          padding: const pw.EdgeInsets.fromLTRB(
-            12,
-            2,
-            4,
-            4,
-          ), // Diberi indentasi
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: items
-                .map(
-                  (item) => pw.Padding(
-                    padding: const pw.EdgeInsets.only(bottom: 2),
-                    child: pw.Text(
-                      item,
-                      style: const pw.TextStyle(fontSize: 9),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-        ),
-      ],
-    );
-  }
-
   // --- Fungsi Bantuan untuk Simpan dan Buka File (Sama seperti pdf_generator.dart) ---
   static Future<File> saveDocument({
     required String name,
