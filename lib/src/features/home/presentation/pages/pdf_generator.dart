@@ -41,7 +41,7 @@ class PdfGenerator {
                       children: [
                         pw.Text('Rumah Sakit Umum Daerah ODSK', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
                         pw.Text('Provinsi Sulawesi Utara', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
-                        pw.Text('Jl. Bethesda no 77 Manado', style: pw.TextStyle(fontSize: 10)),
+                        pw.Text('Jl. Bethesda No. 77, Manado', style: pw.TextStyle(fontSize: 10)),
                       ],
                     ),
                   

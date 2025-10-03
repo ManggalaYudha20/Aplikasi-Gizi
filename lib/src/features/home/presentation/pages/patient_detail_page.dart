@@ -5,6 +5,7 @@ import 'patient_delete_logic.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'data_form_page.dart';
+import 'pdf_generator_asuhan.dart';
 
 class PatientDetailPage extends StatefulWidget {
   final Patient patient;
@@ -183,7 +184,71 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                       children: [
                         Icon(Icons.picture_as_pdf, size: 20),
                         SizedBox(width: 8),
-                        Text('Simpan sebagai PDF'),
+                        Text('Formulir Skrining Gizi'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final scaffoldContext = ScaffoldMessenger.of(context);
+
+                      try {
+                        scaffoldContext.showSnackBar(
+                          const SnackBar(
+                            content: Text('Membuat File PDF...'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+
+                        final pdfFile = await PdfGeneratorAsuhan.generate(
+                          _currentPatient,
+                        );
+
+                        await PdfGeneratorAsuhan.openFile(pdfFile);
+
+                        if (!mounted) return;
+                        scaffoldContext.showSnackBar(
+                          const SnackBar(
+                            content: Text('File PDF Berhasil dibuat!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } catch (e) {
+                        if (!mounted) return;
+                        scaffoldContext.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'File PDF Gagal dibuat: ${e.toString()}',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.picture_as_pdf, size: 20),
+                        SizedBox(width: 8),
+                        Text('Formulir Asuhan Gizi'),
                       ],
                     ),
                   ),
