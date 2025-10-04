@@ -40,9 +40,9 @@ class _BbiFormPageState extends State<BbiFormPage> {
   void _calculateBBI() {
     if (_formKey.currentState!.validate()) {
       final height = double.parse(_heightController.text);
-      
+
       double bbi;
-      
+
       if (_selectedGender == 'Laki-laki') {
         // Formula untuk laki-laki: [tinggi badan (cm) - 100] - [(tinggi badan (cm) - 100) × 10%]
         bbi = (height - 100) - ((height - 100) * 0.10);
@@ -50,7 +50,7 @@ class _BbiFormPageState extends State<BbiFormPage> {
         // Formula untuk perempuan: [tinggi badan (cm) - 100] - [(tinggi badan (cm) - 100) × 15%]
         bbi = (height - 100) - ((height - 100) * 0.15);
       }
-      
+
       setState(() {
         _bbiResult = bbi;
       });
@@ -71,10 +71,7 @@ class _BbiFormPageState extends State<BbiFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar: const CustomAppBar(
-        title: 'BBI',
-        subtitle: 'Berat Badan Ideal',
-      ),
+      appBar: const CustomAppBar(title: 'BBI', subtitle: 'Berat Badan Ideal'),
       body: SafeArea(
         child: SingleChildScrollView(
           controller: _scrollController,
@@ -87,13 +84,10 @@ class _BbiFormPageState extends State<BbiFormPage> {
                 const SizedBox(height: 20),
                 const Text(
                   'Input Data BBI',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Tinggi Badan
                 TextFormField(
                   controller: _heightController,
@@ -115,7 +109,7 @@ class _BbiFormPageState extends State<BbiFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Jenis Kelamin
                 DropdownButtonFormField<String>(
                   value: _selectedGender,
@@ -147,16 +141,20 @@ class _BbiFormPageState extends State<BbiFormPage> {
                   },
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Buttons
-                FormActionButtons(onReset: _resetForm, onSubmit: _calculateBBI),
+                FormActionButtons(
+                  onReset: _resetForm,
+                  onSubmit: _calculateBBI,
+                  resetButtonColor: Colors.white, // Background jadi putih
+                  resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
+                ),
                 const SizedBox(height: 32),
-                
+
                 // Result
                 if (_bbiResult != null) ...[
-
                   Container(
-                    key: _resultCardKey, 
+                    key: _resultCardKey,
                     child: const Column(
                       children: [Divider(), SizedBox(height: 32)],
                     ),
@@ -165,9 +163,16 @@ class _BbiFormPageState extends State<BbiFormPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.1),
+                      color: const Color.fromARGB(
+                        255,
+                        0,
+                        148,
+                        68,
+                      ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color.fromARGB(255, 0, 148, 68)),
+                      border: Border.all(
+                        color: const Color.fromARGB(255, 0, 148, 68),
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -192,15 +197,11 @@ class _BbiFormPageState extends State<BbiFormPage> {
                         const Text(
                           'Berat Badan Ideal (BBI) adalah berat badan yang dianggap optimal untuk tinggi badan dan jenis kelamin.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black54,
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                       ],
                     ),
                   ),
-                  
                 ],
               ],
             ),

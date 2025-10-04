@@ -149,14 +149,19 @@ class _BmiFormPageState extends State<BmiFormPage> {
                 const SizedBox(height: 32),
 
                 // Buttons
-                FormActionButtons(onReset: _resetForm, onSubmit: _calculateBMI),
+                FormActionButtons(
+                  onReset: _resetForm,
+                  onSubmit: _calculateBMI,
+                  resetButtonColor: Colors.white, // Background jadi putih
+                  resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
+                ),
 
                 const SizedBox(height: 32),
 
                 // Result
                 if (_bmiResult != null) ...[
                   Container(
-                    key: _resultCardKey, 
+                    key: _resultCardKey,
                     child: const Column(
                       children: [Divider(), SizedBox(height: 32)],
                     ),
@@ -167,13 +172,11 @@ class _BmiFormPageState extends State<BmiFormPage> {
                     decoration: BoxDecoration(
                       color: _resultColor!.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: _resultColor!,
-                      ),
+                      border: Border.all(color: _resultColor!),
                     ),
                     child: Column(
                       children: [
-                         Text(
+                        Text(
                           'Hasil Perhitungan IMT',
                           style: TextStyle(
                             fontSize: 18,
@@ -211,7 +214,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
                   ),
 
                   const SizedBox(height: 32),
-                  
+
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -267,7 +270,6 @@ class _BmiFormPageState extends State<BmiFormPage> {
                       ],
                     ),
                   ),
-                  
                 ],
               ],
             ),

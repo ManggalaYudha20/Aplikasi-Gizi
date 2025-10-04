@@ -32,7 +32,6 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
 
   // Calculation results
   DiabetesCalculationResult? _result;
- 
 
   final List<String> _genders = ['Laki-laki', 'Perempuan'];
   final List<String> _activityLevels = [
@@ -86,8 +85,6 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
       _scrollToResult();
     }
   }
-
-
 
   void _resetForm() {
     _formKey.currentState?.reset();
@@ -301,6 +298,8 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                 FormActionButtons(
                   onReset: _resetForm,
                   onSubmit: _calculateDiabetesNutrition,
+                  resetButtonColor: Colors.white, // Background jadi putih
+                  resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
                 ),
                 const SizedBox(height: 32),
 
@@ -504,7 +503,11 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                         const Text(
                           'Keterangan : (P = Penukar) (S = Sekehendak) ',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 10, color: Colors.black54, fontWeight: FontWeight.w600,),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.black54,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         const Text(
@@ -516,7 +519,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                     ),
                   ),
 
-                   const SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -544,7 +547,11 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                         const Text(
                           'Keterangan : (P = Penukar) (S = Sekehendak) ',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 10, color: Colors.black54, fontWeight: FontWeight.w600,),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.black54,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         const Text(
@@ -586,112 +593,161 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     );
   }
 
- // GANTI FUNGSI LAMA DENGAN VERSI BARU INI
+  // GANTI FUNGSI LAMA DENGAN VERSI BARU INI
 
-Widget _buildMealDistributionTable() {
-  final distribution = _result!.dailyMealDistribution;
-  const headerStyle = TextStyle(fontWeight: FontWeight.bold, fontSize: 12);
-  const cellStyle = TextStyle(fontSize: 12);
-  const cellPadding = EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0);
+  Widget _buildMealDistributionTable() {
+    final distribution = _result!.dailyMealDistribution;
+    const headerStyle = TextStyle(fontWeight: FontWeight.bold, fontSize: 12);
+    const cellStyle = TextStyle(fontSize: 12);
+    const cellPadding = EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0);
 
-  // Helper untuk membuat grup baris (misal: semua baris untuk 'Pagi')
-  Widget buildMealRowGroup(String mealName, MealDistribution meal, {required Color color}) {
-    final List<Widget> foodRows = [];
+    // Helper untuk membuat grup baris (misal: semua baris untuk 'Pagi')
+    Widget buildMealRowGroup(
+      String mealName,
+      MealDistribution meal, {
+      required Color color,
+    }) {
+      final List<Widget> foodRows = [];
 
-    // Fungsi kecil untuk membuat baris makanan (Bahan Makanan + Penukar)
-    void addFoodRow(String foodName, dynamic value) {
-      foodRows.add(
-        Container(
-          padding: cellPadding,
-          decoration: BoxDecoration(
-            color: color,
-            border: Border(top: BorderSide(color: Colors.grey.shade300, width: 0.5)),
+      // Fungsi kecil untuk membuat baris makanan (Bahan Makanan + Penukar)
+      void addFoodRow(String foodName, dynamic value) {
+        foodRows.add(
+          Container(
+            padding: cellPadding,
+            decoration: BoxDecoration(
+              color: color,
+              border: Border(
+                top: BorderSide(color: Colors.grey.shade300, width: 0.5),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Text(foodName, style: cellStyle),
+                ), // Kolom Bahan Makanan
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    // Kolom Penukar
+                    value is String
+                        ? value
+                        : '${_formatNumber(value as double)} P',
+                    textAlign: TextAlign.center,
+                    style: cellStyle,
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: Row(
-            children: [
-              Expanded(flex: 3, child: Text(foodName, style: cellStyle)), // Kolom Bahan Makanan
-              Expanded(flex: 2, child: Text( // Kolom Penukar
-                value is String ? value : '${_formatNumber(value as double)} P',
+        );
+      }
+
+      // Tambahkan baris untuk setiap bahan makanan JIKA nilainya ada
+      if (meal.nasiP > 0) addFoodRow('Nasi', meal.nasiP);
+      if (meal.ikanP > 0) addFoodRow('Ikan', meal.ikanP);
+      if (meal.dagingP > 0) addFoodRow('Daging', meal.dagingP);
+      if (meal.tempeP > 0) addFoodRow('Tempe', meal.tempeP);
+      if (meal.sayuranA.isNotEmpty) addFoodRow('Sayuran A', meal.sayuranA);
+      if (meal.sayuranB > 0) addFoodRow('Sayuran B', meal.sayuranB);
+      if (meal.buah > 0) addFoodRow('Buah', meal.buah);
+      if (meal.susu > 0) addFoodRow('Susu', meal.susu);
+      if (meal.minyak > 0) addFoodRow('Minyak', meal.minyak);
+
+      if (foodRows.isEmpty) {
+        return const SizedBox.shrink(); // Jangan tampilkan apa-apa jika tidak ada makanan
+      }
+
+      // Bungkus dengan IntrinsicHeight agar sel "Waktu" bisa setinggi daftar makanan
+      return IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Kolom 1: Waktu (Sel yang di-merge)
+            Container(
+              width: 80, // Atur lebar kolom waktu secara manual
+              padding: cellPadding,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: color,
+                border: Border.all(color: Colors.grey.shade300, width: 0.5),
+              ),
+              child: Text(
+                mealName,
                 textAlign: TextAlign.center,
                 style: cellStyle,
-              )),
-            ],
-          ),
+              ),
+            ),
+            // Kolom 2: Daftar Bahan Makanan & Penukar
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: foodRows,
+              ),
+            ),
+          ],
         ),
       );
     }
 
-    // Tambahkan baris untuk setiap bahan makanan JIKA nilainya ada
-    if (meal.nasiP > 0) addFoodRow('Nasi', meal.nasiP);
-    if (meal.ikanP > 0) addFoodRow('Ikan', meal.ikanP);
-    if (meal.dagingP > 0) addFoodRow('Daging', meal.dagingP);
-    if (meal.tempeP > 0) addFoodRow('Tempe', meal.tempeP);
-    if (meal.sayuranA.isNotEmpty) addFoodRow('Sayuran A', meal.sayuranA);
-    if (meal.sayuranB > 0) addFoodRow('Sayuran B', meal.sayuranB);
-    if (meal.buah > 0) addFoodRow('Buah', meal.buah);
-    if (meal.susu > 0) addFoodRow('Susu', meal.susu);
-    if (meal.minyak > 0) addFoodRow('Minyak', meal.minyak);
-
-    if (foodRows.isEmpty) {
-      return const SizedBox.shrink(); // Jangan tampilkan apa-apa jika tidak ada makanan
-    }
-
-    // Bungkus dengan IntrinsicHeight agar sel "Waktu" bisa setinggi daftar makanan
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+    // Bangun Tampilan Akhir
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade400, width: 1),
+      ),
+      child: Column(
         children: [
-          // Kolom 1: Waktu (Sel yang di-merge)
+          // Header
           Container(
-            width: 80, // Atur lebar kolom waktu secara manual
             padding: cellPadding,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: color,
-              border: Border.all(color: Colors.grey.shade300, width: 0.5),
+            color: Colors.green.shade100,
+            child: Row(
+              children: [
+                const SizedBox(
+                  width: 80,
+                  child: Text(
+                    'Waktu',
+                    style: headerStyle,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    'Bahan Makanan',
+                    style: headerStyle,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Penukar',
+                    style: headerStyle,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
             ),
-            child: Text(mealName, textAlign: TextAlign.center, style: cellStyle),
           ),
-          // Kolom 2: Daftar Bahan Makanan & Penukar
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: foodRows,
-            ),
+          // Isi Tabel
+          buildMealRowGroup('Pagi', distribution.pagi, color: Colors.white),
+          buildMealRowGroup(
+            'Pukul 10.00',
+            distribution.snackPagi,
+            color: Colors.grey.shade100,
           ),
+          buildMealRowGroup('Siang', distribution.siang, color: Colors.white),
+          buildMealRowGroup(
+            'Pukul 16.00',
+            distribution.snackSore,
+            color: Colors.grey.shade100,
+          ),
+          buildMealRowGroup('Malam', distribution.malam, color: Colors.white),
         ],
       ),
     );
   }
-
-  // Bangun Tampilan Akhir
-  return Container(
-    decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400, width: 1)),
-    child: Column(
-      children: [
-        // Header
-        Container(
-          padding: cellPadding,
-          color: Colors.green.shade100,
-          child: Row(
-            children: [
-              const SizedBox(width: 80, child: Text('Waktu', style: headerStyle, textAlign: TextAlign.center)),
-              Expanded(flex: 3, child: Text('Bahan Makanan', style: headerStyle, textAlign: TextAlign.center)),
-              Expanded(flex: 2, child: Text('Penukar', style: headerStyle, textAlign: TextAlign.center)),
-            ],
-          ),
-        ),
-        // Isi Tabel
-        buildMealRowGroup('Pagi', distribution.pagi, color: Colors.white),
-        buildMealRowGroup('Pukul 10.00', distribution.snackPagi, color: Colors.grey.shade100),
-        buildMealRowGroup('Siang', distribution.siang, color: Colors.white),
-        buildMealRowGroup('Pukul 16.00', distribution.snackSore, color: Colors.grey.shade100),
-        buildMealRowGroup('Malam', distribution.malam, color: Colors.white),
-      ],
-    ),
-  );
-}
-
 
   // Helper function to format numbers conditionally
   String _formatNumber(double value) {

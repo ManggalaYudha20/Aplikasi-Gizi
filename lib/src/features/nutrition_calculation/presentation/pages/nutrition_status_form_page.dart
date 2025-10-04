@@ -8,7 +8,8 @@ class NutritionStatusFormPage extends StatefulWidget {
   const NutritionStatusFormPage({super.key});
 
   @override
-  State<NutritionStatusFormPage> createState() => _NutritionStatusFormPageState();
+  State<NutritionStatusFormPage> createState() =>
+      _NutritionStatusFormPageState();
 }
 
 class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
@@ -17,11 +18,11 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   final _heightController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _resultCardKey = GlobalKey();
-  
+
   DateTime? _birthDate;
   DateTime? _measurementDate;
   String? _selectedGender;
-  
+
   int? _ageInMonths;
   Map<String, dynamic>? _calculationResults;
 
@@ -52,7 +53,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
     );
-    
+
     if (picked != null) {
       setState(() {
         if (isBirthDate) {
@@ -60,7 +61,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
         } else {
           _measurementDate = picked;
         }
-        
+
         // Calculate age in months if both dates are selected
         if (_birthDate != null && _measurementDate != null) {
           _calculateAgeInMonths();
@@ -74,7 +75,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
       final difference = _measurementDate!.difference(_birthDate!);
       final days = difference.inDays;
       _ageInMonths = (days / 30.44).round(); // Average days per month
-      
+
       // Validate age range (0-60 months)
       if (_ageInMonths! < 0 || _ageInMonths! > 60) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -101,7 +102,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
 
       final weight = double.parse(_weightController.text);
       final height = double.parse(_heightController.text);
-      
+
       // Calculate nutrition status based on WHO standards
       final results = _calculateWHOStandards(
         ageInMonths: _ageInMonths!,
@@ -109,7 +110,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
         height: height,
         gender: _selectedGender!,
       );
-      
+
       setState(() {
         _calculationResults = results;
       });
@@ -124,20 +125,20 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     required String gender,
   }) {
     // Calculate all nutrition indicators using WHO reference data
-    
+
     // BB/U (Weight for Age)
     final bbPerU = _calculateWeightForAge(ageInMonths, weight, gender);
-    
+
     // PB/U or TB/U (Length/Height for Age)
     final tbPerU = _calculateHeightForAge(ageInMonths, height, gender);
-    
+
     // BB/PB or BB/TB (Weight for Length/Height)
     final bbPerTB = _calculateWeightForHeight(height, weight, gender);
-    
+
     // IMT/U (BMI for Age)
     final bmi = weight / ((height / 100) * (height / 100));
     final imtPerU = _calculateBMIForAge(ageInMonths, bmi, gender);
-    
+
     return {
       'bbPerU': bbPerU,
       'tbPerU': tbPerU,
@@ -148,12 +149,16 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     };
   }
 
-  Map<String, dynamic> _calculateWeightForAge(int age, double weight, String gender) {
+  Map<String, dynamic> _calculateWeightForAge(
+    int age,
+    double weight,
+    String gender,
+  ) {
     try {
       final referenceData = gender == 'Laki-laki'
           ? NutritionStatusData.bbUBoys
           : NutritionStatusData.bbUGirls;
-      
+
       if (!referenceData.containsKey(age)) {
         return {
           'zScore': null,
@@ -161,12 +166,12 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
           'value': weight,
         };
       }
-      
+
       final percentiles = referenceData[age]!;
       final median = percentiles[3];
       final sd = percentiles[4] - median;
       final zScore = (weight - median) / sd;
-      
+
       return {
         'zScore': zScore,
         'category': _getWeightForAgeCategory(zScore),
@@ -181,12 +186,16 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     }
   }
 
-  Map<String, dynamic> _calculateHeightForAge(int age, double height, String gender) {
+  Map<String, dynamic> _calculateHeightForAge(
+    int age,
+    double height,
+    String gender,
+  ) {
     try {
       final referenceData = gender == 'Laki-laki'
           ? NutritionStatusData.pbTbUBoys
           : NutritionStatusData.pbTbUGirls;
-      
+
       if (!referenceData.containsKey(age)) {
         return {
           'zScore': null,
@@ -194,12 +203,12 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
           'value': height,
         };
       }
-      
+
       final percentiles = referenceData[age]!;
       final median = percentiles[3];
       final sd = percentiles[4] - median;
       final zScore = (height - median) / sd;
-      
+
       return {
         'zScore': zScore,
         'category': _getHeightForAgeCategory(zScore),
@@ -214,16 +223,20 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     }
   }
 
-  Map<String, dynamic> _calculateWeightForHeight(double height, double weight, String gender) {
+  Map<String, dynamic> _calculateWeightForHeight(
+    double height,
+    double weight,
+    String gender,
+  ) {
     try {
       final referenceData = gender == 'Laki-laki'
           ? NutritionStatusData.bbPbTbUBoys
           : NutritionStatusData.bbPbTbUGirls;
-      
+
       // Find the closest height in the reference data
       double closestHeight = referenceData.keys.first;
       double minDifference = (height - closestHeight).abs();
-      
+
       for (final h in referenceData.keys) {
         final difference = (height - h).abs();
         if (difference < minDifference) {
@@ -231,7 +244,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
           closestHeight = h;
         }
       }
-      
+
       // Allow interpolation for heights within 1cm of reference
       if (minDifference > 1.0) {
         return {
@@ -240,12 +253,12 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
           'value': weight,
         };
       }
-      
+
       final percentiles = referenceData[closestHeight]!;
       final median = percentiles[3];
       final sd = percentiles[4] - median;
       final zScore = (weight - median) / sd;
-      
+
       return {
         'zScore': zScore,
         'category': _getWeightForHeightCategory(zScore),
@@ -265,7 +278,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
       final referenceData = gender == 'Laki-laki'
           ? NutritionStatusData.imtUBoys
           : NutritionStatusData.imtUGirls;
-      
+
       if (!referenceData.containsKey(age)) {
         return {
           'zScore': null,
@@ -273,12 +286,12 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
           'value': bmi,
         };
       }
-      
+
       final percentiles = referenceData[age]!;
       final median = percentiles[3];
       final sd = percentiles[4] - median;
       final zScore = (bmi - median) / sd;
-      
+
       return {
         'zScore': zScore,
         'category': _getBMIForAgeCategory(zScore),
@@ -301,9 +314,11 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   }
 
   Color _getWeightForAgeColor(String category) {
-    if (category.contains('sangat kurang') || category.contains('severely underweight')) {
+    if (category.contains('sangat kurang') ||
+        category.contains('severely underweight')) {
       return Colors.red;
-    } else if (category.contains('kurang') || category.contains('underweight')) {
+    } else if (category.contains('kurang') ||
+        category.contains('underweight')) {
       return Colors.orange;
     } else if (category.contains('normal')) {
       return Color.fromARGB(255, 0, 148, 68);
@@ -320,7 +335,8 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   }
 
   Color _getHeightForAgeColor(String category) {
-    if (category.contains('Sangat pendek') || category.contains('severely stunted')) {
+    if (category.contains('Sangat pendek') ||
+        category.contains('severely stunted')) {
       return Colors.red;
     } else if (category.contains('Pendek') || category.contains('stunted')) {
       return Colors.orange;
@@ -341,9 +357,12 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   }
 
   Color _getBMIForAgeColor(String category) {
-    if (category.contains('Gizi buruk') || category.contains('severely wasted')) {
+    if (category.contains('Gizi buruk') ||
+        category.contains('severely wasted')) {
       return Colors.red;
-    } else if (category.contains('Gizi kurang') || category.contains('wasted') || category.contains('Berisiko gizi lebih') ) {
+    } else if (category.contains('Gizi kurang') ||
+        category.contains('wasted') ||
+        category.contains('Berisiko gizi lebih')) {
       return Colors.orange;
     } else if (category.contains('Gizi baik') || category.contains('normal')) {
       return Color.fromARGB(255, 0, 148, 68);
@@ -362,9 +381,12 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   }
 
   Color _getWeightForHeightColor(String category) {
-    if (category.contains('Gizi buruk') || category.contains('severely wasted')) {
+    if (category.contains('Gizi buruk') ||
+        category.contains('severely wasted')) {
       return Colors.red;
-    } else if (category.contains('Gizi kurang') || category.contains('wasted') || category.contains('Berisiko gizi lebih')) {
+    } else if (category.contains('Gizi kurang') ||
+        category.contains('wasted') ||
+        category.contains('Berisiko gizi lebih')) {
       return Colors.orange;
     } else if (category.contains('Gizi baik') || category.contains('normal')) {
       return Color.fromARGB(255, 0, 148, 68);
@@ -406,51 +428,52 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                 const SizedBox(height: 20),
                 const Text(
                   'Input Data Status Gizi',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Tanggal Lahir
                 ListTile(
                   title: const Text('Tanggal Lahir'),
                   subtitle: Text(
-                    _birthDate != null 
-                      ? DateFormat('dd/MM/yyyy').format(_birthDate!)
-                      : 'Pilih tanggal lahir',
+                    _birthDate != null
+                        ? DateFormat('dd/MM/yyyy').format(_birthDate!)
+                        : 'Pilih tanggal lahir',
                   ),
                   trailing: const Icon(Icons.calendar_today),
                   onTap: () => _selectDate(context, true),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
-                      color: _birthDate == null ? Colors.grey : Color.fromARGB(255, 0, 148, 68),
+                      color: _birthDate == null
+                          ? Colors.grey
+                          : Color.fromARGB(255, 0, 148, 68),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Tanggal Pengukuran
                 ListTile(
                   title: const Text('Tanggal Pengukuran'),
                   subtitle: Text(
-                    _measurementDate != null 
-                      ? DateFormat('dd/MM/yyyy').format(_measurementDate!)
-                      : 'Pilih tanggal pengukuran',
+                    _measurementDate != null
+                        ? DateFormat('dd/MM/yyyy').format(_measurementDate!)
+                        : 'Pilih tanggal pengukuran',
                   ),
                   trailing: const Icon(Icons.calendar_today),
                   onTap: () => _selectDate(context, false),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
-                      color: _measurementDate == null ? Colors.grey : Color.fromARGB(255, 0, 148, 68),
+                      color: _measurementDate == null
+                          ? Colors.grey
+                          : Color.fromARGB(255, 0, 148, 68),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Usia dalam bulan
                 if (_ageInMonths != null) ...[
                   Container(
@@ -471,7 +494,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                   ),
                   const SizedBox(height: 16),
                 ],
-                
+
                 // Jenis Kelamin
                 DropdownButtonFormField<String>(
                   value: _selectedGender,
@@ -503,7 +526,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Berat Badan
                 TextFormField(
                   controller: _weightController,
@@ -525,7 +548,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Tinggi Badan
                 TextFormField(
                   controller: _heightController,
@@ -547,16 +570,21 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                   },
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Buttons
-                FormActionButtons(onReset: _resetForm, onSubmit: _calculateNutritionStatus),
+                FormActionButtons(
+                  onReset: _resetForm,
+                  onSubmit: _calculateNutritionStatus,
+                  resetButtonColor: Colors.white, // Background jadi putih
+                  resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
+                ),
 
                 const SizedBox(height: 32),
-                
+
                 // Results
                 if (_calculationResults != null) ...[
                   Container(
-                    key: _resultCardKey, 
+                    key: _resultCardKey,
                     child: const Column(
                       children: [Divider(), SizedBox(height: 32)],
                     ),
@@ -564,39 +592,37 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
 
                   const Text(
                     'Hasil Status Gizi',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // BB/U
                   _buildResultCard(
                     title: 'Berat Badan menurut Umur (BB/U)',
                     data: _calculationResults!['bbPerU'],
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // TB/U
                   _buildResultCard(
                     title: 'Tinggi Badan menurut Umur (TB/U)',
                     data: _calculationResults!['tbPerU'],
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // BB/TB
                   _buildResultCard(
                     title: 'Berat Badan menurut Tinggi Badan (BB/TB)',
                     data: _calculationResults!['bbPerTB'],
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // IMT/U
                   _buildResultCard(
                     title: 'Indeks Massa Tubuh menurut Umur (IMT/U)',
                     data: _calculationResults!['imtPerU'],
-                    additionalInfo: 'IMT: ${_calculationResults!['bmi']?.toStringAsFixed(2)} kg/m²',
+                    additionalInfo:
+                        'IMT: ${_calculationResults!['bmi']?.toStringAsFixed(2)} kg/m²',
                   ),
                 ],
               ],
@@ -645,10 +671,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
           const SizedBox(height: 8),
           Text(
             'Z-Score: ${data['zScore']?.toStringAsFixed(2) ?? '-'}',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade700,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
           ),
           const SizedBox(height: 4),
           Text(
@@ -663,10 +686,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
             const SizedBox(height: 4),
             Text(
               additionalInfo,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade700,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
             ),
           ],
         ],

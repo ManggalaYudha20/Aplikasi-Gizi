@@ -47,9 +47,9 @@ class _BmrFormPageState extends State<BmrFormPage> {
       final weight = double.parse(_weightController.text);
       final height = double.parse(_heightController.text);
       final age = int.parse(_ageController.text);
-      
+
       double bmr;
-      
+
       // Logika perhitungan diperbarui untuk mendukung dua formula
       if (_selectedFormula == 'Harris-Benedict') {
         // Menggunakan formula Harris-Benedict (seperti kode awal Anda)
@@ -60,7 +60,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
           // Formula untuk perempuan: 655.1 + (9.563 × BB) + (1.850 × TB) − (4.676 × U)
           bmr = 655.1 + (9.563 * weight) + (1.850 * height) - (4.676 * age);
         }
-      } else { 
+      } else {
         // Menggunakan formula Mifflin-St Jeor
         // Formula: (9.99 x BB) + (6.25 x TB) - (4.92 x U) +/- Konstanta
         if (_selectedGender == 'Laki-laki') {
@@ -71,7 +71,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
           bmr = (9.99 * weight) + (6.25 * height) - (4.92 * age) - 161;
         }
       }
-      
+
       setState(() {
         _bmrResult = bmr;
       });
@@ -95,11 +95,12 @@ class _BmrFormPageState extends State<BmrFormPage> {
   Widget _buildFormulaInfo() {
     String formulaName = _selectedFormula;
     String description;
-    
+
     if (formulaName == 'Harris-Benedict') {
       description = 'Menggunakan rumus Harris-Benedict (1919).';
     } else {
-      description = 'Menggunakan rumus Mifflin-St Jeor (dianggap lebih akurat untuk populasi modern).';
+      description =
+          'Menggunakan rumus Mifflin-St Jeor (dianggap lebih akurat untuk populasi modern).';
     }
 
     return Padding(
@@ -131,10 +132,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
                 const SizedBox(height: 20),
                 const Text(
                   'Input Data BMR',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
                 // Pilihan Formula BMR (Widget baru)
@@ -185,7 +183,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Tinggi Badan
                 TextFormField(
                   controller: _heightController,
@@ -207,7 +205,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Jenis Kelamin
                 DropdownButtonFormField<String>(
                   value: _selectedGender,
@@ -239,7 +237,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Umur
                 TextFormField(
                   controller: _ageController,
@@ -260,19 +258,23 @@ class _BmrFormPageState extends State<BmrFormPage> {
                     return null;
                   },
                 ),
-                
-                const SizedBox(height: 32),
-                
-                // Buttons
-                FormActionButtons(onReset: _resetForm, onSubmit: _calculateBMR),
 
                 const SizedBox(height: 32),
-                
+
+                // Buttons
+                FormActionButtons(
+                  onReset: _resetForm,
+                  onSubmit: _calculateBMR,
+                  resetButtonColor: Colors.white, // Background jadi putih
+                  resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
+                ),
+
+                const SizedBox(height: 32),
+
                 // Result
                 if (_bmrResult != null) ...[
-
                   Container(
-                    key: _resultCardKey, 
+                    key: _resultCardKey,
                     child: const Column(
                       children: [Divider(), SizedBox(height: 32)],
                     ),
@@ -281,13 +283,20 @@ class _BmrFormPageState extends State<BmrFormPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.1),
+                      color: const Color.fromARGB(
+                        255,
+                        0,
+                        148,
+                        68,
+                      ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color.fromARGB(255, 0, 148, 68)),
+                      border: Border.all(
+                        color: const Color.fromARGB(255, 0, 148, 68),
+                      ),
                     ),
                     child: Column(
                       children: [
-                         Text(
+                        Text(
                           'Hasil Perhitungan BMR \n($_selectedFormula)',
                           textAlign: TextAlign.center,
                           style: TextStyle(
@@ -309,10 +318,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
                         const Text(
                           'Basal Metabolic Rate (BMR) adalah jumlah kalori yang dibutuhkan tubuh untuk fungsi dasar saat istirahat.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black54,
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                       ],
                     ),

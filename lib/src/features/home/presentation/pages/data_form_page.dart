@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/scaffold_with_animated_fab.dart';
 
 class DataFormPage extends StatefulWidget {
   final Patient? patient; // Optional patient for editing
@@ -19,7 +20,6 @@ class DataFormPage extends StatefulWidget {
 class _DataFormPageState extends State<DataFormPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-
   // Controllers for form fields
   final _noRMController = TextEditingController();
   final _namaLengkapController = TextEditingController();
@@ -31,12 +31,35 @@ class _DataFormPageState extends State<DataFormPage> {
   final _beratBadanDuluController = TextEditingController();
   final _lilaController = TextEditingController();
   final _tlController = TextEditingController();
-
   String? _jenisKelamin;
   String? _aktivitas;
   // BARU: State untuk menyimpan pilihan kehilangan nafsu makan
   String? _kehilanganNafsuMakan;
   DateTime? _selectedDate;
+  // BARU: Controllers untuk Asuhan Gizi
+  String? _alergiMakanan = 'Tidak';
+  final _detailAlergiController = TextEditingController();
+  final _polaMakanController = TextEditingController();
+  final _biokimiaGDSController = TextEditingController();
+  final _biokimiaUreumController = TextEditingController();
+  final _biokimiaHGBController = TextEditingController();
+  final _biokimiaENTController = TextEditingController();
+  final _klinikTDController = TextEditingController();
+  final _klinikKUController = TextEditingController();
+  final _klinikKESController = TextEditingController();
+  final _klinikNadiController = TextEditingController();
+  final _klinikSuhuController = TextEditingController();
+  final _klinikRRController = TextEditingController();
+  final _klinikSPO2Controller = TextEditingController();
+  final _riwayatPenyakitSekarangController = TextEditingController();
+  final _riwayatPenyakitDahuluController = TextEditingController();
+  final _diagnosaGiziController = TextEditingController();
+  final _intervensiDietController = TextEditingController();
+  final _intervensiBentukMakananController = TextEditingController();
+  final _intervensiViaController = TextEditingController();
+  final _intervensiTujuanController = TextEditingController();
+  final _monevAsupanController = TextEditingController();
+  final _namaNutrisionisController = TextEditingController();
 
   @override
   void initState() {
@@ -58,7 +81,6 @@ class _DataFormPageState extends State<DataFormPage> {
     _jenisKelamin = patient.jenisKelamin;
     _aktivitas = patient.aktivitas;
     _selectedDate = patient.tanggalLahir;
-    
     // Perbaikan: LILA dan TL harus diambil dari model juga
     if (patient.lila != null) {
       _lilaController.text = patient.lila.toString();
@@ -68,6 +90,33 @@ class _DataFormPageState extends State<DataFormPage> {
     }
     // Note: We don't have beratBadanDulu and kehilanganNafsuMakan in Patient model
     // These fields will remain empty for editing
+
+    // BARU: Inisialisasi data asuhan gizi
+    _alergiMakanan = patient.alergiMakanan;
+    _detailAlergiController.text = patient.detailAlergi ?? '';
+    _polaMakanController.text = patient.polaMakan ?? '';
+    _biokimiaGDSController.text = patient.biokimiaGDS ?? '';
+    _biokimiaUreumController.text = patient.biokimiaUreum ?? '';
+    _biokimiaHGBController.text = patient.biokimiaHGB ?? '';
+    _klinikTDController.text = patient.klinikTD ?? '';
+    _klinikNadiController.text = patient.klinikNadi ?? '';
+    _klinikSuhuController.text = patient.klinikSuhu ?? '';
+    _klinikRRController.text = patient.klinikRR ?? '';
+    _riwayatPenyakitSekarangController.text =
+        patient.riwayatPenyakitSekarang ?? '';
+    _riwayatPenyakitDahuluController.text = patient.riwayatPenyakitDahulu ?? '';
+    _diagnosaGiziController.text = patient.diagnosaGizi ?? '';
+    _intervensiDietController.text = patient.intervensiDiet ?? '';
+    _intervensiBentukMakananController.text =
+        patient.intervensiBentukMakanan ?? '';
+    _intervensiViaController.text = patient.intervensiVia ?? '';
+    _intervensiTujuanController.text = patient.intervensiTujuan ?? '';
+    _monevAsupanController.text = patient.monevAsupan ?? '';
+    _biokimiaENTController.text = patient.biokimiaENT ?? '';
+    _klinikKUController.text = patient.klinikKU ?? '';
+    _klinikKESController.text = patient.klinikKES ?? '';
+    _klinikSPO2Controller.text = patient.klinikSPO2 ?? '';
+    _namaNutrisionisController.text = patient.namaNutrisionis ?? '';
   }
 
   @override
@@ -82,6 +131,29 @@ class _DataFormPageState extends State<DataFormPage> {
     _beratBadanDuluController.dispose();
     _lilaController.dispose();
     _tlController.dispose();
+    // BARU: Dispose controllers asuhan gizi
+    _detailAlergiController.dispose();
+    _polaMakanController.dispose();
+    _biokimiaGDSController.dispose();
+    _biokimiaUreumController.dispose();
+    _biokimiaHGBController.dispose();
+    _klinikTDController.dispose();
+    _klinikNadiController.dispose();
+    _klinikSuhuController.dispose();
+    _klinikRRController.dispose();
+    _riwayatPenyakitSekarangController.dispose();
+    _riwayatPenyakitDahuluController.dispose();
+    _diagnosaGiziController.dispose();
+    _intervensiDietController.dispose();
+    _intervensiBentukMakananController.dispose();
+    _intervensiViaController.dispose();
+    _intervensiTujuanController.dispose();
+    _monevAsupanController.dispose();
+    _biokimiaENTController.dispose();
+    _klinikKUController.dispose();
+    _klinikKESController.dispose();
+    _klinikSPO2Controller.dispose();
+    _namaNutrisionisController.dispose();
     super.dispose();
   }
 
@@ -103,19 +175,43 @@ class _DataFormPageState extends State<DataFormPage> {
       _jenisKelamin = null;
       _aktivitas = null;
       _selectedDate = null;
+      _alergiMakanan = null;
+      _detailAlergiController.clear();
+      _polaMakanController.clear();
+      _biokimiaGDSController.clear();
+      _biokimiaUreumController.clear();
+      _biokimiaHGBController.clear();
+      _klinikTDController.clear();
+      _klinikNadiController.clear();
+      _klinikSuhuController.clear();
+      _klinikRRController.clear();
+      _riwayatPenyakitSekarangController.clear();
+      _riwayatPenyakitDahuluController.clear();
+      _diagnosaGiziController.clear();
+      _intervensiDietController.clear();
+      _intervensiBentukMakananController.clear();
+      _intervensiViaController.clear();
+      _intervensiTujuanController.clear();
+      _monevAsupanController.clear();
+      _biokimiaENTController.clear();
+      _klinikKUController.clear();
+      _klinikKESController.clear();
+      _klinikSPO2Controller.clear();
+      _namaNutrisionisController.clear();
     });
   }
 
   int _calculateAgeInYears(DateTime? birthDate) {
-   if (birthDate == null) return 0;
-   final today = DateTime.now();
-   int age = today.year - birthDate.year;
-   if (today.month < birthDate.month || (today.month == birthDate.month && today.day < birthDate.day)) {
-    age--;
-   }
-   return age;
-   }
-  
+    if (birthDate == null) return 0;
+    final today = DateTime.now();
+    int age = today.year - birthDate.year;
+    if (today.month < birthDate.month ||
+        (today.month == birthDate.month && today.day < birthDate.day)) {
+      age--;
+    }
+    return age;
+  }
+
   Future<void> _savePatientData() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
@@ -133,7 +229,7 @@ class _DataFormPageState extends State<DataFormPage> {
         double? tinggiBadan;
 
         // BARU: Logika untuk menentukan BB dan TB
-       if (_beratBadanController.text.isNotEmpty) {
+        if (_beratBadanController.text.isNotEmpty) {
           beratBadan = double.parse(_beratBadanController.text);
         } else if (_lilaController.text.isNotEmpty) {
           final lila = double.parse(_lilaController.text);
@@ -184,6 +280,19 @@ class _DataFormPageState extends State<DataFormPage> {
           skorIMT = 0;
         }
 
+        // BARU: Logika untuk menentukan Status Gizi berdasarkan IMT
+        String statusGizi;
+        if (imt < 18.5) {
+          statusGizi = 'Gizi Kurang (Underweight)';
+        } else if (imt >= 18.5 && imt <= 24.9) {
+          statusGizi = 'Gizi Baik (Normal)';
+        } else if (imt >= 25 && imt <= 29.9) {
+          statusGizi = 'Gizi Lebih (Overweight)';
+        } else {
+          // imt >= 30
+          statusGizi = 'Obesitas';
+        }
+
         // DIUBAH: Logika perhitungan skor kehilangan BB
         int skorKehilanganBB = 0; // Default skor 0
         if (beratBadanDulu != null && beratBadanDulu > 0) {
@@ -223,6 +332,31 @@ class _DataFormPageState extends State<DataFormPage> {
             _lilaController.text,
           ), // BARU: Simpan LILA ke Firestore
           'tl': double.tryParse(_tlController.text),
+          // BARU: Data Asuhan Gizi
+          'alergiMakanan': _alergiMakanan,
+          'detailAlergi': _detailAlergiController.text,
+          'polaMakan': _polaMakanController.text,
+          'biokimiaGDS': _biokimiaGDSController.text,
+          'biokimiaUreum': _biokimiaUreumController.text,
+          'biokimiaHGB': _biokimiaHGBController.text,
+          'klinikTD': _klinikTDController.text,
+          'klinikNadi': _klinikNadiController.text,
+          'klinikSuhu': _klinikSuhuController.text,
+          'klinikRR': _klinikRRController.text,
+          'riwayatPenyakitSekarang': _riwayatPenyakitSekarangController.text,
+          'riwayatPenyakitDahulu': _riwayatPenyakitDahuluController.text,
+          'diagnosaGizi': _diagnosaGiziController.text,
+          'intervensiDiet': _intervensiDietController.text,
+          'intervensiBentukMakanan': _intervensiBentukMakananController.text,
+          'intervensiVia': _intervensiViaController.text,
+          'intervensiTujuan': _intervensiTujuanController.text,
+          'monevAsupan': _monevAsupanController.text,
+          'monevStatusGizi': statusGizi,
+          'biokimiaENT': _biokimiaENTController.text,
+          'klinikKU': _klinikKUController.text,
+          'klinikKES': _klinikKESController.text,
+          'klinikSPO2': _klinikSPO2Controller.text,
+          'namaNutrisionis': _namaNutrisionisController.text,
         };
 
         // --- Kirim ke Firestore ---
@@ -268,6 +402,35 @@ class _DataFormPageState extends State<DataFormPage> {
             skorEfekPenyakit: skorEfekPenyakit,
             totalSkor: totalSkor,
             tanggalPemeriksaan: DateTime.now(),
+            lila: double.tryParse(_lilaController.text),
+            tl: double.tryParse(_tlController.text),
+
+            // ✨ PENAMBAHAN KODE PENTING ADA DI SINI ✨
+            // Memasukkan semua data asuhan gizi ke objek yang dikembalikan
+            alergiMakanan: _alergiMakanan,
+            detailAlergi: _detailAlergiController.text,
+            polaMakan: _polaMakanController.text,
+            biokimiaGDS: _biokimiaGDSController.text,
+            biokimiaUreum: _biokimiaUreumController.text,
+            biokimiaHGB: _biokimiaHGBController.text,
+            klinikTD: _klinikTDController.text,
+            klinikNadi: _klinikNadiController.text,
+            klinikSuhu: _klinikSuhuController.text,
+            klinikRR: _klinikRRController.text,
+            riwayatPenyakitSekarang: _riwayatPenyakitSekarangController.text,
+            riwayatPenyakitDahulu: _riwayatPenyakitDahuluController.text,
+            diagnosaGizi: _diagnosaGiziController.text,
+            intervensiDiet: _intervensiDietController.text,
+            intervensiBentukMakanan: _intervensiBentukMakananController.text,
+            intervensiVia: _intervensiViaController.text,
+            intervensiTujuan: _intervensiTujuanController.text,
+            monevAsupan: _monevAsupanController.text,
+            monevStatusGizi: statusGizi,
+            biokimiaENT: _biokimiaENTController.text,
+            klinikKU: _klinikKUController.text,
+            klinikKES: _klinikKESController.text,
+            klinikSPO2: _klinikSPO2Controller.text,
+            namaNutrisionis: _namaNutrisionisController.text,
           );
 
           // Navigate back to previous screen with updated patient data
@@ -307,7 +470,7 @@ class _DataFormPageState extends State<DataFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ScaffoldWithAnimatedFab(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: CustomAppBar(
         title: widget.patient != null
@@ -316,6 +479,14 @@ class _DataFormPageState extends State<DataFormPage> {
         subtitle: widget.patient != null
             ? 'Perbarui data pasien'
             : 'Isi data dengan lengkap',
+      ),
+      floatingActionButton: FormActionButtons(
+        onReset: _resetForm,
+        onSubmit: _savePatientData,
+        resetButtonColor: Colors.white, // Background jadi putih
+        resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
+        submitText: widget.patient != null ? 'Perbarui' : 'Simpan',
+        isLoading: _isLoading,
       ),
       body: Form(
         key: _formKey,
@@ -482,12 +653,200 @@ class _DataFormPageState extends State<DataFormPage> {
                 ],
                 onChanged: (value) => setState(() => _aktivitas = value),
               ),
-              const SizedBox(height: 32),
-              FormActionButtons(
-                onReset: _resetForm,
-                onSubmit: _savePatientData,
-                submitText: widget.patient != null ? 'Perbarui' : 'Simpan',
-                isLoading: _isLoading,
+
+              const SizedBox(height: 24),
+              const Text(
+                'Input Data Asuhan Gizi (Opsional)',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              // Gunakan Column untuk mengelompokkan widget
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDropdownFormField(
+                    value: _alergiMakanan,
+                    prefixIcon: const Icon(Icons.no_food),
+                    label: 'Alergi Makanan',
+                    items: ['Ya', 'Tidak'],
+                    onChanged: (value) {
+                      setState(() {
+                        _alergiMakanan = value;
+                        // Opsional: bersihkan field detail jika pengguna memilih 'Tidak'
+                        if (value == 'Tidak') {
+                          _detailAlergiController.clear();
+                        }
+                      });
+                    },
+                  ),
+
+                  if (_alergiMakanan == 'Ya')
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: 16.0,
+                      ), // Beri jarak atas
+                      child: _buildTextFormField(
+                        controller: _detailAlergiController,
+                        label: 'Jika Ya, sebutkan alerginya',
+                        prefixIcon: const Icon(Icons.description),
+                        validator: (value) {
+                          // Anda bisa membuatnya wajib diisi jika 'Ya' dipilih
+                          if (value == null || value.isEmpty) {
+                            return 'Detail alergi tidak boleh kosong';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _polaMakanController,
+                label: 'Pola Makan / Asupan',
+                prefixIcon: const Icon(Icons.restaurant),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _biokimiaGDSController,
+                label: 'Biokimia: GDS',
+                prefixIcon: const Icon(Icons.science),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _biokimiaUreumController,
+                label: 'Biokimia: Ureum',
+                prefixIcon: const Icon(Icons.science),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _biokimiaHGBController,
+                label: 'Biokimia: HGB',
+                prefixIcon: const Icon(Icons.science),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _biokimiaENTController,
+                label: 'Biokimia: ENT',
+                prefixIcon: const Icon(Icons.science),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _klinikTDController,
+                label: 'Tekanan Darah (TD)',
+                prefixIcon: const Icon(Icons.favorite),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _klinikNadiController,
+                label: 'Nadi (N)',
+                prefixIcon: const Icon(Icons.monitor_heart),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _klinikSuhuController,
+                label: 'Suhu Badan (SB)',
+                prefixIcon: const Icon(Icons.thermostat),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _klinikRRController,
+                label: 'Pernapasan (RR)',
+                prefixIcon: const Icon(Icons.air),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _klinikKUController,
+                label: 'Keadaan Umum (KU)',
+                prefixIcon: const Icon(Icons.monitor_heart),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _klinikKESController,
+                label: 'Kesadaran (KES)',
+                prefixIcon: const Icon(Icons.monitor_heart),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _klinikSPO2Controller,
+                label: 'Saturasi Oksigen (SpO2)',
+                prefixIcon: const Icon(Icons.air),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _riwayatPenyakitSekarangController,
+                label: 'Riwayat Penyakit Sekarang (RPS)',
+                prefixIcon: const Icon(Icons.history_edu),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _riwayatPenyakitDahuluController,
+                label: 'Riwayat Penyakit Dahulu (RPD)',
+                prefixIcon: const Icon(Icons.history),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _diagnosaGiziController,
+                label: 'Diagnosa Gizi',
+                prefixIcon: const Icon(Icons.medical_services),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _intervensiDietController,
+                label: 'Intervensi: Diet',
+                prefixIcon: const Icon(Icons.food_bank),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _intervensiBentukMakananController,
+                label: 'Intervensi: Bentuk Makanan',
+                prefixIcon: const Icon(Icons.fastfood),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _intervensiViaController,
+                label: 'Intervensi: Via',
+                prefixIcon: const Icon(Icons.route),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _intervensiTujuanController,
+                label: 'Intervensi: Tujuan',
+                prefixIcon: const Icon(Icons.flag),
+                validator: (value) => null, // Opsional
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _monevAsupanController,
+                label: 'Monitoring: Asupan',
+                prefixIcon: const Icon(Icons.monitor),
+                validator: (value) => null, // Opsional
+              ),
+
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _namaNutrisionisController,
+                label: 'Nama Nutrisionis',
+                prefixIcon: const Icon(Icons.person),
+                validator: (value) => null, // Opsional
               ),
             ],
           ),

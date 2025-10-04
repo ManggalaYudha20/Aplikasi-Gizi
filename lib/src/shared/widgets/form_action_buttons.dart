@@ -11,6 +11,7 @@ class FormActionButtons extends StatelessWidget {
   final Widget? resetIcon;
   final Color? resetButtonColor;
   final Color? submitButtonColor;
+  final Color? resetForegroundColor;
 
   const FormActionButtons({
     super.key,
@@ -24,8 +25,13 @@ class FormActionButtons extends StatelessWidget {
     this.resetIcon,
     this.resetButtonColor,
     this.submitButtonColor,
-  }) : assert(singleButtonMode ? (onSubmit != null && onReset == null) : (onSubmit != null && onReset != null),
-           'In single button mode, only onSubmit should be provided. In dual button mode, both onReset and onSubmit are required.');
+    this.resetForegroundColor,
+  }) : assert(
+         singleButtonMode
+             ? (onSubmit != null && onReset == null)
+             : (onSubmit != null && onReset != null),
+         'In single button mode, only onSubmit should be provided. In dual button mode, both onReset and onSubmit are required.',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +43,9 @@ class FormActionButtons extends StatelessWidget {
           onPressed: isLoading ? null : onSubmit,
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             backgroundColor: const Color.fromARGB(255, 0, 148, 68),
           ),
           child: isLoading
@@ -56,7 +64,10 @@ class FormActionButtons extends StatelessWidget {
                       submitIcon!,
                       const SizedBox(width: 8),
                     ],
-                    Text(submitText, style: const TextStyle(fontSize: 16, color: Colors.white)),
+                    Text(
+                      submitText,
+                      style: const TextStyle(fontSize: 16, color: Colors.white),
+                    ),
                   ],
                 ),
         ),
@@ -66,12 +77,28 @@ class FormActionButtons extends StatelessWidget {
       return Row(
         children: [
           Expanded(
-            child: OutlinedButton(
+            child: ElevatedButton(
               onPressed: isLoading ? null : onReset,
-              style: OutlinedButton.styleFrom(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: resetButtonColor ?? Colors.grey[300],
+                // Logika baru: Prioritaskan warna kustom, jika tidak ada, gunakan logika lama
+                foregroundColor:
+                    resetForegroundColor ??
+                    (resetButtonColor == null ? Colors.black87 : Colors.white),
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                side: BorderSide(color: resetButtonColor ?? const Color.fromARGB(255, 0, 148, 68)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(
+                    color:
+                        resetForegroundColor ??
+                        Colors
+                            .transparent, // Tambah border jika ada warna custom
+                    width: 1.5,
+                  ),
+                ),
+                elevation: resetButtonColor == Colors.white
+                    ? 0
+                    : 2, // Hilangkan bayangan jika putih
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -80,7 +107,12 @@ class FormActionButtons extends StatelessWidget {
                     resetIcon!,
                     const SizedBox(width: 8),
                   ],
-                  Text(resetText, style: TextStyle(fontSize: 16, color: resetButtonColor ?? const Color.fromARGB(255, 0, 148, 68))),
+                  Text(
+                    resetText,
+                    style: TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -91,8 +123,11 @@ class FormActionButtons extends StatelessWidget {
               onPressed: isLoading ? null : onSubmit,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                backgroundColor: submitButtonColor ?? const Color.fromARGB(255, 0, 148, 68),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                backgroundColor:
+                    submitButtonColor ?? const Color.fromARGB(255, 0, 148, 68),
               ),
               child: isLoading
                   ? const SizedBox(
@@ -110,7 +145,13 @@ class FormActionButtons extends StatelessWidget {
                           submitIcon!,
                           const SizedBox(width: 8),
                         ],
-                        Text(submitText, style: const TextStyle(fontSize: 16, color: Colors.white)),
+                        Text(
+                          submitText,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
                       ],
                     ),
             ),

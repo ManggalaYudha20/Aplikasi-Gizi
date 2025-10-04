@@ -10,7 +10,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_mod
 class PdfGeneratorAsuhan {
   static Future<File> generate(Patient patient) async {
     final pdf = pw.Document();
-    
+
     // Muat gambar logo dari assets
     final sulutLogoData = await rootBundle.load('assets/images/sulut.png');
     final rsLogoData = await rootBundle.load('assets/images/logo.png');
@@ -119,47 +119,72 @@ class PdfGeneratorAsuhan {
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: pw.Column(
               children: [
-                _buildAssessmentCategorysatu('Riwayat Gizi /FH (Food History)', [
-                  pw.Padding(
-                    padding:
-                        const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    child: pw.Row(
-                      children: [
-                        pw.SizedBox(
-                            width: 130, // Lebar disesuaikan agar rapi
-                            child: pw.Text('Alergi Makanan:',
-                                style: const pw.TextStyle(fontSize: 9))),
-                        _buildCheckboxOption('Ya,'),
-                        pw.SizedBox(width: 15),
-                        _buildCheckboxOption('Tidak'),
-                      ],
-                    ),
-                  ),
-                  _buildInfoRowSatu('Jika Jawaban Ya, Sebutkan', ': '),
+                _buildAssessmentCategorysatu(
+                  'Riwayat Gizi /FH (Food History)',
+                  [
+                  _buildInfoRowSatu('Alergi Makanan', ': ${patient.alergiMakanan ?? '-'}'),
+                  if (patient.alergiMakanan == 'Ya')
+                  _buildInfoRowSatu('Jika Jawaban Ya, Sebutkan', ': ${patient.detailAlergi ?? ''}'),
                   pw.SizedBox(height: 10),
-                  _buildAssessmentItemRow('Pola Makan / Asupan :','3x1 / 50%','',''),
-                ]),
-                _buildAssessmentCategorysatu('Biokimia /BD (Biochemical Data)', [
-                  _buildAssessmentItemRow('GDS : .... kg', '','ENT : ....',''),
-                  _buildAssessmentItemRow('Ureum : .... kg', '','HGB : ....',''),
-                ]),
+                  _buildInfoRowSatu('Pola Makan / Asupan', ': ${patient.polaMakan ?? '-'}'),
+                  ],
+                ),
+                _buildAssessmentCategorysatu(
+                  'Biokimia /BD (Biochemical Data)',
+                  [
+                    _buildAssessmentItemRow(
+                      'GDS : ${patient.biokimiaGDS ?? '-'} mg/dl',
+                      '',
+                      'ENT : ${patient.biokimiaENT ?? '-'}',
+                      '',
+                    ),
+                    _buildAssessmentItemRow(
+                      'Ureum : ${patient.biokimiaUreum ?? '-'} mg/dl',
+                      '',
+                      'HGB : ${patient.biokimiaHGB ?? '-'}',
+                      '',
+                    ),
+                  ],
+                ),
                 _buildAssessmentCategorysatu(
                   'Antropometri /AD (Anthropometric Data)',
                   [
-                  _buildAssessmentItemRow('BB : ${patient.beratBadan} kg', 'IMT : ${patient.imt.toStringAsFixed(2)}','Usia : ${patient.usia}',''),
-                  _buildAssessmentItemRow('TB : ${patient.tinggiBadan.toStringAsFixed(0)} cm', 'BBI : ${patient.bbi.toStringAsFixed(1)} kg','','',),
+                    _buildAssessmentItemRow(
+                      'BB : ${patient.beratBadan} kg',
+                      'IMT : ${patient.imt.toStringAsFixed(2)}',
+                      'Usia : ${patient.usia}',
+                      '',
+                    ),
+                    _buildAssessmentItemRow(
+                      'TB : ${patient.tinggiBadan.toStringAsFixed(0)} cm',
+                      'BBI : ${patient.bbi.toStringAsFixed(1)} kg',
+                      '',
+                      '',
+                    ),
                   ],
-                  
                 ),
-                _buildAssessmentCategorysatu('Klinik /Fisik /PD (Physical Data)', [
-                  _buildAssessmentItemRow('KU : .... kg', 'TD : .... mmHg','R : ....x/mnt','SpO2 : ....%'),
-                  _buildAssessmentItemRow('KES : .... kg', 'N : .... x/mnt','SB : .... °C',''),
-                ]),
+                _buildAssessmentCategorysatu(
+                  'Klinik /Fisik /PD (Physical Data)',
+                  [
+                    _buildAssessmentItemRow(
+                      'KU : ${patient.klinikKU ?? '-'} kg',
+                      'TD : ${patient.klinikTD ?? '-'} mmHg',
+                      'R : ${patient.klinikRR ?? '-'} x/mnt',
+                      'SpO2 : ${patient.klinikSPO2 ?? '-'}%',
+                    ),
+                    _buildAssessmentItemRow(
+                      'KES : ${patient.klinikKES ?? '-'} kg',
+                      'N : ${patient.klinikNadi ?? '-'} x/mnt',
+                      'SB : ${patient.klinikSuhu ?? '-'} °C',
+                      '',
+                    ),
+                  ],
+                ),
                 _buildAssessmentCategorysatu(
                   'Riwayat Personal /CH (Client History)',
                   [
-                  _buildAssessmentItemRow('RPS : nyeri ulu hati',':....','',''),
-                  _buildAssessmentItemRow('RPD : ',':....','',''),
+                    _buildAssessmentItemRow('RPS : ${patient.riwayatPenyakitSekarang ?? '-'}', '', '', ''),
+                    _buildAssessmentItemRow('RPD : ${patient.riwayatPenyakitDahulu ?? '-'}', '', '', ''),
                   ],
                 ),
               ],
@@ -172,8 +197,8 @@ class PdfGeneratorAsuhan {
             height: 40,
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: _buildInfoRowSatu(
-              'N1 :',
-              'Peningkatan kebutuhan Fe berkaitan dengan anemia ditandai dengan hasil lab',
+              'N1/NC/NB :',
+              '${patient.diagnosaGizi ?? '-'} ',
             ),
           ),
 
@@ -183,13 +208,23 @@ class PdfGeneratorAsuhan {
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: pw.Column(
               children: [
-                _buildAssessmentItemRow('Energi : ... kkal ','Protein : ... gram','Lemak : ... gram','Kharbohidrat : ... gram'),
-                _buildAssessmentItemRow('BM : ','Diet : ','Via : ',''),
+                _buildAssessmentItemRow(
+                  'Energi : ${patient.tdee.toStringAsFixed(0)} kkal',
+                  'Protein : ${((15/100) * patient.tdee / 4).toStringAsFixed(0)} gram',
+                  'Lemak : ${((25/100) * patient.tdee / 9).toStringAsFixed(0)} gram',
+                  'Karbohidrat : ${((60/100) * patient.tdee / 4).toStringAsFixed(0)} gram',
+                ),
+                _buildAssessmentItemRow(
+                  'BM : ${patient.intervensiBentukMakanan ?? '-'}',
+                  'Diet : ${patient.intervensiDiet ?? '-'}',
+                  'Via : ${patient.intervensiVia ?? '-'}',
+                  '',
+                ),
                 _buildInfoRowSatu(
                   'Tujuan :',
-                  'Peningkatan kebutuhan Fe berkaitan dengan anemia ditandai dengan hasil lab',
+                  '${patient.intervensiTujuan ?? '-'} ',
                 ),
-              ]
+              ],
             ),
           ),
 
@@ -201,37 +236,40 @@ class PdfGeneratorAsuhan {
               children: [
                 _buildInfoRowSatu(
                   'Asupan :',
-                  'Peningkatan kebutuhan Fe berkaitan dengan anemia ditandai dengan hasil lab',
+                  '${patient.monevAsupan ?? '-'} ',
                 ),
-                _buildInfoRowSatu(
-                  'Status gizi :',
-                  'Normal',
-                ),
+                _buildInfoRowSatu('Status gizi :', '${patient.monevStatusGizi ?? '-'} '),
               ],
             ),
           ),
           // Footer
+          // Footer
           pw.Spacer(),
-          pw.Align(
-            alignment: pw.Alignment.centerRight,
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.center,
-              children: [
-                pw.Text(
-                  'Tanggal : ${DateFormat('d-M-y').format(patient.tanggalPemeriksaan)}',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                ),
-                pw.SizedBox(height: 10),
-                pw.Text(
-                  'Dietisen/ Nutrisionis',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                ),
-                pw.SizedBox(height: 25),
-                pw.Text(
-                  '(NAMA AHLI GIZI)',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                ),
-              ],
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(
+              right: 50,
+            ), // <-- Tambahkan padding di sini
+            child: pw.Align(
+              alignment: pw.Alignment.centerRight,
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                children: [
+                  pw.Text(
+                    'Tanggal : ${DateFormat('d-M-y').format(patient.tanggalPemeriksaan)}',
+                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.SizedBox(height: 10),
+                  pw.Text(
+                    'Dietisen/ Nutrisionis',
+                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.SizedBox(height: 25),
+                  pw.Text(
+                    '(${patient.namaNutrisionis ?? '-'})',
+                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -278,39 +316,44 @@ class PdfGeneratorAsuhan {
   }
 
   // Ganti fungsi lama dengan yang ini
-static pw.Widget _buildAssessmentItemRow(String label1, String value1, [String? label2, String? value2]) {
-  return pw.Padding(
-    padding: const pw.EdgeInsets.symmetric(horizontal: 4,vertical: 2),
-    child: pw.Row(
-      children: [
-        // Pasangan Label & Nilai Pertama
-        pw.Expanded(
-          flex: 1, // Alokasi ruang untuk label pertama
-          child: pw.Text(label1, style: const pw.TextStyle(fontSize: 9)),
-        ),
-        pw.Expanded(
-          flex: 1, // Alokasi ruang untuk nilai pertama
-          child: pw.Text(value1, style: const pw.TextStyle(fontSize: 9)),
-        ),
+  static pw.Widget _buildAssessmentItemRow(
+    String label1,
+    String value1, [
+    String? label2,
+    String? value2,
+  ]) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: pw.Row(
+        children: [
+          // Pasangan Label & Nilai Pertama
+          pw.Expanded(
+            flex: 1, // Alokasi ruang untuk label pertama
+            child: pw.Text(label1, style: const pw.TextStyle(fontSize: 9)),
+          ),
+          pw.Expanded(
+            flex: 1, // Alokasi ruang untuk nilai pertama
+            child: pw.Text(value1, style: const pw.TextStyle(fontSize: 9)),
+          ),
 
-        // Pasangan Label & Nilai Kedua (hanya jika ada)
-        if (label2 != null && value2 != null) ...[
-          pw.Expanded(
-            flex: 1, // Alokasi ruang untuk label kedua
-            child: pw.Text(label2, style: const pw.TextStyle(fontSize: 9)),
-          ),
-          pw.Expanded(
-            flex: 1, // Alokasi ruang untuk nilai kedua
-            child: pw.Text(value2, style: const pw.TextStyle(fontSize: 9)),
-          ),
-        ] else ...[
-          // Jika tidak ada pasangan kedua, tambahkan spacer agar tetap rata
-          pw.Expanded(flex: 2, child: pw.Container()),
-        ]
-      ],
-    ),
-  );
-}
+          // Pasangan Label & Nilai Kedua (hanya jika ada)
+          if (label2 != null && value2 != null) ...[
+            pw.Expanded(
+              flex: 1, // Alokasi ruang untuk label kedua
+              child: pw.Text(label2, style: const pw.TextStyle(fontSize: 9)),
+            ),
+            pw.Expanded(
+              flex: 1, // Alokasi ruang untuk nilai kedua
+              child: pw.Text(value2, style: const pw.TextStyle(fontSize: 9)),
+            ),
+          ] else ...[
+            // Jika tidak ada pasangan kedua, tambahkan spacer agar tetap rata
+            pw.Expanded(flex: 2, child: pw.Container()),
+          ],
+        ],
+      ),
+    );
+  }
 
   static pw.Widget _buildInfoRowSatu(String label1, String value1) {
     return pw.Padding(
@@ -348,7 +391,10 @@ static pw.Widget _buildAssessmentItemRow(String label1, String value1, [String? 
   }
 
   // **PERUBAHAN 1**: Fungsi ini sekarang menerima List<pw.Widget>
-  static pw.Widget _buildAssessmentCategorysatu(String title, List<pw.Widget> items) {
+  static pw.Widget _buildAssessmentCategorysatu(
+    String title,
+    List<pw.Widget> items,
+  ) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -364,7 +410,12 @@ static pw.Widget _buildAssessmentItemRow(String label1, String value1, [String? 
           ),
         ),
         pw.Padding(
-          padding: const pw.EdgeInsets.fromLTRB(12, 2, 4, 4), // Diberi indentasi
+          padding: const pw.EdgeInsets.fromLTRB(
+            12,
+            2,
+            4,
+            4,
+          ), // Diberi indentasi
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: items, // Langsung gunakan list widget di sini
@@ -373,26 +424,7 @@ static pw.Widget _buildAssessmentItemRow(String label1, String value1, [String? 
       ],
     );
   }
-
-  // WIDGET BARU untuk membuat satu kotak centang [ ] dengan label
-  static pw.Widget _buildCheckboxOption(String text) {
-    return pw.Row(
-      mainAxisSize: pw.MainAxisSize.min,
-      crossAxisAlignment: pw.CrossAxisAlignment.center,
-      children: [
-        pw.Container(
-          width: 8,
-          height: 8,
-          margin: const pw.EdgeInsets.only(right: 4),
-          decoration: pw.BoxDecoration(
-            border: pw.Border.all(color: PdfColors.black, width: 0.5),
-          ),
-        ),
-        pw.Text(text, style: const pw.TextStyle(fontSize: 9)),
-      ],
-    );
-  }
-
+  
   // --- Fungsi Bantuan untuk Simpan dan Buka File (Sama seperti pdf_generator.dart) ---
   static Future<File> saveDocument({
     required String name,

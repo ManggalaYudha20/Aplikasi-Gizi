@@ -50,14 +50,14 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
       // Ekstrak FILE_ID dari URL sharing
       final regex = RegExp(r'/file/d/([^/]+)');
       final match = regex.firstMatch(url);
-      
+
       if (match != null) {
         final fileId = match.group(1);
         // Ubah ke format direct download
         return 'https://drive.google.com/uc?export=download&id=$fileId';
       }
     }
-    
+
     // Jika bukan Google Drive sharing link, kembalikan URL asli
     return url;
   }
@@ -79,18 +79,17 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
               .collection('leaflets')
               .doc(widget.leaflet!.id)
               .update({
-            'title': _titleController.text,
-            'description': _descriptionController.text,
-            'url': transformedUrl,
-          });
+                'title': _titleController.text,
+                'description': _descriptionController.text,
+                'url': transformedUrl,
+              });
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text(
-                  'Leaflet berhasil diperbarui!'),
-                  backgroundColor: Colors.green,
-                  ),
+                content: Text('Leaflet berhasil diperbarui!'),
+                backgroundColor: Colors.green,
+              ),
             );
           }
         } else {
@@ -104,10 +103,9 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text(
-                  'Leaflet berhasil ditambahkan!'),
-                  backgroundColor: Colors.green,
-                  ),
+                content: Text('Leaflet berhasil ditambahkan!'),
+                backgroundColor: Colors.green,
+              ),
             );
           }
         }
@@ -115,15 +113,17 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
         if (mounted) {
           Navigator.pop(context, true);
         }
-
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(_isEditing
-                ? 'Gagal memperbarui leaflet: $e'
-                : 'Gagal menambahkan leaflet: $e'),
-                backgroundColor: Colors.red,
-                ),
+            SnackBar(
+              content: Text(
+                _isEditing
+                    ? 'Gagal memperbarui leaflet: $e'
+                    : 'Gagal menambahkan leaflet: $e',
+              ),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } finally {
@@ -147,7 +147,9 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: CustomAppBar(
         title: _isEditing ? 'Edit Leaflet' : 'Tambah Leaflet Baru',
-        subtitle: _isEditing ? 'Perbarui data leaflet di bawah' : 'Isi data leaflet di bawah',
+        subtitle: _isEditing
+            ? 'Perbarui data leaflet di bawah'
+            : 'Isi data leaflet di bawah',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -190,7 +192,8 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
                 controller: _urlController,
                 decoration: const InputDecoration(
                   labelText: 'URL PDF',
-                  hintText: 'Link Google Drive akan otomatis diubah ke format download',
+                  hintText:
+                      'Link Google Drive akan otomatis diubah ke format download',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.link),
                 ),
@@ -208,6 +211,8 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
               const SizedBox(height: 32),
               FormActionButtons(
                 onReset: _resetForm,
+                resetButtonColor: Colors.white, // Background jadi putih
+                resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
                 onSubmit: _isLoading ? () {} : _submitLeaflet,
                 submitText: _isEditing ? 'Perbarui' : 'Tambah',
               ),

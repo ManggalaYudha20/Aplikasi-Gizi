@@ -46,8 +46,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
 
   void _calculateIMTU() {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-      });
+      setState(() {});
 
       final weight = double.tryParse(_weightController.text) ?? 0;
       final height = double.tryParse(_heightController.text) ?? 0;
@@ -59,8 +58,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Pilih jenis kelamin terlebih dahulu')),
         );
-        setState(() {
-        });
+        setState(() {});
         return;
       }
 
@@ -70,9 +68,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Usia harus antara 5-18 tahun')),
         );
-        setState(() {
-          
-        });
+        setState(() {});
         return;
       }
 
@@ -89,7 +85,6 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
 
       setState(() {
         _calculationResult = result;
-        
       });
       _scrollToResult();
     }
@@ -145,9 +140,11 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
   }
 
   Color _getIMTUColor(String category) {
-    if (category.contains('gizi buruk') || category.contains('severely wasted')) {
+    if (category.contains('gizi buruk') ||
+        category.contains('severely wasted')) {
       return Colors.red;
-    } else if (category.contains('gizi kurang') || category.contains('wasted')) {
+    } else if (category.contains('gizi kurang') ||
+        category.contains('wasted')) {
       return Colors.orange;
     } else if (category.contains('gizi baik') || category.contains('normal')) {
       return const Color.fromARGB(255, 0, 148, 68);
@@ -321,20 +318,24 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                 const SizedBox(height: 32),
 
                 // Buttons
-                FormActionButtons(onReset: _resetForm, onSubmit: _calculateIMTU),
+                FormActionButtons(
+                  onReset: _resetForm,
+                  onSubmit: _calculateIMTU,
+                  resetButtonColor: Colors.white, // Background jadi putih
+                  resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
+                ),
 
                 const SizedBox(height: 32),
 
                 // Results
                 if (_calculationResult != null) ...[
-
                   Container(
-                    key: _resultCardKey, 
+                    key: _resultCardKey,
                     child: const Column(
                       children: [Divider(), SizedBox(height: 32)],
                     ),
                   ),
-                  
+
                   const Text(
                     'Hasil IMT Berdasarkan Usia 5-18 Tahun',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -372,70 +373,71 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: resultColor, width: 2.0),
       ),
-      
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 0, 0, 0),
-              ),
+
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color.fromARGB(255, 0, 0, 0),
             ),
-            const SizedBox(height: 12),
-            if (additionalInfo != null) ...[
+          ),
+          const SizedBox(height: 12),
+          if (additionalInfo != null) ...[
+            Text(
+              additionalInfo,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Row(
+            children: [
+              const Text(
+                'Z-Score: ',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF9E9E9E),
+                ),
+              ),
               Text(
-                additionalInfo,
+                data['zScore']?.toStringAsFixed(2) ?? '-',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
+                  color: Color(0xFF9E9E9E),
                 ),
               ),
-              const SizedBox(height: 8),
             ],
-            Row(
-              children: [
-                const Text(
-                  'Z-Score: ',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500,color: Color(0xFF9E9E9E),),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Text(
+                'Kategori: ',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: resultColor,
                 ),
-                Text(
-                  data['zScore']?.toStringAsFixed(2) ?? '-',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF9E9E9E),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                 Text(
-                  'Kategori: ',
+              ),
+              Expanded(
+                child: Text(
+                  data['category'] ?? '-',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: resultColor,
                   ),
                 ),
-                Expanded(
-                  child: Text(
-                    data['category'] ?? '-',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: resultColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

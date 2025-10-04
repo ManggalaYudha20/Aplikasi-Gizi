@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/scaffold_with_animated_fab.dart';
 
 class AddFoodItemPage extends StatefulWidget {
   final FoodItem? foodItem;
@@ -225,11 +226,19 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ScaffoldWithAnimatedFab(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: CustomAppBar(
         title: _isEditMode ? 'Edit Makanan' : 'Tambah Makanan Baru',
         subtitle: 'Isi data dengan lengkap',
+      ),
+      floatingActionButton: FormActionButtons(
+        onReset: _resetForm,
+        onSubmit: _submitFoodItem,
+        resetButtonColor: Colors.white, // Background jadi putih
+        resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
+        submitText: _isEditMode ? 'Simpan' : 'Tambah Data',
+        isLoading: _isLoading,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -401,13 +410,6 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
                 label: 'BDD (%)',
                 icon: Icons.percent,
                 isNumber: true,
-              ),
-              const SizedBox(height: 32),
-              FormActionButtons(
-                onReset: _resetForm,
-                onSubmit: _submitFoodItem,
-                submitText: _isEditMode ? 'Simpan' : 'Tambah Data',
-                isLoading: _isLoading,
               ),
             ],
           ),

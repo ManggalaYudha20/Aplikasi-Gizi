@@ -341,15 +341,19 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                   const SizedBox(height: 16),
 
                 // Buttons
-                FormActionButtons(onReset: resetForm, onSubmit: calculateTDEE),
+                FormActionButtons(
+                  onReset: resetForm,
+                  onSubmit: calculateTDEE,
+                  resetButtonColor: Colors.white, // Background jadi putih
+                  resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
+                ),
 
                 const SizedBox(height: 32),
 
                 // Results
                 if (_calculatedTdee != null) ...[
-
                   Container(
-                    key: _resultCardKey, 
+                    key: _resultCardKey,
                     child: const Column(
                       children: [Divider(), SizedBox(height: 32)],
                     ),
@@ -394,10 +398,7 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                         const Text(
                           'TDEE adalah perkiraan jumlah total kalori yang dibakar oleh tubuh dalam satu hari (24 jam).',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black54,
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                       ],
                     ),

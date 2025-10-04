@@ -20,6 +20,30 @@ class Patient {
   final DateTime tanggalPemeriksaan;
   final num? lila;
   final num? tl;
+  final String? alergiMakanan;
+  final String? detailAlergi;
+  final String? polaMakan;
+  final String? biokimiaGDS;
+  final String? biokimiaUreum;
+  final String? biokimiaHGB;
+  final String? klinikTD;
+  final String? klinikNadi;
+  final String? klinikSuhu;
+  final String? klinikRR;
+  final String? riwayatPenyakitSekarang;
+  final String? riwayatPenyakitDahulu;
+  final String? diagnosaGizi;
+  final String? intervensiDiet;
+  final String? intervensiBentukMakanan;
+  final String? intervensiVia;
+  final String? intervensiTujuan;
+  final String? monevAsupan;
+  final String? monevStatusGizi;
+  final String? biokimiaENT;
+  final String? klinikKU;
+  final String? klinikKES;
+  final String? klinikSPO2;
+  final String? namaNutrisionis;
 
   Patient({
     required this.id,
@@ -39,6 +63,30 @@ class Patient {
     required this.tanggalPemeriksaan,
     this.lila, // Tambahkan ini sebagai properti opsional
     this.tl,
+    this.alergiMakanan,
+    this.detailAlergi,
+    this.polaMakan,
+    this.biokimiaGDS,
+    this.biokimiaUreum,
+    this.biokimiaHGB,
+    this.klinikTD,
+    this.klinikNadi,
+    this.klinikSuhu,
+    this.klinikRR,
+    this.riwayatPenyakitSekarang,
+    this.riwayatPenyakitDahulu,
+    this.diagnosaGizi,
+    this.intervensiDiet,
+    this.intervensiBentukMakanan,
+    this.intervensiVia,
+    this.intervensiTujuan,
+    this.monevAsupan,
+    this.monevStatusGizi,
+    this.biokimiaENT,
+    this.klinikKU,
+    this.klinikKES,
+    this.klinikSPO2,
+    this.namaNutrisionis,
   });
 
   factory Patient.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -61,6 +109,31 @@ class Patient {
       tanggalPemeriksaan: (data['tanggalPemeriksaan'] as Timestamp).toDate(),
       lila: data['lila'] as num?,
       tl: data['tl'] as num?,
+      // BARU: Ambil data asuhan gizi
+      alergiMakanan: data['alergiMakanan'] as String?,
+      detailAlergi: data['detailAlergi'] as String?,
+      polaMakan: data['polaMakan'] as String?,
+      biokimiaGDS: data['biokimiaGDS'] as String?,
+      biokimiaUreum: data['biokimiaUreum'] as String?,
+      biokimiaHGB: data['biokimiaHGB'] as String?,
+      klinikTD: data['klinikTD'] as String?,
+      klinikNadi: data['klinikNadi'] as String?,
+      klinikSuhu: data['klinikSuhu'] as String?,
+      klinikRR: data['klinikRR'] as String?,
+      riwayatPenyakitSekarang: data['riwayatPenyakitSekarang'] as String?,
+      riwayatPenyakitDahulu: data['riwayatPenyakitDahulu'] as String?,
+      diagnosaGizi: data['diagnosaGizi'] as String?,
+      intervensiDiet: data['intervensiDiet'] as String?,
+      intervensiBentukMakanan: data['intervensiBentukMakanan'] as String?,
+      intervensiVia: data['intervensiVia'] as String?,
+      intervensiTujuan: data['intervensiTujuan'] as String?,
+      monevAsupan: data['monevAsupan'] as String?,
+      monevStatusGizi: data['monevStatusGizi'] as String?,
+      biokimiaENT: data['biokimiaENT'] as String?,
+      klinikKU: data['klinikKU'] as String?,
+      klinikKES: data['klinikKES'] as String?,
+      klinikSPO2: data['klinikSPO2'] as String?,
+      namaNutrisionis: data['namaNutrisionis'] as String?,
     );
   }
 
@@ -138,6 +211,18 @@ class Patient {
     if (totalSkor >= 2 && totalSkor <= 3) return 'Resiko tinggi';
     if (totalSkor >= 4) return 'Resiko sangat tinggi';
     return 'Tidak diketahui';
+  }
+  // BARU: Getter untuk status gizi berdasarkan IMT
+  String get statusGizi {
+    if (imt < 18.5) {
+      return 'Gizi Kurang (Underweight)';
+    } else if (imt >= 18.5 && imt <= 24.9) {
+      return 'Gizi Baik (Normal)';
+    } else if (imt >= 25 && imt <= 29.9) {
+      return 'Gizi Lebih (Overweight)';
+    } else {
+      return 'Obesitas';
+    }
   }
   
   String get tanggalLahirFormatted => DateFormat('d MMMM y').format(tanggalLahir);

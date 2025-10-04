@@ -242,6 +242,8 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                 FormActionButtons(
                   onReset: _resetForm,
                   onSubmit: _calculateKidneyDiet,
+                  resetButtonColor: Colors.white, // Background jadi putih
+                  resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
                 ),
                 const SizedBox(height: 32),
                 // Tampilan Hasil
@@ -417,81 +419,93 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
 
   // Letakkan method ini di dalam kelas _KidneyCalculationPageState
 
-Widget _buildMealPlanCard(List<FoodItem> mealPlan) {
-  return Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.purple.withAlpha(25),
-      borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: Colors.purple.shade300),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'Pembagian Makanan Sehari\n(Diet Protein ${_result!.recommendedDiet}g)',
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.purple,
-          ),
-        ),
-        const Divider(height: 24),
-        Table(
-          columnWidths: const {
-            0: FlexColumnWidth(3),
-            1: FlexColumnWidth(2),
-            2: FlexColumnWidth(3),
-          },
-          border: TableBorder.all(
-            color: Colors.purple.shade100,
-            width: 1,
-          ),
-          children: [
-            // Table Header
-            const TableRow(
-              decoration: BoxDecoration(color: Color.fromARGB(255, 196, 86, 216)),
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('Bahan Makanan', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('Berat (g)', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('URT', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-                ),
-              ],
+  Widget _buildMealPlanCard(List<FoodItem> mealPlan) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.purple.withAlpha(25),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.purple.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Pembagian Makanan Sehari\n(Diet Protein ${_result!.recommendedDiet}g)',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.purple,
             ),
-            // Table Rows from data
-            ...mealPlan.map((item) {
-              return TableRow(
+          ),
+          const Divider(height: 24),
+          Table(
+            columnWidths: const {
+              0: FlexColumnWidth(3),
+              1: FlexColumnWidth(2),
+              2: FlexColumnWidth(3),
+            },
+            border: TableBorder.all(color: Colors.purple.shade100, width: 1),
+            children: [
+              // Table Header
+              const TableRow(
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(255, 196, 86, 216),
+                ),
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(item.name),
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
+                      'Bahan Makanan',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(item.weight.toString(), textAlign: TextAlign.center),
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
+                      'Berat (g)',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(item.urt),
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
+                      'URT',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ],
-              );
-            }),
-          ],
-        ),
-      ],
-    ),
-  );
-}
-
-
+              ),
+              // Table Rows from data
+              ...mealPlan.map((item) {
+                return TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(item.name),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        item.weight.toString(),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(item.urt),
+                    ),
+                  ],
+                );
+              }),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
