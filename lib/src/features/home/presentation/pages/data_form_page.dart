@@ -88,6 +88,13 @@ class _DataFormPageState extends State<DataFormPage> {
     if (patient.tl != null) {
       _tlController.text = patient.tl.toString();
     }
+    // 1. Muat data kehilangan nafsu makan
+    _kehilanganNafsuMakan = patient.kehilanganNafsuMakan;
+
+    // 2. Muat data berat badan dulu jika ada
+    if (patient.beratBadanDulu != null) {
+      _beratBadanDuluController.text = patient.beratBadanDulu.toString();
+    }
     // Note: We don't have beratBadanDulu and kehilanganNafsuMakan in Patient model
     // These fields will remain empty for editing
 
@@ -332,6 +339,9 @@ class _DataFormPageState extends State<DataFormPage> {
             _lilaController.text,
           ), // BARU: Simpan LILA ke Firestore
           'tl': double.tryParse(_tlController.text),
+          'beratBadanDulu': double.tryParse(_beratBadanDuluController.text),
+          'kehilanganNafsuMakan': _kehilanganNafsuMakan,
+
           // BARU: Data Asuhan Gizi
           'alergiMakanan': _alergiMakanan,
           'detailAlergi': _detailAlergiController.text,
@@ -485,7 +495,7 @@ class _DataFormPageState extends State<DataFormPage> {
         onSubmit: _savePatientData,
         resetButtonColor: Colors.white, // Background jadi putih
         resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
-        submitText: widget.patient != null ? 'Perbarui' : 'Simpan',
+        submitText: widget.patient != null ? 'Simpan' : 'Tambah',
         isLoading: _isLoading,
       ),
       body: Form(

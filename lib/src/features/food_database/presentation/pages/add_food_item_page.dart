@@ -237,7 +237,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
         onSubmit: _submitFoodItem,
         resetButtonColor: Colors.white, // Background jadi putih
         resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
-        submitText: _isEditMode ? 'Simpan' : 'Tambah Data',
+        submitText: _isEditMode ? 'Simpan' : 'Tambah',
         isLoading: _isLoading,
       ),
       body: SingleChildScrollView(

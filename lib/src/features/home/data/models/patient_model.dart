@@ -20,6 +20,8 @@ class Patient {
   final DateTime tanggalPemeriksaan;
   final num? lila;
   final num? tl;
+  final num? beratBadanDulu;
+  final String? kehilanganNafsuMakan;
   final String? alergiMakanan;
   final String? detailAlergi;
   final String? polaMakan;
@@ -63,6 +65,8 @@ class Patient {
     required this.tanggalPemeriksaan,
     this.lila, // Tambahkan ini sebagai properti opsional
     this.tl,
+    this.beratBadanDulu,
+    this.kehilanganNafsuMakan,
     this.alergiMakanan,
     this.detailAlergi,
     this.polaMakan,
@@ -109,6 +113,8 @@ class Patient {
       tanggalPemeriksaan: (data['tanggalPemeriksaan'] as Timestamp).toDate(),
       lila: data['lila'] as num?,
       tl: data['tl'] as num?,
+      beratBadanDulu: data['beratBadanDulu'] as num?,
+      kehilanganNafsuMakan: data['kehilanganNafsuMakan'] as String?,
       // BARU: Ambil data asuhan gizi
       alergiMakanan: data['alergiMakanan'] as String?,
       detailAlergi: data['detailAlergi'] as String?,
@@ -155,6 +161,32 @@ class Patient {
       'tanggalPemeriksaan': tanggalPemeriksaan,
       'lila': lila,
       'tl': tl,
+      'beratBadanDulu': beratBadanDulu,
+      'kehilanganNafsuMakan': kehilanganNafsuMakan,
+      'alergiMakanan': alergiMakanan,
+      'detailAlergi': detailAlergi,
+      'polaMakan': polaMakan,
+      'biokimiaGDS': biokimiaGDS,
+      'biokimiaUreum': biokimiaUreum,
+      'biokimiaHGB': biokimiaHGB,
+      'klinikTD': klinikTD,
+      'klinikNadi': klinikNadi,
+      'klinikSuhu': klinikSuhu,
+      'klinikRR': klinikRR,
+      'riwayatPenyakitSekarang': riwayatPenyakitSekarang,
+      'riwayatPenyakitDahulu': riwayatPenyakitDahulu,
+      'diagnosaGizi': diagnosaGizi,
+      'intervensiDiet': intervensiDiet,
+      'intervensiBentukMakanan': intervensiBentukMakanan,
+      'intervensiVia': intervensiVia,
+      'intervensiTujuan': intervensiTujuan,
+      'monevAsupan': monevAsupan,
+      'monevStatusGizi': monevStatusGizi,
+      'biokimiaENT': biokimiaENT,
+      'klinikKU': klinikKU,
+      'klinikKES': klinikKES,
+      'klinikSPO2': klinikSPO2,
+      'namaNutrisionis': namaNutrisionis,
     };
   }
 

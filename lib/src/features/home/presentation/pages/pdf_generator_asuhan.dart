@@ -183,8 +183,8 @@ class PdfGeneratorAsuhan {
                 _buildAssessmentCategorysatu(
                   'Riwayat Personal /CH (Client History)',
                   [
-                    _buildAssessmentItemRow('RPS : ${patient.riwayatPenyakitSekarang ?? '-'}', '', '', ''),
-                    _buildAssessmentItemRow('RPD : ${patient.riwayatPenyakitDahulu ?? '-'}', '', '', ''),
+                    _buildInfoRowSatu('RPS :', ' ${patient.riwayatPenyakitSekarang ?? '-'}'),
+                    _buildInfoRowSatu('RPD :', ' ${patient.riwayatPenyakitDahulu ?? '-'}'),
                   ],
                 ),
               ],
@@ -194,7 +194,8 @@ class PdfGeneratorAsuhan {
           // C, D, E
           _buildSectionHeader('C. DIAGNOSA GIZI'),
           pw.Container(
-            height: 40,
+            width: double.infinity, // <-- Tambahkan ini agar container mengisi lebar
+            padding: const pw.EdgeInsets.all(4),
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: _buildInfoRowSatu(
               'N1/NC/NB :',
@@ -204,7 +205,8 @@ class PdfGeneratorAsuhan {
 
           _buildSectionHeader('D. INTERVENSI GIZI'),
           pw.Container(
-            height: 50,
+            width: double.infinity,
+            padding: const pw.EdgeInsets.all(4),
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: pw.Column(
               children: [
@@ -230,7 +232,8 @@ class PdfGeneratorAsuhan {
 
           _buildSectionHeader('E. MONITORING DAN EVALUASI'),
           pw.Container(
-            height: 40,
+            width: double.infinity,
+            padding: const pw.EdgeInsets.all(4),
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: pw.Column(
               children: [
@@ -265,7 +268,7 @@ class PdfGeneratorAsuhan {
                   ),
                   pw.SizedBox(height: 25),
                   pw.Text(
-                    '(${patient.namaNutrisionis ?? '-'})',
+                    '( ${patient.namaNutrisionis ?? '-'} )',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                   ),
                 ],
@@ -356,23 +359,28 @@ class PdfGeneratorAsuhan {
   }
 
   static pw.Widget _buildInfoRowSatu(String label1, String value1) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      child: pw.Row(
-        // mainAxisSize: pw.MainAxisSize.min, // Opsional: membuat Row sekecil mungkin
-        children: [
-          // Hapus Expanded, gunakan Text biasa
-          pw.Text(label1, style: const pw.TextStyle(fontSize: 9)),
+  return pw.Padding(
+    padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+    child: pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.start, // <-- PENTING: Agar rata atas
+      children: [
+        // Label tidak perlu diubah
+        pw.Text(label1, style: const pw.TextStyle(fontSize: 9)),
 
-          // Beri sedikit jarak di antara keduanya
-          pw.SizedBox(width: 5),
-
-          // Hapus Expanded, gunakan Text biasa
-          pw.Text(value1, style: const pw.TextStyle(fontSize: 9)),
-        ],
-      ),
-    );
-  }
+        // Hapus SizedBox, karena Expanded akan menangani ruang
+        
+        // Bungkus nilai dengan Expanded
+        pw.Expanded(
+          child: pw.Text(
+            value1,
+            style: const pw.TextStyle(fontSize: 9),
+            // softWrap: true, // Ini adalah default, tapi bisa ditulis eksplisit
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   // Fungsi bantuan untuk membuat header seksi
   static pw.Widget _buildSectionHeader(String title) {

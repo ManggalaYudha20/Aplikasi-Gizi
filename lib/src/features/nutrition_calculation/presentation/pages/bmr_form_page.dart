@@ -267,6 +267,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
                   onSubmit: _calculateBMR,
                   resetButtonColor: Colors.white, // Background jadi putih
                   resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
+                  submitIcon: const Icon(Icons.calculate, color: Colors.white),
                 ),
 
                 const SizedBox(height: 32),
