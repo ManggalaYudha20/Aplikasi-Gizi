@@ -108,7 +108,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(
         title: 'Diet Diabetes Melitus',
-        subtitle: 'di Aplikasi MyGizi',
+        subtitle: 'Kalkulator Kebutuhan Energi',
       ),
       body: SafeArea(
         child: SingleChildScrollView(

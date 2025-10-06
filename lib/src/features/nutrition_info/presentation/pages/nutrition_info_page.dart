@@ -14,8 +14,8 @@ class NutritionInfoPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color.fromARGB(150, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Informasi Gizi',
-        subtitle: 'di Aplikasi MyGizi',
+        title: 'Beranda',
+        subtitle: '',
       ),
       body: SafeArea(
         child: Center(
@@ -28,7 +28,7 @@ class NutritionInfoPage extends StatelessWidget {
                 children: [
                   // Disease Calculation Button
                   MenuButton(
-                    text: 'Hitung Gizi\n Penyakit',
+                    text: 'Hitung Diet\n Penyakit',
                     icon: Icons.medical_services,
                     onPressed: () {
                       Navigator.push(
@@ -42,7 +42,7 @@ class NutritionInfoPage extends StatelessWidget {
 
                   // Food Database Button
                   MenuButton(
-                    text: 'Database\nMakanan',
+                    text: 'Daftar\nMakanan',
                     icon: Icons.food_bank,
                     onPressed: () {
                       Navigator.push(

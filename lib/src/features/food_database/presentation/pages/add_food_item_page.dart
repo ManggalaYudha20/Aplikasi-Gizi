@@ -229,7 +229,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
     return ScaffoldWithAnimatedFab(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: CustomAppBar(
-        title: _isEditMode ? 'Edit Makanan' : 'Tambah Makanan Baru',
+        title: _isEditMode ? 'Edit Makanan' : 'Tambah Makanan',
         subtitle: 'Isi data dengan lengkap',
       ),
       floatingActionButton: FormActionButtons(
@@ -238,6 +238,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
         resetButtonColor: Colors.white, // Background jadi putih
         resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
         submitText: _isEditMode ? 'Simpan' : 'Tambah',
+        submitIcon: _isEditMode ? const Icon(Icons.save, color: Colors.white) : const Icon(Icons.add, color: Colors.white),
         isLoading: _isLoading,
       ),
       body: SingleChildScrollView(

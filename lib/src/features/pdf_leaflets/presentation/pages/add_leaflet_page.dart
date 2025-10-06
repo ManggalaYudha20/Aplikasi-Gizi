@@ -146,7 +146,7 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: CustomAppBar(
-        title: _isEditing ? 'Edit Leaflet' : 'Tambah Leaflet Baru',
+        title: _isEditing ? 'Edit Leaflet' : 'Tambah Leaflet',
         subtitle: _isEditing
             ? 'Perbarui data leaflet di bawah'
             : 'Isi data leaflet di bawah',
@@ -214,7 +214,8 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
                 resetButtonColor: Colors.white, // Background jadi putih
                 resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
                 onSubmit: _isLoading ? () {} : _submitLeaflet,
-                submitText: _isEditing ? 'Perbarui' : 'Tambah',
+                submitText: _isEditing ? 'Simpan' : 'Tambah',
+                submitIcon: _isEditing ? const Icon(Icons.save, color: Colors.white) : const Icon(Icons.add, color: Colors.white),
               ),
             ],
           ),

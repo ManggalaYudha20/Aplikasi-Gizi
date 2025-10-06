@@ -78,8 +78,8 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(150, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Selamat Datang',
-        subtitle: 'di Aplikasi MyGizi',
+        title: 'Daftar Pasien',
+        subtitle: '',
       ),
       body: SafeArea(
         child: Column(

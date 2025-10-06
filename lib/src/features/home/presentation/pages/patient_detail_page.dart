@@ -41,8 +41,8 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
         resetText: 'Hapus',
         submitIcon: const Icon(Icons.edit, color: Colors.white),
         resetIcon: const Icon(Icons.delete_forever),
-        resetButtonColor: Colors.white, // Background jadi putih
-        resetForegroundColor: Colors.red,
+        resetButtonColor: Colors.red, // Background jadi putih
+        //resetForegroundColor: Colors.white,
         submitButtonColor: const Color.fromARGB(255, 0, 148, 68),
         onReset: () {
           PatientDeleteLogic.handlePatientDelete(

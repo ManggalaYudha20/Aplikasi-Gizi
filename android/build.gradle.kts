@@ -1,3 +1,15 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+configurations.all {
+    resolutionStrategy {
+        eachDependency {
+            if (requested.group == "org.jetbrains.kotlin") {
+                useVersion("2.1.10")
+            }
+        }
+    }
+}
+
 allprojects {
     repositories {
         google()
@@ -7,8 +19,8 @@ allprojects {
 
 allprojects {
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        kotlinOptions {
-            jvmTarget = "17"
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 }

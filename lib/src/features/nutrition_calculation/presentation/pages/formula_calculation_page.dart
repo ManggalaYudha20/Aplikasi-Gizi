@@ -65,7 +65,7 @@ class FormulaCalculationPage extends StatelessWidget {
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
         title: 'Kalkulator Gizi',
-        subtitle: 'di Aplikasi MyGizi',
+        subtitle: 'Pilih Jenis Kalkulator',
       ),
       body: SafeArea(
         child: Column(

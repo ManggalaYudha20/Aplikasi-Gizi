@@ -92,7 +92,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(
-        title: 'Diet Ginjal',
+        title: 'Diet Ginjal Kronis',
         subtitle: 'Kalkulator Kebutuhan Protein',
       ),
       body: SafeArea(

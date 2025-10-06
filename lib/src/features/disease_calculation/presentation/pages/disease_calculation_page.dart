@@ -28,8 +28,8 @@ class DiseaseCalculationPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Hitung Gizi Penyakit',
-        subtitle: 'di Aplikasi MyGizi',
+        title: 'Hitung Diet Penyakit',
+        subtitle: 'Pilih Jenis Diet Penyakit',
       ),
       body: SafeArea(
         child: Column(

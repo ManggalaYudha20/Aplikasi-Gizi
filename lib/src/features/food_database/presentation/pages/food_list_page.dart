@@ -42,8 +42,8 @@ class _FoodListPageState extends State<FoodListPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
-        title: 'Database Makanan',
-        subtitle: 'di Aplikasi MyGizi',
+        title: 'Daftar Makanan',
+        subtitle: 'Temukan informasi gizi makanan',
       ),
       body: SafeArea(
         child: Column(

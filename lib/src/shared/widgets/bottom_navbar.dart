@@ -26,12 +26,12 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
       unselectedItemColor: Colors.grey,
       items: const [
         BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Beranda',
+          icon: Icon(Icons.person),
+          label: 'Daftar Pasien',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.apps),
-          label: 'Info Gizi',
+          icon: Icon(Icons.home),
+          label: 'Beranda',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.info),

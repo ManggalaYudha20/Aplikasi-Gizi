@@ -485,7 +485,7 @@ class _DataFormPageState extends State<DataFormPage> {
       appBar: CustomAppBar(
         title: widget.patient != null
             ? 'Edit Data Pasien'
-            : 'Form Pasien Dewasa',
+            : 'Tambah Pasien Baru',
         subtitle: widget.patient != null
             ? 'Perbarui data pasien'
             : 'Isi data dengan lengkap',
@@ -495,6 +495,7 @@ class _DataFormPageState extends State<DataFormPage> {
         onSubmit: _savePatientData,
         resetButtonColor: Colors.white, // Background jadi putih
         resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
+        submitIcon: widget.patient != null ? const Icon(Icons.save, color: Colors.white) : const Icon(Icons.add, color: Colors.white),
         submitText: widget.patient != null ? 'Simpan' : 'Tambah',
         isLoading: _isLoading,
       ),
