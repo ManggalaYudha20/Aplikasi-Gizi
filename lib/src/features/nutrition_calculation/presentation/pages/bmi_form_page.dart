@@ -105,46 +105,20 @@ class _BmiFormPageState extends State<BmiFormPage> {
                 const SizedBox(height: 20),
 
                 // Berat Badan
-                TextFormField(
+                _buildTextFormField(
                   controller: _weightController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Berat Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.monitor_weight),
-                    suffixText: 'kg',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Berat badan tidak boleh kosong';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Masukkan angka yang valid';
-                    }
-                    return null;
-                  },
+                  label: 'Berat Badan',
+                  prefixIcon: const Icon(Icons.monitor_weight),
+                  suffixText: 'kg',
                 ),
                 const SizedBox(height: 16),
 
                 // Tinggi Badan
-                TextFormField(
+                _buildTextFormField(
                   controller: _heightController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Tinggi Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.height),
-                    suffixText: 'cm',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Tinggi badan tidak boleh kosong';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Masukkan angka yang valid';
-                    }
-                    return null;
-                  },
+                  label: 'Tinggi Badan',
+                  prefixIcon: const Icon(Icons.height),
+                  suffixText: 'cm',
                 ),
                 const SizedBox(height: 32),
 
@@ -277,6 +251,33 @@ class _BmiFormPageState extends State<BmiFormPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String label,
+    required Icon prefixIcon,
+    required String suffixText,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        prefixIcon: prefixIcon,
+        suffixText: suffixText,
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return '$label tidak boleh kosong';
+        }
+        if (double.tryParse(value) == null) {
+          return 'Masukkan angka yang valid';
+        }
+        return null;
+      },
     );
   }
 }

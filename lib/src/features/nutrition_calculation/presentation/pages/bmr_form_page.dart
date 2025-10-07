@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class BmrFormPage extends StatefulWidget {
   const BmrFormPage({super.key});
@@ -16,10 +17,9 @@ class _BmrFormPageState extends State<BmrFormPage> {
   final _ageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _resultCardKey = GlobalKey();
-
-  String? _selectedGender;
   double? _bmrResult;
-  String _selectedFormula = 'Mifflin-St Jeor';
+  final _genderController = TextEditingController();
+  final _formulaController = TextEditingController(text: 'Mifflin-St Jeor');
 
   @override
   void dispose() {
@@ -27,6 +27,8 @@ class _BmrFormPageState extends State<BmrFormPage> {
     _heightController.dispose();
     _ageController.dispose();
     _scrollController.dispose();
+    _genderController.dispose(); // Tambahkan
+    _formulaController.dispose();
     super.dispose();
   }
 
@@ -51,9 +53,9 @@ class _BmrFormPageState extends State<BmrFormPage> {
       double bmr;
 
       // Logika perhitungan diperbarui untuk mendukung dua formula
-      if (_selectedFormula == 'Harris-Benedict') {
+      if (_formulaController.text == 'Harris-Benedict') {
         // Menggunakan formula Harris-Benedict (seperti kode awal Anda)
-        if (_selectedGender == 'Laki-laki') {
+        if (_genderController.text == 'Laki-laki') {
           // Formula untuk laki-laki: 66.47 + (13.75 × BB) + (5.003 × TB) − (6.755 × U)
           bmr = 66.47 + (13.75 * weight) + (5.003 * height) - (6.755 * age);
         } else {
@@ -63,7 +65,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
       } else {
         // Menggunakan formula Mifflin-St Jeor
         // Formula: (9.99 x BB) + (6.25 x TB) - (4.92 x U) +/- Konstanta
-        if (_selectedGender == 'Laki-laki') {
+        if (_genderController.text == 'Laki-laki') {
           // Pria: (9.99 x BB) + (6.25 x TB) - (4.92 x U) + 5
           bmr = (9.99 * weight) + (6.25 * height) - (4.92 * age) + 5;
         } else {
@@ -85,31 +87,10 @@ class _BmrFormPageState extends State<BmrFormPage> {
       _weightController.clear();
       _heightController.clear();
       _ageController.clear();
-      _selectedGender = null;
+      _genderController.clear();
       _bmrResult = null;
-      _selectedFormula = 'Mifflin-St Jeor';
+      _formulaController.text = 'Mifflin-St Jeor';
     });
-  }
-
-  // Widget untuk menampilkan informasi formula yang dipilih
-  Widget _buildFormulaInfo() {
-    String formulaName = _selectedFormula;
-    String description;
-
-    if (formulaName == 'Harris-Benedict') {
-      description = 'Menggunakan rumus Harris-Benedict (1919).';
-    } else {
-      description =
-          'Menggunakan rumus Mifflin-St Jeor (dianggap lebih akurat untuk populasi modern).';
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
-      child: Text(
-        '$formulaName dipilih. $description',
-        style: const TextStyle(fontSize: 12, color: Colors.black54),
-      ),
-    );
   }
 
   @override
@@ -135,130 +116,51 @@ class _BmrFormPageState extends State<BmrFormPage> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
-                // Pilihan Formula BMR (Widget baru)
-                DropdownButtonFormField<String>(
-                  value: _selectedFormula,
-                  decoration: const InputDecoration(
-                    labelText: 'Pilih Formula BMR',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.calculate),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'Mifflin-St Jeor',
-                      child: Text('Mifflin-St Jeor'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Harris-Benedict',
-                      child: Text('Harris-Benedict'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedFormula = value!;
-                      _bmrResult = null; // Reset hasil saat formula berubah
-                    });
-                  },
+
+                // Pilihan Formula BMR 
+                _buildCustomDropdown(
+                  controller: _formulaController,
+                  label: 'Pilih Formula BMR',
+                  prefixIcon: const Icon(Icons.calculate),
+                  items: const ['Mifflin-St Jeor', 'Harris-Benedict'],
                 ),
                 _buildFormulaInfo(), // Menampilkan keterangan formula
                 const SizedBox(height: 16),
+
                 // Berat Badan
-                TextFormField(
+                _buildTextFormField(
                   controller: _weightController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Berat Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.monitor_weight),
-                    suffixText: 'kg',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Berat badan tidak boleh kosong';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Masukkan angka yang valid';
-                    }
-                    return null;
-                  },
+                  label: 'Berat Badan',
+                  prefixIcon: const Icon(Icons.monitor_weight),
+                  suffixText: 'kg',
                 ),
                 const SizedBox(height: 16),
 
                 // Tinggi Badan
-                TextFormField(
+                _buildTextFormField(
                   controller: _heightController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Tinggi Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.height),
-                    suffixText: 'cm',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Tinggi badan tidak boleh kosong';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Masukkan angka yang valid';
-                    }
-                    return null;
-                  },
+                  label: 'Tinggi Badan',
+                  prefixIcon: const Icon(Icons.height),
+                  suffixText: 'cm',
                 ),
                 const SizedBox(height: 16),
 
                 // Jenis Kelamin
-                DropdownButtonFormField<String>(
-                  value: _selectedGender,
-                  decoration: const InputDecoration(
-                    labelText: 'Jenis Kelamin',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.wc),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'Laki-laki',
-                      child: Text('Laki-laki'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Perempuan',
-                      child: Text('Perempuan'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedGender = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Pilih jenis kelamin';
-                    }
-                    return null;
-                  },
+                _buildCustomDropdown(
+                  controller: _genderController,
+                  label: 'Jenis Kelamin',
+                  prefixIcon: const Icon(Icons.wc),
+                  items: const ['Laki-laki', 'Perempuan'],
                 ),
                 const SizedBox(height: 16),
 
                 // Umur
-                TextFormField(
+                _buildTextFormField(
                   controller: _ageController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Umur',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.calendar_today),
-                    suffixText: 'tahun',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Umur tidak boleh kosong';
-                    }
-                    if (int.tryParse(value) == null) {
-                      return 'Masukkan angka yang valid';
-                    }
-                    return null;
-                  },
+                  label: 'Umur',
+                  prefixIcon: const Icon(Icons.calendar_today),
+                  suffixText: 'tahun',
                 ),
-
                 const SizedBox(height: 32),
 
                 // Buttons
@@ -269,7 +171,6 @@ class _BmrFormPageState extends State<BmrFormPage> {
                   resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
                   submitIcon: const Icon(Icons.calculate, color: Colors.white),
                 ),
-
                 const SizedBox(height: 32),
 
                 // Result
@@ -298,7 +199,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
                     child: Column(
                       children: [
                         Text(
-                          'Hasil Perhitungan BMR \n($_selectedFormula)',
+                          'Hasil Perhitungan BMR \n(${_formulaController.text})',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 18,
@@ -330,6 +231,98 @@ class _BmrFormPageState extends State<BmrFormPage> {
           ),
         ),
       ),
+    );
+  }
+
+  // Tambahkan metode ini di dalam class _BmrFormPageState
+  Widget _buildCustomDropdown({
+    required TextEditingController controller,
+    required String label,
+    required List<String> items,
+    required Icon prefixIcon,
+    String? Function(String?)? validator,
+  }) {
+    return DropdownSearch<String>(
+      popupProps: PopupProps.menu(
+        showSearchBox: false, // Tidak ada pencarian untuk form ini
+        fit: FlexFit.loose,
+        constraints: const BoxConstraints(maxHeight: 240),
+      ),
+      items: items,
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          prefixIcon: prefixIcon,
+        ),
+      ),
+      onChanged: (String? newValue) {
+        setState(() {
+          controller.text = newValue ?? '';
+          // Reset hasil BMR jika nilai dropdown berubah
+          if (label == 'Pilih Formula BMR' || label == 'Jenis Kelamin') {
+            _bmrResult = null;
+          }
+        });
+      },
+      selectedItem: controller.text.isEmpty ? null : controller.text,
+      validator:
+          validator ??
+          (value) {
+            if (value == null || value.isEmpty) {
+              return '$label harus dipilih';
+            }
+            return null;
+          },
+    );
+  }
+
+  // Widget untuk menampilkan informasi formula yang dipilih
+  Widget _buildFormulaInfo() {
+    String formulaName = _formulaController.text;
+    String description;
+
+    if (formulaName == 'Harris-Benedict') {
+      description = 'Menggunakan rumus Harris-Benedict (1919).';
+    } else {
+      description =
+          'Menggunakan rumus Mifflin-St Jeor (dianggap lebih akurat untuk populasi modern).';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Text(
+        '$formulaName dipilih. $description',
+        style: const TextStyle(fontSize: 12, color: Colors.black54),
+      ),
+    );
+  }
+
+  // Tambahkan metode ini di dalam class _BmrFormPageState
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String label,
+    required Icon prefixIcon,
+    required String suffixText,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        prefixIcon: prefixIcon,
+        suffixText: suffixText,
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return '$label tidak boleh kosong';
+        }
+        if (double.tryParse(value) == null) {
+          return 'Masukkan angka yang valid';
+        }
+        return null;
+      },
     );
   }
 }

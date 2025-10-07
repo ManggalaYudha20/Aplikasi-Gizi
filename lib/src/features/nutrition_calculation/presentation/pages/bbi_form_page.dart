@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class BbiFormPage extends StatefulWidget {
   const BbiFormPage({super.key});
@@ -14,14 +15,14 @@ class _BbiFormPageState extends State<BbiFormPage> {
   final _heightController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _resultCardKey = GlobalKey();
-
-  String? _selectedGender;
+  final _genderController = TextEditingController();
   double? _bbiResult;
 
   @override
   void dispose() {
     _heightController.dispose();
     _scrollController.dispose();
+    _genderController.dispose();
     super.dispose();
   }
 
@@ -43,7 +44,7 @@ class _BbiFormPageState extends State<BbiFormPage> {
 
       double bbi;
 
-      if (_selectedGender == 'Laki-laki') {
+      if (_genderController.text == 'Laki-laki') {
         // Formula untuk laki-laki: [tinggi badan (cm) - 100] - [(tinggi badan (cm) - 100) × 10%]
         bbi = (height - 100) - ((height - 100) * 0.10);
       } else {
@@ -62,7 +63,7 @@ class _BbiFormPageState extends State<BbiFormPage> {
     setState(() {
       _formKey.currentState?.reset();
       _heightController.clear();
-      _selectedGender = null;
+      _genderController.clear();
       _bbiResult = null;
     });
   }
@@ -89,56 +90,20 @@ class _BbiFormPageState extends State<BbiFormPage> {
                 const SizedBox(height: 20),
 
                 // Tinggi Badan
-                TextFormField(
+                _buildTextFormField(
                   controller: _heightController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Tinggi Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.height),
-                    suffixText: 'cm',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Tinggi badan tidak boleh kosong';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Masukkan angka yang valid';
-                    }
-                    return null;
-                  },
+                  label: 'Tinggi Badan',
+                  prefixIcon: const Icon(Icons.height),
+                  suffixText: 'cm',
                 ),
                 const SizedBox(height: 16),
 
                 // Jenis Kelamin
-                DropdownButtonFormField<String>(
-                  value: _selectedGender,
-                  decoration: const InputDecoration(
-                    labelText: 'Jenis Kelamin',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.wc),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'Laki-laki',
-                      child: Text('Laki-laki'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Perempuan',
-                      child: Text('Perempuan'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedGender = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Pilih jenis kelamin';
-                    }
-                    return null;
-                  },
+                _buildCustomDropdown(
+                  controller: _genderController,
+                  label: 'Jenis Kelamin',
+                  prefixIcon: const Icon(Icons.wc),
+                  items: ['Laki-laki', 'Perempuan'],
                 ),
                 const SizedBox(height: 32),
 
@@ -209,6 +174,64 @@ class _BbiFormPageState extends State<BbiFormPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String label,
+    required Icon prefixIcon,
+    required String suffixText,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        prefixIcon: prefixIcon,
+        suffixText: suffixText,
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return '$label tidak boleh kosong';
+        }
+        if (double.tryParse(value) == null) {
+          return 'Masukkan angka yang valid';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildCustomDropdown({
+    required TextEditingController controller,
+    required String label,
+    required List<String> items,
+    required Icon prefixIcon,
+  }) {
+    return DropdownSearch<String>(
+      popupProps: PopupProps.menu(showSearchBox: false, fit: FlexFit.loose),
+      items: items,
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          prefixIcon: prefixIcon,
+        ),
+      ),
+      onChanged: (String? newValue) {
+        setState(() {
+          controller.text = newValue ?? '';
+        });
+      },
+      selectedItem: controller.text.isEmpty ? null : controller.text,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return '$label harus dipilih';
+        }
+        return null;
+      },
     );
   }
 }

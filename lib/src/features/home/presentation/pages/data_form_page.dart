@@ -7,6 +7,8 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/scaffold_with_animated_fab.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_validator_utils.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class DataFormPage extends StatefulWidget {
   final Patient? patient; // Optional patient for editing
@@ -31,13 +33,14 @@ class _DataFormPageState extends State<DataFormPage> {
   final _beratBadanDuluController = TextEditingController();
   final _lilaController = TextEditingController();
   final _tlController = TextEditingController();
-  String? _jenisKelamin;
-  String? _aktivitas;
+  final List<FocusNode> _focusNodes = [];
+  final _jenisKelaminController = TextEditingController();
+  final _aktivitasController = TextEditingController();
+  final _kehilanganNafsuMakanController = TextEditingController();
+  final _alergiMakananController = TextEditingController(text: 'Tidak');
   // BARU: State untuk menyimpan pilihan kehilangan nafsu makan
-  String? _kehilanganNafsuMakan;
   DateTime? _selectedDate;
   // BARU: Controllers untuk Asuhan Gizi
-  String? _alergiMakanan = 'Tidak';
   final _detailAlergiController = TextEditingController();
   final _polaMakanController = TextEditingController();
   final _biokimiaGDSController = TextEditingController();
@@ -64,7 +67,32 @@ class _DataFormPageState extends State<DataFormPage> {
   @override
   void initState() {
     super.initState();
-    // Initialize form with existing patient data if provided
+    final controllers = [
+      _noRMController, _namaLengkapController, _tanggalLahirController,
+      _jenisKelaminController, _diagnosisMedisController, _beratBadanController,
+      _lilaController, _beratBadanDuluController, _tinggiBadanController,
+      _tlController, _kehilanganNafsuMakanController, _aktivitasController,
+      _alergiMakananController, _detailAlergiController, _polaMakanController,
+      // ... Lanjutkan untuk semua controller lainnya hingga _namaNutrisionisController
+      _biokimiaGDSController, _biokimiaUreumController, _biokimiaHGBController,
+      _biokimiaENTController, _klinikTDController, _klinikKUController,
+      _klinikKESController, _klinikNadiController, _klinikSuhuController,
+      _klinikRRController,
+      _klinikSPO2Controller,
+      _riwayatPenyakitSekarangController,
+      _riwayatPenyakitDahuluController, _diagnosaGiziController,
+      _intervensiDietController, _intervensiBentukMakananController,
+      _intervensiViaController,
+      _intervensiTujuanController,
+      _monevAsupanController,
+      _namaNutrisionisController,
+    ];
+
+    // Buat FocusNode untuk setiap controller
+    for (int i = 0; i < controllers.length; i++) {
+      _focusNodes.add(FocusNode());
+    }
+
     if (widget.patient != null) {
       _initializeFormWithPatientData();
     }
@@ -78,8 +106,10 @@ class _DataFormPageState extends State<DataFormPage> {
     _diagnosisMedisController.text = patient.diagnosisMedis;
     _beratBadanController.text = patient.beratBadan.toString();
     _tinggiBadanController.text = patient.tinggiBadan.toString();
-    _jenisKelamin = patient.jenisKelamin;
-    _aktivitas = patient.aktivitas;
+    _jenisKelaminController.text = patient.jenisKelamin;
+    _aktivitasController.text = patient.aktivitas;
+    _kehilanganNafsuMakanController.text = patient.kehilanganNafsuMakan ?? '';
+    _alergiMakananController.text = patient.alergiMakanan ?? 'Tidak';
     _selectedDate = patient.tanggalLahir;
     // Perbaikan: LILA dan TL harus diambil dari model juga
     if (patient.lila != null) {
@@ -88,9 +118,6 @@ class _DataFormPageState extends State<DataFormPage> {
     if (patient.tl != null) {
       _tlController.text = patient.tl.toString();
     }
-    // 1. Muat data kehilangan nafsu makan
-    _kehilanganNafsuMakan = patient.kehilanganNafsuMakan;
-
     // 2. Muat data berat badan dulu jika ada
     if (patient.beratBadanDulu != null) {
       _beratBadanDuluController.text = patient.beratBadanDulu.toString();
@@ -99,7 +126,6 @@ class _DataFormPageState extends State<DataFormPage> {
     // These fields will remain empty for editing
 
     // BARU: Inisialisasi data asuhan gizi
-    _alergiMakanan = patient.alergiMakanan;
     _detailAlergiController.text = patient.detailAlergi ?? '';
     _polaMakanController.text = patient.polaMakan ?? '';
     _biokimiaGDSController.text = patient.biokimiaGDS ?? '';
@@ -161,6 +187,15 @@ class _DataFormPageState extends State<DataFormPage> {
     _klinikKESController.dispose();
     _klinikSPO2Controller.dispose();
     _namaNutrisionisController.dispose();
+    _jenisKelaminController.dispose();
+    _aktivitasController.dispose();
+    _kehilanganNafsuMakanController.dispose();
+    _alergiMakananController.dispose();
+
+    // Dispose semua FocusNode
+    for (final node in _focusNodes) {
+      node.dispose();
+    }
     super.dispose();
   }
 
@@ -178,11 +213,11 @@ class _DataFormPageState extends State<DataFormPage> {
       _beratBadanDuluController.clear();
       _lilaController.clear();
       _tlController.clear();
-      _kehilanganNafsuMakan = null;
-      _jenisKelamin = null;
-      _aktivitas = null;
+      _kehilanganNafsuMakanController.clear();
+      _jenisKelaminController.clear();
+      _aktivitasController.clear();
+      _alergiMakananController.text = 'Tidak';
       _selectedDate = null;
-      _alergiMakanan = null;
       _detailAlergiController.clear();
       _polaMakanController.clear();
       _biokimiaGDSController.clear();
@@ -220,7 +255,11 @@ class _DataFormPageState extends State<DataFormPage> {
   }
 
   Future<void> _savePatientData() async {
-    if (_formKey.currentState!.validate()) {
+    if (FormValidatorUtils.validateAndScroll(
+      context: context,
+      formKey: _formKey,
+      focusNodes: _focusNodes,
+    )) {
       setState(() => _isLoading = true);
 
       try {
@@ -247,11 +286,11 @@ class _DataFormPageState extends State<DataFormPage> {
         if (_tinggiBadanController.text.isNotEmpty) {
           tinggiBadan = double.parse(_tinggiBadanController.text);
         } else if (_tlController.text.isNotEmpty &&
-            _jenisKelamin != null &&
+            _jenisKelaminController.text.isNotEmpty &&
             usia > 0) {
           // Gunakan rumus estimasi TB dari TL jika TB tidak ada
           final tl = double.parse(_tlController.text);
-          if (_jenisKelamin == 'Laki-laki') {
+          if (_jenisKelaminController.text == 'Laki-laki') {
             tinggiBadan = (2.02 * tl) - (0.04 * usia) + 64.19;
           } else {
             tinggiBadan = (1.83 * tl) - (0.24 * usia) + 84.88;
@@ -313,7 +352,9 @@ class _DataFormPageState extends State<DataFormPage> {
         }
 
         // DIUBAH: Logika skor efek penyakit dari input kehilangan nafsu makan
-        final skorEfekPenyakit = (_kehilanganNafsuMakan == 'Ya') ? 0 : 2;
+        final skorEfekPenyakit = (_kehilanganNafsuMakanController.text == 'Ya')
+            ? 0
+            : 2;
 
         final totalSkor = skorIMT + skorKehilanganBB + skorEfekPenyakit;
 
@@ -327,8 +368,6 @@ class _DataFormPageState extends State<DataFormPage> {
           'diagnosisMedis': diagnosisMedis,
           'beratBadan': beratBadan,
           'tinggiBadan': tinggiBadan,
-          'jenisKelamin': _jenisKelamin,
-          'aktivitas': _aktivitas,
           'imt': imt,
           'skorIMT': skorIMT,
           'skorKehilanganBB': skorKehilanganBB,
@@ -340,10 +379,12 @@ class _DataFormPageState extends State<DataFormPage> {
           ), // BARU: Simpan LILA ke Firestore
           'tl': double.tryParse(_tlController.text),
           'beratBadanDulu': double.tryParse(_beratBadanDuluController.text),
-          'kehilanganNafsuMakan': _kehilanganNafsuMakan,
+          'jenisKelamin': _jenisKelaminController.text,
+          'aktivitas': _aktivitasController.text,
+          'kehilanganNafsuMakan': _kehilanganNafsuMakanController.text,
+          'alergiMakanan': _alergiMakananController.text,
 
           // BARU: Data Asuhan Gizi
-          'alergiMakanan': _alergiMakanan,
           'detailAlergi': _detailAlergiController.text,
           'polaMakan': _polaMakanController.text,
           'biokimiaGDS': _biokimiaGDSController.text,
@@ -404,8 +445,9 @@ class _DataFormPageState extends State<DataFormPage> {
             diagnosisMedis: diagnosisMedis,
             beratBadan: beratBadan,
             tinggiBadan: tinggiBadan,
-            jenisKelamin: _jenisKelamin ?? 'Laki-laki',
-            aktivitas: _aktivitas ?? 'Sangat Jarang',
+            jenisKelamin: _jenisKelaminController.text,
+            aktivitas: _aktivitasController.text,
+            kehilanganNafsuMakan: _kehilanganNafsuMakanController.text,
             imt: imt,
             skorIMT: skorIMT,
             skorKehilanganBB: skorKehilanganBB,
@@ -414,10 +456,8 @@ class _DataFormPageState extends State<DataFormPage> {
             tanggalPemeriksaan: DateTime.now(),
             lila: double.tryParse(_lilaController.text),
             tl: double.tryParse(_tlController.text),
-
-            // ✨ PENAMBAHAN KODE PENTING ADA DI SINI ✨
-            // Memasukkan semua data asuhan gizi ke objek yang dikembalikan
-            alergiMakanan: _alergiMakanan,
+            beratBadanDulu: double.tryParse(_beratBadanDuluController.text),
+            alergiMakanan: _alergiMakananController.text,
             detailAlergi: _detailAlergiController.text,
             polaMakan: _polaMakanController.text,
             biokimiaGDS: _biokimiaGDSController.text,
@@ -495,7 +535,9 @@ class _DataFormPageState extends State<DataFormPage> {
         onSubmit: _savePatientData,
         resetButtonColor: Colors.white, // Background jadi putih
         resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
-        submitIcon: widget.patient != null ? const Icon(Icons.save, color: Colors.white) : const Icon(Icons.add, color: Colors.white),
+        submitIcon: widget.patient != null
+            ? const Icon(Icons.save, color: Colors.white)
+            : const Icon(Icons.add, color: Colors.white),
         submitText: widget.patient != null ? 'Simpan' : 'Tambah',
         isLoading: _isLoading,
       ),
@@ -512,45 +554,56 @@ class _DataFormPageState extends State<DataFormPage> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
+
               _buildTextFormField(
                 controller: _noRMController,
                 label: 'No. Rekam Medis (RM)',
                 prefixIcon: const Icon(Icons.medical_information),
+                focusNode: _focusNodes[0],
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _namaLengkapController,
                 label: 'Nama Lengkap',
                 prefixIcon: const Icon(Icons.person),
+                focusNode: _focusNodes[1],
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _tanggalLahirController,
                 label: 'Tanggal Lahir',
                 readOnly: true,
                 onTap: () => _selectDate(context),
                 prefixIcon: const Icon(Icons.calendar_today),
+                focusNode: _focusNodes[2],
               ),
               const SizedBox(height: 16),
-              _buildDropdownFormField(
-                value: _jenisKelamin,
-                prefixIcon: const Icon(Icons.wc),
+
+              _buildCustomDropdown(
+                controller: _jenisKelaminController,
                 label: 'Jenis Kelamin',
+                prefixIcon: const Icon(Icons.wc),
                 items: ['Laki-laki', 'Perempuan'],
-                onChanged: (value) => setState(() => _jenisKelamin = value),
+                focusNode: _focusNodes[3],
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _diagnosisMedisController,
                 label: 'Diagnosis Medis',
                 prefixIcon: const Icon(Icons.sick),
+                focusNode: _focusNodes[4],
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _beratBadanController,
                 label: 'Berat Badan Saat Ini',
                 keyboardType: TextInputType.number,
                 prefixIcon: const Icon(Icons.monitor_weight),
+                focusNode: _focusNodes[5],
                 suffixText: 'kg',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -569,6 +622,7 @@ class _DataFormPageState extends State<DataFormPage> {
                 label: 'Lingkar Lengan Atas (LILA)',
                 keyboardType: TextInputType.number,
                 prefixIcon: const Icon(Icons.fitness_center),
+                focusNode: _focusNodes[6],
                 suffixText: 'cm',
                 validator: (value) {
                   if (_beratBadanController.text.isEmpty &&
@@ -590,6 +644,7 @@ class _DataFormPageState extends State<DataFormPage> {
                 label: 'Berat Badan 3-6 Bulan Lalu',
                 keyboardType: TextInputType.number,
                 prefixIcon: const Icon(Icons.history),
+                focusNode: _focusNodes[7],
                 suffixText: 'kg',
                 // Validator ini opsional, data tetap bisa disimpan jika kosong
                 validator: (value) {
@@ -608,6 +663,7 @@ class _DataFormPageState extends State<DataFormPage> {
                 label: 'Tinggi Badan',
                 keyboardType: TextInputType.number,
                 prefixIcon: const Icon(Icons.height),
+                focusNode: _focusNodes[8],
                 suffixText: 'cm',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -626,6 +682,7 @@ class _DataFormPageState extends State<DataFormPage> {
                 label: 'Tinggi Lutut (TL)',
                 keyboardType: TextInputType.number,
                 prefixIcon: const Icon(Icons.accessibility),
+                focusNode: _focusNodes[9],
                 suffixText: 'cm',
                 validator: (value) {
                   if (_tinggiBadanController.text.isEmpty &&
@@ -642,19 +699,19 @@ class _DataFormPageState extends State<DataFormPage> {
               ),
               const SizedBox(height: 16),
               // BARU: Dropdown untuk kehilangan nafsu makan
-              _buildDropdownFormField(
-                prefixIcon: const Icon(Icons.food_bank_outlined),
-                value: _kehilanganNafsuMakan,
+              _buildCustomDropdown(
+                controller: _kehilanganNafsuMakanController,
                 label: 'Ada asupan nutrisi > 5 hari?',
+                prefixIcon: const Icon(Icons.food_bank_outlined),
                 items: ['Ya', 'Tidak Ada'],
-                onChanged: (value) =>
-                    setState(() => _kehilanganNafsuMakan = value),
+                focusNode: _focusNodes[10], // Ganti 10 dengan index yang benar
               ),
               const SizedBox(height: 16),
-              _buildDropdownFormField(
-                prefixIcon: const Icon(Icons.directions_run),
-                value: _aktivitas,
+
+              _buildCustomDropdown(
+                controller: _aktivitasController,
                 label: 'Tingkat Aktivitas',
+                prefixIcon: const Icon(Icons.directions_run),
                 items: [
                   'Sangat Jarang',
                   'Ringan',
@@ -662,9 +719,9 @@ class _DataFormPageState extends State<DataFormPage> {
                   'Berat',
                   'Sangat Aktif',
                 ],
-                onChanged: (value) => setState(() => _aktivitas = value),
+                focusNode: _focusNodes[11], // Ganti 11 dengan index yang benar
+                showSearch: false, // Aktifkan pencarian
               ),
-
               const SizedBox(height: 24),
               const Text(
                 'Input Data Asuhan Gizi (Opsional)',
@@ -675,15 +732,18 @@ class _DataFormPageState extends State<DataFormPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDropdownFormField(
-                    value: _alergiMakanan,
-                    prefixIcon: const Icon(Icons.no_food),
+                  // 1. Ganti DropdownButtonFormField dengan _buildCustomDropdown
+                  _buildCustomDropdown(
+                    controller: _alergiMakananController,
                     label: 'Alergi Makanan',
+                    prefixIcon: const Icon(Icons.no_food),
                     items: ['Ya', 'Tidak'],
+                    focusNode:
+                        _focusNodes[12], // Ganti 12 dengan index yang benar
                     onChanged: (value) {
+                      // onChanged khusus untuk memicu setState agar field di bawahnya muncul/hilang
                       setState(() {
-                        _alergiMakanan = value;
-                        // Opsional: bersihkan field detail jika pengguna memilih 'Tidak'
+                        _alergiMakananController.text = value ?? 'Tidak';
                         if (value == 'Tidak') {
                           _detailAlergiController.clear();
                         }
@@ -691,17 +751,18 @@ class _DataFormPageState extends State<DataFormPage> {
                     },
                   ),
 
-                  if (_alergiMakanan == 'Ya')
+                  // 2. Gunakan controller untuk memeriksa kondisi
+                  if (_alergiMakananController.text == 'Ya')
                     Padding(
-                      padding: const EdgeInsets.only(
-                        top: 16.0,
-                      ), // Beri jarak atas
+                      padding: const EdgeInsets.only(top: 16.0),
                       child: _buildTextFormField(
                         controller: _detailAlergiController,
                         label: 'Jika Ya, sebutkan alerginya',
                         prefixIcon: const Icon(Icons.description),
+                        focusNode:
+                            _focusNodes[13], // Ganti 13 dengan index yang benar
                         validator: (value) {
-                          // Anda bisa membuatnya wajib diisi jika 'Ya' dipilih
+                          // Validasi ini hanya berjalan jika field-nya terlihat
                           if (value == null || value.isEmpty) {
                             return 'Detail alergi tidak boleh kosong';
                           }
@@ -716,148 +777,189 @@ class _DataFormPageState extends State<DataFormPage> {
                 controller: _polaMakanController,
                 label: 'Pola Makan / Asupan',
                 prefixIcon: const Icon(Icons.restaurant),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[14], // Ganti 14 dengan index yang benar
+                validator: (value) => null, // Opsional, tidak wajib diisi
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _biokimiaGDSController,
                 label: 'Biokimia: GDS',
                 prefixIcon: const Icon(Icons.science),
+                focusNode: _focusNodes[15], // Ganti 15 dengan index yang benar
                 validator: (value) => null, // Opsional
               ),
               const SizedBox(height: 16),
+
+              // Lanjutkan pola yang sama untuk semua field berikutnya...
               _buildTextFormField(
                 controller: _biokimiaUreumController,
                 label: 'Biokimia: Ureum',
                 prefixIcon: const Icon(Icons.science),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[16], // Index selanjutnya
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _biokimiaHGBController,
                 label: 'Biokimia: HGB',
                 prefixIcon: const Icon(Icons.science),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[17], // Index selanjutnya
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _biokimiaENTController,
                 label: 'Biokimia: ENT',
                 prefixIcon: const Icon(Icons.science),
+                focusNode: _focusNodes[18],
                 validator: (value) => null, // Opsional
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _klinikTDController,
                 label: 'Tekanan Darah (TD)',
                 prefixIcon: const Icon(Icons.favorite),
+                focusNode: _focusNodes[19],
                 validator: (value) => null, // Opsional
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _klinikNadiController,
                 label: 'Nadi (N)',
                 prefixIcon: const Icon(Icons.monitor_heart),
+                focusNode: _focusNodes[20],
                 validator: (value) => null, // Opsional
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _klinikSuhuController,
                 label: 'Suhu Badan (SB)',
                 prefixIcon: const Icon(Icons.thermostat),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[21], // Lanjutan dari index sebelumnya
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _klinikRRController,
                 label: 'Pernapasan (RR)',
                 prefixIcon: const Icon(Icons.air),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[22],
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _klinikKUController,
                 label: 'Keadaan Umum (KU)',
                 prefixIcon: const Icon(Icons.monitor_heart),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[23],
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _klinikKESController,
                 label: 'Kesadaran (KES)',
                 prefixIcon: const Icon(Icons.monitor_heart),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[24],
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _klinikSPO2Controller,
                 label: 'Saturasi Oksigen (SpO2)',
                 prefixIcon: const Icon(Icons.air),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[25],
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _riwayatPenyakitSekarangController,
                 label: 'Riwayat Penyakit Sekarang (RPS)',
                 prefixIcon: const Icon(Icons.history_edu),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[26],
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _riwayatPenyakitDahuluController,
                 label: 'Riwayat Penyakit Dahulu (RPD)',
                 prefixIcon: const Icon(Icons.history),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[27],
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _diagnosaGiziController,
                 label: 'Diagnosa Gizi',
                 prefixIcon: const Icon(Icons.medical_services),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[28],
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _intervensiDietController,
                 label: 'Intervensi: Diet',
                 prefixIcon: const Icon(Icons.food_bank),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[29],
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _intervensiBentukMakananController,
                 label: 'Intervensi: Bentuk Makanan',
                 prefixIcon: const Icon(Icons.fastfood),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[30],
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _intervensiViaController,
                 label: 'Intervensi: Via',
                 prefixIcon: const Icon(Icons.route),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[31],
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _intervensiTujuanController,
                 label: 'Intervensi: Tujuan',
                 prefixIcon: const Icon(Icons.flag),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[32],
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _monevAsupanController,
                 label: 'Monitoring: Asupan',
                 prefixIcon: const Icon(Icons.monitor),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[33],
+                validator: (value) => null,
               ),
-
               const SizedBox(height: 16),
+
               _buildTextFormField(
                 controller: _namaNutrisionisController,
                 label: 'Nama Nutrisionis',
                 prefixIcon: const Icon(Icons.person),
-                validator: (value) => null, // Opsional
+                focusNode: _focusNodes[34], 
+                validator: (value) => null,
               ),
             ],
           ),
@@ -869,6 +971,7 @@ class _DataFormPageState extends State<DataFormPage> {
   Widget _buildTextFormField({
     required TextEditingController controller,
     required String label,
+    required FocusNode focusNode,
     bool readOnly = false,
     VoidCallback? onTap,
     Icon? prefixIcon,
@@ -879,6 +982,7 @@ class _DataFormPageState extends State<DataFormPage> {
   }) {
     return TextFormField(
       controller: controller,
+      focusNode: focusNode,
       readOnly: readOnly,
       onTap: onTap,
       keyboardType: keyboardType,
@@ -904,25 +1008,39 @@ class _DataFormPageState extends State<DataFormPage> {
     );
   }
 
-  Widget _buildDropdownFormField({
-    required String? value,
+  Widget _buildCustomDropdown({
+    required TextEditingController controller,
     required String label,
     required List<String> items,
-    required ValueChanged<String?> onChanged,
-    required Icon? prefixIcon,
+    required Icon prefixIcon,
+    required FocusNode focusNode,
+    bool showSearch = false,
+    void Function(String?)? onChanged,
   }) {
-    return DropdownButtonFormField<String>(
-      value: value,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        prefixIcon: prefixIcon,
+    return DropdownSearch<String>(
+      popupProps: PopupProps.menu(
+        showSearchBox: false,
+        fit: FlexFit.loose,
+        constraints: const BoxConstraints(maxHeight: 240),
       ),
-      items: items.map((String item) {
-        return DropdownMenuItem<String>(value: item, child: Text(item));
-      }).toList(),
-      onChanged: onChanged,
-      validator: (value) => value == null ? '$label harus dipilih' : null,
+      items: items,
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          prefixIcon: prefixIcon,
+        ),
+      ),
+      onChanged:
+          onChanged ??
+          (String? newValue) {
+            setState(() {
+              controller.text = newValue ?? '';
+            });
+          },
+      selectedItem: controller.text.isEmpty ? null : controller.text,
+      validator: (value) =>
+          (value == null || value.isEmpty) ? '$label harus dipilih' : null,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class TdeeFormPage extends StatefulWidget {
   const TdeeFormPage({super.key});
@@ -17,10 +18,9 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
   final _temperatureController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _resultCardKey = GlobalKey();
-
-  String? _selectedGender;
-  String? _selectedActivityFactor;
-  String? _selectedStressFactor;
+  final _genderController = TextEditingController();
+  final _activityFactorController = TextEditingController();
+  final _stressFactorController = TextEditingController();
   double? _calculatedTdee;
   double? _calculatedBmr;
 
@@ -60,6 +60,9 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
     _ageController.dispose();
     _temperatureController.dispose();
     _scrollController.dispose();
+    _genderController.dispose();
+    _activityFactorController.dispose();
+    _stressFactorController.dispose();
     super.dispose();
   }
 
@@ -80,12 +83,15 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
     final height = double.tryParse(_heightController.text) ?? 0;
     final age = int.tryParse(_ageController.text) ?? 0;
 
-    if (_selectedGender == null || weight <= 0 || height <= 0 || age <= 0) {
+    if (_genderController.text.isEmpty ||
+        weight <= 0 ||
+        height <= 0 ||
+        age <= 0) {
       return 0;
     }
 
     // Harris-Benedict equation
-    if (_selectedGender == 'Laki-laki') {
+    if (_genderController.text == 'Laki-laki') {
       return 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
     } else {
       return 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
@@ -95,17 +101,18 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
   void calculateTDEE() {
     if (_formKey.currentState!.validate()) {
       final bmr = calculateBMR();
-      final activityFactor = activityFactors[_selectedActivityFactor] ?? 1.0;
+      final activityFactor =
+          activityFactors[_activityFactorController.text] ?? 1.0;
 
       double stressFactor = 1.0;
 
-      if (_selectedStressFactor == 'Demam (per 1°C)') {
+      if (_stressFactorController.text == 'Demam (per 1°C)') {
         final temperature = double.tryParse(_temperatureController.text) ?? 0;
         if (temperature > 37) {
           stressFactor = 1.0 + (0.13 * (temperature - 37));
         }
       } else {
-        stressFactor = stressFactors[_selectedStressFactor] ?? 1.0;
+        stressFactor = stressFactors[_stressFactorController.text] ?? 1.0;
       }
 
       final tdee = bmr * activityFactor * stressFactor;
@@ -124,10 +131,10 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
     _heightController.clear();
     _ageController.clear();
     _temperatureController.clear();
+    _genderController.clear();
+    _activityFactorController.clear();
+    _stressFactorController.clear();
     setState(() {
-      _selectedGender = null;
-      _selectedActivityFactor = null;
-      _selectedStressFactor = null;
       _calculatedTdee = null;
       _calculatedBmr = null;
     });
@@ -157,187 +164,80 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // Berat Badan
-                TextFormField(
+                _buildTextFormField(
                   controller: _weightController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Berat Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.monitor_weight),
-                    suffixText: 'kg',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Berat badan tidak boleh kosong';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Masukkan angka yang valid';
-                    }
-                    return null;
-                  },
+                  label: 'Berat Badan',
+                  prefixIcon: const Icon(Icons.monitor_weight),
+                  suffixText: 'kg',
                 ),
                 const SizedBox(height: 16),
 
-                // Tinggi Badan
-                TextFormField(
+                _buildTextFormField(
                   controller: _heightController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Tinggi Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.height),
-                    suffixText: 'cm',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Tinggi badan tidak boleh kosong';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Masukkan angka yang valid';
-                    }
-                    return null;
-                  },
+                  label: 'Tinggi Badan',
+                  prefixIcon: const Icon(Icons.height),
+                  suffixText: 'cm',
                 ),
                 const SizedBox(height: 16),
 
-                // Jenis Kelamin
-                DropdownButtonFormField<String>(
-                  value: _selectedGender,
-                  decoration: const InputDecoration(
-                    labelText: 'Jenis Kelamin',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.wc),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'Laki-laki',
-                      child: Text('Laki-laki'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Perempuan',
-                      child: Text('Perempuan'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedGender = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Pilih jenis kelamin';
-                    }
-                    return null;
-                  },
+                _buildCustomDropdown(
+                  controller: _genderController,
+                  label: 'Jenis Kelamin',
+                  prefixIcon: const Icon(Icons.wc),
+                  items: ['Laki-laki', 'Perempuan'],
                 ),
                 const SizedBox(height: 16),
 
-                // Umur
-                TextFormField(
+                _buildTextFormField(
                   controller: _ageController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Usia',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.calendar_today),
-                    suffixText: 'tahun',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Usia tidak boleh kosong';
-                    }
-                    if (int.tryParse(value) == null) {
-                      return 'Masukkan angka yang valid';
-                    }
-                    return null;
-                  },
+                  label: 'Usia',
+                  prefixIcon: const Icon(Icons.calendar_today),
+                  suffixText: 'tahun',
                 ),
                 const SizedBox(height: 16),
 
-                // Faktor Aktivitas
-                DropdownButtonFormField<String>(
-                  value: _selectedActivityFactor,
-                  decoration: const InputDecoration(
-                    labelText: 'Faktor Aktivitas',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.directions_run),
-                  ),
-                  items: activityFactors.entries.map((entry) {
-                    return DropdownMenuItem(
-                      value: entry.key,
-                      child: Text('${entry.key} (${entry.value})'),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedActivityFactor = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Pilih faktor aktivitas';
-                    }
-                    return null;
-                  },
+                _buildCustomDropdown(
+                  controller: _activityFactorController,
+                  label: 'Faktor Aktivitas',
+                  prefixIcon: const Icon(Icons.directions_run),
+                  items: activityFactors.keys.toList(),
                 ),
                 const SizedBox(height: 16),
 
-                // Faktor Stress
-                DropdownButtonFormField<String>(
-                  value: _selectedStressFactor,
-                  decoration: const InputDecoration(
-                    labelText: 'Faktor Stress',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.healing),
-                  ),
-                  items: stressFactors.entries.map((entry) {
-                    return DropdownMenuItem(
-                      value: entry.key,
-                      child: Text('${entry.key} (${entry.value})'),
-                    );
-                  }).toList(),
+                _buildCustomDropdown(
+                  controller: _stressFactorController,
+                  label: 'Faktor Stress',
+                  prefixIcon: const Icon(Icons.healing),
+                  items: stressFactors.keys.toList(),
                   onChanged: (value) {
                     setState(() {
-                      _selectedStressFactor = value;
+                      _stressFactorController.text = value ?? '';
                       if (value != 'Demam (per 1°C)') {
                         _temperatureController.clear();
                       }
                     });
                   },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Pilih faktor stress';
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 16),
 
-                // Suhu Tubuh (khusus untuk demam)
-                if (_selectedStressFactor == 'Demam (per 1°C)')
-                  TextFormField(
+                // Suhu Tubuh (muncul kondisional)
+                if (_stressFactorController.text == 'Demam (per 1°C)')
+                  _buildTextFormField(
                     controller: _temperatureController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Suhu Tubuh',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.thermostat),
-                      suffixText: '°C',
-                    ),
+                    label: 'Suhu Tubuh',
+                    prefixIcon: const Icon(Icons.thermostat),
+                    suffixText: '°C',
                     validator: (value) {
-                      if (_selectedStressFactor == 'Demam (per 1°C)') {
-                        if (value == null || value.isEmpty) {
-                          return 'Suhu tubuh tidak boleh kosong';
-                        }
-                        if (double.tryParse(value) == null) {
-                          return 'Masukkan angka yang valid';
-                        }
+                      if (value == null || value.isEmpty) {
+                        return 'Suhu tidak boleh kosong';
+                      }
+                      if (double.tryParse(value) == null) {
+                        return 'Masukkan angka yang valid';
                       }
                       return null;
                     },
                   ),
-                if (_selectedStressFactor == 'Demam (per 1°C)')
+                if (_stressFactorController.text == 'Demam (per 1°C)')
                   const SizedBox(height: 16),
 
                 // Buttons
@@ -410,6 +310,82 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String label,
+    required Icon prefixIcon,
+    required String suffixText,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        prefixIcon: prefixIcon,
+        suffixText: suffixText,
+      ),
+      validator:
+          validator ??
+          (value) {
+            if (value == null || value.isEmpty) {
+              return '$label tidak boleh kosong';
+            }
+            if (double.tryParse(value) == null) {
+              return 'Masukkan angka yang valid';
+            }
+            return null;
+          },
+    );
+  }
+
+  Widget _buildCustomDropdown({
+    required TextEditingController controller,
+    required String label,
+    required List<String> items,
+    required Icon prefixIcon,
+    bool showSearch = false,
+    void Function(String?)? onChanged,
+  }) {
+    return DropdownSearch<String>(
+      popupProps: PopupProps.menu(
+        showSearchBox: showSearch,
+        constraints: const BoxConstraints(
+          maxHeight: 240, // Batasi tinggi menu
+        ),
+        searchFieldProps: const TextFieldProps(
+          decoration: InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: "Cari...",
+          ),
+        ),
+      ),
+      items: items,
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          prefixIcon: prefixIcon,
+        ),
+      ),
+      onChanged:
+          onChanged ??
+          (String? newValue) {
+            setState(() {
+              controller.text = newValue ?? '';
+            });
+          },
+      selectedItem: controller.text.isEmpty ? null : controller.text,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return '$label harus dipilih';
+        }
+        return null;
+      },
     );
   }
 }

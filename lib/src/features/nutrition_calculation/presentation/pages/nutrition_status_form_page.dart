@@ -3,6 +3,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_status_models.dart';
 import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class NutritionStatusFormPage extends StatefulWidget {
   const NutritionStatusFormPage({super.key});
@@ -18,12 +19,13 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   final _heightController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _resultCardKey = GlobalKey();
-
+  final _birthDateController = TextEditingController();
+  final _measurementDateController = TextEditingController();
+  final _genderController = TextEditingController();
   DateTime? _birthDate;
   DateTime? _measurementDate;
-  String? _selectedGender;
-
   int? _ageInMonths;
+
   Map<String, dynamic>? _calculationResults;
 
   @override
@@ -31,6 +33,9 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     _weightController.dispose();
     _heightController.dispose();
     _scrollController.dispose();
+    _birthDateController.dispose();
+    _measurementDateController.dispose();
+    _genderController.dispose();
     super.dispose();
   }
 
@@ -56,13 +61,14 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
 
     if (picked != null) {
       setState(() {
+        String formattedDate = DateFormat('dd MMMM yyyy').format(picked);
         if (isBirthDate) {
           _birthDate = picked;
+          _birthDateController.text = formattedDate;
         } else {
           _measurementDate = picked;
+          _measurementDateController.text = formattedDate;
         }
-
-        // Calculate age in months if both dates are selected
         if (_birthDate != null && _measurementDate != null) {
           _calculateAgeInMonths();
         }
@@ -108,7 +114,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
         ageInMonths: _ageInMonths!,
         weight: weight,
         height: height,
-        gender: _selectedGender!,
+        gender: _genderController.text,
       );
 
       setState(() {
@@ -402,7 +408,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
       _measurementDate = null;
       _weightController.clear();
       _heightController.clear();
-      _selectedGender = null;
+      _genderController.clear();
       _ageInMonths = null;
       _calculationResults = null;
     });
@@ -433,44 +439,18 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                 const SizedBox(height: 20),
 
                 // Tanggal Lahir
-                ListTile(
-                  title: const Text('Tanggal Lahir'),
-                  subtitle: Text(
-                    _birthDate != null
-                        ? DateFormat('dd/MM/yyyy').format(_birthDate!)
-                        : 'Pilih tanggal lahir',
-                  ),
-                  trailing: const Icon(Icons.calendar_today),
+                _buildDatePickerField(
+                  controller: _birthDateController,
+                  label: 'Tanggal Lahir',
                   onTap: () => _selectDate(context, true),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(
-                      color: _birthDate == null
-                          ? Colors.grey
-                          : Color.fromARGB(255, 0, 148, 68),
-                    ),
-                  ),
                 ),
                 const SizedBox(height: 16),
 
                 // Tanggal Pengukuran
-                ListTile(
-                  title: const Text('Tanggal Pengukuran'),
-                  subtitle: Text(
-                    _measurementDate != null
-                        ? DateFormat('dd/MM/yyyy').format(_measurementDate!)
-                        : 'Pilih tanggal pengukuran',
-                  ),
-                  trailing: const Icon(Icons.calendar_today),
+                _buildDatePickerField(
+                  controller: _measurementDateController,
+                  label: 'Tanggal Pengukuran',
                   onTap: () => _selectDate(context, false),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(
-                      color: _measurementDate == null
-                          ? Colors.grey
-                          : Color.fromARGB(255, 0, 148, 68),
-                    ),
-                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -496,78 +476,29 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                 ],
 
                 // Jenis Kelamin
-                DropdownButtonFormField<String>(
-                  value: _selectedGender,
-                  decoration: const InputDecoration(
-                    labelText: 'Jenis Kelamin',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.wc),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'Laki-laki',
-                      child: Text('Laki-laki'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Perempuan',
-                      child: Text('Perempuan'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedGender = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Pilih jenis kelamin';
-                    }
-                    return null;
-                  },
+                _buildCustomDropdown(
+                  controller: _genderController,
+                  label: 'Jenis Kelamin',
+                  prefixIcon: const Icon(Icons.wc),
+                  items: ['Laki-laki', 'Perempuan'],
                 ),
                 const SizedBox(height: 16),
 
                 // Berat Badan
-                TextFormField(
+                _buildTextFormField(
                   controller: _weightController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Berat Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.monitor_weight),
-                    suffixText: 'kg',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Berat badan tidak boleh kosong';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Masukkan angka yang valid';
-                    }
-                    return null;
-                  },
+                  label: 'Berat Badan',
+                  prefixIcon: const Icon(Icons.monitor_weight),
+                  suffixText: 'kg',
                 ),
                 const SizedBox(height: 16),
 
                 // Tinggi Badan
-                TextFormField(
+                _buildTextFormField(
                   controller: _heightController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Tinggi Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.height),
-                    suffixText: 'cm',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Tinggi badan tidak boleh kosong';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Masukkan angka yang valid';
-                    }
-                    return null;
-                  },
+                  label: 'Tinggi Badan',
+                  prefixIcon: const Icon(Icons.height),
+                  suffixText: 'cm',
                 ),
                 const SizedBox(height: 32),
 
@@ -692,6 +623,90 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
           ],
         ],
       ),
+    );
+  }
+
+  // 1. Widget untuk Input Teks (BB & TB)
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String label,
+    required Icon prefixIcon,
+    required String suffixText,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        prefixIcon: prefixIcon,
+        suffixText: suffixText,
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return '$label tidak boleh kosong';
+        }
+        if (double.tryParse(value) == null) {
+          return 'Masukkan angka yang valid';
+        }
+        return null;
+      },
+    );
+  }
+
+  // 2. Widget untuk Dropdown (Jenis Kelamin)
+  Widget _buildCustomDropdown({
+    required TextEditingController controller,
+    required String label,
+    required List<String> items,
+    required Icon prefixIcon,
+  }) {
+    return DropdownSearch<String>(
+      popupProps: PopupProps.menu(
+        showSearchBox: false, // Tidak ada pencarian untuk form ini
+        fit: FlexFit.loose,
+        constraints: const BoxConstraints(maxHeight: 240),
+      ),
+      items: items,
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          prefixIcon: prefixIcon,
+        ),
+      ),
+      onChanged: (String? newValue) {
+        setState(() {
+          controller.text = newValue ?? '';
+        });
+      },
+      selectedItem: controller.text.isEmpty ? null : controller.text,
+      validator: (value) =>
+          (value == null || value.isEmpty) ? '$label harus dipilih' : null,
+    );
+  }
+
+  // 3. Widget untuk Pemilih Tanggal
+  Widget _buildDatePickerField({
+    required TextEditingController controller,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return TextFormField(
+      controller: controller,
+      readOnly: true,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        prefixIcon: const Icon(Icons.calendar_today),
+      ),
+      onTap: onTap,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return '$label tidak boleh kosong';
+        }
+        return null;
+      },
     );
   }
 }

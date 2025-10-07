@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_status_models.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class IMTUFormPage extends StatefulWidget {
   const IMTUFormPage({super.key});
@@ -18,8 +19,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
   final _ageMonthsController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _resultCardKey = GlobalKey();
-
-  String? _selectedGender;
+  final _genderController = TextEditingController();
   Map<String, dynamic>? _calculationResult;
 
   @override
@@ -29,6 +29,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
     _ageYearsController.dispose();
     _ageMonthsController.dispose();
     _scrollController.dispose();
+    _genderController.dispose();
     super.dispose();
   }
 
@@ -52,9 +53,9 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
       final height = double.tryParse(_heightController.text) ?? 0;
       final ageYears = int.tryParse(_ageYearsController.text) ?? 0;
       final ageMonths = int.tryParse(_ageMonthsController.text) ?? 0;
-      final gender = _selectedGender;
+      final gender = _genderController.text;
 
-      if (gender == null) {
+      if (gender.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Pilih jenis kelamin terlebih dahulu')),
         );
@@ -159,8 +160,8 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
     _heightController.clear();
     _ageYearsController.clear();
     _ageMonthsController.clear();
+    _genderController.clear();
     setState(() {
-      _selectedGender = null;
       _calculationResult = null;
     });
   }
@@ -192,45 +193,29 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
+                      child: _buildTextFormField(
                         controller: _ageYearsController,
-                        decoration: const InputDecoration(
-                          labelText: 'Tahun',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.calendar_today),
-                          suffixText: 'tahun',
-                        ),
-                        keyboardType: TextInputType.number,
+                        label: 'Tahun',
+                        prefixIcon: const Icon(Icons.calendar_today),
+                        suffixText: 'tahun',
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Masukkan tahun';
-                          }
+                          if (value == null || value.isEmpty) return 'Masukkan tahun';
                           final years = int.tryParse(value);
-                          if (years == null || years < 5 || years > 18) {
-                            return '5-18 tahun';
-                          }
+                          if (years == null || years < 5 || years > 18) return '5-18 tahun';
                           return null;
                         },
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: TextFormField(
+                      child: _buildTextFormField(
                         controller: _ageMonthsController,
-                        decoration: const InputDecoration(
-                          labelText: 'Bulan',
-                          border: OutlineInputBorder(),
-                          suffixText: 'bulan',
-                        ),
-                        keyboardType: TextInputType.number,
+                        label: 'Bulan',
+                        suffixText: 'bulan',
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Masukkan bulan';
-                          }
+                          if (value == null || value.isEmpty) return 'Masukkan bulan';
                           final months = int.tryParse(value);
-                          if (months == null || months < 0 || months > 11) {
-                            return '0-11 bulan';
-                          }
+                          if (months == null || months < 0 || months > 11) return '0-11 bulan';
                           return null;
                         },
                       ),
@@ -240,78 +225,39 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                 const SizedBox(height: 16),
 
                 // Gender Selection
-                DropdownButtonFormField<String>(
-                  value: _selectedGender,
-                  decoration: const InputDecoration(
-                    labelText: 'Jenis Kelamin',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.wc),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'Laki-laki',
-                      child: Text('Laki-laki'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Perempuan',
-                      child: Text('Perempuan'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedGender = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Pilih jenis kelamin';
-                    }
-                    return null;
-                  },
+                _buildCustomDropdown(
+                  controller: _genderController,
+                  label: 'Jenis Kelamin',
+                  prefixIcon: const Icon(Icons.wc),
+                  items: ['Laki-laki', 'Perempuan'],
                 ),
                 const SizedBox(height: 16),
 
                 // Weight Input
-                TextFormField(
+                _buildTextFormField(
                   controller: _weightController,
-                  decoration: const InputDecoration(
-                    labelText: 'Berat Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.monitor_weight),
-                    suffixText: 'kg',
-                  ),
-                  keyboardType: TextInputType.number,
+                  label: 'Berat Badan',
+                  prefixIcon: const Icon(Icons.monitor_weight),
+                  suffixText: 'kg',
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Masukkan berat badan';
-                    }
+                    if (value == null || value.isEmpty) return 'Masukkan berat badan';
                     final weight = double.tryParse(value);
-                    if (weight == null || weight <= 0) {
-                      return 'Masukkan berat yang valid';
-                    }
+                    if (weight == null || weight <= 0) return 'Masukkan berat yang valid';
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
 
                 // Height Input
-                TextFormField(
+                _buildTextFormField(
                   controller: _heightController,
-                  decoration: const InputDecoration(
-                    labelText: 'Tinggi Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.height),
-                    suffixText: 'cm',
-                  ),
-                  keyboardType: TextInputType.number,
+                  label: 'Tinggi Badan',
+                  prefixIcon: const Icon(Icons.height),
+                  suffixText: 'cm',
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Masukkan tinggi badan';
-                    }
+                    if (value == null || value.isEmpty) return 'Masukkan tinggi badan';
                     final height = double.tryParse(value);
-                    if (height == null || height <= 0) {
-                      return 'Masukkan tinggi yang valid';
-                    }
+                    if (height == null || height <= 0) return 'Masukkan tinggi yang valid';
                     return null;
                   },
                 ),
@@ -439,6 +385,59 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
           ),
         ],
       ),
+    );
+  }
+
+  // 1. Widget untuk Input Teks
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String label,
+    required String suffixText,
+    Icon? prefixIcon,
+    required String? Function(String?) validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        prefixIcon: prefixIcon,
+        suffixText: suffixText,
+      ),
+      validator: validator,
+    );
+  }
+
+  // 2. Widget untuk Dropdown
+  Widget _buildCustomDropdown({
+    required TextEditingController controller,
+    required String label,
+    required List<String> items,
+    required Icon prefixIcon,
+  }) {
+    return DropdownSearch<String>(
+      popupProps: PopupProps.menu(
+        showSearchBox: false, // Tidak ada pencarian untuk form ini
+        fit: FlexFit.loose,
+        constraints: const BoxConstraints(maxHeight: 240),
+      ),
+      items: items,
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          prefixIcon: prefixIcon,
+        ),
+      ),
+      onChanged: (String? newValue) {
+        setState(() {
+          controller.text = newValue ?? '';
+        });
+      },
+      selectedItem: controller.text.isEmpty ? null : controller.text,
+      validator: (value) =>
+          (value == null || value.isEmpty) ? '$label harus dipilih' : null,
     );
   }
 }
