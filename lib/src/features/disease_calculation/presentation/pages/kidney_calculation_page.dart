@@ -5,6 +5,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/kidney_meal_planner_service.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class KidneyCalculationPage extends StatefulWidget {
   const KidneyCalculationPage({super.key});
@@ -23,11 +24,9 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
   final _ageController = TextEditingController();
   final _scrollController = ScrollController();
   final _resultCardKey = GlobalKey();
-
-  // Form fields state
-  bool? _isDialysis;
-  String? _gender;
-  double? _selectedProteinFactor = 0.6;
+  final _dialysisController = TextEditingController();
+  final _genderController = TextEditingController();
+  final _proteinFactorController = TextEditingController(text: '0.6 (Rendah)');
   KidneyDietResult? _result;
 
   @override
@@ -35,6 +34,9 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     _heightController.dispose();
     _ageController.dispose();
     _scrollController.dispose();
+    _dialysisController.dispose();
+    _genderController.dispose();
+    _proteinFactorController.dispose();
     super.dispose();
   }
 
@@ -42,12 +44,19 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     if (_formKey.currentState!.validate()) {
       final height = double.tryParse(_heightController.text) ?? 0;
       final age = int.tryParse(_ageController.text) ?? 0;
+      // Ubah nilai string dari controller menjadi tipe data yang benar
+      final isDialysis = _dialysisController.text == 'Ya';
+      final gender = _genderController.text;
+
+      // Ambil angka dari string faktor protein
+      final proteinFactorString = _proteinFactorController.text.split(' ')[0];
+      final proteinFactor = double.tryParse(proteinFactorString);
 
       final result = _calculatorService.calculate(
         height: height,
-        isDialysis: _isDialysis!,
-        gender: _gender!,
-        proteinFactor: _isDialysis! ? null : _selectedProteinFactor,
+        isDialysis: isDialysis,
+        gender: gender,
+        proteinFactor: isDialysis ? null : proteinFactor,
         age: age,
       );
 
@@ -67,9 +76,9 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     _heightController.clear();
     _ageController.clear();
     setState(() {
-      _isDialysis = null;
-      _gender = null;
-      _selectedProteinFactor = 0.6;
+      _dialysisController.clear();
+      _genderController.clear();
+      _proteinFactorController.text = '0.6 (Rendah)';
       _result = null;
       _mealPlan = null;
     });
@@ -110,134 +119,75 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
-                // Pertanyaan Kunci: Status Dialisis
-                DropdownButtonFormField<bool>(
-                  value: _isDialysis,
-                  decoration: const InputDecoration(
-                    labelText: 'Apakah Pasien menjalani cuci darah?',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.bloodtype_outlined),
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: true, child: Text('Ya')),
-                    DropdownMenuItem(value: false, child: Text('Tidak')),
-                  ],
+
+                // Dropdown Status Dialisis
+                _buildCustomDropdown<String>(
+                  controller: _dialysisController,
+                  label: 'Apakah Pasien menjalani cuci darah?',
+                  prefixIcon: const Icon(Icons.bloodtype_outlined),
+                  items: ['Ya', 'Tidak'],
+                  itemAsString: (item) => item,
                   onChanged: (value) {
                     setState(() {
-                      _isDialysis = value;
-                      // Jika memilih 'Tidak', pastikan faktor protein punya nilai default
-                      if (value == false) {
-                        _selectedProteinFactor ??= 0.6;
-                      }
+                      _dialysisController.text = value ?? '';
                     });
                   },
-                  validator: (value) =>
-                      value == null ? 'Pilih status cuci darah' : null,
                 ),
                 const SizedBox(height: 16),
 
-                // -- FORM OPSI PROTEIN DINAMIS --
-                // Muncul hanya jika pasien TIDAK menjalani cuci darah
-                if (_isDialysis == false)
+                // Dropdown Faktor Protein (kondisional)
+                if (_dialysisController.text == 'Tidak')
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
-                    child: DropdownButtonFormField<double>(
-                      value: _selectedProteinFactor,
-                      decoration: const InputDecoration(
-                        labelText: 'Faktor Kebutuhan Protein',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.rule),
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 0.6,
-                          child: Text('0.6 (Rendah)'),
-                        ),
-                        DropdownMenuItem(
-                          value: 0.7,
-                          child: Text('0.7 (Sedang)'),
-                        ),
-                        DropdownMenuItem(
-                          value: 0.8,
-                          child: Text('0.8 (Tinggi)'),
-                        ),
-                      ],
+                    child: _buildCustomDropdown<String>(
+                      controller: _proteinFactorController,
+                      label: 'Faktor Kebutuhan Protein',
+                      prefixIcon: const Icon(Icons.rule),
+                      items: ['0.6 (Rendah)', '0.7 (Sedang)', '0.8 (Tinggi)'],
+                      itemAsString: (item) => item,
                       onChanged: (value) {
                         setState(() {
-                          _selectedProteinFactor = value;
+                          _proteinFactorController.text =
+                              value ?? '0.6 (Rendah)';
                         });
                       },
-                      validator: (value) =>
-                          value == null ? 'Pilih faktor protein' : null,
                     ),
                   ),
-                // New: Gender Selection
-                DropdownButtonFormField<String>(
-                  value: _gender,
-                  decoration: const InputDecoration(
-                    labelText: 'Jenis Kelamin',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'Laki-laki',
-                      child: Text('Laki-laki'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Perempuan',
-                      child: Text('Perempuan'),
-                    ),
-                  ],
-                  onChanged: (value) => setState(() => _gender = value),
-                  validator: (value) =>
-                      value == null ? 'Pilih jenis kelamin' : null,
+                const SizedBox(height: 16),
+
+                // Dropdown Jenis Kelamin
+                _buildCustomDropdown<String>(
+                  controller: _genderController,
+                  label: 'Jenis Kelamin',
+                  prefixIcon: const Icon(Icons.person),
+                  items: ['Laki-laki', 'Perempuan'],
+                  itemAsString: (item) => item,
+                  onChanged: (value) {
+                    setState(() {
+                      _genderController.text = value ?? '';
+                    });
+                  },
                 ),
                 const SizedBox(height: 16),
+
                 // Input Tinggi Badan
-                TextFormField(
+                _buildTextFormField(
                   controller: _heightController,
-                  decoration: const InputDecoration(
-                    labelText: 'Tinggi Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.height),
-                    suffixText: 'cm',
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Masukkan tinggi badan';
-                    }
-                    final height = double.tryParse(value);
-                    if (height == null || height <= 0) {
-                      return 'Masukkan tinggi badan yang valid';
-                    }
-                    return null;
-                  },
+                  label: 'Tinggi Badan',
+                  prefixIcon: const Icon(Icons.height),
+                  suffixText: 'cm',
                 ),
                 const SizedBox(height: 16),
-                // New: Usia Input
-                TextFormField(
+
+                // Input Usia
+                _buildTextFormField(
                   controller: _ageController,
-                  decoration: const InputDecoration(
-                    labelText: 'Usia',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.calendar_today),
-                    suffixText: 'tahun',
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Masukkan usia';
-                    }
-                    final age = int.tryParse(value);
-                    if (age == null || age <= 0) {
-                      return 'Masukkan usia yang valid';
-                    }
-                    return null;
-                  },
+                  label: 'Usia',
+                  prefixIcon: const Icon(Icons.calendar_today),
+                  suffixText: 'tahun',
                 ),
                 const SizedBox(height: 32),
+
                 // Tombol Aksi
                 FormActionButtons(
                   onReset: _resetForm,
@@ -276,8 +226,77 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     );
   }
 
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String label,
+    required Icon prefixIcon,
+    required String suffixText,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        prefixIcon: prefixIcon,
+        suffixText: suffixText,
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) return '$label tidak boleh kosong';
+        if (double.tryParse(value) == null) return 'Masukkan angka yang valid';
+        return null;
+      },
+    );
+  }
+
+  // Widget untuk Dropdown
+  Widget _buildCustomDropdown<T>({
+    required TextEditingController controller,
+    required String label,
+    required List<T> items,
+    required Icon prefixIcon,
+    required String Function(T) itemAsString,
+    void Function(T?)? onChanged,
+  }) {
+    // --- PERBAIKAN LOGIKA DIMULAI DI SINI ---
+    T? selectedItem;
+    try {
+      // Coba temukan item yang cocok dengan teks di controller
+      selectedItem = items.firstWhere(
+        (item) => itemAsString(item) == controller.text,
+      );
+    } catch (e) {
+      // Jika tidak ada yang cocok (firstWhere error), biarkan selectedItem bernilai null
+      selectedItem = null;
+    }
+    // --- PERBAIKAN LOGIKA SELESAI ---
+
+    return DropdownSearch<T>(
+      popupProps: const PopupProps.menu(
+        showSearchBox: false,
+        fit: FlexFit.loose,
+      ),
+      items: items,
+      itemAsString: itemAsString,
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          prefixIcon: prefixIcon,
+        ),
+      ),
+      onChanged: onChanged,
+      // Gunakan variabel selectedItem yang sudah kita proses
+      selectedItem: selectedItem,
+      validator: (value) => (value == null && controller.text.isEmpty)
+          ? '$label harus dipilih'
+          : null,
+    );
+  }
+
   // Salin dan ganti seluruh method _buildResultCard() yang ada dengan kode ini
   Widget _buildResultCard() {
+    final proteinFactorValue = _proteinFactorController.text.split(' ')[0];
     // Membuat variabel untuk teks rekomendasi diet secara dinamis.
     final String recommendationText = _result!.isDialysis
         ? 'Diet Hemodialisis (HD)\nProtein ${_result!.recommendedDiet} gram'
@@ -286,7 +305,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     // Membuat variabel untuk teks penjelasan faktor protein secara dinamis.
     final String factorExplanationText = _result!.isDialysis
         ? '*Pasien hemodialisis membutuhkan asupan protein lebih tinggi (1.2 g/kg BBI).'
-        : '*Pasien pre-dialisis membutuhkan asupan protein lebih rendah (${_selectedProteinFactor}g/kg BBI) untuk memperlambat laju penyakit.';
+        : '*Pasien pre-dialisis membutuhkan asupan protein lebih rendah (${proteinFactorValue}g/kg BBI) untuk memperlambat laju penyakit.';
 
     return Container(
       key: _resultCardKey,

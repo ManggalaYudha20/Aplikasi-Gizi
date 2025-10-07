@@ -245,7 +245,13 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                     value: _currentPatient.detailAlergi!,
                     emptyValueMessage: 'Tidak ada data Alergi makanan.',
                   ),
-                _buildInfoRow('Pola Makan', _currentPatient.polaMakan ?? '-'),
+                _buildInfoRow(
+                  'Pola Makan',
+                  (_currentPatient.polaMakan != null &&
+                          _currentPatient.polaMakan!.isNotEmpty)
+                      ? '${_currentPatient.polaMakan}'
+                      : '-',
+                ),
               ],
             ),
             // Kategori 2: Data Biokimia
@@ -396,15 +402,24 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
               children: [
                 _buildInfoRow(
                   'Intervensi Diet',
-                  _currentPatient.intervensiDiet ?? '-',
+                  (_currentPatient.intervensiDiet != null &&
+                          _currentPatient.intervensiDiet!.isNotEmpty)
+                      ? '${_currentPatient.intervensiDiet}'
+                      : '-',
                 ),
                 _buildInfoRow(
                   'Intervensi Bentuk Makanan',
-                  _currentPatient.intervensiBentukMakanan ?? '-',
+                  (_currentPatient.intervensiBentukMakanan != null &&
+                          _currentPatient.intervensiBentukMakanan!.isNotEmpty)
+                      ? '${_currentPatient.intervensiBentukMakanan}'
+                      : '-',
                 ),
                 _buildInfoRow(
                   'Intervensi Via',
-                  _currentPatient.intervensiVia ?? '-',
+                  (_currentPatient.intervensiVia != null &&
+                          _currentPatient.intervensiVia!.isNotEmpty)
+                      ? '${_currentPatient.intervensiVia}'
+                      : '-',
                 ),
                 _buildInfoDisplay(
                   label: 'Tujuan :',

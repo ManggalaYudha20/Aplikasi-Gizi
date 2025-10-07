@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/diabetes_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class DiabetesCalculationPage extends StatefulWidget {
   const DiabetesCalculationPage({super.key});
@@ -21,13 +22,14 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   final _heightController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _resultCardKey = GlobalKey();
+  final _genderController = TextEditingController();
+  final _activityController = TextEditingController();
+  final _bloodSugarController = TextEditingController();
+  final _bloodPressureController = TextEditingController();
+  final _hospitalizedStatusController = TextEditingController();
 
   // Form fields
-  String? _selectedGender;
-  String? _selectedActivity;
-  String? _bloodSugar;
-  String? _bloodPressure;
-  String? _hospitalizedStatus;
+
   double _stressMetabolic = 20.0;
 
   // Calculation results
@@ -49,6 +51,11 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     _weightController.dispose();
     _heightController.dispose();
     _scrollController.dispose();
+    _genderController.dispose();
+    _activityController.dispose();
+    _bloodSugarController.dispose();
+    _bloodPressureController.dispose();
+    _hospitalizedStatusController.dispose();
     super.dispose();
   }
 
@@ -70,12 +77,12 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
         age: int.parse(_ageController.text),
         weight: double.parse(_weightController.text),
         height: double.parse(_heightController.text),
-        gender: _selectedGender!,
-        activity: _selectedActivity!,
-        hospitalizedStatus: _hospitalizedStatus!,
+        gender: _genderController.text, // Perbaikan
+        activity: _activityController.text, // Perbaikan
+        hospitalizedStatus: _hospitalizedStatusController.text, // Perbaikan
         stressMetabolic: _stressMetabolic,
-        bloodSugar: _bloodSugar!,
-        bloodPressure: _bloodPressure!,
+        bloodSugar: _bloodSugarController.text, // Perbaikan
+        bloodPressure: _bloodPressureController.text,
       );
 
       setState(() {
@@ -92,11 +99,11 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     _weightController.clear();
     _heightController.clear();
     setState(() {
-      _selectedGender = null;
-      _selectedActivity = null;
-      _bloodSugar = null;
-      _bloodPressure = null;
-      _hospitalizedStatus = null;
+      _genderController.clear();
+      _activityController.clear();
+      _bloodSugarController.clear();
+      _bloodPressureController.clear();
+      _hospitalizedStatusController.clear();
       _stressMetabolic = 20.0;
       _result = null;
     });
@@ -125,152 +132,104 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
-                TextFormField(
+
+                // Input Usia
+                _buildTextFormField(
                   controller: _ageController,
-                  decoration: const InputDecoration(
-                    labelText: 'Usia',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.calendar_today),
-                    suffixText: 'tahun',
-                  ),
-                  keyboardType: TextInputType.number,
+                  label: 'Usia',
+                  prefixIcon: const Icon(Icons.calendar_today),
+                  suffixText: 'tahun',
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Masukkan usia';
                     final age = int.tryParse(value);
-                    if (age == null || age < 1 || age > 120) {
-                      return 'Masukkan usia yang valid (1-120 tahun)';
-                    }
+                    if (age == null || age < 1 || age > 120) return 'Masukkan usia yang valid (1-120 tahun)';
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _selectedGender,
-                  decoration: const InputDecoration(
-                    labelText: 'Jenis Kelamin',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.wc),
-                  ),
-                  items: _genders.map((gender) {
-                    return DropdownMenuItem(value: gender, child: Text(gender));
-                  }).toList(),
-                  onChanged: (value) => setState(() => _selectedGender = value),
-                  validator: (value) =>
-                      value == null ? 'Pilih jenis kelamin' : null,
+
+                // Dropdown Jenis Kelamin
+                _buildCustomDropdown(
+                  controller: _genderController,
+                  label: 'Jenis Kelamin',
+                  prefixIcon: const Icon(Icons.wc),
+                  items: _genders,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+
+                // Input Berat Badan
+                _buildTextFormField(
                   controller: _weightController,
-                  decoration: const InputDecoration(
-                    labelText: 'Berat Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.monitor_weight),
-                    suffixText: 'kg',
-                  ),
-                  keyboardType: TextInputType.number,
+                  label: 'Berat Badan',
+                  prefixIcon: const Icon(Icons.monitor_weight),
+                  suffixText: 'kg',
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Masukkan berat badan';
-                    }
+                    if (value == null || value.isEmpty) return 'Masukkan berat badan';
                     final weight = double.tryParse(value);
-                    if (weight == null || weight < 1 || weight > 300) {
-                      return 'Masukkan berat badan yang valid (1-300 kg)';
-                    }
+                    if (weight == null || weight < 1 || weight > 300) return 'Masukkan berat badan yang valid (1-300 kg)';
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+
+                // Input Tinggi Badan
+                _buildTextFormField(
                   controller: _heightController,
-                  decoration: const InputDecoration(
-                    labelText: 'Tinggi Badan',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.height),
-                    suffixText: 'cm',
-                  ),
-                  keyboardType: TextInputType.number,
+                  label: 'Tinggi Badan',
+                  prefixIcon: const Icon(Icons.height),
+                  suffixText: 'cm',
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Masukkan tinggi badan';
-                    }
+                    if (value == null || value.isEmpty) return 'Masukkan tinggi badan';
                     final height = double.tryParse(value);
-                    if (height == null || height < 30 || height > 300) {
-                      return 'Masukkan tinggi badan yang valid (30-300 cm)';
-                    }
+                    if (height == null || height < 30 || height > 300) return 'Masukkan tinggi badan yang valid (30-300 cm)';
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _selectedActivity,
-                  decoration: const InputDecoration(
-                    labelText: 'Faktor Aktivitas',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.directions_run),
-                  ),
-                  items: _activityLevels.map((activity) {
-                    return DropdownMenuItem(
-                      value: activity,
-                      child: Text(activity),
-                    );
-                  }).toList(),
-                  onChanged: (value) =>
-                      setState(() => _selectedActivity = value),
-                  validator: (value) =>
-                      value == null ? 'Pilih faktor aktivitas' : null,
+
+                // Dropdown Faktor Aktivitas
+                _buildCustomDropdown(
+                  controller: _activityController,
+                  label: 'Faktor Aktivitas',
+                  prefixIcon: const Icon(Icons.directions_run),
+                  items: _activityLevels,
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _bloodSugar,
-                  decoration: const InputDecoration(
-                    labelText: 'Gula Darah',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.bloodtype),
-                  ),
-                  items: _bloodSugarOptions.map((option) {
-                    return DropdownMenuItem(value: option, child: Text(option));
-                  }).toList(),
-                  onChanged: (value) => setState(() => _bloodSugar = value),
-                  validator: (value) =>
-                      value == null ? 'Pilih status gula darah' : null,
+
+                // Dropdown Gula Darah
+                _buildCustomDropdown(
+                  controller: _bloodSugarController,
+                  label: 'Gula Darah',
+                  prefixIcon: const Icon(Icons.bloodtype),
+                  items: _bloodSugarOptions,
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _bloodPressure,
-                  decoration: const InputDecoration(
-                    labelText: 'Tekanan Darah',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.monitor_heart),
-                  ),
-                  items: _bloodPressureOptions.map((option) {
-                    return DropdownMenuItem(value: option, child: Text(option));
-                  }).toList(),
-                  onChanged: (value) => setState(() => _bloodPressure = value),
-                  validator: (value) =>
-                      value == null ? 'Pilih status tekanan darah' : null,
+
+                // Dropdown Tekanan Darah
+                _buildCustomDropdown(
+                  controller: _bloodPressureController,
+                  label: 'Tekanan Darah',
+                  prefixIcon: const Icon(Icons.monitor_heart),
+                  items: _bloodPressureOptions,
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _hospitalizedStatus,
-                  decoration: const InputDecoration(
-                    labelText: 'Status Rawat Inap',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.bed),
-                  ),
-                  items: ['Ya', 'Tidak'].map((option) {
-                    return DropdownMenuItem(value: option, child: Text(option));
-                  }).toList(),
+
+                _buildCustomDropdown(
+                  controller: _hospitalizedStatusController,
+                  label: 'Status Rawat Inap',
+                  prefixIcon: const Icon(Icons.bed),
+                  items: ['Ya', 'Tidak'],
                   onChanged: (value) {
                     setState(() {
-                      _hospitalizedStatus = value;
+                      _hospitalizedStatusController.text = value ?? '';
                       if (value == 'Tidak') _stressMetabolic = 20.0;
                     });
                   },
-                  validator: (value) =>
-                      value == null ? 'Pilih status rawat inap' : null,
                 ),
                 const SizedBox(height: 16),
-                if (_hospitalizedStatus == 'Ya') ...[
+
+                // This conditional logic now reads from the controller
+                if (_hospitalizedStatusController.text == 'Ya') ...[
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -367,7 +326,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                             'Koreksi Berat Badan',
                             '+${_result!.weightCorrection.round()} kkal/hari',
                           ),
-                        if (_hospitalizedStatus == 'Ya')
+                        if (_hospitalizedStatusController.text == 'Ya')
                           _buildNutritionRow(
                             'Koreksi Stress Metabolik',
                             '+${((_stressMetabolic / 100) * _result!.bmr).round()} kkal/hari',
@@ -570,6 +529,63 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
           ),
         ),
       ),
+    );
+  }
+
+  // Widget untuk Input Teks
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String label,
+    required Icon prefixIcon,
+    required String suffixText,
+    required String? Function(String?) validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        prefixIcon: prefixIcon,
+        suffixText: suffixText,
+      ),
+      validator: validator,
+    );
+  }
+
+  // Widget untuk Dropdown
+  Widget _buildCustomDropdown({
+    required TextEditingController controller,
+    required String label,
+    required List<String> items,
+    required Icon prefixIcon,
+    bool showSearch = false,
+    void Function(String?)? onChanged,
+  }) {
+    return DropdownSearch<String>(
+      popupProps: PopupProps.menu(
+        showSearchBox: showSearch,
+        fit: FlexFit.loose,
+        constraints: const BoxConstraints(maxHeight: 240),
+      ),
+      items: items,
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          prefixIcon: prefixIcon,
+        ),
+      ),
+      onChanged:
+          onChanged ??
+          (String? newValue) {
+            setState(() {
+              controller.text = newValue ?? '';
+            });
+          },
+      selectedItem: controller.text.isEmpty ? null : controller.text,
+      validator: (value) =>
+          (value == null || value.isEmpty) ? '$label harus dipilih' : null,
     );
   }
 
