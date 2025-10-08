@@ -109,117 +109,135 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
           onTap: () {
             FocusScope.of(context).unfocus();
           },
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                const Text(
-                  'Input Data Pasien Ginjal',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-
-                // Dropdown Status Dialisis
-                _buildCustomDropdown<String>(
-                  controller: _dialysisController,
-                  label: 'Apakah Pasien menjalani cuci darah?',
-                  prefixIcon: const Icon(Icons.bloodtype_outlined),
-                  items: ['Ya', 'Tidak'],
-                  itemAsString: (item) => item,
-                  onChanged: (value) {
-                    setState(() {
-                      _dialysisController.text = value ?? '';
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Dropdown Faktor Protein (kondisional)
-                if (_dialysisController.text == 'Tidak')
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: _buildCustomDropdown<String>(
-                      controller: _proteinFactorController,
-                      label: 'Faktor Kebutuhan Protein',
-                      prefixIcon: const Icon(Icons.rule),
-                      items: ['0.6 (Rendah)', '0.7 (Sedang)', '0.8 (Tinggi)'],
-                      itemAsString: (item) => item,
-                      onChanged: (value) {
-                        setState(() {
-                          _proteinFactorController.text =
-                              value ?? '0.6 (Rendah)';
-                        });
-                      },
-                    ),
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Input Data Pasien Ginjal',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                // Dropdown Jenis Kelamin
-                _buildCustomDropdown<String>(
-                  controller: _genderController,
-                  label: 'Jenis Kelamin',
-                  prefixIcon: const Icon(Icons.person),
-                  items: ['Laki-laki', 'Perempuan'],
-                  itemAsString: (item) => item,
-                  onChanged: (value) {
-                    setState(() {
-                      _genderController.text = value ?? '';
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-                // Input Tinggi Badan
-                _buildTextFormField(
-                  controller: _heightController,
-                  label: 'Tinggi Badan',
-                  prefixIcon: const Icon(Icons.height),
-                  suffixText: 'cm',
-                ),
-                const SizedBox(height: 16),
+                  // Dropdown Status Dialisis
+                  _buildCustomDropdown<String>(
+                    controller: _dialysisController,
+                    label: 'Apakah Pasien menjalani cuci darah?',
+                    prefixIcon: const Icon(Icons.bloodtype_outlined),
+                    items: ['Ya', 'Tidak'],
+                    itemAsString: (item) => item,
+                    onChanged: (value) {
+                      setState(() {
+                        _dialysisController.text = value ?? '';
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
 
-                // Input Usia
-                _buildTextFormField(
-                  controller: _ageController,
-                  label: 'Usia',
-                  prefixIcon: const Icon(Icons.calendar_today),
-                  suffixText: 'tahun',
-                ),
-                const SizedBox(height: 32),
-
-                // Tombol Aksi
-                FormActionButtons(
-                  onReset: _resetForm,
-                  onSubmit: _calculateKidneyDiet,
-                  resetButtonColor: Colors.white, // Background jadi putih
-                  resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
-                  submitIcon: const Icon(Icons.calculate, color: Colors.white),
-                ),
-                const SizedBox(height: 32),
-                // Tampilan Hasil
-                if (_result != null) ...[
-                  const Divider(height: 32),
-                  const SizedBox(height: 32),
-                  _buildResultCard(),
-                  const SizedBox(height: 32),
-                  if (_result!.nutritionInfo != null)
-                    _buildNutritionCard(_result!.nutritionInfo!),
-                  if (_mealPlan != null) ...[
-                    const SizedBox(height: 32),
-                    _buildMealPlanCard(_mealPlan!),
-                  ],
-                ] else if (_result != null)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 16.0),
-                    child: Center(
-                      child: Text(
-                        'Data nilai gizi untuk diet ini tidak tersedia.',
+                  // Dropdown Faktor Protein (kondisional)
+                  if (_dialysisController.text == 'Tidak')
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: _buildCustomDropdown<String>(
+                        controller: _proteinFactorController,
+                        label: 'Faktor Kebutuhan Protein',
+                        prefixIcon: const Icon(Icons.rule),
+                        items: ['0.6 (Rendah)', '0.7 (Sedang)', '0.8 (Tinggi)'],
+                        itemAsString: (item) => item,
+                        onChanged: (value) {
+                          setState(() {
+                            _proteinFactorController.text =
+                                value ?? '0.6 (Rendah)';
+                          });
+                        },
                       ),
                     ),
+                  // Dropdown Jenis Kelamin
+                  _buildCustomDropdown<String>(
+                    controller: _genderController,
+                    label: 'Jenis Kelamin',
+                    prefixIcon: const Icon(Icons.person),
+                    items: ['Laki-laki', 'Perempuan'],
+                    itemAsString: (item) => item,
+                    onChanged: (value) {
+                      setState(() {
+                        _genderController.text = value ?? '';
+                      });
+                    },
                   ),
+                  const SizedBox(height: 16),
+
+                  // Input Tinggi Badan
+                  _buildTextFormField(
+                    controller: _heightController,
+                    label: 'Tinggi Badan',
+                    prefixIcon: const Icon(Icons.height),
+                    suffixText: 'cm',
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Input Usia
+                  _buildTextFormField(
+                    controller: _ageController,
+                    label: 'Usia',
+                    prefixIcon: const Icon(Icons.calendar_today),
+                    suffixText: 'tahun',
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Tombol Aksi
+                  FormActionButtons(
+                    onReset: _resetForm,
+                    onSubmit: _calculateKidneyDiet,
+                    resetButtonColor: Colors.white, // Background jadi putih
+                    resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
+                    submitIcon: const Icon(
+                      Icons.calculate,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  // Tampilan Hasil
+                  if (_result != null) ...[
+                    const Divider(height: 32),
+                    const SizedBox(height: 25),
+                    _buildResultCard(),
+                    const SizedBox(height: 25),
+                    ExpansionTile(
+                      title: Text(
+                        'Asupan Gizi per Hari (Diet Protein ${_result!.recommendedDiet}g)',
+                      ),
+                      children: [
+                        if (_result!.nutritionInfo != null)
+                        const SizedBox(height: 10),
+                        _buildNutritionCard(_result!.nutritionInfo!),
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                    if (_mealPlan != null) ...[
+                      ExpansionTile(
+                        title: Text('Pembagian Makanan\nSehari (Diet Protein ${_result!.recommendedDiet}g)'),
+                        children: [
+                          const SizedBox(height: 10),
+                          _buildMealPlanCard(_mealPlan!),
+                        const SizedBox(height: 10),
+                        ],
+                      ),
+                    ],
+                  ] else if (_result != null)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 16.0),
+                      child: Center(
+                        child: Text(
+                          'Data nilai gizi untuk diet ini tidak tersedia.',
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

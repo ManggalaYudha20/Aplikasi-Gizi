@@ -378,7 +378,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
 
                     // CONTAINER BARU UNTUK JENIS DIET
                     ExpansionTile(
-                      title: Text('Jenis Diet ${_result!.dietInfo.name}'),
+                      title: Text('Jenis ${_result!.dietInfo.name}'),
                       children: [
                         Container(
                           padding: const EdgeInsets.all(16),
@@ -523,7 +523,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                     const SizedBox(height: 16),
                     ExpansionTile(
                       title: Text(
-                        'Pembagian Makanan Sehari-hari (${_result!.dailyMealDistribution.calorieLevel})',
+                        'Pembagian Makanan\nSehari-hari (${_result!.dailyMealDistribution.calorieLevel})',
                       ),
                       children: [
                         Container(
