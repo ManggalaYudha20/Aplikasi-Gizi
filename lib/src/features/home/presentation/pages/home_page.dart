@@ -82,6 +82,10 @@ class _HomePageState extends State<HomePage> {
         subtitle: '',
       ),
       body: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
         child: Column(
           children: [
             _buildSearchBar(),
@@ -146,6 +150,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
+      ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

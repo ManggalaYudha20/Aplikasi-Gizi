@@ -74,6 +74,10 @@ class _BbiFormPageState extends State<BbiFormPage> {
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(title: 'BBI', subtitle: 'Berat Badan Ideal'),
       body: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
         child: SingleChildScrollView(
           controller: _scrollController,
           padding: const EdgeInsets.all(16.0),
@@ -173,6 +177,7 @@ class _BbiFormPageState extends State<BbiFormPage> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

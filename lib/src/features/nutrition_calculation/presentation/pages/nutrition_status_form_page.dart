@@ -423,6 +423,10 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
         subtitle: 'Usia 0-60 Bulan',
       ),
       body: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
         child: SingleChildScrollView(
           controller: _scrollController,
           padding: const EdgeInsets.all(16.0),
@@ -561,6 +565,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

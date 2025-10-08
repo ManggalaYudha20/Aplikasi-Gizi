@@ -46,6 +46,10 @@ class _FoodListPageState extends State<FoodListPage> {
         subtitle: 'Temukan informasi gizi makanan',
       ),
       body: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
         child: Column(
           children: [
             _buildSearchBar(),
@@ -239,6 +243,7 @@ class _FoodListPageState extends State<FoodListPage> {
           ],
         ),
       ),
+    ),
       // --- TAMBAHKAN TOMBOL INI UNTUK CREATE DATA ---
       floatingActionButton: isAhliGizi
           ? FloatingActionButton(

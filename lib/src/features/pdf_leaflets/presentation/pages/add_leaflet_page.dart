@@ -151,7 +151,12 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
             ? 'Perbarui data leaflet di bawah'
             : 'Isi data leaflet di bawah',
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
@@ -219,6 +224,8 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
               ),
             ],
           ),
+        ),
+      ),
         ),
       ),
     );

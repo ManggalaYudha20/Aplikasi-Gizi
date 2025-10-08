@@ -172,6 +172,10 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(title: 'IMT/U', subtitle: 'Usia 5-18 Tahun'),
       body: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
         child: SingleChildScrollView(
           controller: _scrollController,
           padding: const EdgeInsets.all(16.0),
@@ -301,6 +305,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

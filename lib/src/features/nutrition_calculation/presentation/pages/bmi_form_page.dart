@@ -89,6 +89,10 @@ class _BmiFormPageState extends State<BmiFormPage> {
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(title: 'IMT', subtitle: 'Indeks Massa Tubuh'),
       body: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
         child: SingleChildScrollView(
           controller: _scrollController,
           padding: const EdgeInsets.all(16.0),
@@ -250,6 +254,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

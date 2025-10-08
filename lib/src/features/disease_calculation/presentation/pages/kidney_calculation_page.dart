@@ -105,6 +105,10 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
         subtitle: 'Kalkulator Kebutuhan Protein',
       ),
       body: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
         child: SingleChildScrollView(
           controller: _scrollController,
           padding: const EdgeInsets.all(16.0),
@@ -153,8 +157,6 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                       },
                     ),
                   ),
-                const SizedBox(height: 16),
-
                 // Dropdown Jenis Kelamin
                 _buildCustomDropdown<String>(
                   controller: _genderController,
@@ -218,7 +220,8 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                       ),
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

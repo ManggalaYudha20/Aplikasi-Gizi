@@ -112,7 +112,12 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: CustomAppBar(title: widget.foodItem.name, subtitle: '100 gram'),
-      body: SingleChildScrollView(
+      body:  SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+        child: SingleChildScrollView(
         controller: _scrollController,
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -495,6 +500,8 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             ),
           ],
         ),
+      ),
+      ),
       ),
     );
   }

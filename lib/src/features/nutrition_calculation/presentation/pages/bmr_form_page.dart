@@ -102,6 +102,10 @@ class _BmrFormPageState extends State<BmrFormPage> {
         subtitle: 'Basal Metabolic Rate',
       ),
       body: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
         child: SingleChildScrollView(
           controller: _scrollController,
           padding: const EdgeInsets.all(16.0),
@@ -230,6 +234,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

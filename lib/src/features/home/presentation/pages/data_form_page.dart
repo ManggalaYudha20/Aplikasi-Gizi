@@ -541,7 +541,12 @@ class _DataFormPageState extends State<DataFormPage> {
         submitText: widget.patient != null ? 'Simpan' : 'Tambah',
         isLoading: _isLoading,
       ),
-      body: Form(
+      body: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+        child: Form(
         key: _formKey,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -963,6 +968,8 @@ class _DataFormPageState extends State<DataFormPage> {
               ),
             ],
           ),
+        ),
+      ),
         ),
       ),
     );

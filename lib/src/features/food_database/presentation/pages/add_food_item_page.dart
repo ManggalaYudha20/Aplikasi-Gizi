@@ -269,7 +269,13 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
         submitIcon: _isEditMode ? const Icon(Icons.save, color: Colors.white) : const Icon(Icons.add, color: Colors.white),
         isLoading: _isLoading,
       ),
-      body: SingleChildScrollView(
+      body:  SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
@@ -469,8 +475,10 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
                 icon: Icons.percent,
                 isNumber: true,
                 focusNode: _focusNodes[26],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

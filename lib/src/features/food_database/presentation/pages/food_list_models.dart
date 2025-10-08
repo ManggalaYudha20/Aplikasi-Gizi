@@ -29,6 +29,7 @@ class FoodItem {
   final num niasin;
   final num vitaminC;
   final num bdd;
+
   FoodItem({
     this.id = '',
     required this.name,
