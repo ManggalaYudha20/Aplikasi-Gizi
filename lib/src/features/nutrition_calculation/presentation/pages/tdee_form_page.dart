@@ -189,6 +189,7 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                   label: 'Jenis Kelamin',
                   prefixIcon: const Icon(Icons.wc),
                   items: ['Laki-laki', 'Perempuan'],
+                  menuHeight: 120,
                 ),
                 const SizedBox(height: 16),
 
@@ -220,6 +221,14 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                         _temperatureController.clear();
                       }
                     });
+                     // 2. Tambahkan kembali logika untuk memperbaiki fokus
+                  final focusScope = FocusScope.of(context);
+
+                  Future.delayed(const Duration(milliseconds: 10), () {
+                    if (!mounted) return;
+                    // Gunakan variabel yang sudah disimpan, bukan context lagi.
+                    focusScope.unfocus();
+                     });
                   },
                 ),
                 const SizedBox(height: 16),
@@ -355,18 +364,18 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
     required Icon prefixIcon,
     bool showSearch = false,
     void Function(String?)? onChanged,
+    double? menuHeight,
   }) {
     return DropdownSearch<String>(
+       onBeforePopupOpening: (_) {
+        FocusScope.of(context).unfocus();
+        // Kembalikan Future<true> untuk mengizinkan popup terbuka
+        return Future.value(true);
+      },
       popupProps: PopupProps.menu(
         showSearchBox: showSearch,
-        constraints: const BoxConstraints(
-          maxHeight: 240, // Batasi tinggi menu
-        ),
-        searchFieldProps: const TextFieldProps(
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: "Cari...",
-          ),
+        constraints: BoxConstraints(
+           maxHeight: menuHeight ?? 180,
         ),
       ),
       items: items,
@@ -382,6 +391,10 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
           (String? newValue) {
             setState(() {
               controller.text = newValue ?? '';
+            });
+           Future.delayed(const Duration(milliseconds: 10), () {
+              if (!mounted) return;
+              FocusScope.of(context).unfocus();
             });
           },
       selectedItem: controller.text.isEmpty ? null : controller.text,

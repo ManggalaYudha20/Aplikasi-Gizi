@@ -241,12 +241,12 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                 if (_currentPatient.detailAlergi != null &&
                     _currentPatient.detailAlergi!.isNotEmpty)
                   _buildInfoDisplay(
-                    label: 'Detail Alergi:',
+                    label: 'Detail Alergi',
                     value: _currentPatient.detailAlergi!,
                     emptyValueMessage: 'Tidak ada data Alergi makanan.',
                   ),
                 _buildInfoRow(
-                  'Pola Makan',
+                  'Pola Makan/Asupan(%)',
                   (_currentPatient.polaMakan != null &&
                           _currentPatient.polaMakan!.isNotEmpty)
                       ? '${_currentPatient.polaMakan}'
@@ -258,7 +258,7 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
             ExpansionTile(
               leading: const Icon(Icons.science_outlined),
               title: const Text(
-                'Biokimia /BD (Biochemical Data)',
+                'Biokimia /BD \n(Biochemical Data)',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -298,7 +298,7 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
             ExpansionTile(
               leading: const Icon(Icons.monitor_heart_outlined),
               title: const Text(
-                'Klinik /Fisik /PD (Physical Data)',
+                'Klinik /Fisik /PD \n(Physical Data)',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -354,7 +354,7 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
             ExpansionTile(
               leading: const Icon(Icons.person_outline),
               title: const Text(
-                'Riwayat Personal /CH (Client History)',
+                'Riwayat Personal /CH \n(Client History)',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),

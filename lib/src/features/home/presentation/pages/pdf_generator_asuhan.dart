@@ -124,9 +124,9 @@ class PdfGeneratorAsuhan {
                   [
                   _buildInfoRowSatu('Alergi Makanan', ': ${patient.alergiMakanan ?? '-'}'),
                   if (patient.alergiMakanan == 'Ya')
-                  _buildInfoRowSatu('Jika Jawaban Ya, Sebutkan', ': ${patient.detailAlergi ?? ''}'),
+                  _buildInfoRowSatu('Jika Jawaban Ya, Sebutkan :', ' ${patient.detailAlergi ?? ''}'),
                   pw.SizedBox(height: 10),
-                  _buildInfoRowSatu('Pola Makan / Asupan', ': ${patient.polaMakan ?? '-'}'),
+                  _buildInfoRowSatu('Pola Makan / Asupan (%) :', ' ${patient.polaMakan ?? '-'}'),
                   ],
                 ),
                 _buildAssessmentCategorysatu(
@@ -152,7 +152,7 @@ class PdfGeneratorAsuhan {
                     _buildAssessmentItemRow(
                       'BB : ${patient.beratBadan} kg',
                       'IMT : ${patient.imt.toStringAsFixed(2)}',
-                      'Usia : ${patient.usia}',
+                      'Usia : ${patient.usia} tahun',
                       '',
                     ),
                     _buildAssessmentItemRow(
@@ -167,13 +167,13 @@ class PdfGeneratorAsuhan {
                   'Klinik /Fisik /PD (Physical Data)',
                   [
                     _buildAssessmentItemRow(
-                      'KU : ${patient.klinikKU ?? '-'} kg',
+                      'KU : ${patient.klinikKU ?? '-'}',
                       'TD : ${patient.klinikTD ?? '-'} mmHg',
                       'R : ${patient.klinikRR ?? '-'} x/mnt',
                       'SpO2 : ${patient.klinikSPO2 ?? '-'}%',
                     ),
                     _buildAssessmentItemRow(
-                      'KES : ${patient.klinikKES ?? '-'} kg',
+                      'KES : ${patient.klinikKES ?? '-'}',
                       'N : ${patient.klinikNadi ?? '-'} x/mnt',
                       'SB : ${patient.klinikSuhu ?? '-'} °C',
                       '',
@@ -199,7 +199,7 @@ class PdfGeneratorAsuhan {
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: _buildInfoRowSatu(
               'N1/NC/NB :',
-              '${patient.diagnosaGizi ?? '-'} ',
+              ' ${patient.diagnosaGizi ?? '-'} ',
             ),
           ),
 
@@ -224,7 +224,7 @@ class PdfGeneratorAsuhan {
                 ),
                 _buildInfoRowSatu(
                   'Tujuan :',
-                  '${patient.intervensiTujuan ?? '-'} ',
+                  ' ${patient.intervensiTujuan ?? '-'} ',
                 ),
               ],
             ),
@@ -239,9 +239,9 @@ class PdfGeneratorAsuhan {
               children: [
                 _buildInfoRowSatu(
                   'Asupan :',
-                  '${patient.monevAsupan ?? '-'} ',
+                  ' ${patient.monevAsupan ?? '-'} ',
                 ),
-                _buildInfoRowSatu('Status gizi :', '${patient.monevStatusGizi ?? '-'} '),
+                _buildInfoRowSatu('Status gizi :', ' ${patient.monevStatusGizi ?? '-'} '),
               ],
             ),
           ),
