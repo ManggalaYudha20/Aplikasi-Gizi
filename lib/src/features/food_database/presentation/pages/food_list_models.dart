@@ -1,3 +1,5 @@
+//lib\src\features\food_database\presentation\pages\food_list_models.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FoodItem {

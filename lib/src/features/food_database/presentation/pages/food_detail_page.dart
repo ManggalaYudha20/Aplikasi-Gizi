@@ -1,3 +1,5 @@
+//lib\src\features\food_database\presentation\pages\food_detail_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';

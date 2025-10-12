@@ -1,3 +1,5 @@
+//lib\src\features\home\presentation\pages\patient_detail_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart';
 import 'pdf_generator.dart';

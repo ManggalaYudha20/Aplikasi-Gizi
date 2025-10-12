@@ -6,6 +6,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/home/presentation/pages/data_form_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart';
 import 'patient_detail_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -77,80 +78,110 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(150, 255, 255, 255),
-      appBar: const CustomAppBar(
-        title: 'Daftar Pasien',
-        subtitle: '',
-      ),
+      appBar: const CustomAppBar(title: 'Daftar Pasien', subtitle: ''),
       body: SafeArea(
-        child: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-        child: Column(
-          children: [
-            _buildSearchBar(),
-            Expanded(
-              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance.collection('patients').orderBy('tanggalPemeriksaan', descending: true).snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  }
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.people_outline, size: 60, color: Colors.grey),
-                          SizedBox(height: 16),
-                          Text('Belum ada data pasien', style: TextStyle(fontSize: 18, color: Colors.grey)),
-                          Text('Tekan tombol + untuk menambah data baru', style: TextStyle(color: Colors.grey)),
-                        ],
-                      ),
-                    );
-                  }
+        child: FadeInTransition(
+          child: GestureDetector(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+            },
+            child: Column(
+              children: [
+                _buildSearchBar(),
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                    stream: FirebaseFirestore.instance
+                        .collection('patients')
+                        .orderBy('tanggalPemeriksaan', descending: true)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      }
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.people_outline,
+                                size: 60,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'Belum ada data pasien',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              Text(
+                                'Tekan tombol + untuk menambah data baru',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
 
-                  final patients = snapshot.data!.docs;
-                  
-                  // Filter pasien berdasarkan query pencarian
-                  final filteredPatients = patients.where((doc) {
-                    final patient = Patient.fromFirestore(doc);
-                    final searchQueryLower = _searchQuery.toLowerCase();
-                    return patient.namaLengkap.toLowerCase().contains(searchQueryLower) ||
-                           patient.noRM.toLowerCase().contains(searchQueryLower) ||
-                           patient.diagnosisMedis.toLowerCase().contains(searchQueryLower);
-                  }).toList();
+                      final patients = snapshot.data!.docs;
 
-                  if (filteredPatients.isEmpty && _searchQuery.isNotEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.search_off, size: 60, color: Colors.grey),
-                          const SizedBox(height: 16),
-                          Text('Tidak ada pasien dengan nama atau No. RM "$_searchQuery"', textAlign: TextAlign.center,),
-                        ],
-                      ),
-                    );
-                  }
+                      // Filter pasien berdasarkan query pencarian
+                      final filteredPatients = patients.where((doc) {
+                        final patient = Patient.fromFirestore(doc);
+                        final searchQueryLower = _searchQuery.toLowerCase();
+                        return patient.namaLengkap.toLowerCase().contains(
+                              searchQueryLower,
+                            ) ||
+                            patient.noRM.toLowerCase().contains(
+                              searchQueryLower,
+                            ) ||
+                            patient.diagnosisMedis.toLowerCase().contains(
+                              searchQueryLower,
+                            );
+                      }).toList();
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: filteredPatients.length,
-                    itemBuilder: (context, index) {
-                      final patient = Patient.fromFirestore(filteredPatients[index]);
-                      return _buildPatientCard(context, patient);
+                      if (filteredPatients.isEmpty && _searchQuery.isNotEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.search_off,
+                                size: 60,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Tidak ada pasien dengan nama atau No. RM "$_searchQuery"',
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: filteredPatients.length,
+                        itemBuilder: (context, index) {
+                          final patient = Patient.fromFirestore(
+                            filteredPatients[index],
+                          );
+                          return _buildPatientCard(context, patient);
+                        },
+                      );
                     },
-                  );
-                },
-              ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -176,22 +207,25 @@ class _HomePageState extends State<HomePage> {
           Navigator.push(
             context,
             PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => PatientDetailPage(patient: patient),
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  PatientDetailPage(patient: patient),
               transitionsBuilder: (context, animation, secondaryAnimation, child) {
                 // Posisi awal dari kiri (-1.0) ke posisi akhir di tengah (0.0)
-                const begin = Offset(-1.0, 0.0); 
+                const begin = Offset(-1.0, 0.0);
                 const end = Offset.zero;
                 const curve = Curves.easeInOut;
 
-                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                var tween = Tween(
+                  begin: begin,
+                  end: end,
+                ).chain(CurveTween(curve: curve));
                 var offsetAnimation = animation.drive(tween);
 
-                return SlideTransition(
-                  position: offsetAnimation,
-                  child: child,
-                );
+                return SlideTransition(position: offsetAnimation, child: child);
               },
-              transitionDuration: const Duration(milliseconds: 400), // Atur durasi animasi
+              transitionDuration: const Duration(
+                milliseconds: 400,
+              ), // Atur durasi animasi
             ),
           );
         },
@@ -202,16 +236,26 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text(
                 patient.namaLengkap,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 148, 68)),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 0, 148, 68),
+                ),
               ),
               const SizedBox(height: 4),
-              Text('No. RM: ${patient.noRM}', style: const TextStyle(color: Colors.grey)),
+              Text(
+                'No. RM: ${patient.noRM}',
+                style: const TextStyle(color: Colors.grey),
+              ),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Diagnosis: ${patient.diagnosisMedis}'),
-                  Text('Total Skor: ${patient.totalSkor}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Total Skor: ${patient.totalSkor}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
             ],

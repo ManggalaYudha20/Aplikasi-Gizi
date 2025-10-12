@@ -1,3 +1,5 @@
+//android\build.gradle.kts
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 configurations.all {

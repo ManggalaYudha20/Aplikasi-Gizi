@@ -1,3 +1,5 @@
+//lib\src\features\pdf_leaflets\presentation\pages\leaflet_list_model.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Leaflet {

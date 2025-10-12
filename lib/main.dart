@@ -1,3 +1,5 @@
+//lib\main.dart
+
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/bottom_navbar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/home/presentation/pages/home_page.dart';
@@ -5,15 +7,19 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_info/presentation/
 import 'package:aplikasi_diagnosa_gizi/src/features/about/presentation/pages/about_page.dart';
 import 'package:aplikasi_diagnosa_gizi/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:aplikasi_diagnosa_gizi/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
+
+  final Future<FirebaseApp> _initialization = Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +31,30 @@ class MyApp extends StatelessWidget {
           seedColor: const Color.fromARGB(255, 0, 148, 68),
         ),
       ),
-      home: const MainScreen(),
+      home: FutureBuilder(
+        future: _initialization,
+        builder: (context, snapshot) {
+          // Jika proses inisialisasi selesai dan berhasil
+          if (snapshot.connectionState == ConnectionState.done) {
+            // Cek jika ada error
+            if (snapshot.hasError) {
+              // Tampilkan halaman error jika inisialisasi gagal
+              return const Scaffold(
+                body: Center(child: Text('Gagal terhubung ke server')),
+              );
+            }
+            // Arahkan ke LoginScreen jika berhasil
+            return const LoginScreen();
+          }
+
+          // Tampilkan loading indicator selama proses inisialisasi
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        },
+      ),
     );
   }
 }

@@ -1,5 +1,8 @@
+//lib\src\features\about\presentation\pages\about_page.dart
+
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
@@ -12,6 +15,7 @@ class AboutPage extends StatelessWidget {
         subtitle: 'Profil Rumah Sakit',
       ),
       body: SafeArea(
+        child: FadeInTransition(
         child: CustomScrollView(
           slivers: [
             SliverFillRemaining(
@@ -29,6 +33,7 @@ class AboutPage extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
