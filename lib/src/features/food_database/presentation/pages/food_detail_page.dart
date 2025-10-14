@@ -207,6 +207,14 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                     'Porsi: ${widget.foodItem.portionGram} gram',
                     style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
+                  Text(
+                    'Kelompok Makanan: ${widget.foodItem.kelompokMakanan}',
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                  Text(
+                    'Status: ${widget.foodItem.mentahOlahan}',
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
                 ],
               ),
             ),
@@ -605,11 +613,6 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Detail Nutrisi per 100 gram',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
           _buildNutritionRow('Air', '${nutritionPer100g['air']?.toStringAsFixed(1) ?? '0.0'} g'),
           _buildNutritionRow('Energi', '${nutritionPer100g['energi']?.toStringAsFixed(1) ?? '0.0'} kkal'),
           _buildNutritionRow('Protein', '${nutritionPer100g['protein']?.toStringAsFixed(1) ?? '0.0'} g'),

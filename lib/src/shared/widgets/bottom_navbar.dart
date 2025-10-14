@@ -26,7 +26,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
       unselectedItemColor: Colors.grey,
       items: const [
         BottomNavigationBarItem(
-          icon: Icon(Icons.person),
+          icon: Icon(Icons.people),
           label: 'Daftar Pasien',
         ),
         BottomNavigationBarItem(

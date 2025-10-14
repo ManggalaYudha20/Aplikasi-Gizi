@@ -30,8 +30,8 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   final _hospitalizedStatusController = TextEditingController();
 
   // Form fields
-  List<GeneratedMeal>? _generatedMenu;
-  bool _isGeneratingMenu = false;
+  //List<GeneratedMeal>? _generatedMenu;
+  //bool _isGeneratingMenu = false;
   double _stressMetabolic = 20.0;
 
   // Calculation results
@@ -89,16 +89,16 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
 
       setState(() {
         _result = result;
-        _isGeneratingMenu = true; // Mulai loading
-        _generatedMenu = null;
+        //_isGeneratingMenu = true; // Mulai loading
+        //_generatedMenu = null;
       });
 
       // Generate menu baru
       final menuService = MenuGeneratorService();
       menuService.generateMenu(result.dailyMealDistribution).then((menu) {
         setState(() {
-          _generatedMenu = menu;
-          _isGeneratingMenu = false;
+          //_generatedMenu = menu;
+          //_isGeneratingMenu = false;
         });
       });
 
@@ -380,6 +380,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                     ExpansionTile(
                       title: Text('Jenis ${_result!.dietInfo.name}'),
                       children: [
+                        const SizedBox(height: 10),
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -427,6 +428,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                             ],
                           ),
                         ),
+                        const SizedBox(height: 10),
                       ],
                     ),
 
@@ -438,6 +440,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                         'Standar Diet (${_result!.foodGroupDiet.calorieLevel})',
                       ),
                       children: [
+                        const SizedBox(height: 10),
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -517,6 +520,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                             ],
                           ),
                         ),
+                        const SizedBox(height: 10),
                       ],
                     ),
 
@@ -526,6 +530,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                         'Pembagian Makanan\nSehari-hari (${_result!.dailyMealDistribution.calorieLevel})',
                       ),
                       children: [
+                        const SizedBox(height: 10),
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -571,8 +576,11 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                             ],
                           ),
                         ),
+                        const SizedBox(height: 10),
                       ],
                     ),
+
+                    /*
                     const SizedBox(height: 16),
                     ExpansionTile(
                       title: const Text('Contoh Menu Sehari'),
@@ -583,7 +591,9 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                             _generatedMenu!.isNotEmpty)
                           _buildGeneratedMenuTable(),
                       ],
-                    ),
+                    ), 
+                    */
+
                   ],
                 ],
               ),
@@ -595,7 +605,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   }
 
   // Hapus method _buildDetailedMenuTable() yang lama, dan tambahkan method baru ini
-
+/*
   Widget _buildGeneratedMenuTable() {
     final headerStyle = TextStyle(
       fontWeight: FontWeight.bold,
@@ -755,6 +765,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
       ),
     );
   }
+  */
 
   // Widget untuk Input Teks
   Widget _buildTextFormField({

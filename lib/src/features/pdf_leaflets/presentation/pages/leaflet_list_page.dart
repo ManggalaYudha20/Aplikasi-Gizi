@@ -6,7 +6,6 @@ import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pa
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
 
 class LeafletListPage extends StatefulWidget {
   const LeafletListPage({super.key});
@@ -88,7 +87,6 @@ class _LeafletListPageState extends State<LeafletListPage> {
         subtitle: 'Pilih leaflet untuk dibaca',
       ),
       body: SafeArea(
-        child: FadeInTransition(
         child: Column(
           children: [
             _buildSearchBar(),
@@ -154,7 +152,7 @@ class _LeafletListPageState extends State<LeafletListPage> {
           ],
         ),
       ),
-      ),
+
       // --- TAMBAHKAN TOMBOL INI ---
       floatingActionButton: isAhliGizi
           ? FloatingActionButton(
