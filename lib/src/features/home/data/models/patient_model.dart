@@ -47,6 +47,7 @@ class Patient {
   final String? klinikKES;
   final String? klinikSPO2;
   final String? namaNutrisionis;
+  final String createdBy;
 
   Patient({
     required this.id,
@@ -92,6 +93,7 @@ class Patient {
     this.klinikKES,
     this.klinikSPO2,
     this.namaNutrisionis,
+    required this.createdBy,
   });
 
   factory Patient.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -141,6 +143,7 @@ class Patient {
       klinikKES: data['klinikKES'] as String?,
       klinikSPO2: data['klinikSPO2'] as String?,
       namaNutrisionis: data['namaNutrisionis'] as String?,
+      createdBy: data['createdBy'] ?? '',
     );
   }
 
@@ -188,6 +191,7 @@ class Patient {
       'klinikKES': klinikKES,
       'klinikSPO2': klinikSPO2,
       'namaNutrisionis': namaNutrisionis,
+      'createdBy': createdBy,
     };
   }
 

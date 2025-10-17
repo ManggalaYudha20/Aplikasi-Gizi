@@ -7,6 +7,8 @@ import 'package:aplikasi_diagnosa_gizi/src/features/home/presentation/pages/data
 import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart';
 import 'patient_detail_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/services/user_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,10 +20,13 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  final UserService _userService = UserService();
+  late Future<String?> _userRoleFuture;
 
   @override
   void initState() {
     super.initState();
+    _userRoleFuture = _userService.getUserRole();
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text.toLowerCase();
@@ -80,107 +85,126 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color.fromARGB(150, 255, 255, 255),
       appBar: const CustomAppBar(title: 'Daftar Pasien', subtitle: ''),
       body: SafeArea(
-        child: FadeInTransition(
-          child: GestureDetector(
-            onTap: () {
-              FocusScope.of(context).unfocus();
-            },
-            child: Column(
-              children: [
-                _buildSearchBar(),
-                Expanded(
-                  child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                    stream: FirebaseFirestore.instance
-                        .collection('patients')
-                        .orderBy('tanggalPemeriksaan', descending: true)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      }
-                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        return const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.people_outline,
-                                size: 60,
-                                color: Colors.grey,
-                              ),
-                              SizedBox(height: 16),
-                              Text(
-                                'Belum ada data pasien',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              Text(
-                                'Tekan tombol + untuk menambah data baru',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
+        child: FutureBuilder<String?>(
+          future: _userRoleFuture,
+          builder: (context, snapshot) {
+            // State 1: Menunggu data role dari future
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                      final patients = snapshot.data!.docs;
+            // State 2: Terjadi error atau tidak ada data role
+            if (snapshot.hasError || !snapshot.hasData) {
+              return const Center(child: Text("Gagal memuat data pengguna."));
+            }
 
-                      // Filter pasien berdasarkan query pencarian
-                      final filteredPatients = patients.where((doc) {
-                        final patient = Patient.fromFirestore(doc);
-                        final searchQueryLower = _searchQuery.toLowerCase();
-                        return patient.namaLengkap.toLowerCase().contains(
-                              searchQueryLower,
-                            ) ||
-                            patient.noRM.toLowerCase().contains(
-                              searchQueryLower,
-                            ) ||
-                            patient.diagnosisMedis.toLowerCase().contains(
-                              searchQueryLower,
+            // State 3: Data berhasil didapat
+            final userRole = snapshot.data;
+            final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+
+            // Buat query Firestore secara dinamis berdasarkan role
+            Query<Map<String, dynamic>> patientQuery;
+            if (userRole == 'admin') {
+              patientQuery = FirebaseFirestore.instance
+                  .collection('patients')
+                  .orderBy('namaLengkap', descending: false);
+            } else {
+              patientQuery = FirebaseFirestore.instance
+                  .collection('patients')
+                  .where('createdBy', isEqualTo: currentUserUid);
+            }
+
+            // Kembalikan UI utama dengan query yang sudah benar
+            return FadeInTransition(
+              child: GestureDetector(
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                },
+                child: Column(
+                  children: [
+                    _buildSearchBar(),
+                    Expanded(
+                      child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                        stream: patientQuery.snapshots(), // Menggunakan query yang dinamis
+                        builder: (context, streamSnapshot) {
+                          if (streamSnapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (streamSnapshot.hasError) {
+                            return Center(child: Text('Error: ${streamSnapshot.error}'));
+                          }
+                          if (!streamSnapshot.hasData || streamSnapshot.data!.docs.isEmpty) {
+                            return const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.people_outline, size: 60, color: Colors.grey),
+                                  SizedBox(height: 16),
+                                  Text('Belum ada data pasien', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                                  Text('Tekan tombol + untuk menambah data baru', style: TextStyle(color: Colors.grey)),
+                                ],
+                              ),
                             );
-                      }).toList();
+                          }
 
-                      if (filteredPatients.isEmpty && _searchQuery.isNotEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.search_off,
-                                size: 60,
-                                color: Colors.grey,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Tidak ada pasien dengan nama atau No. RM "$_searchQuery"',
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        );
-                      }
+                                final patients = streamSnapshot.data!.docs;
 
-                      return ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: filteredPatients.length,
-                        itemBuilder: (context, index) {
-                          final patient = Patient.fromFirestore(
-                            filteredPatients[index],
-                          );
-                          return _buildPatientCard(context, patient);
-                        },
-                      );
-                    },
-                  ),
+                                // Filter pasien berdasarkan query pencarian
+                                final filteredPatients = patients.where((doc) {
+                                  final patient = Patient.fromFirestore(doc);
+                                  final searchQueryLower = _searchQuery
+                                      .toLowerCase();
+                                  return patient.namaLengkap
+                                          .toLowerCase()
+                                          .contains(searchQueryLower) ||
+                                      patient.noRM.toLowerCase().contains(
+                                        searchQueryLower,
+                                      ) ||
+                                      patient.diagnosisMedis
+                                          .toLowerCase()
+                                          .contains(searchQueryLower);
+                                }).toList();
+
+                                if (filteredPatients.isEmpty &&
+                                    _searchQuery.isNotEmpty) {
+                                  return Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.search_off,
+                                          size: 60,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'Tidak ada pasien dengan nama atau No. RM "$_searchQuery"',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+
+                                return ListView.builder(
+                                  padding: const EdgeInsets.all(16),
+                                  itemCount: filteredPatients.length,
+                                  itemBuilder: (context, index) {
+                                    final patient = Patient.fromFirestore(
+                                      filteredPatients[index],
+                                    );
+                                    return _buildPatientCard(context, patient);
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(

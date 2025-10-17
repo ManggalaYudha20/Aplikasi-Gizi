@@ -8,6 +8,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/p
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/menu_button.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/about/presentation/pages/about_page.dart';
 
 class NutritionInfoPage extends StatelessWidget {
   const NutritionInfoPage({super.key});
@@ -34,6 +35,11 @@ class NutritionInfoPage extends StatelessWidget {
         'text': 'Kalkulator\nGizi',
         'icon': Icons.calculate,
         'page': const FormulaCalculationPage(),
+      },
+      {
+        'text': 'Tentang\n Kami',
+        'icon': Icons.info,
+        'page': const AboutPage(),
       },
     ];
 

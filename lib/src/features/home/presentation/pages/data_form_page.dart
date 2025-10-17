@@ -9,6 +9,8 @@ import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_mod
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/scaffold_with_animated_fab.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_validator_utils.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DataFormPage extends StatefulWidget {
   final Patient? patient; // Optional patient for editing
@@ -63,6 +65,7 @@ class _DataFormPageState extends State<DataFormPage> {
   final _intervensiTujuanController = TextEditingController();
   final _monevAsupanController = TextEditingController();
   final _namaNutrisionisController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -262,6 +265,17 @@ class _DataFormPageState extends State<DataFormPage> {
     )) {
       setState(() => _isLoading = true);
 
+      final User? currentUser = _authService.getCurrentUser();
+      if (currentUser == null) {
+        // Jika karena suatu alasan pengguna tidak login, hentikan proses
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Sesi Anda telah berakhir. Silakan login kembali.'),
+          backgroundColor: Colors.red,
+        ));
+        setState(() => _isLoading = false);
+        return;
+      }
+
       try {
         // --- Pengumpulan Data ---
         final noRM = _noRMController.text;
@@ -408,6 +422,7 @@ class _DataFormPageState extends State<DataFormPage> {
           'klinikKES': _klinikKESController.text,
           'klinikSPO2': _klinikSPO2Controller.text,
           'namaNutrisionis': _namaNutrisionisController.text,
+          'createdBy': currentUser.uid,
         };
 
         // --- Kirim ke Firestore ---
@@ -481,6 +496,7 @@ class _DataFormPageState extends State<DataFormPage> {
             klinikKES: _klinikKESController.text,
             klinikSPO2: _klinikSPO2Controller.text,
             namaNutrisionis: _namaNutrisionisController.text,
+            createdBy: currentUser.uid,
           );
 
           // Navigate back to previous screen with updated patient data
@@ -727,7 +743,17 @@ class _DataFormPageState extends State<DataFormPage> {
                 focusNode: _focusNodes[11], // Ganti 11 dengan index yang benar
                 showSearch: false, // Aktifkan pencarian
               ),
+              const SizedBox(height: 16),
+
+              _buildTextFormField(
+                controller: _namaNutrisionisController,
+                label: 'Nama Nutrisionis',
+                prefixIcon: const Icon(Icons.person),
+                focusNode: _focusNodes[34], 
+                validator: (value) => null,
+              ),
               const SizedBox(height: 24),
+              
               const Text(
                 'Input Data Asuhan Gizi (Opsional)',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -957,15 +983,7 @@ class _DataFormPageState extends State<DataFormPage> {
                 focusNode: _focusNodes[33],
                 validator: (value) => null,
               ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _namaNutrisionisController,
-                label: 'Nama Nutrisionis',
-                prefixIcon: const Icon(Icons.person),
-                focusNode: _focusNodes[34], 
-                validator: (value) => null,
-              ),
+              
             ],
           ),
         ),
