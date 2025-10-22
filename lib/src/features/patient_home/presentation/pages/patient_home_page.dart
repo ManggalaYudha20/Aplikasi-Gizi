@@ -3,21 +3,21 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/home/presentation/pages/data_form_page.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/presentation/pages/data_form_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_model.dart';
 import 'patient_detail_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/services/user_service.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class PatientHomePage extends StatefulWidget {
+  const PatientHomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<PatientHomePage> createState() => _PatientHomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _PatientHomePageState extends State<PatientHomePage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   final UserService _userService = UserService();

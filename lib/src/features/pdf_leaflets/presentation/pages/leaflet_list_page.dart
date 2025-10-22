@@ -6,6 +6,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pa
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/role_builder.dart';
 
 class LeafletListPage extends StatefulWidget {
   const LeafletListPage({super.key});
@@ -15,11 +16,6 @@ class LeafletListPage extends StatefulWidget {
 }
 
 class _LeafletListPageState extends State<LeafletListPage> {
-  // --- PERSIAPAN UNTUK LEVEL AKSES ---
-  // Untuk saat ini, kita buat variabel sederhana.
-  // Nantinya, nilai ini akan didapat dari status login pengguna.
-  final bool isAhliGizi = true; // Ganti menjadi 'false' untuk menyembunyikan tombol
-  
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -92,7 +88,9 @@ class _LeafletListPageState extends State<LeafletListPage> {
             _buildSearchBar(),
             Expanded(
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance.collection('leaflets').snapshots(),
+                stream: FirebaseFirestore.instance
+                    .collection('leaflets')
+                    .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -105,28 +103,39 @@ class _LeafletListPageState extends State<LeafletListPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.picture_as_pdf_outlined, size: 60, color: Colors.grey),
+                          Icon(
+                            Icons.picture_as_pdf_outlined,
+                            size: 60,
+                            color: Colors.grey,
+                          ),
                           SizedBox(height: 16),
-                          Text('Belum ada leaflet tersedia', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                          Text(
+                            'Belum ada leaflet tersedia',
+                            style: TextStyle(fontSize: 18, color: Colors.grey),
+                          ),
                         ],
                       ),
                     );
                   }
-                  
+
                   final allLeaflets = snapshot.data!.docs;
                   final filteredLeaflets = allLeaflets.where((doc) {
                     final leaflet = Leaflet.fromFirestore(doc);
                     final query = _searchQuery.toLowerCase();
                     return leaflet.title.toLowerCase().contains(query) ||
-                           leaflet.description.toLowerCase().contains(query);
+                        leaflet.description.toLowerCase().contains(query);
                   }).toList();
-                  
+
                   if (filteredLeaflets.isEmpty && _searchQuery.isNotEmpty) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.search_off, size: 60, color: Colors.grey),
+                          const Icon(
+                            Icons.search_off,
+                            size: 60,
+                            color: Colors.grey,
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             'Tidak ada leaflet yang cocok dengan pencarian "$_searchQuery"',
@@ -142,7 +151,9 @@ class _LeafletListPageState extends State<LeafletListPage> {
                     padding: const EdgeInsets.all(16),
                     itemCount: filteredLeaflets.length,
                     itemBuilder: (context, index) {
-                      final leaflet = Leaflet.fromFirestore(filteredLeaflets[index]);
+                      final leaflet = Leaflet.fromFirestore(
+                        filteredLeaflets[index],
+                      );
                       return _LeafletListItem(leaflet: leaflet);
                     },
                   );
@@ -153,19 +164,25 @@ class _LeafletListPageState extends State<LeafletListPage> {
         ),
       ),
 
-      // --- TAMBAHKAN TOMBOL INI ---
-      floatingActionButton: isAhliGizi
-          ? FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AddLeafletPage()),
-                );
-              },
-              backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-              child: const Icon(Icons.add, color: Colors.white),
-            )
-          : null, // Jika bukan ahli gizi, tombol tidak akan tampil
+      floatingActionButton: RoleBuilder(
+        requiredRole: 'admin', // Ganti 'isAhliGizi' menjadi cek role 'admin'
+        builder: (context) {
+          // Widget ini hanya akan dibuat jika role-nya adalah 'admin'
+          return FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddLeafletPage()),
+              );
+            },
+            backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+            child: const Icon(Icons.add, color: Colors.white),
+          );
+        },
+        // 'nonRoleBuilder' tidak perlu diisi,
+        // karena secara default akan menampilkan widget kosong (SizedBox.shrink)
+        // yang setara dengan 'null' di ternary Anda sebelumnya.
+      ),
     );
   }
 }
@@ -180,13 +197,14 @@ class _LeafletListItem extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         leading: const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40),
-        title: Text(leaflet.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          leaflet.title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         subtitle: Text(
           leaflet.description,
           maxLines: 2,

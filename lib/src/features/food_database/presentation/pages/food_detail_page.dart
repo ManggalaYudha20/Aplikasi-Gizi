@@ -5,6 +5,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/p
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/add_food_item_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/delete_item_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/role_builder.dart';
 
 class FoodDetailPage extends StatefulWidget {
   final FoodItem foodItem;
@@ -162,7 +163,10 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                           ),
                         ),
                       ),
-                      GestureDetector(
+                      RoleBuilder(
+                        requiredRole: 'admin',
+                        builder: (context) {
+                     return GestureDetector(
                         onTap: () async {
                           // Jadikan async
                           final result = await Navigator.push(
@@ -195,6 +199,8 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                             ),
                           ],
                         ),
+                     );
+                        },
                       ),
                     ],
                   ),
@@ -483,7 +489,10 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             const SizedBox(height: 24),
 
             // Action Buttons
-            Row(
+             RoleBuilder(
+                  requiredRole: 'admin',
+                  builder: (context) {
+                     return Row(
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
@@ -507,6 +516,8 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                   ),
                 ),
               ],
+            );
+              },
             ),
           ],
         ),

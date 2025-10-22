@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/bottom_navbar.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/home/presentation/pages/home_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/presentation/pages/patient_home_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_info/presentation/pages/nutrition_info_page.dart';
 import 'package:aplikasi_diagnosa_gizi/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -82,7 +82,7 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 1;
 
   final List<Widget> _screens = const [
-    HomePage(),
+    PatientHomePage(),
     NutritionInfoPage(),
     AccountPage(),
   ];

@@ -6,6 +6,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_detail_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/add_food_item_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/role_builder.dart';
 
 class FoodListPage extends StatefulWidget {
   const FoodListPage({super.key});
@@ -17,11 +18,6 @@ class FoodListPage extends StatefulWidget {
 class _FoodListPageState extends State<FoodListPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-
-  // --- PERSIAPAN UNTUK LEVEL AKSES ---
-  // Nantinya, nilai ini akan didapat dari status login pengguna (misal: Firebase Auth).
-  final bool isAhliGizi =
-      true; // Ganti menjadi 'false' untuk menyembunyikan tombol
 
   @override
   void initState() {
@@ -247,8 +243,11 @@ class _FoodListPageState extends State<FoodListPage> {
       ),
     ),
       // --- TAMBAHKAN TOMBOL INI UNTUK CREATE DATA ---
-      floatingActionButton: isAhliGizi
-          ? FloatingActionButton(
+      floatingActionButton: RoleBuilder(
+        requiredRole: 'admin', // Ganti 'isAhliGizi' menjadi cek role 'admin'
+        builder: (context) {
+          // Widget ini hanya akan dibuat jika role-nya adalah 'admin'
+          return FloatingActionButton(
               onPressed: () {
                 Navigator.push(
                   context,
@@ -259,8 +258,9 @@ class _FoodListPageState extends State<FoodListPage> {
               },
               backgroundColor: const Color.fromARGB(255, 0, 148, 68),
               child: const Icon(Icons.add, color: Colors.white),
-            )
-          : null, // Jika bukan ahli gizi, tombol tidak akan tampil
+            ); // Jika bukan ahli gizi, tombol tidak akan tampil
+        },
+      ),
     );
   }
 

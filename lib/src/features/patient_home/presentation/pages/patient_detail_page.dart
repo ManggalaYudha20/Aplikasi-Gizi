@@ -1,7 +1,7 @@
 //lib\src\features\home\presentation\pages\patient_detail_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_model.dart';
 import 'pdf_generator.dart';
 import 'patient_delete_logic.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';

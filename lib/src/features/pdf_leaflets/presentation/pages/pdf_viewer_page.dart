@@ -6,6 +6,7 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/edit_leaflet_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/delete_leaflet_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/role_builder.dart';
 
 class PdfViewerPage extends StatefulWidget {
   final String url;
@@ -24,7 +25,6 @@ class PdfViewerPage extends StatefulWidget {
 }
 
 class _PdfViewerPageState extends State<PdfViewerPage> {
-  final bool isAhliGizi = true;
   late final PdfViewerController _pdfViewerController;
 
   @override
@@ -107,40 +107,57 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             tooltip: 'Bagikan',
             child: const Icon(Icons.share),
           ),
-          if (isAhliGizi && widget.leaflet != null) ...[
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                FloatingActionButton.small(
-                  onPressed: () => DeleteLeafletService.handleLeafletDelete(
-                    context: context,
-                    leaflet: widget.leaflet!,
+
+          RoleBuilder(
+            requiredRole: 'admin',
+            builder: (context) {
+              // Pastikan juga widget.leaflet tidak null
+              if (widget.leaflet == null) {
+                return const SizedBox.shrink();
+              }
+
+              // Jika role adalah 'admin' dan leaflet ada, tampilkan tombol:
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      FloatingActionButton.small(
+                        onPressed: () =>
+                            DeleteLeafletService.handleLeafletDelete(
+                              context: context,
+                              leaflet: widget.leaflet!,
+                            ),
+                        heroTag: 'delete',
+                        tooltip: 'Hapus',
+                        backgroundColor: Colors.red,
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      const SizedBox(width: 8),
+                      FloatingActionButton.small(
+                        onPressed: () async {
+                          final result = await EditLeafletService.showEditPage(
+                            context,
+                            widget.leaflet!,
+                          );
+                          if (result == true && mounted) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        heroTag: 'edit',
+                        tooltip: 'Edit',
+                        backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+                        child: const Icon(Icons.edit, color: Colors.white),
+                      ),
+                    ],
                   ),
-                  heroTag: 'delete',
-                  tooltip: 'Hapus',
-                  backgroundColor: Colors.red,
-                  child: const Icon(Icons.delete, color: Colors.white),
-                ),
-                const SizedBox(width: 8),
-                FloatingActionButton.small(
-                  onPressed: () async {
-                    final result = await EditLeafletService.showEditPage(
-                      context,
-                      widget.leaflet!,
-                    );
-                    if (result == true && mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  heroTag: 'edit',
-                  tooltip: 'Edit',
-                  backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-                  child: const Icon(Icons.edit, color: Colors.white),
-                ),
-              ],
-            ),
-          ],
+                ],
+              );
+            },
+          ),
         ],
       ),
     );

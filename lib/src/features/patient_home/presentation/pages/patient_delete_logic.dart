@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/home/data/models/patient_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_model.dart';
 
 class PatientDeleteLogic {
   /// Shows a confirmation dialog for deleting a patient
