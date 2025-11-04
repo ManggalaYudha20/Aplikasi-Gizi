@@ -35,7 +35,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person),
-          label: 'Akun',
+          label: 'Profil Akun',
         ),
       ],
     );

@@ -50,46 +50,65 @@ class AccountPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color.fromARGB(150, 255, 255, 255),
       appBar: CustomAppBar(
-        title: 'Akun',
+        title: 'Profil Akun',
         subtitle: 'Halo, ${user?.displayName}!',
       ),
-      body: Center(
-        child: FadeInTransition(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (user?.photoURL != null)
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(user!.photoURL!),
-                    radius: 50,
+      body: FadeInTransition(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (user?.photoURL != null)
+                    CircleAvatar(
+                      backgroundImage: NetworkImage(user!.photoURL!),
+                      radius: 50,
+                    ),
+                  const SizedBox(height: 20),
+                  Text(
+                    user?.displayName ?? 'Pengguna',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
                   ),
-                const SizedBox(height: 20),
-                Text(
-                  user?.displayName ?? 'Pengguna',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  user?.email ?? 'Tidak ada email',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 40),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.logout),
-                    label: const Text('Keluar'),
-                    onPressed: () =>
-                        _showSignOutConfirmationDialog(context, authService),
+                  const SizedBox(height: 8),
+                  Text(
+                    user?.email ?? 'Tidak ada email',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                // PERBAIKAN: Tombol "Hapus Akun" dan SizedBox di bawahnya telah dihapus.
-              ],
+                ],
+              ),
             ),
-          ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () =>
+                      _showSignOutConfirmationDialog(context, authService),
+                      child: Row(
+                  children: [
+                    // 1. Grup Kiri: Ikon dan Teks
+                    const Icon(Icons.logout),
+                    const SizedBox(width: 12), // Jarak antara ikon dan teks
+                    const Text('Keluar'),
+                    
+                    // 2. Spacer Ajaib
+                    const Spacer(), // Ini akan mengisi ruang di tengah
+                    
+                    // 3. Ikon Kanan
+                    const Icon(Icons.chevron_right), // Ini adalah ikon '>'
+                  ],
+                ),
+                ),
+                
+              ),
+            ),
+          ],
         ),
       ),
     );
