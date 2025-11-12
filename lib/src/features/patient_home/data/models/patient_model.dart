@@ -262,5 +262,5 @@ class Patient {
     }
   }
   
-  String get tanggalLahirFormatted => DateFormat('d MMMM y').format(tanggalLahir);
+  String get tanggalLahirFormatted => DateFormat('d MMMM y','id_ID').format(tanggalLahir);
 }

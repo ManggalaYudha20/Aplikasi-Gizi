@@ -40,7 +40,62 @@ class AccountPage extends StatelessWidget {
     );
   }
 
-  // FUNGSI _showDeleteConfirmationDialog TELAH DIHAPUS
+  // --- TAMBAHKAN FUNGSI BARU DI SINI ---
+  // FUNGSI untuk menampilkan gambar profil dalam dialog
+  Future<void> _showFullImageDialog(
+    BuildContext context,
+    String imageUrl,
+  ) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true, // Izinkan tutup dengan tap di luar
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          backgroundColor:
+              Colors.transparent, // Latar belakang dialog transparan
+          insetPadding: const EdgeInsets.all(10), // Padding di sekitar
+          elevation: 0, // Tanpa bayangan
+          child: InteractiveViewer(
+            // Widget ini memungkinkan zoom dan pan
+            panEnabled: true,
+            minScale: 0.8,
+            maxScale: 4.0,
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.contain, // Pastikan gambar utuh
+              // Tampilkan loading indicator saat gambar dimuat
+              loadingBuilder:
+                  (
+                    BuildContext context,
+                    Widget child,
+                    ImageChunkEvent? loadingProgress,
+                  ) {
+                    if (loadingProgress == null) return child;
+                    return const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    );
+                  },
+              // Tampilkan ikon error jika gambar gagal dimuat
+              errorBuilder:
+                  (
+                    BuildContext context,
+                    Object exception,
+                    StackTrace? stackTrace,
+                  ) {
+                    return const Center(
+                      child: Icon(
+                        Icons.broken_image,
+                        color: Colors.white,
+                        size: 50,
+                      ),
+                    );
+                  },
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +118,14 @@ class AccountPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   if (user?.photoURL != null)
-                    CircleAvatar(
-                      backgroundImage: NetworkImage(user!.photoURL!),
-                      radius: 50,
+                    GestureDetector(
+                      onTap: () {
+                        _showFullImageDialog(context, user.photoURL!);
+                      },
+                      child: CircleAvatar(
+                        backgroundImage: NetworkImage(user!.photoURL!),
+                        radius: 50,
+                      ),
                     ),
                   const SizedBox(height: 20),
                   Text(
@@ -90,22 +150,20 @@ class AccountPage extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () =>
                       _showSignOutConfirmationDialog(context, authService),
-                      child: Row(
-                  children: [
-                    // 1. Grup Kiri: Ikon dan Teks
-                    const Icon(Icons.logout),
-                    const SizedBox(width: 12), // Jarak antara ikon dan teks
-                    const Text('Keluar'),
-                    
-                    // 2. Spacer Ajaib
-                    const Spacer(), // Ini akan mengisi ruang di tengah
-                    
-                    // 3. Ikon Kanan
-                    const Icon(Icons.chevron_right), // Ini adalah ikon '>'
-                  ],
+                  child: Row(
+                    children: [
+                      // 1. Grup Kiri: Ikon dan Teks
+                      const Icon(Icons.logout),
+                      const SizedBox(width: 12), // Jarak antara ikon dan teks
+                      const Text('Keluar'),
+
+                      // 2. Spacer Ajaib
+                      const Spacer(), // Ini akan mengisi ruang di tengah
+                      // 3. Ikon Kanan
+                      const Icon(Icons.chevron_right), // Ini adalah ikon '>'
+                    ],
+                  ),
                 ),
-                ),
-                
               ),
             ),
           ],

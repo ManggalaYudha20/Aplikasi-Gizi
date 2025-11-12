@@ -268,10 +268,12 @@ class _DataFormPageState extends State<DataFormPage> {
       final User? currentUser = _authService.getCurrentUser();
       if (currentUser == null) {
         // Jika karena suatu alasan pengguna tidak login, hentikan proses
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Sesi Anda telah berakhir. Silakan login kembali.'),
-          backgroundColor: Colors.red,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sesi Anda telah berakhir. Silakan login kembali.'),
+            backgroundColor: Colors.red,
+          ),
+        );
         setState(() => _isLoading = false);
         return;
       }
@@ -529,7 +531,7 @@ class _DataFormPageState extends State<DataFormPage> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        _tanggalLahirController.text = DateFormat('d MMMM y').format(picked);
+        _tanggalLahirController.text = DateFormat('d MMMM y','id_ID').format(picked);
       });
     }
   }
@@ -562,432 +564,498 @@ class _DataFormPageState extends State<DataFormPage> {
           onTap: () {
             FocusScope.of(context).unfocus();
           },
-        child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 20),
-              const Text(
-                'Input Data Pasien',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-
-              _buildTextFormField(
-                controller: _noRMController,
-                label: 'No. Rekam Medis (RM)',
-                prefixIcon: const Icon(Icons.medical_information),
-                focusNode: _focusNodes[0],
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _namaLengkapController,
-                label: 'Nama Lengkap',
-                prefixIcon: const Icon(Icons.person),
-                focusNode: _focusNodes[1],
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _tanggalLahirController,
-                label: 'Tanggal Lahir',
-                readOnly: true,
-                onTap: () => _selectDate(context),
-                prefixIcon: const Icon(Icons.calendar_today),
-                focusNode: _focusNodes[2],
-              ),
-              const SizedBox(height: 16),
-
-              _buildCustomDropdown(
-                controller: _jenisKelaminController,
-                label: 'Jenis Kelamin',
-                prefixIcon: const Icon(Icons.wc),
-                items: ['Laki-laki', 'Perempuan'],
-                focusNode: _focusNodes[3],
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _diagnosisMedisController,
-                label: 'Diagnosis Medis',
-                prefixIcon: const Icon(Icons.sick),
-                focusNode: _focusNodes[4],
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _beratBadanController,
-                label: 'Berat Badan Saat Ini',
-                keyboardType: TextInputType.number,
-                prefixIcon: const Icon(Icons.monitor_weight),
-                focusNode: _focusNodes[5],
-                suffixText: 'kg',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return null; // Izinkan kosong jika menggunakan LILA
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Masukkan angka yang valid';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              // BARU: Form untuk LILA
-              _buildTextFormField(
-                controller: _lilaController,
-                label: 'Lingkar Lengan Atas (LILA)',
-                keyboardType: TextInputType.number,
-                prefixIcon: const Icon(Icons.fitness_center),
-                focusNode: _focusNodes[6],
-                suffixText: 'cm',
-                validator: (value) {
-                  if (_beratBadanController.text.isEmpty &&
-                      (value == null || value.isEmpty)) {
-                    return 'LILA tidak boleh kosong jika BB tidak diisi';
-                  }
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      double.tryParse(value) == null) {
-                    return 'Masukkan angka yang valid';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              // BARU: Form untuk berat badan terdahulu
-              _buildTextFormField(
-                controller: _beratBadanDuluController,
-                label: 'Berat Badan 3-6 Bulan Lalu',
-                keyboardType: TextInputType.number,
-                prefixIcon: const Icon(Icons.history),
-                focusNode: _focusNodes[7],
-                suffixText: 'kg',
-                // Validator ini opsional, data tetap bisa disimpan jika kosong
-                validator: (value) {
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      double.tryParse(value) == null) {
-                    return 'Masukkan angka yang valid';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              // Field untuk Tinggi Badan normal
-              _buildTextFormField(
-                controller: _tinggiBadanController,
-                label: 'Tinggi Badan',
-                keyboardType: TextInputType.number,
-                prefixIcon: const Icon(Icons.height),
-                focusNode: _focusNodes[8],
-                suffixText: 'cm',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return null; // Izinkan kosong jika menggunakan TL
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Masukkan angka yang valid';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              // BARU: Form untuk Tinggi Lutut
-              _buildTextFormField(
-                controller: _tlController,
-                label: 'Tinggi Lutut (TL)',
-                keyboardType: TextInputType.number,
-                prefixIcon: const Icon(Icons.accessibility),
-                focusNode: _focusNodes[9],
-                suffixText: 'cm',
-                validator: (value) {
-                  if (_tinggiBadanController.text.isEmpty &&
-                      (value == null || value.isEmpty)) {
-                    return 'TL tidak boleh kosong jika Tinggi Badan tidak diisi';
-                  }
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      double.tryParse(value) == null) {
-                    return 'Masukkan angka yang valid';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              // BARU: Dropdown untuk kehilangan nafsu makan
-              _buildCustomDropdown(
-                controller: _kehilanganNafsuMakanController,
-                label: 'Ada asupan nutrisi > 5 hari?',
-                prefixIcon: const Icon(Icons.food_bank_outlined),
-                items: ['Ya', 'Tidak Ada'],
-                focusNode: _focusNodes[10], // Ganti 10 dengan index yang benar
-              ),
-              const SizedBox(height: 16),
-
-              _buildCustomDropdown(
-                controller: _aktivitasController,
-                label: 'Tingkat Aktivitas',
-                prefixIcon: const Icon(Icons.directions_run),
-                items: [
-                  'Sangat Jarang',
-                  'Ringan',
-                  'Sedang',
-                  'Berat',
-                  'Sangat Aktif',
-                ],
-                focusNode: _focusNodes[11], // Ganti 11 dengan index yang benar
-                showSearch: false, // Aktifkan pencarian
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _namaNutrisionisController,
-                label: 'Nama Nutrisionis',
-                prefixIcon: const Icon(Icons.person),
-                focusNode: _focusNodes[34], 
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 24),
-              
-              const Text(
-                'Input Data Asuhan Gizi (Opsional)',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              // Gunakan Column untuk mengelompokkan widget
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // 1. Ganti DropdownButtonFormField dengan _buildCustomDropdown
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Input Data Pasien',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+
+                  _buildTextFormField(
+                    controller: _noRMController,
+                    label: 'No. Rekam Medis (RM)',
+                    prefixIcon: const Icon(Icons.medical_information),
+                    focusNode: _focusNodes[0],
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _namaLengkapController,
+                    label: 'Nama Lengkap',
+                    prefixIcon: const Icon(Icons.person),
+                    focusNode: _focusNodes[1],
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _tanggalLahirController,
+                    label: 'Tanggal Lahir',
+                    readOnly: true,
+                    onTap: () => _selectDate(context),
+                    prefixIcon: const Icon(Icons.calendar_today),
+                    focusNode: _focusNodes[2],
+                  ),
+                  const SizedBox(height: 16),
+
                   _buildCustomDropdown(
-                    controller: _alergiMakananController,
-                    label: 'Alergi Makanan',
-                    prefixIcon: const Icon(Icons.no_food),
-                    items: ['Ya', 'Tidak'],
-                    focusNode:
-                        _focusNodes[12], // Ganti 12 dengan index yang benar
-                    onChanged: (value) {
-                      // onChanged khusus untuk memicu setState agar field di bawahnya muncul/hilang
-                      setState(() {
-                        _alergiMakananController.text = value ?? 'Tidak';
-                        if (value == 'Tidak') {
-                          _detailAlergiController.clear();
-                        }
-                      });
+                    controller: _jenisKelaminController,
+                    label: 'Jenis Kelamin',
+                    prefixIcon: const Icon(Icons.wc),
+                    items: ['Laki-laki', 'Perempuan'],
+                    focusNode: _focusNodes[3],
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _diagnosisMedisController,
+                    label: 'Diagnosis Medis',
+                    prefixIcon: const Icon(Icons.sick),
+                    focusNode: _focusNodes[4],
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _beratBadanController,
+                    label: 'Berat Badan Saat Ini',
+                    keyboardType: TextInputType.number,
+                    prefixIcon: const Icon(Icons.monitor_weight),
+                    focusNode: _focusNodes[5],
+                    suffixText: 'kg',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return null; // Izinkan kosong jika menggunakan LILA
+                      }
+                      if (double.tryParse(value) == null) {
+                        return 'Masukkan angka yang valid';
+                      }
+                      return null;
                     },
                   ),
+                  const SizedBox(height: 16),
+                  // BARU: Form untuk LILA
+                  _buildTextFormField(
+                    controller: _lilaController,
+                    label: 'Lingkar Lengan Atas (Opsional)',
+                    keyboardType: TextInputType.number,
+                    prefixIcon: const Icon(Icons.fitness_center),
+                    focusNode: _focusNodes[6],
+                    suffixText: 'cm',
+                    validator: (value) {
+                      if (_beratBadanController.text.isEmpty &&
+                          (value == null || value.isEmpty)) {
+                        return 'LILA tidak boleh kosong jika BB tidak diisi';
+                      }
+                      if (value != null &&
+                          value.isNotEmpty &&
+                          double.tryParse(value) == null) {
+                        return 'Masukkan angka yang valid';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // BARU: Form untuk berat badan terdahulu
+                  _buildTextFormField(
+                    controller: _beratBadanDuluController,
+                    label: 'Berat Badan 3-6 Bulan Lalu (Opsional)',
+                    keyboardType: TextInputType.number,
+                    prefixIcon: const Icon(Icons.history),
+                    focusNode: _focusNodes[7],
+                    suffixText: 'kg',
+                    // Validator ini opsional, data tetap bisa disimpan jika kosong
+                    validator: (value) {
+                      if (value != null &&
+                          value.isNotEmpty &&
+                          double.tryParse(value) == null) {
+                        return 'Masukkan angka yang valid';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // Field untuk Tinggi Badan normal
+                  _buildTextFormField(
+                    controller: _tinggiBadanController,
+                    label: 'Tinggi Badan',
+                    keyboardType: TextInputType.number,
+                    prefixIcon: const Icon(Icons.height),
+                    focusNode: _focusNodes[8],
+                    suffixText: 'cm',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return null; // Izinkan kosong jika menggunakan TL
+                      }
+                      if (double.tryParse(value) == null) {
+                        return 'Masukkan angka yang valid';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // BARU: Form untuk Tinggi Lutut
+                  _buildTextFormField(
+                    controller: _tlController,
+                    label: 'Tinggi Lutut (Opsional)',
+                    keyboardType: TextInputType.number,
+                    prefixIcon: const Icon(Icons.accessibility),
+                    focusNode: _focusNodes[9],
+                    suffixText: 'cm',
+                    validator: (value) {
+                      if (_tinggiBadanController.text.isEmpty &&
+                          (value == null || value.isEmpty)) {
+                        return 'TL tidak boleh kosong jika Tinggi Badan tidak diisi';
+                      }
+                      if (value != null &&
+                          value.isNotEmpty &&
+                          double.tryParse(value) == null) {
+                        return 'Masukkan angka yang valid';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // BARU: Dropdown untuk kehilangan nafsu makan
+                  _buildCustomDropdown(
+                    controller: _kehilanganNafsuMakanController,
+                    label: 'Ada asupan nutrisi > 5 hari?',
+                    prefixIcon: const Icon(Icons.food_bank_outlined),
+                    items: ['Ya', 'Tidak Ada'],
+                    focusNode:
+                        _focusNodes[10], // Ganti 10 dengan index yang benar
+                  ),
+                  const SizedBox(height: 16),
 
-                  // 2. Gunakan controller untuk memeriksa kondisi
-                  if (_alergiMakananController.text == 'Ya')
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
-                      child: _buildTextFormField(
-                        controller: _detailAlergiController,
-                        label: 'Jika Ya, sebutkan alerginya',
-                        prefixIcon: const Icon(Icons.description),
+                  _buildCustomDropdown(
+                    controller: _aktivitasController,
+                    label: 'Tingkat Aktivitas',
+                    prefixIcon: const Icon(Icons.directions_run),
+                    items: [
+                      'Sangat Jarang',
+                      'Ringan',
+                      'Sedang',
+                      'Berat',
+                      'Sangat Aktif',
+                    ],
+                    focusNode:
+                        _focusNodes[11], // Ganti 11 dengan index yang benar
+                    showSearch: false, // Aktifkan pencarian
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _namaNutrisionisController,
+                    label: 'Nama Nutrisionis',
+                    prefixIcon: const Icon(Icons.person),
+                    focusNode: _focusNodes[34],
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    'Input Data Asuhan Gizi (Opsional)',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  // Gunakan Column untuk mengelompokkan widget
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Riwayat Gizi/FH',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      _buildCustomDropdown(
+                        controller: _alergiMakananController,
+                        label: 'Alergi Makanan',
+                        prefixIcon: const Icon(Icons.no_food),
+                        items: ['Ya', 'Tidak'],
                         focusNode:
-                            _focusNodes[13], // Ganti 13 dengan index yang benar
-                        validator: (value) {
-                          // Validasi ini hanya berjalan jika field-nya terlihat
-                          if (value == null || value.isEmpty) {
-                            return 'Detail alergi tidak boleh kosong';
-                          }
-                          return null;
+                            _focusNodes[12], // Ganti 12 dengan index yang benar
+                        onChanged: (value) {
+                          // onChanged khusus untuk memicu setState agar field di bawahnya muncul/hilang
+                          setState(() {
+                            _alergiMakananController.text = value ?? 'Tidak';
+                            if (value == 'Tidak') {
+                              _detailAlergiController.clear();
+                            }
+                          });
                         },
                       ),
-                    ),
+
+                      // 2. Gunakan controller untuk memeriksa kondisi
+                      if (_alergiMakananController.text == 'Ya')
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16.0),
+                          child: _buildTextFormField(
+                            controller: _detailAlergiController,
+                            label: 'Jika Ya, sebutkan alerginya',
+                            prefixIcon: const Icon(Icons.description),
+                            focusNode:
+                                _focusNodes[13], // Ganti 13 dengan index yang benar
+                            validator: (value) {
+                              // Validasi ini hanya berjalan jika field-nya terlihat
+                              if (value == null || value.isEmpty) {
+                                return 'Detail alergi tidak boleh kosong';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextFormField(
+                    controller: _polaMakanController,
+                    label: 'Pola Makan / Asupan',
+                    prefixIcon: const Icon(Icons.restaurant),
+                    focusNode:
+                        _focusNodes[14], // Ganti 14 dengan index yang benar
+                    validator: (value) => null, // Opsional, tidak wajib diisi
+                  ),
+                  const SizedBox(height: 24),
+
+                  const Text(
+                        'Biokimia/BD',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                  _buildTextFormField(
+                    controller: _biokimiaGDSController,
+                    label: 'Biokimia: GDS',
+                    prefixIcon: const Icon(Icons.science),
+                    focusNode:
+                        _focusNodes[15], // Ganti 15 dengan index yang benar
+                    validator: (value) => null, // Opsional
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Lanjutkan pola yang sama untuk semua field berikutnya...
+                  _buildTextFormField(
+                    controller: _biokimiaUreumController,
+                    label: 'Biokimia: Ureum',
+                    prefixIcon: const Icon(Icons.science),
+                    focusNode: _focusNodes[16], // Index selanjutnya
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _biokimiaHGBController,
+                    label: 'Biokimia: HGB',
+                    prefixIcon: const Icon(Icons.science),
+                    focusNode: _focusNodes[17], // Index selanjutnya
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _biokimiaENTController,
+                    label: 'Biokimia: ENT',
+                    prefixIcon: const Icon(Icons.science),
+                    focusNode: _focusNodes[18],
+                    validator: (value) => null, // Opsional
+                  ),
+                  const SizedBox(height: 24),
+
+                  const Text(
+                        'Klinik/Fisik/PD',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                  _buildTextFormField(
+                    controller: _klinikTDController,
+                    label: 'Tekanan Darah (TD)',
+                    prefixIcon: const Icon(Icons.favorite),
+                    focusNode: _focusNodes[19],
+                    validator: (value) => null, // Opsional
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _klinikNadiController,
+                    label: 'Nadi (N)',
+                    prefixIcon: const Icon(Icons.monitor_heart),
+                    focusNode: _focusNodes[20],
+                    validator: (value) => null, // Opsional
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _klinikSuhuController,
+                    label: 'Suhu Badan (SB)',
+                    prefixIcon: const Icon(Icons.thermostat),
+                    focusNode:
+                        _focusNodes[21], // Lanjutan dari index sebelumnya
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _klinikRRController,
+                    label: 'Pernapasan (RR)',
+                    prefixIcon: const Icon(Icons.air),
+                    focusNode: _focusNodes[22],
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _klinikKUController,
+                    label: 'Keadaan Umum (KU)',
+                    prefixIcon: const Icon(Icons.monitor_heart),
+                    focusNode: _focusNodes[23],
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _klinikKESController,
+                    label: 'Kesadaran (KES)',
+                    prefixIcon: const Icon(Icons.monitor_heart),
+                    focusNode: _focusNodes[24],
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _klinikSPO2Controller,
+                    label: 'Saturasi Oksigen (SpO2)',
+                    prefixIcon: const Icon(Icons.air),
+                    focusNode: _focusNodes[25],
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 24),
+
+                  const Text(
+                        'Riwayat Personal/CH',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                  _buildTextFormField(
+                    controller: _riwayatPenyakitSekarangController,
+                    label: 'Riwayat Penyakit Sekarang (RPS)',
+                    prefixIcon: const Icon(Icons.history_edu),
+                    focusNode: _focusNodes[26],
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _riwayatPenyakitDahuluController,
+                    label: 'Riwayat Penyakit Dahulu (RPD)',
+                    prefixIcon: const Icon(Icons.history),
+                    focusNode: _focusNodes[27],
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 24),
+
+                  const Text(
+                        'Diagnosa Gizi',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                  _buildTextFormField(
+                    controller: _diagnosaGiziController,
+                    label: 'Diagnosa Gizi',
+                    prefixIcon: const Icon(Icons.medical_services),
+                    focusNode: _focusNodes[28],
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 24),
+
+                  const Text(
+                        'Intervensi Gizi',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                  _buildTextFormField(
+                    controller: _intervensiDietController,
+                    label: 'Intervensi: Diet',
+                    prefixIcon: const Icon(Icons.food_bank),
+                    focusNode: _focusNodes[29],
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _intervensiBentukMakananController,
+                    label: 'Intervensi: Bentuk Makanan',
+                    prefixIcon: const Icon(Icons.fastfood),
+                    focusNode: _focusNodes[30],
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _intervensiViaController,
+                    label: 'Intervensi: Via',
+                    prefixIcon: const Icon(Icons.route),
+                    focusNode: _focusNodes[31],
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _intervensiTujuanController,
+                    label: 'Intervensi: Tujuan',
+                    prefixIcon: const Icon(Icons.flag),
+                    focusNode: _focusNodes[32],
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 24),
+
+                  const Text(
+                        'Monitoring dan Evaluasi',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                  _buildTextFormField(
+                    controller: _monevAsupanController,
+                    label: 'Monitoring: Asupan',
+                    prefixIcon: const Icon(Icons.monitor),
+                    focusNode: _focusNodes[33],
+                    validator: (value) => null,
+                  ),
                 ],
               ),
-              const SizedBox(height: 16),
-              _buildTextFormField(
-                controller: _polaMakanController,
-                label: 'Pola Makan / Asupan',
-                prefixIcon: const Icon(Icons.restaurant),
-                focusNode: _focusNodes[14], // Ganti 14 dengan index yang benar
-                validator: (value) => null, // Opsional, tidak wajib diisi
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _biokimiaGDSController,
-                label: 'Biokimia: GDS',
-                prefixIcon: const Icon(Icons.science),
-                focusNode: _focusNodes[15], // Ganti 15 dengan index yang benar
-                validator: (value) => null, // Opsional
-              ),
-              const SizedBox(height: 16),
-
-              // Lanjutkan pola yang sama untuk semua field berikutnya...
-              _buildTextFormField(
-                controller: _biokimiaUreumController,
-                label: 'Biokimia: Ureum',
-                prefixIcon: const Icon(Icons.science),
-                focusNode: _focusNodes[16], // Index selanjutnya
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _biokimiaHGBController,
-                label: 'Biokimia: HGB',
-                prefixIcon: const Icon(Icons.science),
-                focusNode: _focusNodes[17], // Index selanjutnya
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _biokimiaENTController,
-                label: 'Biokimia: ENT',
-                prefixIcon: const Icon(Icons.science),
-                focusNode: _focusNodes[18],
-                validator: (value) => null, // Opsional
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _klinikTDController,
-                label: 'Tekanan Darah (TD)',
-                prefixIcon: const Icon(Icons.favorite),
-                focusNode: _focusNodes[19],
-                validator: (value) => null, // Opsional
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _klinikNadiController,
-                label: 'Nadi (N)',
-                prefixIcon: const Icon(Icons.monitor_heart),
-                focusNode: _focusNodes[20],
-                validator: (value) => null, // Opsional
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _klinikSuhuController,
-                label: 'Suhu Badan (SB)',
-                prefixIcon: const Icon(Icons.thermostat),
-                focusNode: _focusNodes[21], // Lanjutan dari index sebelumnya
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _klinikRRController,
-                label: 'Pernapasan (RR)',
-                prefixIcon: const Icon(Icons.air),
-                focusNode: _focusNodes[22],
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _klinikKUController,
-                label: 'Keadaan Umum (KU)',
-                prefixIcon: const Icon(Icons.monitor_heart),
-                focusNode: _focusNodes[23],
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _klinikKESController,
-                label: 'Kesadaran (KES)',
-                prefixIcon: const Icon(Icons.monitor_heart),
-                focusNode: _focusNodes[24],
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _klinikSPO2Controller,
-                label: 'Saturasi Oksigen (SpO2)',
-                prefixIcon: const Icon(Icons.air),
-                focusNode: _focusNodes[25],
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _riwayatPenyakitSekarangController,
-                label: 'Riwayat Penyakit Sekarang (RPS)',
-                prefixIcon: const Icon(Icons.history_edu),
-                focusNode: _focusNodes[26],
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _riwayatPenyakitDahuluController,
-                label: 'Riwayat Penyakit Dahulu (RPD)',
-                prefixIcon: const Icon(Icons.history),
-                focusNode: _focusNodes[27],
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _diagnosaGiziController,
-                label: 'Diagnosa Gizi',
-                prefixIcon: const Icon(Icons.medical_services),
-                focusNode: _focusNodes[28],
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _intervensiDietController,
-                label: 'Intervensi: Diet',
-                prefixIcon: const Icon(Icons.food_bank),
-                focusNode: _focusNodes[29],
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _intervensiBentukMakananController,
-                label: 'Intervensi: Bentuk Makanan',
-                prefixIcon: const Icon(Icons.fastfood),
-                focusNode: _focusNodes[30],
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _intervensiViaController,
-                label: 'Intervensi: Via',
-                prefixIcon: const Icon(Icons.route),
-                focusNode: _focusNodes[31],
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _intervensiTujuanController,
-                label: 'Intervensi: Tujuan',
-                prefixIcon: const Icon(Icons.flag),
-                focusNode: _focusNodes[32],
-                validator: (value) => null,
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextFormField(
-                controller: _monevAsupanController,
-                label: 'Monitoring: Asupan',
-                prefixIcon: const Icon(Icons.monitor),
-                focusNode: _focusNodes[33],
-                validator: (value) => null,
-              ),
-              
-            ],
+            ),
           ),
-        ),
-      ),
         ),
       ),
     );

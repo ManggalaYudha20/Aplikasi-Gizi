@@ -3,12 +3,36 @@ import 'package:flutter/material.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String subtitle;
+  final String logoPath = 'assets/images/logo.png';
 
-  const CustomAppBar({
-    super.key,
-    required this.title,
-    required this.subtitle,
-  });
+  const CustomAppBar({super.key, required this.title, required this.subtitle});
+
+  // Fungsi untuk menampilkan dialog
+  void _showLogoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: GestureDetector(
+              // Agar bisa ditutup dengan klik gambar
+              onTap: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: Image.asset(
+                logoPath, // Gunakan path yang sama
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,16 +65,21 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 16.0),
-          child: Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Image.asset(
-              'assets/images/logo.png',
-              fit: BoxFit.contain,
+          child: InkWell(
+            // <-- DIBUNGKUS DENGAN INKWELL
+            onTap: () {
+              // <-- INI FUNGSI YANG DIPANGGIL SAAT DIKLIK
+              _showLogoDialog(context);
+            },
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Image.asset(logoPath, fit: BoxFit.contain),
             ),
           ),
         ),

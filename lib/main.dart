@@ -10,14 +10,12 @@ import 'package:aplikasi_diagnosa_gizi/src/login/login_screen.dart';
 import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/account/account_page.dart';
-
+import 'package:flutter_localizations/flutter_localizations.dart';
 void main() async {
   // Pastikan Flutter binding sudah siap
   WidgetsFlutterBinding.ensureInitialized();
   // Inisialisasi Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -28,12 +26,20 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'RSUD MyGizi',
+      title: 'GiziQ by RSUD Prov.Sulut',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color.fromARGB(255, 0, 148, 68),
         ),
       ),
+      locale: const Locale('id', 'ID'),
+      supportedLocales: const [Locale('id', 'ID')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+
       home: const AuthWrapper(),
     );
   }
@@ -53,17 +59,15 @@ class AuthWrapper extends StatelessWidget {
         // Selama proses pengecekan, tampilkan loading
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
-        
+
         // Jika snapshot memiliki data (user tidak null), berarti sudah login
         if (snapshot.hasData) {
           return const MainScreen();
         }
-        
+
         // Jika tidak ada data, arahkan ke halaman login
         return const LoginScreen();
       },
@@ -87,7 +91,7 @@ class _MainScreenState extends State<MainScreen> {
     AccountPage(),
   ];
 
-   // 2. TAMBAHKAN initState
+  // 2. TAMBAHKAN initState
   @override
   void initState() {
     super.initState();
