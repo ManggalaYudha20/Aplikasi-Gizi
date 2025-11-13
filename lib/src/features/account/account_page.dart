@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/version_info_app.dart';
+
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
@@ -166,9 +168,21 @@ class AccountPage extends StatelessWidget {
                 ),
               ),
             ),
+            const Spacer(), 
+            
+           Padding(
+              padding: const EdgeInsets.only(bottom: 16.0), 
+              child: Column( // <--- GUNAKAN COLUMN DI SINI
+                mainAxisSize: MainAxisSize.min, // Agar column hanya setinggi isinya
+                children: [ // Jarak kecil antara copyright dan versi
+                   const VersionInfoWidget(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+
 }

@@ -9,6 +9,7 @@ import 'patient_detail_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/services/user_service.dart';
+import 'package:intl/intl.dart';
 
 class PatientHomePage extends StatefulWidget {
   const PatientHomePage({super.key});
@@ -221,10 +222,30 @@ class _PatientHomePageState extends State<PatientHomePage> {
   }
 
   Widget _buildPatientCard(BuildContext context, Patient patient) {
+
+    Color statusColor = Colors.grey;
+    String statusGizi = patient.monevStatusGizi ?? 'Belum ada status';
+    
+    if (statusGizi.contains('Kurang') || statusGizi.contains('Buruk')) {
+      statusColor = Colors.orange;
+    } else if (statusGizi.contains('Lebih') || statusGizi.contains('Obesitas')) {
+      statusColor = Colors.red;
+    } else if (statusGizi.contains('Baik') || statusGizi.contains('Normal')) {
+      statusColor = Colors.green;
+    }
+
+    // 2. Format Tanggal Pemeriksaan
+    // Pastikan patient.tanggalPemeriksaan adalah DateTime. Jika Timestamp, konversi dulu di Model.
+    String formattedDate = DateFormat('dd MMM yyyy', 'id_ID').format(patient.tanggalPemeriksaan);
+
+    // 3. Hitung Usia (Opsional, jika ingin ditampilkan)
+    int age = DateTime.now().year - patient.tanggalLahir.year;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 3,
+      elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
@@ -254,37 +275,93 @@ class _PatientHomePageState extends State<PatientHomePage> {
           );
         },
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                patient.namaLengkap,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 0, 148, 68),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'No. RM: ${patient.noRM}',
-                style: const TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 12),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Diagnosis: ${patient.diagnosisMedis}'),
-                  Text(
-                    'Total Skor: ${patient.totalSkor}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        patient.namaLengkap,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Text(
+                      formattedDate,
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+                
+                // --- BARIS 2: Detail Demografi Kecil ---
+                Text(
+                  '${patient.jenisKelamin} | $age Tahun | No.RM: ${patient.noRM}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+                
+                const SizedBox(height: 8),
+                const Divider(height: 1, thickness: 0.5),
+                const SizedBox(height: 8),
+
+                // --- BARIS 3: Diagnosis & Status Gizi ---
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Diagnosis Medis',
+                            style: TextStyle(fontSize: 10, color: Colors.grey),
+                          ),
+                          Text(
+                            patient.diagnosisMedis,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end, // Rata kanan
+                        children: [
+                          const Text(
+                            'Status Gizi',
+                            style: TextStyle(fontSize: 10, color: Colors.grey),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            child: Text(
+                              statusGizi,
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                fontSize: 12, 
+                                fontWeight: FontWeight.bold,
+                                color: statusColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
             ],
           ),
+            ],
         ),
+      ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_info/presentation/pages/nutrition_info_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/version_info_app.dart';
 
 // 1. Ubah menjadi StatefulWidget
 class LoginScreen extends StatefulWidget {
@@ -74,7 +75,8 @@ class _LoginScreenState extends State<LoginScreen>
                     const Spacer(flex: 2),
                     // Teks copyright di bagian bawah
                     _buildCopyrightText(),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 8),
+                    const VersionInfoWidget(),
                   ],
                 ),
               ),
