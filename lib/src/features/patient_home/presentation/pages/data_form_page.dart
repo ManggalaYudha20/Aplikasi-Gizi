@@ -11,6 +11,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_validator_utils.d
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
 
 class DataFormPage extends StatefulWidget {
   final Patient? patient; // Optional patient for editing
@@ -427,32 +428,57 @@ class _DataFormPageState extends State<DataFormPage> {
           'createdBy': currentUser.uid,
         };
 
-        // --- Kirim ke Firestore ---
-        if (widget.patient != null) {
-          // Update existing patient
-          await FirebaseFirestore.instance
-              .collection('patients')
-              .doc(widget.patient!.id)
-              .update(patientData);
-        } else {
-          // Create new patient
-          await FirebaseFirestore.instance
-              .collection('patients')
-              .add(patientData);
+        // --- Kirim ke Firestore (MODIFIKASI OFFLINE SUPPORT) ---
+        try {
+          // Tentukan batas waktu tunggu (misal 3 detik)
+          const timeoutDuration = Duration(seconds: 3);
+
+          if (widget.patient != null) {
+            // Update existing patient dengan Timeout
+            await FirebaseFirestore.instance
+                .collection('patients')
+                .doc(widget.patient!.id)
+                .update(patientData)
+                .timeout(timeoutDuration);
+          } else {
+            // Create new patient dengan Timeout
+            await FirebaseFirestore.instance
+                .collection('patients')
+                .add(patientData)
+                .timeout(timeoutDuration);
+          }
+
+          // Jika berhasil konek ke server (Online)
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  widget.patient != null
+                      ? 'Data pasien berhasil diperbarui!'
+                      : 'Data pasien berhasil disimpan!',
+                ),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } on TimeoutException catch (_) {
+          // Jika Internet Mati / Lambat (Masuk ke sini setelah 3 detik)
+          // Data tetap tersimpan di lokal (cache) berkat persistenceEnabled: true
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                    'Mode Offline: Data disimpan lokal dan akan diupload saat ada internet.'),
+                backgroundColor: Colors.orange, // Warna pembeda
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          // Kita biarkan kode lanjut ke bawah untuk menutup halaman (pop)
         }
 
+        // --- Bagian Navigasi Kembali (Tetap dijalankan baik Online maupun Offline) ---
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                widget.patient != null
-                    ? 'Data pasien berhasil diperbarui!'
-                    : 'Data pasien berhasil disimpan!',
-              ),
-              backgroundColor: Colors.green,
-            ),
-          );
-
           // Create updated patient object to return
           final updatedPatient = Patient(
             id: widget.patient?.id ?? '', // Will be empty for new patients
