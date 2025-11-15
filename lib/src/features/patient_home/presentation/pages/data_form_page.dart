@@ -65,6 +65,7 @@ class _DataFormPageState extends State<DataFormPage> {
   final _intervensiViaController = TextEditingController();
   final _intervensiTujuanController = TextEditingController();
   final _monevAsupanController = TextEditingController();
+  final _monevHasilLabController = TextEditingController();
   final _namaNutrisionisController = TextEditingController();
   final AuthService _authService = AuthService();
 
@@ -88,7 +89,7 @@ class _DataFormPageState extends State<DataFormPage> {
       _intervensiDietController, _intervensiBentukMakananController,
       _intervensiViaController,
       _intervensiTujuanController,
-      _monevAsupanController,
+      _monevAsupanController,_monevHasilLabController,
       _namaNutrisionisController,
     ];
 
@@ -149,6 +150,7 @@ class _DataFormPageState extends State<DataFormPage> {
     _intervensiViaController.text = patient.intervensiVia ?? '';
     _intervensiTujuanController.text = patient.intervensiTujuan ?? '';
     _monevAsupanController.text = patient.monevAsupan ?? '';
+    _monevHasilLabController.text = patient.monevHasilLab ?? '';
     _biokimiaENTController.text = patient.biokimiaENT ?? '';
     _klinikKUController.text = patient.klinikKU ?? '';
     _klinikKESController.text = patient.klinikKES ?? '';
@@ -186,6 +188,7 @@ class _DataFormPageState extends State<DataFormPage> {
     _intervensiViaController.dispose();
     _intervensiTujuanController.dispose();
     _monevAsupanController.dispose();
+    _monevHasilLabController.dispose();
     _biokimiaENTController.dispose();
     _klinikKUController.dispose();
     _klinikKESController.dispose();
@@ -239,6 +242,7 @@ class _DataFormPageState extends State<DataFormPage> {
       _intervensiViaController.clear();
       _intervensiTujuanController.clear();
       _monevAsupanController.clear();
+      _monevHasilLabController.clear();
       _biokimiaENTController.clear();
       _klinikKUController.clear();
       _klinikKESController.clear();
@@ -419,6 +423,7 @@ class _DataFormPageState extends State<DataFormPage> {
           'intervensiVia': _intervensiViaController.text,
           'intervensiTujuan': _intervensiTujuanController.text,
           'monevAsupan': _monevAsupanController.text,
+          'monevHasilLab': _monevHasilLabController.text,
           'monevStatusGizi': statusGizi,
           'biokimiaENT': _biokimiaENTController.text,
           'klinikKU': _klinikKUController.text,
@@ -518,6 +523,7 @@ class _DataFormPageState extends State<DataFormPage> {
             intervensiVia: _intervensiViaController.text,
             intervensiTujuan: _intervensiTujuanController.text,
             monevAsupan: _monevAsupanController.text,
+            monevHasilLab: _monevHasilLabController.text,
             monevStatusGizi: statusGizi,
             biokimiaENT: _biokimiaENTController.text,
             klinikKU: _klinikKUController.text,
@@ -1028,7 +1034,7 @@ class _DataFormPageState extends State<DataFormPage> {
 
                   _buildTextFormField(
                     controller: _intervensiDietController,
-                    label: 'Intervensi: Diet',
+                    label: 'Intervensi: Jenis Diet',
                     prefixIcon: const Icon(Icons.food_bank),
                     focusNode: _focusNodes[29],
                     validator: (value) => null,
@@ -1044,18 +1050,19 @@ class _DataFormPageState extends State<DataFormPage> {
                   ),
                   const SizedBox(height: 16),
 
-                  _buildTextFormField(
+                  _buildCustomDropdown(
                     controller: _intervensiViaController,
                     label: 'Intervensi: Via',
                     prefixIcon: const Icon(Icons.route),
                     focusNode: _focusNodes[31],
-                    validator: (value) => null,
+                    items: const ['Oral', 'Enteral', 'Parenteral'],
+                    validator: (value) => null, 
                   ),
                   const SizedBox(height: 16),
 
                   _buildTextFormField(
                     controller: _intervensiTujuanController,
-                    label: 'Intervensi: Tujuan',
+                    label: 'Intervensi: Tujuan Diet',
                     prefixIcon: const Icon(Icons.flag),
                     focusNode: _focusNodes[32],
                     validator: (value) => null,
@@ -1073,9 +1080,18 @@ class _DataFormPageState extends State<DataFormPage> {
 
                   _buildTextFormField(
                     controller: _monevAsupanController,
-                    label: 'Monitoring: Asupan',
+                    label: 'Monitoring: Asupan Makanan',
                     prefixIcon: const Icon(Icons.monitor),
                     focusNode: _focusNodes[33],
+                    validator: (value) => null,
+                  ),
+                   const SizedBox(height: 16),
+
+                  _buildTextFormField(
+                    controller: _monevHasilLabController,
+                    label: 'Monitoring: Hasil Lab',
+                    prefixIcon: const Icon(Icons.document_scanner),
+                    focusNode: _focusNodes[35],
                     validator: (value) => null,
                   ),
                 ],
@@ -1135,6 +1151,7 @@ class _DataFormPageState extends State<DataFormPage> {
     required FocusNode focusNode,
     bool showSearch = false,
     void Function(String?)? onChanged,
+    String? Function(String?)? validator,
   }) {
     return DropdownSearch<String>(
       popupProps: PopupProps.menu(
@@ -1158,7 +1175,8 @@ class _DataFormPageState extends State<DataFormPage> {
             });
           },
       selectedItem: controller.text.isEmpty ? null : controller.text,
-      validator: (value) =>
+      validator: validator ??
+      (value) =>
           (value == null || value.isEmpty) ? '$label harus dipilih' : null,
     );
   }

@@ -403,7 +403,7 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 _buildInfoRow(
-                  'Intervensi Diet',
+                  'Intervensi Jenis Diet',
                   (_currentPatient.intervensiDiet != null &&
                           _currentPatient.intervensiDiet!.isNotEmpty)
                       ? '${_currentPatient.intervensiDiet}'
@@ -424,7 +424,7 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                       : '-',
                 ),
                 _buildInfoDisplay(
-                  label: 'Tujuan :',
+                  label: 'Tujuan Diet :',
                   value: _currentPatient.intervensiTujuan,
                   emptyValueMessage: '-',
                 ),
@@ -441,8 +441,13 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
               children: [
                 _buildInfoRow('Status Gizi', _currentPatient.statusGizi),
                 _buildInfoDisplay(
-                  label: 'Asupan :',
+                  label: 'Asupan Makanan :',
                   value: _currentPatient.monevAsupan,
+                  emptyValueMessage: '-',
+                ),
+                _buildInfoDisplay(
+                  label: 'Hasil Lab :',
+                  value: _currentPatient.monevHasilLab,
                   emptyValueMessage: '-',
                 ),
               ],

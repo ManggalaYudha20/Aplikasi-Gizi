@@ -10,6 +10,8 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dar
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/services/user_service.dart';
 import 'package:intl/intl.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_filter_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_filter_sheet.dart';
 
 class PatientHomePage extends StatefulWidget {
   const PatientHomePage({super.key});
@@ -23,6 +25,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
   String _searchQuery = '';
   final UserService _userService = UserService();
   late Future<String?> _userRoleFuture;
+
+  PatientFilterModel _activeFilters = PatientFilterModel();
 
   @override
   void initState() {
@@ -41,9 +45,29 @@ class _PatientHomePageState extends State<PatientHomePage> {
     super.dispose();
   }
 
+  void _showFilterModal(BuildContext context) async {
+    // Tampilkan modal dan tunggu hasilnya (PatientFilterModel)
+    final newFilters = await showModalBottomSheet<PatientFilterModel?>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors
+          .transparent, // Buat transparan agar border radius sheet terlihat
+      builder: (context) {
+        // Panggil widget reusable Anda
+        return PatientFilterSheet(currentFilters: _activeFilters);
+      },
+    );
+
+    // Jika pengguna menekan "Terapkan" atau "Reset", 'newFilters' tidak akan null
+    if (newFilters != null) {
+      setState(() {
+        _activeFilters = newFilters;
+      });
+    }
+  }
+
   Widget _buildSearchBar() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 5),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -123,83 +147,150 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 },
                 child: Column(
                   children: [
-                    _buildSearchBar(),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 5),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _buildSearchBar(), // Search bar tanpa margin
+                          ),
+                          const SizedBox(width: 8),
+                          // Tombol Filter
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withValues(alpha: 0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 5,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.filter_list,
+                                // Beri warna jika filter aktif
+                                color: !_activeFilters.isDefault
+                                    ? const Color.fromARGB(255, 0, 148, 68)
+                                    : Colors.grey,
+                              ),
+                              onPressed: () {
+                                _showFilterModal(context);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     Expanded(
                       child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                        stream: patientQuery.snapshots(), // Menggunakan query yang dinamis
+                        stream: patientQuery
+                            .snapshots(), // Menggunakan query yang dinamis
                         builder: (context, streamSnapshot) {
-                          if (streamSnapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
+                          if (streamSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
                           }
                           if (streamSnapshot.hasError) {
-                            return Center(child: Text('Error: ${streamSnapshot.error}'));
+                            return Center(
+                              child: Text('Error: ${streamSnapshot.error}'),
+                            );
                           }
-                          if (!streamSnapshot.hasData || streamSnapshot.data!.docs.isEmpty) {
+                          if (!streamSnapshot.hasData ||
+                              streamSnapshot.data!.docs.isEmpty) {
                             return const Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.people_outline, size: 60, color: Colors.grey),
+                                  Icon(
+                                    Icons.people_outline,
+                                    size: 60,
+                                    color: Colors.grey,
+                                  ),
                                   SizedBox(height: 16),
-                                  Text('Belum ada data pasien', style: TextStyle(fontSize: 18, color: Colors.grey)),
-                                  Text('Tekan tombol + untuk menambah data baru', style: TextStyle(color: Colors.grey)),
+                                  Text(
+                                    'Belum ada data pasien',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Tekan tombol + untuk menambah data baru',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
                                 ],
                               ),
                             );
                           }
 
-                                final patients = streamSnapshot.data!.docs;
+                          final patients = streamSnapshot.data!.docs;
 
-                                // Filter pasien berdasarkan query pencarian
-                                final filteredPatients = patients.where((doc) {
-                                  final patient = Patient.fromFirestore(doc);
-                                  final searchQueryLower = _searchQuery
-                                      .toLowerCase();
-                                  return patient.namaLengkap
-                                          .toLowerCase()
-                                          .contains(searchQueryLower) ||
-                                      patient.noRM.toLowerCase().contains(
-                                        searchQueryLower,
-                                      ) ||
-                                      patient.diagnosisMedis
-                                          .toLowerCase()
-                                          .contains(searchQueryLower);
-                                }).toList();
+                          // Filter pasien berdasarkan query pencarian
+                          final filteredPatients = patients.where((doc) {
+                            final patient = Patient.fromFirestore(doc);
 
-                                if (filteredPatients.isEmpty &&
-                                    _searchQuery.isNotEmpty) {
-                                  return Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(
-                                          Icons.search_off,
-                                          size: 60,
-                                          color: Colors.grey,
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          'Tidak ada pasien dengan nama atau No. RM "$_searchQuery"',
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
-
-                                return ListView.builder(
-                                  padding: const EdgeInsets.all(16),
-                                  itemCount: filteredPatients.length,
-                                  itemBuilder: (context, index) {
-                                    final patient = Patient.fromFirestore(
-                                      filteredPatients[index],
-                                    );
-                                    return _buildPatientCard(context, patient);
-                                  },
+                            // 1. Logika Search (dari kode Anda)
+                            final searchQueryLower = _searchQuery.toLowerCase();
+                            final bool matchesSearch =
+                                patient.namaLengkap.toLowerCase().contains(
+                                  searchQueryLower,
+                                ) ||
+                                patient.noRM.toLowerCase().contains(
+                                  searchQueryLower,
+                                ) ||
+                                patient.diagnosisMedis.toLowerCase().contains(
+                                  searchQueryLower,
                                 );
-                              },
-                            ),
+
+                            // 2. Logika Filter (INI YANG HILANG)
+                            // Memanggil fungsi 'matches' dari model Anda
+                            final bool matchesFilter = _activeFilters.matches(
+                              patient,
+                            );
+
+                            // Pasien hanya ditampilkan jika cocok KEDUA-DUANYA
+                            return matchesSearch && matchesFilter;
+                          }).toList();
+
+                          if (filteredPatients.isEmpty &&
+                              _searchQuery.isNotEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.search_off,
+                                    size: 60,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Tidak ada pasien dengan nama atau No. RM "$_searchQuery"',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+
+                          return ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: filteredPatients.length,
+                            itemBuilder: (context, index) {
+                              final patient = Patient.fromFirestore(
+                                filteredPatients[index],
+                              );
+                              return _buildPatientCard(context, patient);
+                            },
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -222,13 +313,13 @@ class _PatientHomePageState extends State<PatientHomePage> {
   }
 
   Widget _buildPatientCard(BuildContext context, Patient patient) {
-
     Color statusColor = Colors.grey;
     String statusGizi = patient.monevStatusGizi ?? 'Belum ada status';
-    
+
     if (statusGizi.contains('Kurang') || statusGizi.contains('Buruk')) {
       statusColor = Colors.orange;
-    } else if (statusGizi.contains('Lebih') || statusGizi.contains('Obesitas')) {
+    } else if (statusGizi.contains('Lebih') ||
+        statusGizi.contains('Obesitas')) {
       statusColor = Colors.red;
     } else if (statusGizi.contains('Baik') || statusGizi.contains('Normal')) {
       statusColor = Colors.green;
@@ -236,10 +327,19 @@ class _PatientHomePageState extends State<PatientHomePage> {
 
     // 2. Format Tanggal Pemeriksaan
     // Pastikan patient.tanggalPemeriksaan adalah DateTime. Jika Timestamp, konversi dulu di Model.
-    String formattedDate = DateFormat('dd MMM yyyy', 'id_ID').format(patient.tanggalPemeriksaan);
+    String formattedDate = DateFormat(
+      'dd MMM yyyy',
+      'id_ID',
+    ).format(patient.tanggalPemeriksaan);
 
     // 3. Hitung Usia (Opsional, jika ingin ditampilkan)
-    int age = DateTime.now().year - patient.tanggalLahir.year;
+    DateTime today = DateTime.now();
+    int age = today.year - patient.tanggalLahir.year;
+    if (patient.tanggalLahir.month > today.month ||
+        (patient.tanggalLahir.month == today.month &&
+            patient.tanggalLahir.day > today.day)) {
+      age--; // Kurangi 1 jika belum ulang tahun
+    }
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -280,88 +380,94 @@ class _PatientHomePageState extends State<PatientHomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        patient.namaLengkap,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      patient.namaLengkap,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      formattedDate,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-                
-                // --- BARIS 2: Detail Demografi Kecil ---
-                Text(
-                  '${patient.jenisKelamin} | $age Tahun | No.RM: ${patient.noRM}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-                
-                const SizedBox(height: 8),
-                const Divider(height: 1, thickness: 0.5),
-                const SizedBox(height: 8),
+                  ),
+                  Text(
+                    formattedDate,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
 
-                // --- BARIS 3: Diagnosis & Status Gizi ---
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Diagnosis Medis',
-                            style: TextStyle(fontSize: 10, color: Colors.grey),
+              // --- BARIS 2: Detail Demografi Kecil ---
+              Text(
+                '${patient.jenisKelamin} | $age Tahun | No.RM: ${patient.noRM}',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+
+              const SizedBox(height: 8),
+              const Divider(height: 1, thickness: 0.5),
+              const SizedBox(height: 8),
+
+              // --- BARIS 3: Diagnosis & Status Gizi ---
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Diagnosis Medis',
+                          style: TextStyle(fontSize: 10, color: Colors.grey),
+                        ),
+                        Text(
+                          patient.diagnosisMedis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
                           ),
-                          Text(
-                            patient.diagnosisMedis,
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end, // Rata kanan
-                        children: [
-                          const Text(
-                            'Status Gizi',
-                            style: TextStyle(fontSize: 10, color: Colors.grey),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end, // Rata kanan
+                      children: [
+                        const Text(
+                          'Status Gizi',
+                          style: TextStyle(fontSize: 10, color: Colors.grey),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            child: Text(
-                              statusGizi,
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                fontSize: 12, 
-                                fontWeight: FontWeight.bold,
-                                color: statusColor,
-                              ),
+                          child: Text(
+                            statusGizi,
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: statusColor,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
+                ],
+              ),
             ],
           ),
-            ],
         ),
-      ),
       ),
     );
   }

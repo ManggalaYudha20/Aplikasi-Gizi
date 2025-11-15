@@ -63,8 +63,8 @@ class PdfGenerator {
 
                   // Right logo
                   pw.Container(
-                    width: 50,
-                    height: 50,
+                    width: 70,
+                    height: 70,
                     child: pw.Image(logoImage, fit: pw.BoxFit.contain),
                   ),
                 ],

@@ -29,7 +29,7 @@ class AccountPage extends StatelessWidget {
               },
             ),
             TextButton(
-              child: const Text('Keluar'),
+              child: const Text('Keluar',style: TextStyle(color: Colors.red)),
               onPressed: () async {
                 Navigator.of(dialogContext).pop(); // Tutup dialog
                 await authService.signOut();

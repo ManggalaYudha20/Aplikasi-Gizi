@@ -7,6 +7,8 @@ import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/p
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_detail_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/add_food_item_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/role_builder.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/food_filter_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/food_filter_sheet.dart';
 
 class FoodListPage extends StatefulWidget {
   const FoodListPage({super.key});
@@ -18,6 +20,8 @@ class FoodListPage extends StatefulWidget {
 class _FoodListPageState extends State<FoodListPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+
+  FoodFilterModel _activeFilters = FoodFilterModel();
 
   @override
   void initState() {
@@ -35,6 +39,23 @@ class _FoodListPageState extends State<FoodListPage> {
     super.dispose();
   }
 
+  void _showFilterModal(BuildContext context) async {
+    final newFilters = await showModalBottomSheet<FoodFilterModel?>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return FoodFilterSheet(currentFilters: _activeFilters);
+      },
+    );
+
+    if (newFilters != null) {
+      setState(() {
+        _activeFilters = newFilters;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,7 +71,43 @@ class _FoodListPageState extends State<FoodListPage> {
           },
         child: Column(
           children: [
-            _buildSearchBar(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 5),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildSearchBar(), // Search bar
+                  ),
+                  const SizedBox(width: 8),
+                  // Tombol Filter
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withValues(alpha:0.1),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.filter_list,
+                        color: !_activeFilters.isDefault
+                            ? const Color.fromARGB(255, 0, 148, 68)
+                            : Colors.grey,
+                      ),
+                      onPressed: () {
+                        _showFilterModal(context);
+                      },
+                    ),
+                  )
+                ],
+              ),
+            ),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
@@ -74,11 +131,16 @@ class _FoodListPageState extends State<FoodListPage> {
                     final foodItem = FoodItem.fromFirestore(
                       doc as DocumentSnapshot<Map<String, dynamic>>,
                     );
+                    
+                    // 1. Logika Search
                     final searchQueryLower = _searchQuery.toLowerCase();
-                    return foodItem.name.toLowerCase().contains(searchQueryLower) ||
-                           foodItem.code.toLowerCase().contains(searchQueryLower) ||
-                           foodItem.kelompokMakanan.toLowerCase().contains(searchQueryLower) ||
-                           foodItem.mentahOlahan.toLowerCase().contains(searchQueryLower) ;
+                    final bool matchesSearch = foodItem.name.toLowerCase().contains(searchQueryLower) ||
+                           foodItem.code.toLowerCase().contains(searchQueryLower);
+                    
+                    // 2. Logika Filter
+                    final bool matchesFilter = _activeFilters.matches(foodItem);
+
+                    return matchesSearch && matchesFilter;
                   }).toList();
 
                   if (filteredDocs.isEmpty && _searchQuery.isNotEmpty) {

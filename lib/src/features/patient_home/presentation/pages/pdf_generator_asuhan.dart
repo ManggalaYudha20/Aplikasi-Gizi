@@ -62,8 +62,8 @@ class PdfGeneratorAsuhan {
               ),
 
               pw.Container(
-                width: 50,
-                height: 50,
+                width: 70,
+                height: 70,
                 child: pw.Image(rsLogo, fit: pw.BoxFit.contain),
               ),
             ],
@@ -220,12 +220,12 @@ class PdfGeneratorAsuhan {
                 ),
                 _buildAssessmentItemRow(
                   'BM : ${patient.intervensiBentukMakanan ?? '-'}',
-                  'Diet : ${patient.intervensiDiet ?? '-'}',
+                  'Jenis Diet : ${patient.intervensiDiet ?? '-'}',
                   'Via : ${patient.intervensiVia ?? '-'}',
                   '',
                 ),
                 _buildInfoRowSatu(
-                  'Tujuan :',
+                  'Tujuan Diet :',
                   ' ${patient.intervensiTujuan ?? '-'} ',
                 ),
               ],
@@ -240,10 +240,11 @@ class PdfGeneratorAsuhan {
             child: pw.Column(
               children: [
                 _buildInfoRowSatu(
-                  'Asupan :',
+                  'Asupan Makanan :',
                   ' ${patient.monevAsupan ?? '-'} ',
                 ),
                 _buildInfoRowSatu('Status gizi :', ' ${patient.monevStatusGizi ?? '-'} '),
+                _buildInfoRowSatu('Hasil Lab :', ' ${patient.monevHasilLab ?? '-'} '),
               ],
             ),
           ),

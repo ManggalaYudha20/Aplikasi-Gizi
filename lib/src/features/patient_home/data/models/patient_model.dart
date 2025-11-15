@@ -48,6 +48,7 @@ class Patient {
   final String? klinikSPO2;
   final String? namaNutrisionis;
   final String createdBy;
+  final String? monevHasilLab;
 
   Patient({
     required this.id,
@@ -57,15 +58,15 @@ class Patient {
     required this.diagnosisMedis,
     required this.beratBadan,
     required this.tinggiBadan,
-    required this.jenisKelamin, // Tambahkan ini
-    required this.aktivitas, // Tambahkan ini
+    required this.jenisKelamin, 
+    required this.aktivitas, 
     required this.imt,
     required this.skorIMT,
     required this.skorKehilanganBB,
     required this.skorEfekPenyakit,
     required this.totalSkor,
     required this.tanggalPemeriksaan,
-    this.lila, // Tambahkan ini sebagai properti opsional
+    this.lila, 
     this.tl,
     this.beratBadanDulu,
     this.kehilanganNafsuMakan,
@@ -88,6 +89,7 @@ class Patient {
     this.intervensiTujuan,
     this.monevAsupan,
     this.monevStatusGizi,
+    this.monevHasilLab,
     this.biokimiaENT,
     this.klinikKU,
     this.klinikKES,
@@ -138,6 +140,7 @@ class Patient {
       intervensiTujuan: data['intervensiTujuan'] as String?,
       monevAsupan: data['monevAsupan'] as String?,
       monevStatusGizi: data['monevStatusGizi'] as String?,
+      monevHasilLab: data['monevHasilLab'] as String?,
       biokimiaENT: data['biokimiaENT'] as String?,
       klinikKU: data['klinikKU'] as String?,
       klinikKES: data['klinikKES'] as String?,
@@ -186,6 +189,7 @@ class Patient {
       'intervensiTujuan': intervensiTujuan,
       'monevAsupan': monevAsupan,
       'monevStatusGizi': monevStatusGizi,
+      'monevHasilLab' : monevHasilLab,
       'biokimiaENT': biokimiaENT,
       'klinikKU': klinikKU,
       'klinikKES': klinikKES,
