@@ -1,4 +1,4 @@
-// lib/src/shared/widgets/patient_filter_sheet.dart
+// lib\src\shared\widgets\patient_filter_form.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_filter_model.dart';
@@ -6,9 +6,12 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_filter_model.d
 class PatientFilterSheet extends StatefulWidget {
   final PatientFilterModel currentFilters;
 
+  final VoidCallback onResetPressed;
+
   const PatientFilterSheet({
     super.key,
     required this.currentFilters,
+    required this.onResetPressed,
   });
 
   @override
@@ -155,10 +158,17 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
             children: [
               TextButton(
                 child: const Text('Reset Filter'),
+                // --- MODIFIKASI BAGIAN INI ---
                 onPressed: () {
-                  // Kirim balik filter kosong
-                  Navigator.pop(context, PatientFilterModel());
+                  // 1. Reset state LOKAL di dalam sheet
+                  setState(() {
+                    _tempFilters = PatientFilterModel();
+                  });
+                  // 2. Panggil callback untuk eksekusi di halaman home
+                  widget.onResetPressed();
+                  // 3. JANGAN panggil Navigator.pop
                 },
+                // --- AKHIR MODIFIKASI ---
               ),
               const Spacer(),
               ElevatedButton(

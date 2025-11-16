@@ -11,7 +11,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/services/user_service.dart';
 import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_filter_model.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_filter_sheet.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_filter_form.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_anak_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/presentation/pages/data_form_anak_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/presentation/pages/patient_anak_detail_page.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 class PatientHomePage extends StatefulWidget {
   const PatientHomePage({super.key});
@@ -45,16 +49,28 @@ class _PatientHomePageState extends State<PatientHomePage> {
     super.dispose();
   }
 
+  void _applyFilters(PatientFilterModel newFilters) {
+    setState(() {
+      _activeFilters = newFilters;
+    });
+  }
+
   void _showFilterModal(BuildContext context) async {
     // Tampilkan modal dan tunggu hasilnya (PatientFilterModel)
     final newFilters = await showModalBottomSheet<PatientFilterModel?>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors
-          .transparent, // Buat transparan agar border radius sheet terlihat
+      backgroundColor: Colors.transparent, // Buat transparan agar border radius sheet terlihat
       builder: (context) {
         // Panggil widget reusable Anda
-        return PatientFilterSheet(currentFilters: _activeFilters);
+        return PatientFilterSheet(
+          currentFilters: _activeFilters,
+          // --- KIRIM FUNGSI CALLBACK KE SHEET ---
+          onResetPressed: () {
+            // Panggil fungsi yang me-reset state halaman home
+            _applyFilters(PatientFilterModel());
+          },
+        );
       },
     );
 
@@ -233,25 +249,39 @@ class _PatientHomePageState extends State<PatientHomePage> {
 
                           // Filter pasien berdasarkan query pencarian
                           final filteredPatients = patients.where((doc) {
-                            final patient = Patient.fromFirestore(doc);
-
-                            // 1. Logika Search (dari kode Anda)
+                            final data = doc.data();
                             final searchQueryLower = _searchQuery.toLowerCase();
-                            final bool matchesSearch =
-                                patient.namaLengkap.toLowerCase().contains(
-                                  searchQueryLower,
-                                ) ||
-                                patient.noRM.toLowerCase().contains(
-                                  searchQueryLower,
-                                ) ||
-                                patient.diagnosisMedis.toLowerCase().contains(
-                                  searchQueryLower,
-                                );
 
-                            // 2. Logika Filter (INI YANG HILANG)
-                            // Memanggil fungsi 'matches' dari model Anda
+                            // --- 1. LOGIKA PENCARIAN (Search) ---
+                            // (Logika search tetap di sini, ini sudah benar)
+                            bool matchesSearch = false;
+                            final String namaLengkap =
+                                data['namaLengkap'] ?? '';
+                            final String noRM = data['noRM'] ?? '';
+
+                            matchesSearch =
+                                namaLengkap.toLowerCase().contains(
+                                  searchQueryLower,
+                                ) ||
+                                noRM.toLowerCase().contains(searchQueryLower);
+
+                            if (!matchesSearch &&
+                                (data['tipePasien'] ?? 'dewasa') == 'dewasa') {
+                              final String diagnosisMedis =
+                                  data['diagnosisMedis'] ?? '';
+                              if (diagnosisMedis.toLowerCase().contains(
+                                searchQueryLower,
+                              )) {
+                                matchesSearch = true;
+                              }
+                            }
+                            if (!matchesSearch) return false;
+
+                            // --- 2. LOGIKA FILTER (Sekarang Bersih) ---
+                            // Panggil method 'matches' yang baru dengan data mentah
+                            // Logika 'isDefault' sudah ada di dalam method 'matches'
                             final bool matchesFilter = _activeFilters.matches(
-                              patient,
+                              data,
                             );
 
                             // Pasien hanya ditampilkan jika cocok KEDUA-DUANYA
@@ -283,10 +313,29 @@ class _PatientHomePageState extends State<PatientHomePage> {
                             padding: const EdgeInsets.all(16),
                             itemCount: filteredPatients.length,
                             itemBuilder: (context, index) {
-                              final patient = Patient.fromFirestore(
-                                filteredPatients[index],
-                              );
-                              return _buildPatientCard(context, patient);
+                              final doc = filteredPatients[index];
+                              final data = doc.data();
+
+                              // Tentukan tipe, default 'dewasa' untuk data lama
+                              final String tipePasien =
+                                  data['tipePasien'] ?? 'dewasa';
+
+                              if (tipePasien == 'anak') {
+                                // Buat model anak
+                                final patientAnak = PatientAnak.fromFirestore(
+                                  doc,
+                                );
+                                // Buat card anak (dibuat di 6c)
+                                return _buildPatientAnakCard(
+                                  context,
+                                  patientAnak,
+                                );
+                              } else {
+                                final patient = Patient.fromFirestore(
+                                  filteredPatients[index],
+                                );
+                                return _buildPatientCard(context, patient);
+                              }
                             },
                           );
                         },
@@ -299,15 +348,149 @@ class _PatientHomePageState extends State<PatientHomePage> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
+      floatingActionButton: SpeedDial(
+        // Ikon utama saat tombol tertutup
+        icon: Icons.add,
+        // Ikon saat tombol terbuka (opsional)
+        activeIcon: Icons.close,
+        backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+        foregroundColor: Colors.white,
+        buttonSize: const Size(55.0, 55.0), // Ukuran standar FAB
+        childrenButtonSize: const Size(55.0, 55.0), // Ukuran tombol anak
+        visible: true,
+        curve: Curves.bounceIn, // Jenis animasi
+        // Ini adalah arah animasi "muncul ke atas" yang Anda inginkan
+        direction: SpeedDialDirection.up,
+        overlayOpacity: 0.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            16.0,
+          ), // Atur radius sudut di sini
+        ),
+        spacing: 12.0,
+
+        // Ini adalah daftar tombol Anda (Dewasa & Anak)
+        children: [
+          SpeedDialChild(
+            child: const Icon(Icons.child_care),
+            label: 'Pasien Anak (0-5 th)',
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+            onTap: () {
+              // Langsung navigasi ke form anak
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DataFormAnakPage(),
+                ),
+              );
+            },
+          ),
+          SpeedDialChild(
+            child: const Icon(Icons.person),
+            label: 'Pasien Dewasa',
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+            onTap: () {
+              // Langsung navigasi ke form dewasa
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const DataFormPage()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPatientAnakCard(BuildContext context, PatientAnak patient) {
+    // Tentukan warna berdasarkan status gizi anak
+    Color statusColor = Colors.grey;
+    String statusGizi = patient.statusGiziAnak ?? 'Belum ada status';
+
+    if (statusGizi.contains('Kurang') || statusGizi.contains('Buruk')) {
+      statusColor = Colors.orange;
+    } else if (statusGizi.contains('Lebih')) {
+      statusColor = Colors.red;
+    } else if (statusGizi.contains('Baik') || statusGizi.contains('Normal')) {
+      statusColor = Colors.green;
+    }
+
+    String formattedDate = DateFormat(
+      'dd MMM yyyy',
+      'id_ID',
+    ).format(patient.tanggalPemeriksaan);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          // !! PENTING: Navigasi ke Halaman Detail ANAK !!
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const DataFormPage()),
+            MaterialPageRoute(
+              builder: (context) => PatientAnakDetailPage(patient: patient),
+            ),
           );
         },
-        backgroundColor: const Color.fromARGB(255, 0, 148, 68),
-        child: const Icon(Icons.add, size: 28, color: Colors.white),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      patient.namaLengkap,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    formattedDate,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+
+              // Tampilkan data demografi anak
+              Text(
+                '${patient.jenisKelamin} | ${patient.usiaFormatted} | No.RM: ${patient.noRM}',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 8),
+              const Divider(height: 1, thickness: 0.5),
+              const SizedBox(height: 8),
+
+              // Tampilkan Status Gizi Anak
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Status Gizi Anak:', style: TextStyle(fontSize: 13)),
+                  Text(
+                    statusGizi,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: statusColor,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

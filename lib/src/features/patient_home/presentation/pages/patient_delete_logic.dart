@@ -2,13 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_model.dart';
 
 class PatientDeleteLogic {
   /// Shows a confirmation dialog for deleting a patient
   static Future<void> showDeleteConfirmationDialog({
     required BuildContext context,
-    required Patient patient,
+    required String patientId, // <-- SUDAH DIUBAH
+    required String patientName,
     required VoidCallback onDeleteSuccess,
   }) async {
     return showDialog(
@@ -16,7 +16,7 @@ class PatientDeleteLogic {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Konfirmasi Hapus'),
-          content: Text('Apakah Anda yakin untuk menghapus data pasien "${patient.namaLengkap}" ?'),
+          content: Text('Apakah Anda yakin untuk menghapus data pasien "$patientName" ?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -28,7 +28,7 @@ class PatientDeleteLogic {
                 final navigator = Navigator.of(context);
                 await _deletePatient(
                   context: context,
-                  patient: patient,
+                  patientId: patientId,
                   onDeleteSuccess: onDeleteSuccess,
                 );
                 navigator.pop(); // Close the dialog
@@ -44,7 +44,7 @@ class PatientDeleteLogic {
   /// Deletes a patient from Firestore
   static Future<void> _deletePatient({
     required BuildContext context,
-    required Patient patient,
+    required String patientId,
     required VoidCallback onDeleteSuccess,
   }) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -60,7 +60,7 @@ class PatientDeleteLogic {
       // Delete from Firestore
       await FirebaseFirestore.instance
           .collection('patients')
-          .doc(patient.id)
+          .doc(patientId)
           .delete();
       
       // Show success message using stored context
@@ -87,12 +87,14 @@ class PatientDeleteLogic {
   /// Handles the complete delete process including confirmation and navigation
   static Future<void> handlePatientDelete({
     required BuildContext context,
-    required Patient patient,
+    required String patientId, // <-- SUDAH DIUBAH
+    required String patientName,
   }) async {
     final navigator = Navigator.of(context);
     await showDeleteConfirmationDialog(
       context: context,
-      patient: patient,
+      patientId: patientId,
+      patientName: patientName,
       onDeleteSuccess: () {
         // Navigate back to patient list after successful deletion
         navigator.pop();

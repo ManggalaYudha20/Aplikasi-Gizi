@@ -78,7 +78,6 @@ class _DataFormPageState extends State<DataFormPage> {
       _lilaController, _beratBadanDuluController, _tinggiBadanController,
       _tlController, _kehilanganNafsuMakanController, _aktivitasController,
       _alergiMakananController, _detailAlergiController, _polaMakanController,
-      // ... Lanjutkan untuk semua controller lainnya hingga _namaNutrisionisController
       _biokimiaGDSController, _biokimiaUreumController, _biokimiaHGBController,
       _biokimiaENTController, _klinikTDController, _klinikKUController,
       _klinikKESController, _klinikNadiController, _klinikSuhuController,
@@ -431,6 +430,7 @@ class _DataFormPageState extends State<DataFormPage> {
           'klinikSPO2': _klinikSPO2Controller.text,
           'namaNutrisionis': _namaNutrisionisController.text,
           'createdBy': currentUser.uid,
+          'tipePasien': 'dewasa',
         };
 
         // --- Kirim ke Firestore (MODIFIKASI OFFLINE SUPPORT) ---
@@ -1114,7 +1114,7 @@ class _DataFormPageState extends State<DataFormPage> {
     String? suffixText,
     // DIUBAH: Tambahkan parameter validator
     String? Function(String?)? validator,
-  }) {
+   }) {
     return TextFormField(
       controller: controller,
       focusNode: focusNode,

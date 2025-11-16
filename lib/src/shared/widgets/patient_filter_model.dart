@@ -1,6 +1,8 @@
 // lib/src/shared/widgets/patient_filter_model.dart
 import 'package:flutter/material.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_model.dart';
+// HAPUS: import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_model.dart';
+// TAMBAHKAN:
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PatientFilterModel {
   final String? statusGizi;
@@ -24,61 +26,68 @@ class PatientFilterModel {
   }
 
   /// Fungsi utama untuk memfilter
-  bool matches(Patient patient) {
-    // 1. Filter Status Gizi
-    final bool matchesStatusGizi;
-    if (statusGizi == null) {
-      matchesStatusGizi = true;
-    } else {
-      // .contains() sudah benar, untuk mencakup status seperti "Gizi Kurang (BB/U)"
-      matchesStatusGizi = patient.monevStatusGizi?.contains(statusGizi!) ?? false;
-    }
+  // --- PERUBAHAN UTAMA DI SINI ---
+  bool matches(Map<String, dynamic> data) {
+    // Ambil tipe pasien
+    final String tipePasien = data['tipePasien'] ?? 'dewasa';
 
-    // 2. Filter Rentang Tanggal (FIXED LOGIC)
-    final bool matchesDateRange;
-    if (dateRange == null) {
-      matchesDateRange = true;
-    } else {
-      final tglPemeriksaan = patient.tanggalPemeriksaan;
-      
-      // 'start' sudah benar (jam 00:00)
-      final rangeStart = dateRange!.start;
-      // 'end' dari picker adalah jam 00:00, jadi tambah 1 hari
-      // agar menjadi jam 00:00 hari BERIKUTNYA.
-      final rangeEnd = dateRange!.end.add(const Duration(days: 1));
-
-      // Logika yang benar:
-      // tglPemeriksaan >= rangeStart AND tglPemeriksaan < rangeEnd
-      matchesDateRange = !tglPemeriksaan.isBefore(rangeStart) &&
-                         tglPemeriksaan.isBefore(rangeEnd);
-    }
-
-    // 3. Filter Grup Usia (FIXED LOGIC)
-    final bool matchesAgeGroup;
-    if (ageGroup == null) {
-      matchesAgeGroup = true;
-    } else {
-      // --- INI ADALAH KALKULASI USIA YANG BENAR ---
-      DateTime today = DateTime.now();
-      int age = today.year - patient.tanggalLahir.year;
-      // Cek apakah ulang tahun sudah lewat tahun ini
-      if (patient.tanggalLahir.month > today.month ||
-          (patient.tanggalLahir.month == today.month && patient.tanggalLahir.day > today.day)) {
-        age--; // Kurangi 1 jika belum ulang tahun
+    // --- Filter 1: Status Gizi (Kondisional) ---
+    bool matchesStatusGizi = true; // Asumsi lolos
+    if (statusGizi != null) {
+      if (tipePasien == 'anak') {
+        final String statusGiziAnak = data['statusGiziAnak'] ?? '';
+        matchesStatusGizi = statusGiziAnak.contains(statusGizi!);
+      } else {
+        final String statusGiziDewasa = data['monevStatusGizi'] ?? '';
+        matchesStatusGizi = statusGiziDewasa.contains(statusGizi!);
       }
-      // ---------------------------------------------
+    }
+    // Jika gagal filter, langsung hentikan
+    if (!matchesStatusGizi) return false;
+
+    // --- Ambil data tanggal universal ---
+    final DateTime? tglPemeriksaan =
+        (data['tanggalPemeriksaan'] as Timestamp?)?.toDate();
+    final DateTime? tglLahir = (data['tanggalLahir'] as Timestamp?)?.toDate();
+
+    // Jika data tanggal penting tidak ada, anggap tidak cocok
+    if (tglPemeriksaan == null || tglLahir == null) return false;
+
+    // --- Filter 2: Rentang Tanggal (Universal) ---
+    bool matchesDateRange = true; // Asumsi lolos
+    if (dateRange != null) {
+      final rangeStart = dateRange!.start;
+      final rangeEnd = dateRange!.end.add(const Duration(days: 1));
+      matchesDateRange = !tglPemeriksaan.isBefore(rangeStart) &&
+          tglPemeriksaan.isBefore(rangeEnd);
+    }
+    // Jika gagal filter, langsung hentikan
+    if (!matchesDateRange) return false;
+
+    // --- Filter 3: Grup Usia (Universal) ---
+    bool matchesAgeGroup = true; // Asumsi lolos
+    if (ageGroup != null) {
+      DateTime today = DateTime.now();
+      int age = today.year - tglLahir.year;
+      if (tglLahir.month > today.month ||
+          (tglLahir.month == today.month && tglLahir.day > today.day)) {
+        age--;
+      }
 
       if (ageGroup == ageAnak) {
         matchesAgeGroup = age <= 18;
       } else if (ageGroup == ageDewasa) {
-        matchesAgeGroup = age > 18 && age < 65; // (19-64)
+        matchesAgeGroup = age > 18 && age < 65;
       } else if (ageGroup == ageLansia) {
         matchesAgeGroup = age >= 65;
       } else {
         matchesAgeGroup = false;
       }
     }
+    // Jika gagal filter, langsung hentikan
+    if (!matchesAgeGroup) return false;
 
-    return matchesStatusGizi && matchesDateRange && matchesAgeGroup;
+    // Lolos semua filter
+    return true;
   }
 }

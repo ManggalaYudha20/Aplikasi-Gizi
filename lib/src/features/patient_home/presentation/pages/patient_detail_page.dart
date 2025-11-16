@@ -49,7 +49,8 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
         onReset: () {
           PatientDeleteLogic.handlePatientDelete(
             context: context,
-            patient: _currentPatient,
+            patientId: _currentPatient.id, // <-- PERBAIKAN
+            patientName: _currentPatient.namaLengkap, // <-- PERBAIKAN
           );
         },
         onSubmit: () async {
