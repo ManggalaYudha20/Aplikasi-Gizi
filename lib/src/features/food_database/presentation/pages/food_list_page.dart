@@ -329,7 +329,6 @@ class _FoodListPageState extends State<FoodListPage> {
   // ... (kode _buildSearchBar dan _buildNutritionInfo tetap sama) ...
   Widget _buildSearchBar() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 5),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
