@@ -80,6 +80,7 @@ class PdfGenerator {
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                 ),
               ),
+
               pw.Center(
                 child: pw.Text(
                   'UNTUK PASIEN DEWASA',
@@ -93,6 +94,7 @@ class PdfGenerator {
               _buildInfoRow('No RM', ': ${patient.noRM}', ''),
               _buildInfoRow('Nama Lengkap',': ${patient.namaLengkap}','',),
               _buildInfoRow('Tanggal Lahir',': ${patient.tanggalLahirFormatted}','',),
+              _buildInfoRow('Jenis Kelamin',': ${patient.jenisKelamin}','',),
               pw.SizedBox(height: 5),
 
               pw.Container(

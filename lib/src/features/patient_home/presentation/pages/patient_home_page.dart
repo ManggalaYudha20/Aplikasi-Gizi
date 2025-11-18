@@ -407,13 +407,13 @@ class _PatientHomePageState extends State<PatientHomePage> {
   Widget _buildPatientAnakCard(BuildContext context, PatientAnak patient) {
     // Tentukan warna berdasarkan status gizi anak
     Color statusColor = Colors.grey;
-    String statusGizi = patient.statusGiziAnak ?? 'Belum ada status';
+    String statusGizi = patient.statusGiziIMTU ?? 'Belum ada status';
 
-    if (statusGizi.contains('Kurang') || statusGizi.contains('Buruk')) {
+    if (statusGizi.contains('kurang') || statusGizi.contains('buruk')) {
       statusColor = Colors.orange;
-    } else if (statusGizi.contains('Lebih')) {
+    } else if (statusGizi.contains('lebih')) {
       statusColor = Colors.red;
-    } else if (statusGizi.contains('Baik') || statusGizi.contains('Normal')) {
+    } else if (statusGizi.contains('baik') || statusGizi.contains('normal')) {
       statusColor = Colors.green;
     }
 

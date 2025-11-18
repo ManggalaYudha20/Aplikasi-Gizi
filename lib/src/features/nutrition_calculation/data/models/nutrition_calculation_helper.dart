@@ -1,0 +1,122 @@
+// lib\src\features\nutrition_calculation\data\models\nutrition_calculation_helper.dart
+
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_status_models.dart';
+
+class NutritionCalculationHelper {
+  
+  static int calculateAgeInMonths(DateTime birthDate, DateTime checkDate) {
+    final difference = checkDate.difference(birthDate);
+    final days = difference.inDays;
+    return (days / 30.44).round(); // Rata-rata hari per bulan
+  }
+
+  static Map<String, dynamic> calculateAll(
+      {required DateTime birthDate,
+      required DateTime checkDate,
+      required double weight,
+      required double height,
+      required String gender}) {
+    
+    final int ageInMonths = calculateAgeInMonths(birthDate, checkDate);
+    final double bmi = weight / ((height / 100) * (height / 100));
+
+    return {
+      'bbPerU': _calculateWeightForAge(ageInMonths, weight, gender),
+      'tbPerU': _calculateHeightForAge(ageInMonths, height, gender),
+      'bbPerTB': _calculateWeightForHeight(height, weight, gender),
+      'imtPerU': _calculateBMIForAge(ageInMonths, bmi, gender),
+      'ageInMonths': ageInMonths,
+      'bmi': bmi,
+    };
+  }
+
+  // --- LOGIKA INTERNAL (Diambil dari nutrition_status_form_page.dart) ---
+
+  static Map<String, dynamic> _calculateWeightForAge(int age, double weight, String gender) {
+    final referenceData = gender == 'Laki-laki' ? NutritionStatusData.bbUBoys : NutritionStatusData.bbUGirls;
+    if (!referenceData.containsKey(age)) return {'zScore': null, 'category': 'Data tidak tersedia'};
+    
+    final percentiles = referenceData[age]!;
+    final median = percentiles[3];
+    final sd = percentiles[4] - median; // Menggunakan +1 SD sebagai acuan deviasi
+    final zScore = (weight - median) / sd;
+
+    return {'zScore': zScore, 'category': _getWeightForAgeCategory(zScore)};
+  }
+
+  static Map<String, dynamic> _calculateHeightForAge(int age, double height, String gender) {
+    final referenceData = gender == 'Laki-laki' ? NutritionStatusData.pbTbUBoys : NutritionStatusData.pbTbUGirls;
+    if (!referenceData.containsKey(age)) return {'zScore': null, 'category': 'Data tidak tersedia'};
+
+    final percentiles = referenceData[age]!;
+    final median = percentiles[3];
+    final sd = percentiles[4] - median;
+    final zScore = (height - median) / sd;
+
+    return {'zScore': zScore, 'category': _getHeightForAgeCategory(zScore)};
+  }
+
+  static Map<String, dynamic> _calculateWeightForHeight(double height, double weight, String gender) {
+    final referenceData = gender == 'Laki-laki' ? NutritionStatusData.bbPbTbUBoys : NutritionStatusData.bbPbTbUGirls;
+    
+    // Mencari tinggi badan terdekat (interpolasi sederhana)
+    double closestHeight = referenceData.keys.first;
+    double minDifference = (height - closestHeight).abs();
+    for (final h in referenceData.keys) {
+      final difference = (height - h).abs();
+      if (difference < minDifference) {
+        minDifference = difference;
+        closestHeight = h;
+      }
+    }
+    
+    if (minDifference > 2.0) return {'zScore': null, 'category': 'Data tidak tersedia'}; // Toleransi 2cm
+
+    final percentiles = referenceData[closestHeight]!;
+    final median = percentiles[3];
+    final sd = percentiles[4] - median;
+    final zScore = (weight - median) / sd;
+
+    return {'zScore': zScore, 'category': _getWeightForHeightCategory(zScore)};
+  }
+
+  static Map<String, dynamic> _calculateBMIForAge(int age, double bmi, String gender) {
+    final referenceData = gender == 'Laki-laki' ? NutritionStatusData.imtUBoys : NutritionStatusData.imtUGirls;
+    if (!referenceData.containsKey(age)) return {'zScore': null, 'category': 'Data tidak tersedia'};
+
+    final percentiles = referenceData[age]!;
+    final median = percentiles[3];
+    final sd = percentiles[4] - median;
+    final zScore = (bmi - median) / sd;
+
+    return {'zScore': zScore, 'category': _getBMIForAgeCategory(zScore)};
+  }
+
+  // --- Interpretasi Kategori ---
+  static String _getWeightForAgeCategory(double zScore) {
+    if (zScore < -3) return 'Berat badan sangat kurang (severely underweight)';
+    if (zScore < -2) return 'Berat badan kurang (underweight)';
+    if (zScore <= 1) return 'Berat badan normal';
+    return 'Risiko Berat badan lebih';
+  }
+
+  static String _getHeightForAgeCategory(double zScore) {
+    if (zScore < -3) return 'Sangat pendek (severely stunted)';
+    if (zScore < -2) return 'Pendek (stunted)';
+    if (zScore <= 3) return 'Normal';
+    return 'Tinggi';
+  }
+
+  static String _getWeightForHeightCategory(double zScore) {
+    if (zScore < -3) return 'Gizi buruk';
+    if (zScore < -2) return 'Gizi kurang';
+    if (zScore <= 1) return 'Gizi baik';
+    if (zScore <= 2) return 'Berisiko gizi lebih';
+    if (zScore <= 3) return 'Gizi lebih';
+    return 'Obesitas';
+  }
+
+  static String _getBMIForAgeCategory(double zScore) {
+    return _getWeightForHeightCategory(zScore); // Kategorinya mirip
+  }
+}
