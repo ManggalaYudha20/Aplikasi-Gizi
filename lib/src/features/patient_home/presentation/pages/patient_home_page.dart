@@ -60,7 +60,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
     final newFilters = await showModalBottomSheet<PatientFilterModel?>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent, // Buat transparan agar border radius sheet terlihat
+      backgroundColor: Colors
+          .transparent, // Buat transparan agar border radius sheet terlihat
       builder: (context) {
         // Panggil widget reusable Anda
         return PatientFilterSheet(
@@ -430,11 +431,28 @@ class _PatientHomePageState extends State<PatientHomePage> {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          // !! PENTING: Navigasi ke Halaman Detail ANAK !!
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => PatientAnakDetailPage(patient: patient),
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  PatientAnakDetailPage(patient: patient),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                // Posisi awal dari kiri (-1.0) ke posisi akhir di tengah (0.0)
+                const begin = Offset(-1.0, 0.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOut;
+
+                var tween = Tween(
+                  begin: begin,
+                  end: end,
+                ).chain(CurveTween(curve: curve));
+                var offsetAnimation = animation.drive(tween);
+
+                return SlideTransition(position: offsetAnimation, child: child);
+              },
+              transitionDuration: const Duration(
+                milliseconds: 400,
+              ), // Atur durasi animasi
             ),
           );
         },

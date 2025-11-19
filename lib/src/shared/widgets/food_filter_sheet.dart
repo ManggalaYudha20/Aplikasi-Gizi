@@ -6,9 +6,12 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/food_filter_model.dart
 class FoodFilterSheet extends StatefulWidget {
   final FoodFilterModel currentFilters;
 
+  final VoidCallback onResetPressed;
+
   const FoodFilterSheet({
     super.key,
     required this.currentFilters,
+    required this.onResetPressed,
   });
 
   @override
@@ -119,7 +122,10 @@ class _FoodFilterSheetState extends State<FoodFilterSheet> {
               TextButton(
                 child: const Text('Reset Filter'),
                 onPressed: () {
-                  Navigator.pop(context, FoodFilterModel());
+                  setState(() {
+                    _tempFilters = FoodFilterModel(); 
+                  });
+                  widget.onResetPressed();
                 },
               ),
               const Spacer(),

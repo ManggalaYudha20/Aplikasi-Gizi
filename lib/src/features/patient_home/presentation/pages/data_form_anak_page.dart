@@ -12,6 +12,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/scaffold_with_animated
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_validator_utils.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_calculation_helper.dart';
+import 'dart:async';
 
 class DataFormAnakPage extends StatefulWidget {
   final PatientAnak? patient;
@@ -206,17 +207,48 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
           'statusGiziIMTU': resultIMTU['category'],
         };
 
-        if (widget.patient != null) {
-          // Update
-          await FirebaseFirestore.instance
-              .collection('patients')
-              .doc(widget.patient!.id)
-              .update(patientAnakData);
-        } else {
-          // Create
-          await FirebaseFirestore.instance
-              .collection('patients')
-              .add(patientAnakData);
+        try {
+          // Batas waktu tunggu 3 detik
+          const timeoutDuration = Duration(seconds: 3);
+
+          if (widget.patient != null) {
+            // Update dengan Timeout
+            await FirebaseFirestore.instance
+                .collection('patients')
+                .doc(widget.patient!.id)
+                .update(patientAnakData)
+                .timeout(timeoutDuration);
+          } else {
+            // Create dengan Timeout
+            await FirebaseFirestore.instance
+                .collection('patients')
+                .add(patientAnakData)
+                .timeout(timeoutDuration);
+          }
+
+          // Jika berhasil online (tidak timeout)
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(widget.patient != null
+                    ? 'Data pasien anak berhasil diperbarui!'
+                    : 'Data pasien anak berhasil disimpan!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } on TimeoutException catch (_) {
+          // Jika koneksi lambat/mati, masuk ke sini
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                    'Mode Offline: Data disimpan lokal dan akan diupload saat ada internet.'),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
         }
 
         final updatedPatientObj = PatientAnak(
@@ -249,15 +281,10 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
         );
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Data pasien anak berhasil disimpan!'),
-              backgroundColor: Colors.green,
-            ),
-          );
           Navigator.of(context).pop(updatedPatientObj);
         }
       } catch (e) {
+        // Catch error selain timeout (misal permission error)
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

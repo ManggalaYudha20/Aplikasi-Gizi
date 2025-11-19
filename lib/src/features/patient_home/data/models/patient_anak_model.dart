@@ -179,8 +179,8 @@ class PatientAnak {
 
   String get pymsInterpretation {
     final score = totalPymsScore;
-    if (score >= 2) return "Resiko Tinggi";
-    if (score == 1) return "Resiko Rendah";
-    return "Tanpa Resiko";
+    if (score >= 2) return "Resiko tinggi";
+    if (score == 1) return "Resiko rendah";
+    return "Tanpa resiko";
   }
 }

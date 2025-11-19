@@ -39,13 +39,24 @@ class _FoodListPageState extends State<FoodListPage> {
     super.dispose();
   }
 
+  void _applyFilters(FoodFilterModel newFilters) {
+    setState(() {
+      _activeFilters = newFilters;
+    });
+  }
+
   void _showFilterModal(BuildContext context) async {
     final newFilters = await showModalBottomSheet<FoodFilterModel?>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return FoodFilterSheet(currentFilters: _activeFilters);
+        return FoodFilterSheet(currentFilters: _activeFilters,
+        onResetPressed: () {
+            // Panggil fungsi yang me-reset state halaman home
+            _applyFilters(FoodFilterModel());
+          },
+        );
       },
     );
 

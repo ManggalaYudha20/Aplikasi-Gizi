@@ -155,7 +155,7 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
               'Interpretasi',
               _currentPatient.interpretasi,
               isBold: true,
-              valueColor: Colors.red,
+              valueColor: _getInterpretationColor(_currentPatient.interpretasi),
             ),
 
             const SizedBox(height: 20),
@@ -572,6 +572,23 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
         ],
       ),
     );
+  }
+
+  Color _getInterpretationColor(String interpretasi) {
+    final text = interpretasi.toLowerCase();
+
+    // Urutan pengecekan penting (cek 'sangat tinggi' sebelum 'tinggi')
+    if (text.contains('sangat tinggi')) {
+      return Colors.red;
+    } else if (text.contains('tinggi')) {
+      return Colors.orange;
+    } else if (text.contains('menengah')) {
+      return Colors.amber; 
+    } else if (text.contains('rendah')) {
+      return const Color.fromARGB(255, 0, 148, 68); // Hijau
+    }
+    
+    return Colors.black87;
   }
 
   Widget _buildInfoRow(
