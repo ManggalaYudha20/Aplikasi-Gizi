@@ -8,6 +8,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.da
 import 'data_form_anak_page.dart'; // Import form anak
 import 'patient_delete_logic.dart'; // Import logika hapus
 import 'pdf_generator_anak.dart'; // Import PDF generator anak
+import 'pdf_generator_asuhan_anak.dart';
 
 class PatientAnakDetailPage extends StatefulWidget {
   final PatientAnak patient;
@@ -87,6 +88,9 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
               'Panjang/Tinggi Badan',
               '${_currentPatient.tinggiBadan.toStringAsFixed(0)} cm',
             ),
+            if (_currentPatient.lila != null) _buildInfoRow('LILA', '${_currentPatient.lila} cm'),
+            if (_currentPatient.lingkarKepala != null) _buildInfoRow('Lingkar Kepala (LK)', '${_currentPatient.lingkarKepala} cm'),
+            if (_currentPatient.bbi != null) _buildInfoRow('Berat Badan Ideal (BBI)', '${_currentPatient.bbi} kg'),
             
             const Divider(height: 20, thickness: 2, color: Colors.green),
 
@@ -94,16 +98,16 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             // --- 1. BB/U ---
             _buildStatusGiziItem(
               title: 'Berat Badan menurut Umur (BB/U)',
-              zScore: _currentPatient.zScoreBB,
+              zScore: _currentPatient.zScoreBBU,
               // Gunakan statusGiziAnak jika itu untuk BB/U, atau sesuaikan
-              category: _currentPatient.statusGiziAnak,
+              category: _currentPatient.statusGiziBBU,
             ),
 
             // --- 2. TB/U ---
             _buildStatusGiziItem(
               title: 'Tinggi Badan menurut Umur (TB/U)',
-              zScore: _currentPatient.zScoreTB,
-              category: _determineHeightCategory(_currentPatient.zScoreTB),
+              zScore: _currentPatient.zScoreTBU,
+              category: _currentPatient.statusGiziTBU,
             ),
 
             // --- 3. BB/TB ---
@@ -198,18 +202,260 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 20),
+
+            const Divider(height: 20, thickness: 2, color: Colors.green),
+
+            _buildSectionTitle('Asesmen & Rencana Asuhan Gizi'),
+            // Kategori 1: Riwayat Gizi & Personal
+            ExpansionTile(
+              leading: const Icon(Icons.history_edu_outlined),
+              title: const Text('Riwayat Gizi /FH (Food History)', style: TextStyle(fontWeight: FontWeight.bold)),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              children: [
+                _buildInfoRow('Alergi Makanan', _currentPatient.alergiMakanan ?? '-'),
+                _buildInfoDisplay(label: 'Pola Makan / Asupan', value: _currentPatient.polaMakan),
+              ],
+            ),
+            // 2. Biokimia
+            ExpansionTile(
+              leading: const Icon(Icons.science_outlined),
+              title: const Text('Biokimia /BD \n(Biochemical Data)', style: TextStyle(fontWeight: FontWeight.bold)),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              children: [
+               _buildInfoRow(
+                  'GDS',
+                  // Gunakan string interpolation untuk menggabungkan nilai dan satuan
+                  (_currentPatient.biokimiaGDS != null &&
+                          _currentPatient.biokimiaGDS!.isNotEmpty)
+                      ? '${_currentPatient.biokimiaGDS} mg/dL'
+                      : '-',
+                ),
+                _buildInfoRow(
+                  'Ureum',
+                  (_currentPatient.biokimiaUreum != null &&
+                          _currentPatient.biokimiaUreum!.isNotEmpty)
+                      ? '${_currentPatient.biokimiaUreum} mg/dL'
+                      : '-',
+                ),
+                _buildInfoRow(
+                  'HGB',
+                  (_currentPatient.biokimiaHGB != null &&
+                          _currentPatient.biokimiaHGB!.isNotEmpty)
+                      ? '${_currentPatient.biokimiaHGB} g/dL'
+                      : '-',
+                ),
+                _buildInfoRow(
+                  'ENT',
+                  (_currentPatient.biokimiaENT != null &&
+                          _currentPatient.biokimiaENT!.isNotEmpty)
+                      ? '${_currentPatient.biokimiaENT} g/dL' // Satuan untuk ENT bisa bervariasi, sesuaikan jika perlu
+                      : '-',
+                ),
+              ],
+            ),
+            
+            // 3. Klinik/Fisik
+            ExpansionTile(
+              leading: const Icon(Icons.monitor_heart_outlined),
+              title: const Text('Klinik /Fisik /PD \n(Physical Data)', style: TextStyle(fontWeight: FontWeight.bold)),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              children: [
+                _buildInfoRow(
+                  'Tekanan Darah (TD)',
+                  (_currentPatient.klinikTD != null &&
+                          _currentPatient.klinikTD!.isNotEmpty)
+                      ? '${_currentPatient.klinikTD} mmHg'
+                      : '-',
+                ),
+                _buildInfoRow(
+                  'Nadi',
+                  (_currentPatient.klinikNadi != null &&
+                          _currentPatient.klinikNadi!.isNotEmpty)
+                      ? '${_currentPatient.klinikNadi} x/menit'
+                      : '-',
+                ),
+                _buildInfoRow(
+                  'Suhu Badan (SB)',
+                  (_currentPatient.klinikSuhu != null &&
+                          _currentPatient.klinikSuhu!.isNotEmpty)
+                      ? '${_currentPatient.klinikSuhu} °C'
+                      : '-',
+                ),
+                _buildInfoRow(
+                  'Pernapasan (RR)',
+                  (_currentPatient.klinikRR != null &&
+                          _currentPatient.klinikRR!.isNotEmpty)
+                      ? '${_currentPatient.klinikRR} x/menit'
+                      : '-',
+                ),
+                _buildInfoRow(
+                  'Saturasi Oksigen (SpO2)',
+                  (_currentPatient.klinikSPO2 != null &&
+                          _currentPatient.klinikSPO2!.isNotEmpty)
+                      ? '${_currentPatient.klinikSPO2} %'
+                      : '-',
+                ),
+                _buildInfoDisplay(
+                  label: 'Keadaan Umum (KU) :',
+                  value: _currentPatient.klinikKU,
+                  emptyValueMessage: '-',
+                ),
+                _buildInfoDisplay(
+                  label: 'Kesadaran (KES) :',
+                  value: _currentPatient.klinikKES,
+                  emptyValueMessage: '-',
+                ),
+                ],
+            ),
+
+            
+            ExpansionTile(
+              leading: const Icon(Icons.person_outline),
+              title: const Text('Riwayat Personal /CH \n(Client History)', style: TextStyle(fontWeight: FontWeight.bold)),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              children: [
+                _buildInfoDisplay(label: 'Riwayat Penyakit Sekarang (RPS)', value: _currentPatient.riwayatPenyakitSekarang),
+                _buildInfoDisplay(label: 'Riwayat Penyakit Dahulu (RPD)', value: _currentPatient.riwayatPenyakitDahulu),
+              ],
+            ),
+            
+
+            // 4. Diagnosis Gizi
+            ExpansionTile(
+              leading: const Icon(Icons.medical_services_outlined),
+              title: const Text('Diagnosa Gizi', style: TextStyle(fontWeight: FontWeight.bold)),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              children: [
+                _buildInfoDisplay(label: 'Diagnosa Gizi:', value: _currentPatient.diagnosaGizi, emptyValueMessage: 'Tidak ada data diagnosis gizi.'),
+              ],
+            ),
+
+            // 5. Intervensi
+            ExpansionTile(
+              leading: const Icon(Icons.food_bank_outlined),
+              title: const Text('Intervensi Gizi', style: TextStyle(fontWeight: FontWeight.bold)),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              children: [
+                _buildInfoRow('Jenis Diet', _currentPatient.intervensiDiet ?? '-'),
+                _buildInfoRow('Bentuk Makanan (BM)', _currentPatient.intervensiBentukMakanan ?? '-'),
+                _buildInfoRow('Tujuan Diet', _currentPatient.intervensiTujuan ?? '-'),
+                _buildInfoRow('Via', _currentPatient.intervensiVia ?? '-'),
+              ],
+            ),
+
+            // 6. Monev
+            ExpansionTile(
+              leading: const Icon(Icons.analytics_outlined),
+              title: const Text('Monitoring dan Evaluasi', style: TextStyle(fontWeight: FontWeight.bold)),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              children: [
+                 _buildInfoDisplay(label: 'Status Gizi BB/U :', value: _currentPatient.statusGiziBBU),
+                 _buildInfoDisplay(label: 'Asupan Makanan :', value: _currentPatient.monevAsupan),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final scaffoldContext = ScaffoldMessenger.of(context);
+
+                      try {
+                        scaffoldContext.showSnackBar(
+                          const SnackBar(
+                            content: Text('Membuat File PDF...'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+
+                        final pdfFile = await PdfGeneratorAsuhanAnak.generate(
+                          _currentPatient,
+                        );
+
+                        await PdfGeneratorAsuhanAnak.openFile(pdfFile);
+
+                        if (!mounted) return;
+                        scaffoldContext.showSnackBar(
+                          const SnackBar(
+                            content: Text('File PDF Berhasil dibuat!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } catch (e) {
+                        if (!mounted) return;
+                        scaffoldContext.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'File PDF Gagal dibuat: ${e.toString()}',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.picture_as_pdf, size: 20),
+                        SizedBox(width: 8),
+                        Text('Formulir Asuhan Gizi'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  String? _determineHeightCategory(double? zScore) {
-    if (zScore == null) return null;
-    if (zScore < -3) return 'Sangat Pendek (severely stunted)';
-    if (zScore < -2) return 'Pendek (stunted)';
-    if (zScore <= 3) return 'Normal';
-    return 'Tinggi';
+  Widget _buildInfoDisplay({
+    required String label,
+    required String? value,
+    String emptyValueMessage = 'Tidak ada data.',
+  }) {
+    // Tampilkan pesan default jika nilai null atau kosong
+    final displayText = (value == null || value.isEmpty)
+        ? emptyValueMessage
+        : value;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Label
+          Text(
+            label,
+            style: const TextStyle(fontSize: 16, color: Colors.black54),
+          ),
+          const SizedBox(height: 6), // Jarak antara label dan nilai
+          // 2. Nilai (Value)
+          SizedBox(
+            width: double.infinity,
+            child: Text(
+              displayText,
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildStatusGiziItem({

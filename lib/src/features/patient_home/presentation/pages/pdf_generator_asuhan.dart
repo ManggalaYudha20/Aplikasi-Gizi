@@ -18,6 +18,7 @@ class PdfGeneratorAsuhan {
     final rsLogoData = await rootBundle.load('assets/images/logo.png');
     final sulutLogo = pw.MemoryImage(sulutLogoData.buffer.asUint8List());
     final rsLogo = pw.MemoryImage(rsLogoData.buffer.asUint8List());
+    final DateTime pemeriksaanWita = patient.tanggalPemeriksaan.toUtc().add(const Duration(hours: 8));
     // Mendefinisikan ukuran F4 (210mm x 330mm)
     //const f4Format = PdfPageFormat(210 * PdfPageFormat.mm, 330 * PdfPageFormat.mm);
 
@@ -91,7 +92,7 @@ class PdfGeneratorAsuhan {
                   'Nomor RM',
                   ': ${patient.noRM}',
                   'Tanggal/Jam',
-                  ':  ${DateFormat('d-M-y / HH:mm WITA').format(patient.tanggalPemeriksaan)}',
+                  ':  ${DateFormat('d-M-y / HH:mm').format(pemeriksaanWita)} WITA',
                 ),
                 _buildInfoRow(
                   'Nama Lengkap',

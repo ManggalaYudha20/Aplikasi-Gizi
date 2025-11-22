@@ -16,18 +16,61 @@ class PatientAnak {
   final String tipePasien; // Wajib: 'anak'
   final String diagnosisMedis;
 
-  // --- Bidang Spesifik Anak (Contoh) ---
-  final String? statusGiziAnak; // Misal: "Gizi Baik (Normal)"
-  final double? zScoreBB;
-  final double? zScoreTB;
+  // --- Bidang Spesifik Anak ---
+  final String? statusGiziBBU;
+  final String? statusGiziTBU;
+  final double? zScoreBBU;
+  final double? zScoreTBU;
   final double? zScoreBBTB;
   final double? zScoreIMTU;
-  final String? statusGiziBBTB; // Status berdasarkan BB/TB (biasanya indikator utama status gizi akut)
+  final String? statusGiziBBTB;
   final String? statusGiziIMTU;
+  
+  // --- Antropometri Tambahan ---
+  final double? lila; // Lingkar Lengan Atas
+  final double? lingkarKepala; // LK
+  final double? bbi; // Berat Badan Ideal
+
+  // --- Skrining Risiko ---
   final String? namaNutrisionis;
   final int? kehilanganBeratBadan;
   final int? kehilanganNafsuMakan;
   final int? anakSakitBerat;
+
+  // --- Asuhan Gizi (Baru ditambahkan) ---
+  // 1. Biokimia
+  final String? biokimiaGDS;
+  final String? biokimiaUreum;
+  final String? biokimiaHGB;
+  final String? biokimiaENT;
+
+  // 2. Klinik/Fisik
+  final String? klinikTD;
+  final String? klinikNadi;
+  final String? klinikSuhu;
+  final String? klinikRR;
+  final String? klinikSPO2;
+  final String? klinikKU;
+  final String? klinikKES;
+
+  // 3. Riwayat Personal
+  final String? riwayatPenyakitSekarang;
+  final String? riwayatPenyakitDahulu;
+  final String? alergiMakanan; // Tambahan umum
+  final String? polaMakan;     // Tambahan umum
+
+  // 4. Diagnosa Gizi
+  final String? diagnosaGizi;
+
+  // 5. Intervensi Gizi
+  final String? intervensiDiet; // Jenis Diet
+  final String? intervensiBentukMakanan; // BM
+  final String? intervensiVia;
+  final String? intervensiTujuan;
+
+  // 6. Monev
+  final String? monevAsupan;
+  final String? monevHasilLab;
 
   PatientAnak({
     required this.id,
@@ -41,9 +84,10 @@ class PatientAnak {
     required this.createdBy,
     required this.diagnosisMedis,
     this.tipePasien = 'anak', // Default
-    this.statusGiziAnak,
-    this.zScoreBB,
-    this.zScoreTB,
+    this.statusGiziBBU,
+    this.statusGiziTBU,
+    this.zScoreBBU,
+    this.zScoreTBU,
     this.namaNutrisionis,
     this.kehilanganBeratBadan,
     this.kehilanganNafsuMakan,
@@ -52,6 +96,31 @@ class PatientAnak {
     this.zScoreIMTU,
     this.statusGiziBBTB,
     this.statusGiziIMTU,
+    this.lila,
+    this.lingkarKepala,
+    this.bbi,
+    this.biokimiaGDS,
+    this.biokimiaUreum,
+    this.biokimiaHGB,
+    this.biokimiaENT,
+    this.klinikTD,
+    this.klinikNadi,
+    this.klinikSuhu,
+    this.klinikRR,
+    this.klinikSPO2,
+    this.klinikKU,
+    this.klinikKES,
+    this.riwayatPenyakitSekarang,
+    this.riwayatPenyakitDahulu,
+    this.alergiMakanan,
+    this.polaMakan,
+    this.diagnosaGizi,
+    this.intervensiDiet,
+    this.intervensiBentukMakanan,
+    this.intervensiVia,
+    this.intervensiTujuan,
+    this.monevAsupan,
+    this.monevHasilLab,
   });
 
   factory PatientAnak.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -95,9 +164,13 @@ class PatientAnak {
       diagnosisMedis: data['diagnosisMedis'] ?? '',
 
       // Data anak
-      statusGiziAnak: data['statusGiziAnak'] as String?,
-      zScoreBB: data['zScoreBB'] as double?,
-      zScoreTB: data['zScoreTB'] as double?,
+      statusGiziBBU: (data['statusGiziBBU'] as String?) ?? (data['statusGiziAnak'] as String?),
+      // Field baru
+      statusGiziTBU: data['statusGiziTBU'] as String?,
+      // Mengambil 'zScoreBBU', jika null coba ambil 'zScoreBB'
+      zScoreBBU: (data['zScoreBBU'] ?? data['zScoreBB'])?.toDouble(),
+      // Mengambil 'zScoreTBU', jika null coba ambil 'zScoreTB'
+      zScoreTBU: (data['zScoreTBU'] ?? data['zScoreTB'])?.toDouble(),
       namaNutrisionis: data['namaNutrisionis'] as String?,
       kehilanganBeratBadan: parseScore(data['kehilanganBeratBadan']),
       kehilanganNafsuMakan: parseScore(data['kehilanganNafsuMakan']),
@@ -106,6 +179,37 @@ class PatientAnak {
       zScoreIMTU: data['zScoreIMTU'] as double?,
       statusGiziBBTB: data['statusGiziBBTB'] as String?,
       statusGiziIMTU: data['statusGiziIMTU'] as String?,
+      lila: (data['lila'] as num?)?.toDouble(),
+      lingkarKepala: (data['lingkarKepala'] as num?)?.toDouble(),
+      bbi: (data['bbi'] as num?)?.toDouble(),
+      
+      biokimiaGDS: data['biokimiaGDS'] as String?,
+      biokimiaUreum: data['biokimiaUreum'] as String?,
+      biokimiaHGB: data['biokimiaHGB'] as String?,
+      biokimiaENT: data['biokimiaENT'] as String?,
+      
+      klinikTD: data['klinikTD'] as String?,
+      klinikNadi: data['klinikNadi'] as String?,
+      klinikSuhu: data['klinikSuhu'] as String?,
+      klinikRR: data['klinikRR'] as String?,
+      klinikSPO2: data['klinikSPO2'] as String?,
+      klinikKU: data['klinikKU'] as String?,
+      klinikKES: data['klinikKES'] as String?,
+      
+      riwayatPenyakitSekarang: data['riwayatPenyakitSekarang'] as String?,
+      riwayatPenyakitDahulu: data['riwayatPenyakitDahulu'] as String?,
+      alergiMakanan: data['alergiMakanan'] as String?,
+      polaMakan: data['polaMakan'] as String?,
+      
+      diagnosaGizi: data['diagnosaGizi'] as String?,
+      
+      intervensiDiet: data['intervensiDiet'] as String?,
+      intervensiBentukMakanan: data['intervensiBentukMakanan'] as String?,
+      intervensiVia: data['intervensiVia'] as String?,
+      intervensiTujuan: data['intervensiTujuan'] as String?,
+      
+      monevAsupan: data['monevAsupan'] as String?,
+      monevHasilLab: data['monevHasilLab'] as String?,
       
     );
   }
@@ -123,9 +227,10 @@ class PatientAnak {
       'tipePasien': tipePasien, // Wajib ada
       
       // Data anak
-      'statusGiziAnak': statusGiziAnak,
-      'zScoreBB': zScoreBB,
-      'zScoreTB': zScoreTB,
+      'statusGiziBBU': statusGiziBBU,
+      'statusGiziTBU': statusGiziTBU, // Field baru disimpan
+      'zScoreBBU': zScoreBBU,
+      'zScoreTBU': zScoreTBU,
       'namaNutrisionis': namaNutrisionis,
       'diagnosisMedis': diagnosisMedis,
       'kehilanganBeratBadan': kehilanganBeratBadan,
@@ -135,6 +240,31 @@ class PatientAnak {
       'zScoreIMTU': zScoreIMTU,
       'statusGiziBBTB': statusGiziBBTB,
       'statusGiziIMTU': statusGiziIMTU,
+      'lila': lila,
+      'lingkarKepala': lingkarKepala,
+      'bbi': bbi,
+      'biokimiaGDS': biokimiaGDS,
+      'biokimiaUreum': biokimiaUreum,
+      'biokimiaHGB': biokimiaHGB,
+      'biokimiaENT': biokimiaENT,
+      'klinikTD': klinikTD,
+      'klinikNadi': klinikNadi,
+      'klinikSuhu': klinikSuhu,
+      'klinikRR': klinikRR,
+      'klinikSPO2': klinikSPO2,
+      'klinikKU': klinikKU,
+      'klinikKES': klinikKES,
+      'riwayatPenyakitSekarang': riwayatPenyakitSekarang,
+      'riwayatPenyakitDahulu': riwayatPenyakitDahulu,
+      'alergiMakanan': alergiMakanan,
+      'polaMakan': polaMakan,
+      'diagnosaGizi': diagnosaGizi,
+      'intervensiDiet': intervensiDiet,
+      'intervensiBentukMakanan': intervensiBentukMakanan,
+      'intervensiVia': intervensiVia,
+      'intervensiTujuan': intervensiTujuan,
+      'monevAsupan': monevAsupan,
+      'monevHasilLab': monevHasilLab,
     };
   }
 
@@ -161,7 +291,7 @@ class PatientAnak {
   int get skorAntropometri {
     // Jika Z-Score BB atau TB sangat rendah, skor naik (Contoh logika PYMS)
     // Sesuaikan ambang batas ini dengan standar RS Anda
-    if ((zScoreBB ?? 0) < -2 || (zScoreTB ?? 0) < -2) {
+    if ((zScoreBBU ?? 0) < -2 || (zScoreTBU ?? 0) < -2) {
       return 2; // Beresiko
     }
     return 0;

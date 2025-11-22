@@ -94,9 +94,9 @@ class NutritionCalculationHelper {
 
   // --- Interpretasi Kategori ---
   static String _getWeightForAgeCategory(double zScore) {
-    if (zScore < -3) return 'Berat badan sangat kurang (severely underweight)';
-    if (zScore < -2) return 'Berat badan kurang (underweight)';
-    if (zScore <= 1) return 'Berat badan normal';
+    if (zScore < -3) return 'Sangat kurang (severely underweight)';
+    if (zScore < -2) return 'Kurang (underweight)';
+    if (zScore <= 1) return 'Normal';
     return 'Risiko Berat badan lebih';
   }
 
@@ -118,5 +118,14 @@ class NutritionCalculationHelper {
 
   static String _getBMIForAgeCategory(double zScore) {
     return _getWeightForHeightCategory(zScore); // Kategorinya mirip
+  }
+
+  // --- FUNGSI PUBLIK BARU (Pindahan dari detail page) ---
+  static String? determineHeightCategory(double? zScore) {
+    if (zScore == null) return null;
+    if (zScore < -3) return 'Sangat Pendek (severely stunted)';
+    if (zScore < -2) return 'Pendek (stunted)';
+    if (zScore <= 3) return 'Normal';
+    return 'Tinggi';
   }
 }

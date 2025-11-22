@@ -100,7 +100,7 @@ class PdfGeneratorAnak {
                     pw.SizedBox(height: 5),
                     _buildInfoRow(
                       'BB = ${patient.beratBadan} kg',
-                      'BB/U = ${patient.statusGiziAnak}',
+                      'BB/U = ${patient.statusGiziBBU ?? '-'}',
                       'IMT = ${(patient.beratBadan / ((patient.tinggiBadan / 100) * (patient.tinggiBadan / 100))).toStringAsFixed(1)} kg/m²',
                     ),
                     pw.SizedBox(height: 5),
