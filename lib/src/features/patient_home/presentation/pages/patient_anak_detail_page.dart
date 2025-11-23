@@ -82,16 +82,26 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             ),
             _buildInfoRow('Usia', _currentPatient.usiaFormatted),
             _buildInfoRow('Jenis Kelamin', _currentPatient.jenisKelamin),
-            _buildInfoRow('Diagnosis Medis', '${_currentPatient.diagnosisMedis} '),
+            _buildInfoRow(
+              'Diagnosis Medis',
+              '${_currentPatient.diagnosisMedis} ',
+            ),
             _buildInfoRow('Berat Badan', '${_currentPatient.beratBadan} kg'),
             _buildInfoRow(
               'Panjang/Tinggi Badan',
               '${_currentPatient.tinggiBadan.toStringAsFixed(0)} cm',
             ),
-            if (_currentPatient.lila != null) _buildInfoRow('LILA', '${_currentPatient.lila} cm'),
-            if (_currentPatient.lingkarKepala != null) _buildInfoRow('Lingkar Kepala (LK)', '${_currentPatient.lingkarKepala} cm'),
-            if (_currentPatient.bbi != null) _buildInfoRow('Berat Badan Ideal (BBI)', '${_currentPatient.bbi} kg'),
-            
+            if (_currentPatient.lila != null)
+              _buildInfoRow('LILA', '${_currentPatient.lila} cm'),
+            if (_currentPatient.lingkarKepala != null)
+              _buildInfoRow(
+                'Lingkar Kepala (LK)',
+                '${_currentPatient.lingkarKepala} cm',
+              ),
+            _buildInfoRow(
+              'Berat Badan Ideal',
+              '${_currentPatient.bbi?.toString() ?? ""} kg', // Mengambil langsung dari database
+            ),
             const Divider(height: 20, thickness: 2, color: Colors.green),
 
             _buildSectionTitle('Hasil Status Gizi Anak'),
@@ -126,17 +136,35 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             const Divider(height: 20, thickness: 2, color: Colors.green),
 
             _buildSectionTitle('Skrining Gizi Lanjut'),
-            _buildInfoRow('Skor Status Antropometri', '${_currentPatient.skorAntropometri}'),
-            _buildInfoRow('Skor Kehilangan Berat Badan', _currentPatient.kehilanganBeratBadan == 2 ? '2' : '0'),
-            _buildInfoRow('Skor Asupan Makanan', '${_currentPatient.kehilanganNafsuMakan ?? 0}'),
-            _buildInfoRow('Skor Penyakit Berat', _currentPatient.anakSakitBerat == 2 ? '2' : '0'),
+            _buildInfoRow(
+              'Skor Status Antropometri',
+              '${_currentPatient.skorAntropometri}',
+            ),
+            _buildInfoRow(
+              'Skor Kehilangan Berat Badan',
+              _currentPatient.kehilanganBeratBadan == 2 ? '2' : '0',
+            ),
+            _buildInfoRow(
+              'Skor Asupan Makanan',
+              '${_currentPatient.kehilanganNafsuMakan ?? 0}',
+            ),
+            _buildInfoRow(
+              'Skor Penyakit Berat',
+              _currentPatient.anakSakitBerat == 2 ? '2' : '0',
+            ),
             const Divider(),
-            _buildInfoRow('Total Skor', '${_currentPatient.totalPymsScore}', isBold: true),
+            _buildInfoRow(
+              'Total Skor',
+              '${_currentPatient.totalPymsScore}',
+              isBold: true,
+            ),
             _buildInfoRow(
               'Interpretasi',
               _currentPatient.pymsInterpretation,
               isBold: true,
-              valueColor: _currentPatient.totalPymsScore >= 2 ? Colors.red : Colors.green,
+              valueColor: _currentPatient.totalPymsScore >= 2
+                  ? Colors.red
+                  : Colors.green,
             ),
 
             const SizedBox(height: 20),
@@ -210,20 +238,32 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             // Kategori 1: Riwayat Gizi & Personal
             ExpansionTile(
               leading: const Icon(Icons.history_edu_outlined),
-              title: const Text('Riwayat Gizi /FH (Food History)', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: const Text(
+                'Riwayat Gizi /FH (Food History)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
-                _buildInfoRow('Alergi Makanan', _currentPatient.alergiMakanan ?? '-'),
-                _buildInfoDisplay(label: 'Pola Makan / Asupan', value: _currentPatient.polaMakan),
+                _buildInfoDisplay(
+                  label: 'Alergi Makanan',
+                  value: _currentPatient.alergiMakanan ?? '-',
+                ),
+                _buildInfoDisplay(
+                  label: 'Pola Makan / Asupan',
+                  value: _currentPatient.polaMakan,
+                ),
               ],
             ),
             // 2. Biokimia
             ExpansionTile(
               leading: const Icon(Icons.science_outlined),
-              title: const Text('Biokimia /BD \n(Biochemical Data)', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: const Text(
+                'Biokimia /BD \n(Biochemical Data)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
-               _buildInfoRow(
+                _buildInfoRow(
                   'GDS',
                   // Gunakan string interpolation untuk menggabungkan nilai dan satuan
                   (_currentPatient.biokimiaGDS != null &&
@@ -254,11 +294,14 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                 ),
               ],
             ),
-            
+
             // 3. Klinik/Fisik
             ExpansionTile(
               leading: const Icon(Icons.monitor_heart_outlined),
-              title: const Text('Klinik /Fisik /PD \n(Physical Data)', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: const Text(
+                'Klinik /Fisik /PD \n(Physical Data)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 _buildInfoRow(
@@ -306,40 +349,69 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                   value: _currentPatient.klinikKES,
                   emptyValueMessage: '-',
                 ),
-                ],
-            ),
-
-            
-            ExpansionTile(
-              leading: const Icon(Icons.person_outline),
-              title: const Text('Riwayat Personal /CH \n(Client History)', style: TextStyle(fontWeight: FontWeight.bold)),
-              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-              children: [
-                _buildInfoDisplay(label: 'Riwayat Penyakit Sekarang (RPS)', value: _currentPatient.riwayatPenyakitSekarang),
-                _buildInfoDisplay(label: 'Riwayat Penyakit Dahulu (RPD)', value: _currentPatient.riwayatPenyakitDahulu),
               ],
             ),
-            
+
+            ExpansionTile(
+              leading: const Icon(Icons.person_outline),
+              title: const Text(
+                'Riwayat Personal /CH \n(Client History)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              children: [
+                _buildInfoDisplay(
+                  label: 'Riwayat Penyakit Sekarang (RPS)',
+                  value: _currentPatient.riwayatPenyakitSekarang,
+                ),
+                _buildInfoDisplay(
+                  label: 'Riwayat Penyakit Dahulu (RPD)',
+                  value: _currentPatient.riwayatPenyakitDahulu,
+                ),
+              ],
+            ),
 
             // 4. Diagnosis Gizi
             ExpansionTile(
               leading: const Icon(Icons.medical_services_outlined),
-              title: const Text('Diagnosa Gizi', style: TextStyle(fontWeight: FontWeight.bold)),
-              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              title: const Text(
+                'Diagnosa Gizi',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              childrenPadding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               children: [
-                _buildInfoDisplay(label: 'Diagnosa Gizi:', value: _currentPatient.diagnosaGizi, emptyValueMessage: 'Tidak ada data diagnosis gizi.'),
+                _buildInfoDisplay(
+                  label: 'Diagnosa Gizi:',
+                  value: _currentPatient.diagnosaGizi,
+                  emptyValueMessage: 'Tidak ada data diagnosis gizi.',
+                ),
               ],
             ),
 
             // 5. Intervensi
             ExpansionTile(
               leading: const Icon(Icons.food_bank_outlined),
-              title: const Text('Intervensi Gizi', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: const Text(
+                'Intervensi Gizi',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
-                _buildInfoRow('Jenis Diet', _currentPatient.intervensiDiet ?? '-'),
-                _buildInfoRow('Bentuk Makanan (BM)', _currentPatient.intervensiBentukMakanan ?? '-'),
-                _buildInfoRow('Tujuan Diet', _currentPatient.intervensiTujuan ?? '-'),
+                _buildInfoRow(
+                  'Jenis Diet',
+                  _currentPatient.intervensiDiet ?? '-',
+                ),
+                _buildInfoRow(
+                  'Bentuk Makanan (BM)',
+                  _currentPatient.intervensiBentukMakanan ?? '-',
+                ),
+                _buildInfoRow(
+                  'Tujuan Diet',
+                  _currentPatient.intervensiTujuan ?? '-',
+                ),
                 _buildInfoRow('Via', _currentPatient.intervensiVia ?? '-'),
               ],
             ),
@@ -347,11 +419,20 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             // 6. Monev
             ExpansionTile(
               leading: const Icon(Icons.analytics_outlined),
-              title: const Text('Monitoring dan Evaluasi', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: const Text(
+                'Monitoring dan Evaluasi',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
-                 _buildInfoDisplay(label: 'Status Gizi BB/U :', value: _currentPatient.statusGiziBBU),
-                 _buildInfoDisplay(label: 'Asupan Makanan :', value: _currentPatient.monevAsupan),
+                _buildInfoDisplay(
+                  label: 'Status Gizi BB/U :',
+                  value: _currentPatient.statusGiziBBU,
+                ),
+                _buildInfoDisplay(
+                  label: 'Asupan Makanan :',
+                  value: _currentPatient.monevAsupan,
+                ),
               ],
             ),
 

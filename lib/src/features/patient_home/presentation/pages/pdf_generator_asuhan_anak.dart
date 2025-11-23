@@ -21,6 +21,45 @@ class PdfGeneratorAsuhanAnak {
     final sulutLogo = pw.MemoryImage(sulutLogoData.buffer.asUint8List());
     final rsLogo = pw.MemoryImage(rsLogoData.buffer.asUint8List());
 
+   String rawAlergi = patient.alergiMakanan ?? '';
+    String dataAlergiLower = rawAlergi.toLowerCase();
+
+    // A. Tentukan Status (Hanya Ya / Tidak)
+    String statusAlergiDisplay = (rawAlergi.isEmpty || rawAlergi == 'Tidak') ? 'Tidak' : 'Ya';
+
+    // B. Tentukan Lain-lain (Filter out item checkbox)
+    // Daftar kata kunci yang ada di checkbox
+    final checkboxKeywords = [
+      'telur', 'susu', 'kacang', 'gluten', 'gandum', 'udang', 'ikan', 'hazelnut', 'almond'
+    ];
+
+    List<String> otherAllergies = [];
+    if (statusAlergiDisplay == 'Ya') {
+      // Pecah string database (contoh: "Telur, Udang, Stroberi")
+      List<String> items = rawAlergi.split(', ');
+      
+      for (var item in items) {
+        String itemLower = item.toLowerCase();
+        bool isCheckboxItem = false;
+
+        // Cek apakah item ini termasuk dalam keyword checkbox
+        for (var keyword in checkboxKeywords) {
+          if (itemLower.contains(keyword)) {
+            isCheckboxItem = true;
+            break;
+          }
+        }
+
+        // Jika BUKAN checkbox item, masukkan ke list 'Lain-lain'
+        if (!isCheckboxItem && item.trim().isNotEmpty) {
+          otherAllergies.add(item);
+        }
+      }
+    }
+    // Gabungkan sisa alergi, jika kosong beri tanda strip
+    String detailLainnyaDisplay = otherAllergies.isEmpty ? '-' : otherAllergies.join(', ');
+    // -------------------------------------
+
     // 2. Atur Waktu (WITA) - LOGIKA DIPERBAIKI
     // Langkah 1: Ambil waktu dari database
     final DateTime rawTime = patient.tanggalPemeriksaan;
@@ -29,7 +68,7 @@ class PdfGeneratorAsuhanAnak {
     final DateTime utcTime = rawTime.isUtc ? rawTime : rawTime.toUtc();
 
     // Langkah 3: Tambahkan 8 jam manual untuk menjadi WITA
-    // Hasil 'pemeriksaanWita' ini secara teknis masih 'isUtc=true', 
+    // Hasil 'pemeriksaanWita' ini secara teknis masih 'isUtc=true',
     // tapi angkanya sudah digeser agar sesuai jam dinding di WITA.
     final DateTime pemeriksaanWita = utcTime.add(const Duration(hours: 8));
 
@@ -173,38 +212,41 @@ class PdfGeneratorAsuhanAnak {
                   ),
                   _buildSymmetricalRow(
                     'LK :',
-                    formatNum(patient.lingkarKepala, 'cm'), // Mengambil data Lingkar Kepala
+                    formatNum(
+                      patient.lingkarKepala,
+                      'cm',
+                    ), // Mengambil data Lingkar Kepala
                     'Status (IMT/U) :',
                     '${patient.zScoreIMTU?.toStringAsFixed(2) ?? '-'} SD (${formatString(patient.statusGiziIMTU)})',
                   ),
                   _buildSymmetricalRow(
                     'BBI :',
-                    formatNum(patient.bbi, 'kg'), // Mengambil data Berat Badan Ideal
+                    formatNum(
+                      patient.bbi,
+                      'kg',
+                    ), // Mengambil data Berat Badan Ideal
                     '', // Kosongkan jika tidak ada status LILA/U spesifik
                     '',
                   ),
                 ]),
-                _buildAssessmentCategorysatu(
-                  'Biokimia /BD (Biochemical Data)',
-                  [
-                    _buildAssessmentItemRow(
-                      'GDS : ${formatString(patient.biokimiaGDS)}', // Value GDS
-                      '',
-                      'ENT : ${formatString(patient.biokimiaENT)}', // Value ENT
-                      '',
-                    ),
-                    _buildAssessmentItemRow(
-                      'Ureum : ${formatString(patient.biokimiaUreum)}', // Value Ureum
-                      '',
-                      'HGB : ${formatString(patient.biokimiaHGB)}', // Value HGB
-                      '',
-                    ),
-                  ],
-                ),
+                _buildAssessmentCategorysatu('Biokimia /BD (Biochemical Data)', [
+                  _buildAssessmentItemRow(
+                    'GDS : ${formatString(patient.biokimiaGDS)}', // Value GDS
+                    '',
+                    'ENT : ${formatString(patient.biokimiaENT)}', // Value ENT
+                    '',
+                  ),
+                  _buildAssessmentItemRow(
+                    'Ureum : ${formatString(patient.biokimiaUreum)}', // Value Ureum
+                    '',
+                    'HGB : ${formatString(patient.biokimiaHGB)}', // Value HGB
+                    '',
+                  ),
+                ]),
                 _buildAssessmentCategorysatu(
                   'Klinik /Fisik /PD (Physical Data)',
                   [
-                   _buildAssessmentItemRow(
+                    _buildAssessmentItemRow(
                       'KU : ${formatString(patient.klinikKU)}',
                       'TD : ${formatString(patient.klinikTD)} mmHg',
                       'R : ${formatString(patient.klinikRR)} x/mnt',
@@ -218,65 +260,67 @@ class PdfGeneratorAsuhanAnak {
                     ),
                   ],
                 ),
-                _buildAssessmentCategorysatu(
-                  'Riwayat Gizi /FH (Food History)',
-                  [
-                    pw.Row(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        // Kiri: Alergi Makanan
-                        pw.Expanded(
-                          child: pw.Column(
-                            crossAxisAlignment: pw.CrossAxisAlignment.start,
-                            children: [
-                              pw.Text(
-                                'Alergi Makanan :',
-                                style: pw.TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: pw.FontWeight.bold,
-                                ),
+                _buildAssessmentCategorysatu('Riwayat Gizi /FH (Food History)', [
+                  pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      // Kiri: Alergi Makanan
+                      pw.Expanded(
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Text(
+                              'Alergi Makanan :',
+                              style: pw.TextStyle(
+                                fontSize: 9,
+                                fontWeight: pw.FontWeight.bold,
                               ),
-                              pw.Text(
-                                'Status: ${formatString(patient.alergiMakanan)}', // Tampilkan status alergi
-                                style: const pw.TextStyle(fontSize: 9),
-                              ),
-                              pw.SizedBox(height: 4),
-                              _buildCheckboxRow('Telur'),
-                              _buildCheckboxRow(
-                                'Susu Sapi / Produk turunannya',
-                              ),
-                              _buildCheckboxRow('Kacang Kedelai/Tanah'),
-                              _buildCheckboxRow('Gluten/Gandum'),
-                            ],
-                          ),
+                            ),
+                            pw.Text('Status: $statusAlergiDisplay', style: const pw.TextStyle(fontSize: 9)),
+                            pw.SizedBox(height: 4),
+                            _buildCheckboxRow('Telur', dataAlergiLower.contains('telur')),
+                            _buildCheckboxRow('Susu Sapi / Produk turunannya', dataAlergiLower.contains('susu')),
+                            _buildCheckboxRow('Kacang Kedelai/Tanah', dataAlergiLower.contains('kacang')),
+                            _buildCheckboxRow('Gluten/Gandum', dataAlergiLower.contains('gluten') || dataAlergiLower.contains('gandum')),
+                          ],
                         ),
-                        // Kanan: Pola Makan
-                        pw.Expanded(
-                          child: pw.Column(
-                            crossAxisAlignment: pw.CrossAxisAlignment.start,
-                            children: [
-                              pw.SizedBox(height: 11),
-                              _buildCheckboxRow('Udang'),
-                              _buildCheckboxRow('Ikan'),
-                              _buildCheckboxRow('Hazelnuts/Almond'),
-                              _buildInfoRowSatu('Lain-lain / Detail : ', formatString(patient.alergiMakanan == 'Ya' ? 'Lihat detail' : '-')),
-                            ],
-                          ),
+                      ),
+                      // Kanan: Pola Makan
+                      pw.Expanded(
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.SizedBox(height: 11),
+                            _buildCheckboxRow('Udang', dataAlergiLower.contains('udang')),
+                            _buildCheckboxRow('Ikan', dataAlergiLower.contains('ikan')),
+                            _buildCheckboxRow('Hazelnuts/Almond', dataAlergiLower.contains('hazelnut') || dataAlergiLower.contains('almond')),
+
+                            _buildInfoRowSatu('Lain-lain / Detail : ', detailLainnyaDisplay),
+                          ],
                         ),
-                      ],
-                    ),
-                    pw.SizedBox(height: 3),
-                    _buildInfoRowSatu('Pola Makan / Asupan (%) : ', formatString(patient.polaMakan)),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 3),
+                  _buildInfoRowSatu(
+                    'Pola Makan / Asupan (%) : ',
+                    formatString(patient.polaMakan),
+                  ),
+                ]),
                 _buildAssessmentCategorysatu('Total Asupan', [
                   _buildTotalIntakeTable(),
                 ]),
                 _buildAssessmentCategorysatu(
                   'Riwayat Personal /CH (Client History)',
                   [
-                    _buildInfoRowSatu('RPS :', ' ${formatString(patient.riwayatPenyakitSekarang)}'),
-                    _buildInfoRowSatu('RPD :', ' ${formatString(patient.riwayatPenyakitDahulu)}'),
+                    _buildInfoRowSatu(
+                      'RPS :',
+                      ' ${formatString(patient.riwayatPenyakitSekarang)}',
+                    ),
+                    _buildInfoRowSatu(
+                      'RPD :',
+                      ' ${formatString(patient.riwayatPenyakitDahulu)}',
+                    ),
                   ],
                 ),
               ],
@@ -310,7 +354,10 @@ class PdfGeneratorAsuhanAnak {
                   '',
                 ),
                 pw.SizedBox(height: 4),
-                _buildInfoRowSatu('Tujuan Diet :', ' ${formatString(patient.intervensiTujuan)}'),
+                _buildInfoRowSatu(
+                  'Tujuan Diet :',
+                  ' ${formatString(patient.intervensiTujuan)}',
+                ),
               ],
             ),
           ),
@@ -323,7 +370,10 @@ class PdfGeneratorAsuhanAnak {
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: pw.Column(
               children: [
-                _buildInfoRowSatu('Asupan Makanan :', ' ${formatString(patient.monevAsupan)}'),
+                _buildInfoRowSatu(
+                  'Asupan Makanan :',
+                  ' ${formatString(patient.monevAsupan)}',
+                ),
                 _buildInfoRowSatu(
                   'Status gizi : BB/U : ',
                   ' ${patient.statusGiziBBU ?? '-'}',
@@ -369,7 +419,7 @@ class PdfGeneratorAsuhanAnak {
     );
   }
 
-  static pw.Widget _buildCheckboxRow(String label) {
+  static pw.Widget _buildCheckboxRow(String label, bool isChecked) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 3),
       child: pw.Row(
@@ -379,6 +429,17 @@ class PdfGeneratorAsuhanAnak {
             width: 8,
             height: 8,
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
+            child: isChecked
+                ? pw.Center(
+                    child: pw.Text(
+                      'V', // Karakter centang manual
+                      style: pw.TextStyle(
+                        fontSize: 8,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                  )
+                : null, // Jika false, kotak kosong
           ),
           pw.SizedBox(width: 4),
           pw.Text(label, style: const pw.TextStyle(fontSize: 9)),
@@ -450,9 +511,9 @@ class PdfGeneratorAsuhanAnak {
     const headers = ['Zat Gizi', 'Nilai', 'Kebutuhan', '%'];
     const rowLabels = [
       'Energi (kkal)',
-      'Protein (gr)',
-      'Lemak (gr)',
-      'KH (gr)',
+      'Protein (gram)',
+      'Lemak (gram)',
+      'KH (gram)',
     ];
 
     // Item untuk tabel kanan
