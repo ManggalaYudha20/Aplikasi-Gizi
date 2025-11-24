@@ -6,6 +6,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/m
 import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flutter/services.dart';
 
 class NutritionStatusFormPage extends StatefulWidget {
   const NutritionStatusFormPage({super.key});
@@ -639,10 +640,17 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     required String label,
     required Icon prefixIcon,
     required String suffixText,
+    int maxLength = 5,
   }) {
     return TextFormField(
       controller: controller,
-      keyboardType: TextInputType.number,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [
+        // Batasi panjang karakter agar tidak overflow/error database
+        LengthLimitingTextInputFormatter(maxLength),
+        // Opsional: Filter agar hanya angka dan titik (untuk desimal) yang bisa diketik
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+      ],
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),

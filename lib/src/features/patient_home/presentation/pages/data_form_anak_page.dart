@@ -1,6 +1,7 @@
 // lib\src\features\patient_home\presentation\pages\data_form_anak_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -675,6 +676,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     label: 'No. Rekam Medis (RM)',
                     focusNode: _focusNodes[0],
                     prefixIcon: const Icon(Icons.medical_information),
+                    maxLength: 20,
                     validator: (value) => (value == null || value.isEmpty)
                         ? 'Tidak boleh kosong'
                         : null,
@@ -685,6 +687,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     label: 'Nama Lengkap',
                     focusNode: _focusNodes[1],
                     prefixIcon: const Icon(Icons.person),
+                    maxLength: 100,
                     validator: (value) => (value == null || value.isEmpty)
                         ? 'Tidak boleh kosong'
                         : null,
@@ -718,6 +721,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     label: 'Diagnosis Medis',
                     prefixIcon: const Icon(Icons.sick),
                     focusNode: _focusNodes[4],
+                    maxLength: 500,
                   ),
                   const SizedBox(height: 16),
 
@@ -728,6 +732,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     prefixIcon: const Icon(Icons.monitor_weight),
                     suffixText: 'kg',
                     keyboardType: TextInputType.number,
+                    maxLength: 6,
                     validator: (value) => (value == null || value.isEmpty)
                         ? 'Tidak boleh kosong'
                         : null,
@@ -740,6 +745,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     prefixIcon: const Icon(Icons.height),
                     suffixText: 'cm',
                     keyboardType: TextInputType.number,
+                    maxLength: 6,
                     validator: (value) => (value == null || value.isEmpty)
                         ? 'Tidak boleh kosong'
                         : null,
@@ -752,6 +758,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     prefixIcon: const Icon(Icons.fitness_center),
                     suffixText: 'cm',
                     keyboardType: TextInputType.number,
+                    maxLength: 6,
                     validator: (v) => null,
                   ),
                   const SizedBox(height: 16),
@@ -762,6 +769,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     prefixIcon: const Icon(Icons.face),
                     suffixText: 'cm',
                     keyboardType: TextInputType.number,
+                    maxLength: 6,
                     validator: (v) => null,
                   ),
                   const SizedBox(height: 16),
@@ -802,6 +810,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     focusNode: _focusNodes[12],
                     prefixIcon: const Icon(Icons.person),
                     validator: (value) => null,
+                    maxLength: 100,
                   ),
                   const SizedBox(height: 24),
 
@@ -908,6 +917,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     prefixIcon: const Icon(Icons.restaurant_menu),
                     focusNode: _focusNodes[14],
                     validator: (v) => null,
+                    maxLength: 20,
                   ),
                   const SizedBox(height: 16),
                   _buildTextFormField(
@@ -916,6 +926,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     prefixIcon: const Icon(Icons.history_edu),
                     focusNode: _focusNodes[15],
                     validator: (v) => null,
+                    maxLength: 500,
                   ),
                   const SizedBox(height: 16),
                   _buildTextFormField(
@@ -924,82 +935,110 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     prefixIcon: const Icon(Icons.history),
                     focusNode: _focusNodes[16],
                     validator: (v) => null,
+                    maxLength: 500,
                   ),
 
                   // 2. Biokimia
-                  _buildSectionHeader('Biokimia / Data Lab'),
+                  _buildSectionHeader('Biokimia/BD'),
+                  
                   _buildTextFormField(
                     controller: _biokimiaGDSController,
                     label: 'GDS',
                     prefixIcon: const Icon(Icons.science),
+                    suffixText: 'mg/dl',
+                    keyboardType: TextInputType.number,
                     focusNode: _focusNodes[17],
                     validator: (v) => null,
+                    maxLength: 8,
                   ),
                   const SizedBox(height: 16),
                   _buildTextFormField(
                     controller: _biokimiaUreumController,
                     label: 'Ureum',
                     prefixIcon: const Icon(Icons.science),
+                    suffixText: 'mg/dl',
+                    keyboardType: TextInputType.number,
                     focusNode: _focusNodes[18],
                     validator: (v) => null,
+                    maxLength: 8,
                   ),
                   const SizedBox(height: 16),
                   _buildTextFormField(
                     controller: _biokimiaHGBController,
                     label: 'HGB',
                     prefixIcon: const Icon(Icons.science),
+                    keyboardType: TextInputType.number,
                     focusNode: _focusNodes[19],
                     validator: (v) => null,
+                    maxLength: 8,
                   ),
                   const SizedBox(height: 16),
                   _buildTextFormField(
                     controller: _biokimiaENTController,
                     label: 'ENT',
                     prefixIcon: const Icon(Icons.science),
+                    keyboardType: TextInputType.number,
                     focusNode: _focusNodes[20],
                     validator: (v) => null,
+                    maxLength: 8,
                   ),
 
                   // 3. Klinik / Fisik
-                  _buildSectionHeader('Klinik / Fisik'),
+                  _buildSectionHeader('Klinik/Fisik/PD'),
+
                   _buildTextFormField(
                     controller: _klinikTDController,
                     label: 'Tekanan Darah (TD)',
                     prefixIcon: const Icon(Icons.favorite),
+                    suffixText: 'mmHg',
+                    keyboardType: TextInputType.number,
                     focusNode: _focusNodes[21],
                     validator: (v) => null,
+                    maxLength: 8,
                   ),
                   const SizedBox(height: 16),
                   _buildTextFormField(
                     controller: _klinikNadiController,
                     label: 'Nadi (N)',
                     prefixIcon: const Icon(Icons.monitor_heart),
+                    suffixText: 'x/menit',
+                    keyboardType: TextInputType.number,
                     focusNode: _focusNodes[22],
                     validator: (v) => null,
+                    maxLength: 4,
                   ),
                   const SizedBox(height: 16),
                   _buildTextFormField(
                     controller: _klinikSuhuController,
-                    label: 'Suhu (S)',
+                    label: 'Suhu Badan (SB)',
                     prefixIcon: const Icon(Icons.thermostat),
+                    suffixText: '°C',
+                    keyboardType: TextInputType.number,
                     focusNode: _focusNodes[23],
                     validator: (v) => null,
+                    maxLength: 4,
                   ),
                   const SizedBox(height: 16),
                   _buildTextFormField(
                     controller: _klinikRRController,
-                    label: 'Respirasi (RR)',
+                    label: 'Respirasi (R)',
                     prefixIcon: const Icon(Icons.air),
+                    suffixText: 'x/menit',
+                    keyboardType: TextInputType.number,
                     focusNode: _focusNodes[24],
                     validator: (v) => null,
+                    maxLength: 4,
                   ),
                   const SizedBox(height: 16),
                   _buildTextFormField(
                     controller: _klinikSPO2Controller,
-                    label: 'SpO2',
+                    label: 'Saturasi Oksigen (SpO2)',
                     prefixIcon: const Icon(Icons.air),
+                    suffixText: '%',
+                    keyboardType: TextInputType.number,
                     focusNode: _focusNodes[25],
                     validator: (v) => null,
+                    maxLength: 4,
                   ),
                   const SizedBox(height: 16),
                   _buildTextFormField(
@@ -1008,6 +1047,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     prefixIcon: const Icon(Icons.accessibility_new),
                     focusNode: _focusNodes[26],
                     validator: (v) => null,
+                    maxLength: 20,
                   ),
                   const SizedBox(height: 16),
                   _buildTextFormField(
@@ -1016,25 +1056,29 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     prefixIcon: const Icon(Icons.psychology),
                     focusNode: _focusNodes[27],
                     validator: (v) => null,
+                    maxLength: 20,
                   ),
 
                   // 4. Diagnosa Gizi
                   _buildSectionHeader('Diagnosa Gizi'),
+
                   _buildTextFormField(
                     controller: _diagnosaGiziController,
                     label: 'Diagnosa Gizi',
                     prefixIcon: const Icon(Icons.medical_services),
                     focusNode: _focusNodes[28],
                     validator: (v) => null,
+                    maxLength: 500,
                   ),
 
-                  // 5. Intervensi
                   _buildSectionHeader('Intervensi Gizi'),
+
                   _buildTextFormField(
                     controller: _intervensiDietController,
                     label: 'Jenis Diet',
                     prefixIcon: const Icon(Icons.food_bank),
                     focusNode: _focusNodes[29],
+                    maxLength: 200,
                     validator: (v) => null,
                   ),
                   const SizedBox(height: 16),
@@ -1043,6 +1087,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     label: 'Bentuk Makanan (BM)',
                     prefixIcon: const Icon(Icons.rice_bowl),
                     focusNode: _focusNodes[30],
+                    maxLength: 200,
                     validator: (v) => null,
                   ),
                   const SizedBox(height: 16),
@@ -1051,6 +1096,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     label: 'Tujuan Diet',
                     prefixIcon: const Icon(Icons.flag),
                     focusNode: _focusNodes[31],
+                    maxLength: 500,
                     validator: (v) => null,
                   ),
                   const SizedBox(height: 16),
@@ -1069,6 +1115,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     label: 'Asupan Makanan',
                     prefixIcon: const Icon(Icons.analytics),
                     focusNode: _focusNodes[33],
+                    maxLength: 500,
                     validator: (v) => null,
                   ),
                   const SizedBox(height: 32),
@@ -1089,12 +1136,11 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
         Text(
           title,
           style: const TextStyle(
-            fontSize: 16,
+            fontSize: 15,
             fontWeight: FontWeight.bold,
-            color: Colors.green,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
       ],
     );
   }
@@ -1110,6 +1156,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     String? suffixText,
     // DIUBAH: Tambahkan parameter validator
     String? Function(String?)? validator,
+    int? maxLength,
   }) {
     return TextFormField(
       controller: controller,
@@ -1117,6 +1164,13 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
       readOnly: readOnly,
       onTap: onTap,
       keyboardType: keyboardType,
+      inputFormatters: [
+        // 1. Jika tipe input angka, hanya boleh digit dan titik
+        if (keyboardType == TextInputType.number)
+          FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+        // 2. Batasi panjang karakter jika maxLength diberikan
+        if (maxLength != null) LengthLimitingTextInputFormatter(maxLength),
+      ],
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),

@@ -8,6 +8,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/p
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/scaffold_with_animated_fab.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_validator_utils.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flutter/services.dart';
 
 class AddFoodItemPage extends StatefulWidget {
   final FoodItem? foodItem;
@@ -295,12 +296,14 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
                 label: 'Nama Makanan',
                 icon: Icons.restaurant,
                 focusNode: _focusNodes[0],
+                maxLength: 100,
               ),
               _buildTextFormField(
                 controller: _kodeController,
                 label: 'Kode Makanan',
                 icon: Icons.qr_code,
                 focusNode: _focusNodes[1],
+                maxLength: 20,
               ),
               _buildSearchableDropdown(
                 controller: _mentahOlahanController,
@@ -554,6 +557,7 @@ Widget _buildSearchableDropdown({
     required IconData icon,
     bool isNumber = false,
     required FocusNode focusNode,
+    int? maxLength,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -568,6 +572,16 @@ Widget _buildSearchableDropdown({
         keyboardType: isNumber
             ? const TextInputType.numberWithOptions(decimal: true)
             : TextInputType.text,
+        // [TAMBAHAN] Logika format input
+        inputFormatters: [
+          // 1. Jika angka, hanya boleh digit dan titik
+          if (isNumber) FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+          // 2. Batasi panjang karakter (Default 6 digit untuk angka jika tidak ada maxLength spesifik)
+          if (maxLength != null)
+            LengthLimitingTextInputFormatter(maxLength)
+          else if (isNumber)
+            LengthLimitingTextInputFormatter(6), 
+        ],
         validator: (value) {
           if (value == null || value.isEmpty) {
             return '$label tidak boleh kosong';

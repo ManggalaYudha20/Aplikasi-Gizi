@@ -167,6 +167,7 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
             children: [
               TextFormField(
                 controller: _titleController,
+                maxLength: 100,
                 decoration: const InputDecoration(
                   labelText: 'Judul Leaflet',
                   border: OutlineInputBorder(),
@@ -182,6 +183,7 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
+                maxLength: 100,
                 decoration: const InputDecoration(
                   labelText: 'Deskripsi Singkat',
                   border: OutlineInputBorder(),

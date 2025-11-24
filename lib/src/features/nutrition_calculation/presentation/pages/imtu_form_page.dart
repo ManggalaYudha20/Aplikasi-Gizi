@@ -5,6 +5,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_status_models.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flutter/services.dart';
 
 class IMTUFormPage extends StatefulWidget {
   const IMTUFormPage({super.key});
@@ -402,10 +403,17 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
     required String suffixText,
     Icon? prefixIcon,
     required String? Function(String?) validator,
+    int maxLength = 5,
   }) {
     return TextFormField(
       controller: controller,
-      keyboardType: TextInputType.number,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [
+        // Batasi panjang karakter agar tidak overflow/error database
+        LengthLimitingTextInputFormatter(maxLength),
+        // Opsional: Filter agar hanya angka dan titik (untuk desimal) yang bisa diketik
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+      ],
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),

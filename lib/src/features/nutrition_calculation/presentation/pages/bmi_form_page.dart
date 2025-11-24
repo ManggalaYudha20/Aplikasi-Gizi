@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
+import 'package:flutter/services.dart';
 
 class BmiFormPage extends StatefulWidget {
   const BmiFormPage({super.key});
@@ -266,10 +267,17 @@ class _BmiFormPageState extends State<BmiFormPage> {
     required String label,
     required Icon prefixIcon,
     required String suffixText,
+    int maxLength = 5,
   }) {
     return TextFormField(
       controller: controller,
-      keyboardType: TextInputType.number,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [
+        // Batasi panjang karakter agar tidak overflow/error database
+        LengthLimitingTextInputFormatter(maxLength),
+        // Opsional: Filter agar hanya angka dan titik (untuk desimal) yang bisa diketik
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+      ],
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),

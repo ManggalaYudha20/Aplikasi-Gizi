@@ -4,6 +4,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/menu_generator_service.dart';
+import 'package:flutter/services.dart';
 
 class DiabetesCalculationPage extends StatefulWidget {
   const DiabetesCalculationPage({super.key});
@@ -774,15 +775,23 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     required Icon prefixIcon,
     required String suffixText,
     required String? Function(String?) validator,
+    int maxLength = 5,
   }) {
     return TextFormField(
       controller: controller,
-      keyboardType: TextInputType.number,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [
+        // Batasi panjang karakter agar tidak overflow/error database
+        LengthLimitingTextInputFormatter(maxLength),
+        // Opsional: Filter agar hanya angka dan titik (untuk desimal) yang bisa diketik
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+      ],
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),
         prefixIcon: prefixIcon,
         suffixText: suffixText,
+        //counterText: "",
       ),
       validator: validator,
     );
