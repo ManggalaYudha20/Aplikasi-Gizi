@@ -41,6 +41,7 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
         _tempFilters = PatientFilterModel(
           statusGizi: _tempFilters.statusGizi,
           ageGroup: _tempFilters.ageGroup,
+          isCompleted: _tempFilters.isCompleted,
           dateRange: picked, // Nilai baru
         );
       });
@@ -70,6 +71,41 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
           const Text('Filter Pasien', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 24),
 
+          DropdownButtonFormField<bool?>(
+            initialValue: _tempFilters.isCompleted,
+            isExpanded: true,
+            hint: const Text('Semua Status Penyelesaian'),
+            items: [
+              DropdownMenuItem<bool?>(
+                value: null,
+                child: Text('Semua Status'),
+              ),
+              DropdownMenuItem<bool?>(
+                value: true,
+                child: Text('Selesai'),
+              ),
+              DropdownMenuItem<bool?>(
+                value: false,
+                child: Text('Belum Selesai'),
+              ),
+            ],
+            onChanged: (bool? newValue) {
+              setState(() {
+                _tempFilters = PatientFilterModel(
+                  statusGizi: _tempFilters.statusGizi,
+                  dateRange: _tempFilters.dateRange,
+                  ageGroup: _tempFilters.ageGroup,
+                  isCompleted: newValue, // Set nilai baru
+                );
+              });
+            },
+            decoration: InputDecoration(
+              labelText: 'Status Penyelesaian',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          const SizedBox(height: 16),
+
           // --- Filter Status Gizi ---
           DropdownButtonFormField<String>(
             initialValue: _tempFilters.statusGizi, // Sudah benar
@@ -90,6 +126,7 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
                   statusGizi: newValue, // Nilai baru
                   dateRange: _tempFilters.dateRange, // Nilai lama
                   ageGroup: _tempFilters.ageGroup, // Nilai lama
+                  isCompleted: _tempFilters.isCompleted,
                 );
               });
             },
@@ -122,6 +159,7 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
                   statusGizi: _tempFilters.statusGizi, // Nilai lama
                   dateRange: _tempFilters.dateRange, // Nilai lama
                   ageGroup: newValue, // Nilai baru
+                  isCompleted: _tempFilters.isCompleted,
                 );
               });
             },

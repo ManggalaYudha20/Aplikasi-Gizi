@@ -8,6 +8,7 @@ class PatientFilterModel {
   final String? statusGizi;
   final DateTimeRange? dateRange;
   final String? ageGroup;
+  final bool? isCompleted;
 
   // Opsi grup usia
   static const String ageAnak = 'Anak (0-18 th)';
@@ -18,11 +19,12 @@ class PatientFilterModel {
     this.statusGizi,
     this.dateRange,
     this.ageGroup,
+    this.isCompleted,
   });
 
   /// Cek apakah ada filter yang aktif
   bool get isDefault {
-    return statusGizi == null && dateRange == null && ageGroup == null;
+    return statusGizi == null && dateRange == null && ageGroup == null && isCompleted == null;
   }
 
   /// Fungsi utama untuk memfilter
@@ -31,15 +33,49 @@ class PatientFilterModel {
     // Ambil tipe pasien
     final String tipePasien = data['tipePasien'] ?? 'dewasa';
 
+    if (isCompleted != null) {
+      // Ambil status dari database, default false jika tidak ada
+      final bool statusData = data['isCompleted'] ?? false; 
+      
+      // Jika status di data beda dengan filter yang diinginkan, return false
+      if (statusData != isCompleted) return false;
+    }
+
     // --- Filter 1: Status Gizi (Kondisional) ---
-    bool matchesStatusGizi = true; // Asumsi lolos
+    bool matchesStatusGizi = true; 
     if (statusGizi != null) {
+      // 1. Ubah Filter ke Huruf Kecil (Lowercase)
+      //    Contoh: "Gizi Baik (Normal)" -> "gizi baik (normal)"
+      final String filterLower = statusGizi!.toLowerCase();
+
+      // 2. Tentukan kata kunci sederhana (Opsional, agar pencarian lebih fleksibel)
+      //    Ini membantu jika di DB tertulis "Gizi Baik" tapi filternya "Gizi Baik (Normal)"
+      String keyword = filterLower;
+      if (filterLower.contains('kurang')) {
+        keyword = 'kurang';
+      } else if (filterLower.contains('baik')) {
+        keyword = 'baik';
+      } else if (filterLower.contains('lebih')) {
+        keyword = 'lebih';
+      } else if (filterLower.contains('obesitas')) {
+        keyword = 'obesitas';
+      }
+
       if (tipePasien == 'anak') {
-        final String statusGiziAnak = data['statusGiziAnak'] ?? '';
-        matchesStatusGizi = statusGiziAnak.contains(statusGizi!);
+        // Ambil data dan ubah ke huruf kecil
+        final String statusIMTU = (data['statusGiziIMTU'] ?? '').toLowerCase();
+        final String statusBBU = (data['statusGiziBBU'] ?? '').toLowerCase();
+        final String statusLegacy = (data['statusGiziAnak'] ?? '').toLowerCase(); // Data lama
+
+        // Cek apakah data mengandung kata kunci (menggunakan keyword yang lebih pendek/fleksibel)
+        matchesStatusGizi = statusIMTU.contains(keyword) || 
+                            statusBBU.contains(keyword) ||
+                            statusLegacy.contains(keyword);
+                            
       } else {
-        final String statusGiziDewasa = data['monevStatusGizi'] ?? '';
-        matchesStatusGizi = statusGiziDewasa.contains(statusGizi!);
+        // Logika Dewasa (Juga di-lowercase)
+        final String statusGiziDewasa = (data['monevStatusGizi'] ?? '').toLowerCase();
+        matchesStatusGizi = statusGiziDewasa.contains(keyword);
       }
     }
     // Jika gagal filter, langsung hentikan

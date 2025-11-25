@@ -1106,6 +1106,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     prefixIcon: const Icon(Icons.route),
                     items: ['Oral', 'Enteral', 'Parenteral'],
                     focusNode: _focusNodes[32],
+                    validator: (v) => null,
                   ),
 
                   // 6. Monev

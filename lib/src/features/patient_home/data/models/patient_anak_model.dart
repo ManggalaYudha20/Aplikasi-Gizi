@@ -71,6 +71,7 @@ class PatientAnak {
   // 6. Monev
   final String? monevAsupan;
   final String? monevHasilLab;
+  final bool isCompleted;
 
   PatientAnak({
     required this.id,
@@ -121,6 +122,7 @@ class PatientAnak {
     this.intervensiTujuan,
     this.monevAsupan,
     this.monevHasilLab,
+    this.isCompleted = false,
   });
 
   factory PatientAnak.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -210,6 +212,7 @@ class PatientAnak {
       
       monevAsupan: data['monevAsupan'] as String?,
       monevHasilLab: data['monevHasilLab'] as String?,
+      isCompleted: data['isCompleted'] ?? false,
       
     );
   }
@@ -265,6 +268,7 @@ class PatientAnak {
       'intervensiTujuan': intervensiTujuan,
       'monevAsupan': monevAsupan,
       'monevHasilLab': monevHasilLab,
+      'isCompleted': isCompleted,
     };
   }
 

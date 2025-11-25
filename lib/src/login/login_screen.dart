@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen>
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Pastikan path 'assets/logo_rsud.png' sesuai
           Image.asset('assets/images/logo.png', height: 150),

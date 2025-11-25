@@ -49,6 +49,35 @@ class _PatientHomePageState extends State<PatientHomePage> {
     super.dispose();
   }
 
+  // Fungsi untuk mengubah status checklist
+  Future<void> _togglePatientStatus(String docId, bool currentStatus) async {
+    try {
+      await FirebaseFirestore.instance.collection('patients').doc(docId).update(
+        {'isCompleted': !currentStatus},
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              !currentStatus
+                  ? 'Pasien ditandai Selesai'
+                  : 'Pasien ditandai Belum Selesai',
+            ),
+            duration: const Duration(seconds: 1),
+            backgroundColor: !currentStatus ? Colors.green : Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal mengupdate status: $e')));
+      }
+    }
+  }
+
   void _applyFilters(PatientFilterModel newFilters) {
     setState(() {
       _activeFilters = newFilters;
@@ -412,7 +441,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
 
     if (statusGizi.contains('kurang') || statusGizi.contains('buruk')) {
       statusColor = Colors.orange;
-    } else if (statusGizi.contains('lebih')) {
+    } else if (statusGizi.contains('lebih')||
+        statusGizi.contains('Obesitas'))  {
       statusColor = Colors.red;
     } else if (statusGizi.contains('baik') || statusGizi.contains('normal')) {
       statusColor = Colors.green;
@@ -426,7 +456,14 @@ class _PatientHomePageState extends State<PatientHomePage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: patient.isCompleted ? Colors.green.shade50 : null,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        // 2. Tambahkan border hijau jika selesai
+        side: patient.isCompleted
+            ? const BorderSide(color: Colors.green, width: 1.5)
+            : BorderSide.none,
+      ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -458,57 +495,120 @@ class _PatientHomePageState extends State<PatientHomePage> {
         },
         child: Padding(
           padding: const EdgeInsets.all(12.0),
-          child: Column(
+          child: IntrinsicHeight(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      patient.namaLengkap,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+              // --- BAGIAN KIRI: Informasi Pasien ---
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            patient.namaLengkap,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          formattedDate,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Tampilkan data demografi anak
+                    Text(
+                      '${patient.jenisKelamin} | ${patient.usiaFormatted} | No.RM: ${patient.noRM}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 8),
+                    const Divider(height: 1, thickness: 0.5),
+                    const SizedBox(height: 8),
+
+                    // Tampilkan Status Gizi Anak
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Status Gizi Anak:',
+                          style: TextStyle(fontSize: 13),
+                        ),
+                        Text(
+                          statusGizi,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: statusColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              
+              Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5.0,
+                  ), // Jarak kiri-kanan
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(8, (index) {
+                      // Angka 8 menentukan kerapatan titik
+                      return Container(
+                        width: 1.5, // Lebar garis
+                        height: 4, // Panjang setiap strip
+                        color: Colors.grey.shade300,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 2,
+                        ), // Jarak antar strip
+                      );
+                    }),
+                  ),
+                ),
+              // --- BAGIAN KANAN: Checkbox Action ---
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Tandai Selesai",
+                      style: TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
+                    Transform.scale(
+                      scale: 1.2,
+                      child: Checkbox(
+                        activeColor: Colors.green,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        value: patient.isCompleted,
+                        onChanged: (bool? value) {
+                          // Panggil fungsi update status yang sama
+                          _togglePatientStatus(patient.id, patient.isCompleted);
+                        },
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  Text(
-                    formattedDate,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-
-              // Tampilkan data demografi anak
-              Text(
-                '${patient.jenisKelamin} | ${patient.usiaFormatted} | No.RM: ${patient.noRM}',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              ),
-              const SizedBox(height: 8),
-              const Divider(height: 1, thickness: 0.5),
-              const SizedBox(height: 8),
-
-              // Tampilkan Status Gizi Anak
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Status Gizi Anak:', style: TextStyle(fontSize: 13)),
-                  Text(
-                    statusGizi,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: statusColor,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -545,7 +645,13 @@ class _PatientHomePageState extends State<PatientHomePage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: patient.isCompleted ? Colors.green.shade50 : null,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: patient.isCompleted
+            ? const BorderSide(color: Colors.green, width: 1.5)
+            : BorderSide.none,
+      ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -577,96 +683,164 @@ class _PatientHomePageState extends State<PatientHomePage> {
         },
         child: Padding(
           padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      patient.namaLengkap,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Text(
-                    formattedDate,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-
-              // --- BARIS 2: Detail Demografi Kecil ---
-              Text(
-                '${patient.jenisKelamin} | $age Tahun | No.RM: ${patient.noRM}',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              ),
-
-              const SizedBox(height: 8),
-              const Divider(height: 1, thickness: 0.5),
-              const SizedBox(height: 8),
-
-              // --- BARIS 3: Diagnosis & Status Gizi ---
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Diagnosis Medis',
-                          style: TextStyle(fontSize: 10, color: Colors.grey),
-                        ),
-                        Text(
-                          patient.diagnosisMedis,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end, // Rata kanan
-                      children: [
-                        const Text(
-                          'Status Gizi',
-                          style: TextStyle(fontSize: 10, color: Colors.grey),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          child: Text(
-                            statusGizi,
-                            textAlign: TextAlign.right,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: statusColor,
+          child: IntrinsicHeight(
+            child: Row(
+              // Gunakan Row utama untuk memisahkan Konten Text dan Checkbox
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // BAGIAN KIRI: Informasi Pasien
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              patient.namaLengkap,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                          Text(
+                            formattedDate,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '${patient.jenisKelamin} | $age Tahun | No.RM: ${patient.noRM}',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                      const SizedBox(height: 8),
+                      const Divider(height: 1, thickness: 0.5),
+                      const SizedBox(height: 8),
+
+                      // Informasi Diagnosis & Status Gizi
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Diagnosis Medis',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                Text(
+                                  patient.diagnosisMedis,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 3,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const Text(
+                                  'Status Gizi',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  child: Text(
+                                    statusGizi,
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: statusColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ],
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5.0,
+                  ), // Jarak kiri-kanan
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(8, (index) {
+                      // Angka 8 menentukan kerapatan titik
+                      return Container(
+                        width: 1.5, // Lebar garis
+                        height: 4, // Panjang setiap strip
+                        color: Colors.grey.shade300,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 2,
+                        ), // Jarak antar strip
+                      );
+                    }),
+                  ),
+                ),
+
+                // BAGIAN KANAN: Checkbox Action
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Tandai Selesai",
+                        style: TextStyle(fontSize: 10, color: Colors.grey),
+                      ),
+                      Transform.scale(
+                        scale: 1.2,
+                        child: Checkbox(
+                          activeColor: Colors.green,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          value: patient.isCompleted,
+                          onChanged: (bool? value) {
+                            // Panggil fungsi update status
+                            _togglePatientStatus(
+                              patient.id,
+                              patient.isCompleted,
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
