@@ -5,6 +5,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/services.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
 class BbiFormPage extends StatefulWidget {
   const BbiFormPage({super.key});
@@ -20,6 +21,7 @@ class _BbiFormPageState extends State<BbiFormPage> {
   final GlobalKey _resultCardKey = GlobalKey();
   final _genderController = TextEditingController();
   double? _bbiResult;
+  final GlobalKey<PatientPickerWidgetState> _patientPickerKey = GlobalKey();
 
   @override
   void dispose() {
@@ -68,9 +70,35 @@ class _BbiFormPageState extends State<BbiFormPage> {
       _heightController.clear();
       _genderController.clear();
       _bbiResult = null;
+      _patientPickerKey.currentState?.resetSelection();
     });
   }
 
+  void _fillDataFromPatient(double weight, double height, String gender, DateTime dob) {
+    setState(() {
+      _heightController.text = height.toString();
+      String incomingGender = gender.toLowerCase();
+      String normalizedGender = '';
+
+      // Cek variasi penulisan Laki-laki
+      if (incomingGender.contains('laki') || incomingGender.contains('pria') || incomingGender == 'l') {
+        normalizedGender = 'Laki-laki';
+      } 
+      // Cek variasi penulisan Perempuan
+      else if (incomingGender.contains('perempuan') || incomingGender.contains('wanita') || incomingGender == 'p') {
+        normalizedGender = 'Perempuan';
+      } 
+      // Jika tidak dikenali, gunakan data asli (mungkin user harus pilih manual)
+      else {
+        normalizedGender = gender; 
+      }
+      _genderController.text = normalizedGender;
+      
+      // Reset hasil perhitungan
+      _bbiResult = null;
+    });
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,6 +117,13 @@ class _BbiFormPageState extends State<BbiFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+              PatientPickerWidget(
+                  key: _patientPickerKey,
+                  onPatientSelected: _fillDataFromPatient,
+                ),
+                
+                const SizedBox(height: 10), // Sedikit jarak
+                const Divider(),
                 const SizedBox(height: 20),
                 const Text(
                   'Input Data BBI',

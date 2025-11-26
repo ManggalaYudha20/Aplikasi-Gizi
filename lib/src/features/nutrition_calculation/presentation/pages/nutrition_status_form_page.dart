@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_status_models.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/services.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
 class NutritionStatusFormPage extends StatefulWidget {
   const NutritionStatusFormPage({super.key});
@@ -28,8 +30,25 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   DateTime? _birthDate;
   DateTime? _measurementDate;
   int? _ageInMonths;
+  final GlobalKey<PatientPickerWidgetState> _patientPickerKey = GlobalKey();
 
   Map<String, dynamic>? _calculationResults;
+
+  @override
+  void initState() {
+    super.initState();
+    // Default tanggal pengukuran ke hari ini
+    initializeDateFormatting('id_ID', null).then((_) {
+      if (mounted) {
+        setState(() {
+          _measurementDate = DateTime.now();
+          // Gunakan 'id_ID'
+          _measurementDateController.text = 
+              DateFormat('dd MMMM yyyy', 'id_ID').format(_measurementDate!);
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -57,14 +76,17 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   Future<void> _selectDate(BuildContext context, bool isBirthDate) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      locale: const Locale('id', 'ID'),
+      initialDate: isBirthDate 
+          ? (_birthDate ?? DateTime.now()) 
+          : (_measurementDate ?? DateTime.now()),
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
     );
 
     if (picked != null) {
       setState(() {
-        String formattedDate = DateFormat('dd MMMM yyyy').format(picked);
+        String formattedDate = DateFormat('dd MMMM yyyy', 'id_ID').format(picked);
         if (isBirthDate) {
           _birthDate = picked;
           _birthDateController.text = formattedDate;
@@ -408,11 +430,49 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     setState(() {
       _formKey.currentState?.reset();
       _birthDate = null;
-      _measurementDate = null;
+      _measurementDate = DateTime.now();
+      // Format ulang tanggal pengukuran saat reset
+      _measurementDateController.text = DateFormat('dd MMMM yyyy', 'id_ID').format(_measurementDate!);
+      _birthDateController.clear();
       _weightController.clear();
       _heightController.clear();
       _genderController.clear();
       _ageInMonths = null;
+      _calculationResults = null;
+      _patientPickerKey.currentState?.resetSelection();
+    });
+  }
+
+  void _fillDataFromPatient(double weight, double height, String gender, DateTime dob) {
+    setState(() {
+      _weightController.text = weight.toString();
+      _heightController.text = height.toString();
+      
+      // 1. Set Tanggal Lahir
+      _birthDate = dob;
+      _birthDateController.text = DateFormat('dd MMMM yyyy','id_ID').format(dob);
+      
+      // 2. Set Tanggal Ukur (Default Hari Ini)
+      _measurementDate = DateTime.now();
+      _measurementDateController.text = DateFormat('dd MMMM yyyy','id_ID').format(_measurementDate!);
+
+      // 3. Hitung Usia Otomatis
+      _calculateAgeInMonths();
+
+      // 4. Normalisasi Gender
+      String incomingGender = gender.toLowerCase();
+      String normalizedGender = '';
+
+      if (incomingGender.contains('laki') || incomingGender.contains('pria') || incomingGender == 'l') {
+        normalizedGender = 'Laki-laki';
+      } else if (incomingGender.contains('perempuan') || incomingGender.contains('wanita') || incomingGender == 'p') {
+        normalizedGender = 'Perempuan';
+      } else {
+        normalizedGender = gender;
+      }
+      _genderController.text = normalizedGender;
+      
+      // Reset hasil perhitungan sebelumnya
       _calculationResults = null;
     });
   }
@@ -438,6 +498,12 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                PatientPickerWidget(
+                    key: _patientPickerKey,
+                    onPatientSelected: _fillDataFromPatient,
+                  ),
+                const SizedBox(height: 10), // Sedikit jarak
+                const Divider(),
                 const SizedBox(height: 20),
                 const Text(
                   'Input Data Status Gizi',

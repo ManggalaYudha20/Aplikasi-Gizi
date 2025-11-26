@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:flutter/services.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
 class BmiFormPage extends StatefulWidget {
   const BmiFormPage({super.key});
@@ -18,6 +19,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
   final _heightController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _resultCardKey = GlobalKey();
+  final GlobalKey<PatientPickerWidgetState> _patientPickerKey = GlobalKey();
 
   double? _bmiResult;
   String? _bmiCategory;
@@ -83,6 +85,19 @@ class _BmiFormPageState extends State<BmiFormPage> {
       _bmiResult = null;
       _bmiCategory = null;
       _resultColor = null;
+      _patientPickerKey.currentState?.resetSelection();
+    });
+  }
+
+  void _fillDataFromPatient(double weight, double height, String gender, DateTime dob) {
+    setState(() {
+      _weightController.text = weight.toString();
+      _heightController.text = height.toString();
+      // Jika nanti ada field Umur atau Gender di form ini, bisa diisi juga disini
+      
+      // Reset hasil perhitungan sebelumnya agar user menekan tombol hitung ulang
+      _bmiResult = null;
+      _bmiCategory = null;
     });
   }
 
@@ -104,6 +119,14 @@ class _BmiFormPageState extends State<BmiFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                PatientPickerWidget(
+                    key: _patientPickerKey,
+                    onPatientSelected: _fillDataFromPatient,
+                  ),
+                  
+                  const SizedBox(height: 10), // Sedikit jarak
+                  const Divider(),
+                  
                 const SizedBox(height: 20),
                 const Text(
                   'Input Data IMT',

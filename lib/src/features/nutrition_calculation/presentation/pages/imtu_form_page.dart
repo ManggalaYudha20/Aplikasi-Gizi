@@ -6,6 +6,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/m
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/services.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
 class IMTUFormPage extends StatefulWidget {
   const IMTUFormPage({super.key});
@@ -24,6 +25,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
   final GlobalKey _resultCardKey = GlobalKey();
   final _genderController = TextEditingController();
   Map<String, dynamic>? _calculationResult;
+  final GlobalKey<PatientPickerWidgetState> _patientPickerKey = GlobalKey();
 
   @override
   void dispose() {
@@ -166,6 +168,54 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
     _genderController.clear();
     setState(() {
       _calculationResult = null;
+      _patientPickerKey.currentState?.resetSelection();
+    });
+  }
+
+  void _calculateAgeDetail(DateTime birthDate) {
+    final now = DateTime.now();
+    int years = now.year - birthDate.year;
+    int months = now.month - birthDate.month;
+    
+    // Koreksi jika hari bulan ini belum mencapai hari lahir
+    if (now.day < birthDate.day) {
+      months--;
+    }
+    
+    // Koreksi jika bulan negatif (artinya ulang tahun belum lewat tahun ini)
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    
+    _ageYearsController.text = years.toString();
+    _ageMonthsController.text = months.toString();
+  }
+
+  // --- PERBAIKAN 2: Isi Data dengan Normalisasi ---
+  void _fillDataFromPatient(double weight, double height, String gender, DateTime dob) {
+    setState(() {
+      _weightController.text = weight.toString();
+      _heightController.text = height.toString();
+      
+      // 1. Hitung Umur Detail (Tahun & Bulan)
+      _calculateAgeDetail(dob);
+
+      // 2. Normalisasi Gender
+      String incomingGender = gender.toLowerCase();
+      String normalizedGender = '';
+
+      if (incomingGender.contains('laki') || incomingGender.contains('pria') || incomingGender == 'l') {
+        normalizedGender = 'Laki-laki';
+      } else if (incomingGender.contains('perempuan') || incomingGender.contains('wanita') || incomingGender == 'p') {
+        normalizedGender = 'Perempuan';
+      } else {
+        normalizedGender = gender;
+      }
+      _genderController.text = normalizedGender;
+      
+      // Reset hasil perhitungan
+      _calculationResult = null;
     });
   }
 
@@ -187,6 +237,13 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                PatientPickerWidget(
+                    key: _patientPickerKey,
+                    onPatientSelected: _fillDataFromPatient,
+                  ),
+                  
+                const SizedBox(height: 10), // Sedikit jarak
+                const Divider(),
                 const SizedBox(height: 20),
                 const Text(
                   'Input Data IMT/U  5-18 Tahun',
@@ -205,6 +262,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                         label: 'Tahun',
                         prefixIcon: const Icon(Icons.calendar_today),
                         suffixText: 'tahun',
+                        isInteger: true,
                         validator: (value) {
                           if (value == null || value.isEmpty) return 'Masukkan tahun';
                           final years = int.tryParse(value);
@@ -219,6 +277,7 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                         controller: _ageMonthsController,
                         label: 'Bulan',
                         suffixText: 'bulan',
+                        isInteger: true,
                         validator: (value) {
                           if (value == null || value.isEmpty) return 'Masukkan bulan';
                           final months = int.tryParse(value);
@@ -404,15 +463,19 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
     Icon? prefixIcon,
     required String? Function(String?) validator,
     int maxLength = 5,
+    bool isInteger = false,
   }) {
     return TextFormField(
       controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      keyboardType: isInteger 
+        ? TextInputType.number 
+        : const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
-        // Batasi panjang karakter agar tidak overflow/error database
         LengthLimitingTextInputFormatter(maxLength),
-        // Opsional: Filter agar hanya angka dan titik (untuk desimal) yang bisa diketik
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+        // Logic Formatter
+        isInteger 
+          ? FilteringTextInputFormatter.digitsOnly 
+          : FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
       ],
       decoration: InputDecoration(
         labelText: label,

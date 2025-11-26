@@ -5,6 +5,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/services.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
 class BmrFormPage extends StatefulWidget {
   const BmrFormPage({super.key});
@@ -23,6 +24,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
   double? _bmrResult;
   final _genderController = TextEditingController();
   final _formulaController = TextEditingController(text: 'Mifflin-St Jeor');
+  final GlobalKey<PatientPickerWidgetState> _patientPickerKey = GlobalKey();
 
   @override
   void dispose() {
@@ -93,6 +95,47 @@ class _BmrFormPageState extends State<BmrFormPage> {
       _genderController.clear();
       _bmrResult = null;
       _formulaController.text = 'Mifflin-St Jeor';
+      _patientPickerKey.currentState?.resetSelection();
+    });
+  }
+
+  // --- PERBAIKAN 1: Fungsi Helper Hitung Umur ---
+  int _calculateAgeFromDob(DateTime birthDate) {
+    final now = DateTime.now();
+    int age = now.year - birthDate.year;
+    // Cek apakah ulang tahun tahun ini sudah lewat atau belum
+    if (now.month < birthDate.month || (now.month == birthDate.month && now.day < birthDate.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  // --- PERBAIKAN 2: Update Logic Pengisian Data ---
+  void _fillDataFromPatient(double weight, double height, String gender, DateTime dob) {
+    setState(() {
+      _weightController.text = weight.toString();
+      _heightController.text = height.toString();
+      
+      // Hitung dan isi Umur
+      final int calculatedAge = _calculateAgeFromDob(dob);
+      _ageController.text = calculatedAge.toString();
+
+      // Normalisasi Jenis Kelamin (Sama seperti halaman BBI)
+      String incomingGender = gender.toLowerCase();
+      String normalizedGender = '';
+
+      if (incomingGender.contains('laki') || incomingGender.contains('pria') || incomingGender == 'l') {
+        normalizedGender = 'Laki-laki';
+      } else if (incomingGender.contains('perempuan') || incomingGender.contains('wanita') || incomingGender == 'p') {
+        normalizedGender = 'Perempuan';
+      } else {
+        normalizedGender = gender;
+      }
+
+      _genderController.text = normalizedGender;
+      
+      // Reset hasil perhitungan
+      _bmrResult = null;
     });
   }
 
@@ -117,6 +160,14 @@ class _BmrFormPageState extends State<BmrFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+              PatientPickerWidget(
+                  key: _patientPickerKey,
+                  onPatientSelected: _fillDataFromPatient,
+                ),
+                
+                const SizedBox(height: 10), 
+                const Divider(),
+                  
                 const SizedBox(height: 20),
                 const Text(
                   'Input Data BMR',
@@ -313,15 +364,19 @@ class _BmrFormPageState extends State<BmrFormPage> {
     required Icon prefixIcon,
     required String suffixText,
     int maxLength = 5,
+    bool isInteger = false,
   }) {
     return TextFormField(
       controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      keyboardType: isInteger 
+          ? TextInputType.number 
+          : const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
-        // Batasi panjang karakter agar tidak overflow/error database
         LengthLimitingTextInputFormatter(maxLength),
-        // Opsional: Filter agar hanya angka dan titik (untuk desimal) yang bisa diketik
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+        // Filter input
+        isInteger
+            ? FilteringTextInputFormatter.digitsOnly // Hanya 0-9 untuk Umur
+            : FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')), // Desimal untuk BB/TB
       ],
       decoration: InputDecoration(
         labelText: label,

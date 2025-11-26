@@ -5,6 +5,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/services.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
 class TdeeFormPage extends StatefulWidget {
   const TdeeFormPage({super.key});
@@ -26,6 +27,7 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
   final _stressFactorController = TextEditingController();
   double? _calculatedTdee;
   double? _calculatedBmr;
+  final GlobalKey<PatientPickerWidgetState> _patientPickerKey = GlobalKey();
 
   // Activity factors
   final Map<String, double> activityFactors = {
@@ -140,6 +142,45 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
     setState(() {
       _calculatedTdee = null;
       _calculatedBmr = null;
+      _patientPickerKey.currentState?.resetSelection();
+    });
+  }
+
+  int _calculateAgeFromDob(DateTime birthDate) {
+    final now = DateTime.now();
+    int age = now.year - birthDate.year;
+    if (now.month < birthDate.month || (now.month == birthDate.month && now.day < birthDate.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  // --- UPDATE: Isi Data Pasien ---
+  void _fillDataFromPatient(double weight, double height, String gender, DateTime dob) {
+    setState(() {
+      _weightController.text = weight.toString();
+      _heightController.text = height.toString();
+      
+      // 1. Hitung Umur
+      final int calculatedAge = _calculateAgeFromDob(dob);
+      _ageController.text = calculatedAge.toString();
+
+      // 2. Normalisasi Gender
+      String incomingGender = gender.toLowerCase();
+      String normalizedGender = '';
+
+      if (incomingGender.contains('laki') || incomingGender.contains('pria') || incomingGender == 'l') {
+        normalizedGender = 'Laki-laki';
+      } else if (incomingGender.contains('perempuan') || incomingGender.contains('wanita') || incomingGender == 'p') {
+        normalizedGender = 'Perempuan';
+      } else {
+        normalizedGender = gender;
+      }
+      _genderController.text = normalizedGender;
+      
+      // 3. Reset Hasil
+      _calculatedBmr = null;
+      _calculatedTdee = null;
     });
   }
 
@@ -164,6 +205,13 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                PatientPickerWidget(
+                    key: _patientPickerKey,
+                    onPatientSelected: _fillDataFromPatient,
+                  ),
+                  
+                const SizedBox(height: 10), // Sedikit jarak
+                const Divider(),
                 const SizedBox(height: 20),
                 const Text(
                   'Input Data TDEE',
@@ -337,15 +385,19 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
     required String suffixText,
     String? Function(String?)? validator,
     int maxLength = 5,
+    bool isInteger = false,
   }) {
     return TextFormField(
       controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      keyboardType: isInteger 
+          ? TextInputType.number 
+          : const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
-        // Batasi panjang karakter agar tidak overflow/error database
         LengthLimitingTextInputFormatter(maxLength),
-        // Opsional: Filter agar hanya angka dan titik (untuk desimal) yang bisa diketik
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+        // Logic Input Formatter
+        isInteger 
+          ? FilteringTextInputFormatter.digitsOnly 
+          : FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
       ],
       decoration: InputDecoration(
         labelText: label,
