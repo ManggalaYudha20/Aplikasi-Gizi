@@ -12,6 +12,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/account/account_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/statistics/statistics_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -89,11 +90,12 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 1;
+  int _currentIndex = 0;
 
   final List<Widget> _screens = const [
-    PatientHomePage(),
     NutritionInfoPage(),
+    PatientHomePage(),
+    StatisticsPage(),
     AccountPage(),
   ];
 
@@ -106,7 +108,7 @@ class _MainScreenState extends State<MainScreen> {
       // 3. SECARA PROGRAMATIS PINDAH KE INDEKS 1
       // Ini adalah cara yang aman untuk mengatur state awal yang non-default.
       setState(() {
-        _currentIndex = 1;
+        _currentIndex = 0;
       });
     });
   }

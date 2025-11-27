@@ -754,7 +754,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            flex: 3,
+                            flex: 5,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [

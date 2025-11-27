@@ -99,6 +99,7 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                 '${_currentPatient.tl!.toStringAsFixed(1)} cm',
               ),
             _buildInfoRow('Diagnosis Medis', _currentPatient.diagnosisMedis),
+            _buildInfoRow('Status Gizi', _currentPatient.statusGizi),
 
             const Divider(height: 20, thickness: 2, color: Colors.green),
 
