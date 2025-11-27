@@ -2,8 +2,8 @@
 import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_info/presentation/pages/nutrition_info_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/version_info_app.dart';
+import 'package:aplikasi_diagnosa_gizi/main.dart';
 
 // 1. Ubah menjadi StatefulWidget
 class LoginScreen extends StatefulWidget {
@@ -180,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen>
                     // Ganti '/home' dengan rute halaman utama Anda (misal: HomeScreen())
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
-                          builder: (context) => const NutritionInfoPage()),
+                          builder: (context) => const MainScreen()),
                     );
                   } else {
                     // Kasus ini seharusnya tidak terjadi jika pengguna tidak membatalkan,

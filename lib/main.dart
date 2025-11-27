@@ -13,6 +13,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/account/account_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/statistics/statistics_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/services/user_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -91,26 +92,69 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  String _userRole = 'tamu';
+  bool _isLoading = true;
 
-  final List<Widget> _screens = const [
-    NutritionInfoPage(),
-    PatientHomePage(),
-    StatisticsPage(),
-    AccountPage(),
-  ];
+  // List yang akan diisi secara dinamis berdasarkan role
+  List<Widget> _activePages = [];
+  List<BottomNavigationBarItem> _activeNavItems = [];
 
-  // 2. TAMBAHKAN initState
   @override
   void initState() {
     super.initState();
-    // `addPostFrameCallback` akan menjalankan kode ini setelah frame pertama selesai dirender.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 3. SECARA PROGRAMATIS PINDAH KE INDEKS 1
-      // Ini adalah cara yang aman untuk mengatur state awal yang non-default.
+    _fetchUserRoleAndSetupMenu();
+  }
+
+  // Fungsi baru untuk mengambil role dan setup menu
+  Future<void> _fetchUserRoleAndSetupMenu() async {
+    final userService = UserService();
+    final role = await userService.getUserRole();
+
+    if (mounted) {
       setState(() {
-        _currentIndex = 0;
+        _userRole = role ?? 'tamu';
+        _setupNavigationMenu(); // Panggil fungsi setup menu
+        _isLoading = false;
       });
-    });
+    }
+  }
+
+  void _setupNavigationMenu() {
+    // 1. Definisi SEMUA halaman (Urutan Wajib Sama dengan Nav Items)
+    final allPages = [
+      NutritionInfoPage(userRole: _userRole), // Index 0: Beranda
+      const PatientHomePage(), // Index 1: Daftar Pasien
+      const StatisticsPage(), // Index 2: Statistik
+      const AccountPage(), // Index 3: Akun
+    ];
+
+    // 2. Definisi SEMUA item navbar (Urutan Wajib Sama dengan Pages)
+    final allNavItems = [
+      const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.folder_shared),
+        label: 'Daftar Pasien',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.pie_chart),
+        label: 'Statistik',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.person),
+        label: 'Profil Akun',
+      ),
+    ];
+
+    // 3. LOGIKA FILTER
+    if (_userRole == 'tamu') {
+      // Jika tamu: Hanya ambil Beranda (0) dan Akun (3)
+      _activePages = [allPages[0], allPages[3]];
+      _activeNavItems = [allNavItems[0], allNavItems[3]];
+    } else {
+      // Jika admin/ahli_gizi: Ambil semua
+      _activePages = allPages;
+      _activeNavItems = allNavItems;
+    }
   }
 
   void _onTabTapped(int index) {
@@ -121,11 +165,21 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // Pastikan index tidak error saat role berubah (misal dari 4 menu jadi 2 menu)
+    final safeIndex = _currentIndex >= _activePages.length ? 0 : _currentIndex;
+
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: _activePages.isNotEmpty
+          ? _activePages[safeIndex]
+          : const Center(child: Text("Tidak ada halaman akses")),
       bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentIndex,
+        currentIndex: safeIndex,
         onTap: _onTabTapped,
+        items: _activeNavItems, // Kirim item yang sudah difilter
       ),
     );
   }

@@ -7,7 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
 class BmiFormPage extends StatefulWidget {
-  const BmiFormPage({super.key});
+  final String userRole; 
+
+  const BmiFormPage({
+    super.key,
+    required this.userRole, // Wajib
+  });
 
   @override
   State<BmiFormPage> createState() => _BmiFormPageState();
@@ -122,10 +127,9 @@ class _BmiFormPageState extends State<BmiFormPage> {
                 PatientPickerWidget(
                     key: _patientPickerKey,
                     onPatientSelected: _fillDataFromPatient,
+                    userRole: widget.userRole,
                   ),
                   
-                  const SizedBox(height: 10), // Sedikit jarak
-                  const Divider(),
                   
                 const SizedBox(height: 20),
                 const Text(

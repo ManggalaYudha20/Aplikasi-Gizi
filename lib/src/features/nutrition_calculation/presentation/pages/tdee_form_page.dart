@@ -8,7 +8,12 @@ import 'package:flutter/services.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
 class TdeeFormPage extends StatefulWidget {
-  const TdeeFormPage({super.key});
+  final String userRole; 
+
+  const TdeeFormPage({
+    super.key,
+    required this.userRole, // Wajib
+  });
 
   @override
   State<TdeeFormPage> createState() => _TdeeFormPageState();
@@ -208,10 +213,9 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                 PatientPickerWidget(
                     key: _patientPickerKey,
                     onPatientSelected: _fillDataFromPatient,
+                    userRole: widget.userRole,
                   ),
-                  
-                const SizedBox(height: 10), // Sedikit jarak
-                const Divider(),
+
                 const SizedBox(height: 20),
                 const Text(
                   'Input Data TDEE',

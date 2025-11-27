@@ -10,7 +10,12 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presen
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/imtu_form_page.dart';
 
 class FormulaCalculationPage extends StatelessWidget {
-  const FormulaCalculationPage({super.key});
+  final String userRole; // 1. Terima Role
+
+  const FormulaCalculationPage({
+    super.key,
+    required this.userRole, // Wajib
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +175,7 @@ class FormulaCalculationPage extends StatelessWidget {
         context,
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-            const BmiFormPage(),
+             BmiFormPage(userRole: userRole),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
@@ -193,7 +198,7 @@ class FormulaCalculationPage extends StatelessWidget {
         context,
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-            const BmrFormPage(),
+             BmrFormPage(userRole: userRole),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
@@ -216,7 +221,7 @@ class FormulaCalculationPage extends StatelessWidget {
         context,
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-            const TdeeFormPage(),
+             TdeeFormPage(userRole: userRole),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
@@ -239,7 +244,7 @@ class FormulaCalculationPage extends StatelessWidget {
         context,
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-            const BbiFormPage(),
+             BbiFormPage(userRole: userRole),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
@@ -262,7 +267,7 @@ class FormulaCalculationPage extends StatelessWidget {
         context,
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-            const NutritionStatusFormPage(),
+             NutritionStatusFormPage(userRole: userRole),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
@@ -285,7 +290,7 @@ class FormulaCalculationPage extends StatelessWidget {
         context,
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-            const IMTUFormPage(),
+             IMTUFormPage(userRole: userRole),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;

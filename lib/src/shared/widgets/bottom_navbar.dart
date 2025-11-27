@@ -1,13 +1,17 @@
+// lib\src\shared\widgets\bottom_navbar.dart
+
 import 'package:flutter/material.dart';
 
 class CustomBottomNavBar extends StatefulWidget {
   final int currentIndex;
   final Function(int) onTap;
+  final List<BottomNavigationBarItem> items;
 
   const CustomBottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
+    required this.items,
   });
 
   @override
@@ -24,24 +28,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
       backgroundColor: Colors.white,
       selectedItemColor: const Color.fromARGB(255, 0, 148, 68),
       unselectedItemColor: Colors.grey,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Beranda',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.folder_shared),
-          label: 'Daftar Pasien',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.pie_chart),
-          label: 'Statistik',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: 'Profil Akun',
-        ),
-      ],
+      items: widget.items,
     );
   }
 }

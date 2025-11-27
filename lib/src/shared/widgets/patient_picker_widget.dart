@@ -1,5 +1,3 @@
-// lib/src/shared/widgets/patient_picker_widget.dart
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,10 +6,12 @@ import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/pat
 
 class PatientPickerWidget extends StatefulWidget {
   final Function(double weight, double height, String gender, DateTime birthDate) onPatientSelected;
+  final String userRole;
 
   const PatientPickerWidget({
     super.key, 
-    required this.onPatientSelected
+    required this.onPatientSelected,
+    required this.userRole,
   });
 
   @override
@@ -24,53 +24,52 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
   
   String? _selectedPatientId; 
 
-  // UBAH 1: Ubah dari 'late Stream' menjadi 'Stream?' (Nullable)
-  // Alasannya: Kita butuh waktu untuk fetch role user dulu, jadi stream awalnya null.
   Stream<QuerySnapshot<Map<String, dynamic>>>? _patientStream;
 
   @override
   void initState() {
     super.initState();
-    _initStream();
+    if (widget.userRole != 'tamu') {
+      _initStream();
+    }
   }
 
-  // UBAH 2: Ubah logic _initStream menjadi Asynchronous untuk cek role
+  // --- METODE YANG HILANG (DITAMBAHKAN KEMBALI) ---
+  void resetSelection() {
+    setState(() {
+      _selectedPatientId = null;
+      _searchController.clear();
+      _searchQuery = '';
+    });
+  }
+
   Future<void> _initStream() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
     try {
-      // 1. Ambil Data Role User dari Firestore
-      // Asumsi: Anda menyimpan data role di collection 'users'
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      // Ambil field 'role', jika tidak ada default ke 'ahli_gizi'
-      final String role = userDoc.data()?['role'] ?? 'ahli_gizi';
+      // KITA HAPUS fetch ke collection 'users' di sini karena widget.userRole sudah membawa data tersebut.
+      // Ini menghilangkan delay/loading saat widget dimuat.
       
       Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('patients');
 
-      // 2. Tentukan Query Berdasarkan Role
-      if (role == 'admin') {
-        // ADMIN: Bisa melihat SEMUA data (Tanpa filter createdBy)
+      // Logic Query menggunakan widget.userRole secara langsung
+      if (widget.userRole == 'admin') {
         query = query.orderBy('tanggalPemeriksaan', descending: true);
       } else {
-        // AHLI GIZI: Hanya melihat data BUATAN SENDIRI
+        // Asumsi: selain admin (ahli_gizi), hanya melihat data sendiri
         query = query
             .where('createdBy', isEqualTo: user.uid)
             .orderBy('tanggalPemeriksaan', descending: true);
       }
 
-      // 3. Update Stream di dalam setState
       if (mounted) {
         setState(() {
           _patientStream = query.limit(50).snapshots();
         });
       }
     } catch (e) {
-      debugPrint("Error fetching role or stream: $e");
+      debugPrint("Error creating stream: $e");
     }
   }
 
@@ -80,19 +79,11 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
     super.dispose();
   }
 
-  void resetSelection() {
-    setState(() {
-      _selectedPatientId = null; 
-      _searchController.clear(); 
-      _searchQuery = '';
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) return const SizedBox.shrink();
+    if (widget.userRole == 'tamu') {
+      return const SizedBox.shrink();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,11 +127,7 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
                 ? IconButton(
                     icon: const Icon(Icons.clear, size: 18),
                     onPressed: () {
-                      _searchController.clear();
-                      setState(() {
-                        _searchQuery = '';
-                        _selectedPatientId = null; 
-                      });
+                      resetSelection(); // Gunakan metode resetSelection di sini juga
                     },
                   ) 
                 : null,
@@ -158,7 +145,7 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
 
         SizedBox(
           height: 140, 
-          // UBAH 3: Handle kondisi jika _patientStream masih null (sedang loading role)
+          // Jika role bukan tamu tapi stream belum siap, tampilkan loading
           child: _patientStream == null 
             ? const Center(child: CircularProgressIndicator()) 
             : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -197,7 +184,6 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
                     itemBuilder: (context, index) {
                       final doc = filteredDocs[index];
                       final data = doc.data();
-                      
                       final String docId = doc.id;
 
                       final String tipePasien = data['tipePasien'] ?? 'dewasa';
@@ -248,6 +234,8 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
                 },
               ),
         ),
+        const SizedBox(height: 10), // Sedikit jarak
+        const Divider(),
       ],
     );
   }
@@ -284,12 +272,10 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
       years--;
       months += 12;
     }
-    // Jika hari ini belum mencapai tanggal lahir di bulan ini
     if (days < 0) {
       months--;
     }
     
-    // Tampilan output
     if (years > 0) {
       return '$years thn ${months > 0 ? '$months bln' : ''}';
     } else {
@@ -384,8 +370,6 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
                     const SizedBox(height: 8),
                     const Divider(height: 8),
 
-                    // --- UPDATE BAGIAN INI (Ganti BB/TB dengan Usia/Gender) ---
-                    
                     // 1. Baris Usia
                     Row(
                       children: [

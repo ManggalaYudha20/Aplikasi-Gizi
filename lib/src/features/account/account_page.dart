@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/version_info_app.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/services/user_service.dart';
 
 
 class AccountPage extends StatelessWidget {
@@ -50,48 +51,67 @@ class AccountPage extends StatelessWidget {
   ) async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: true, // Izinkan tutup dengan tap di luar
+      barrierDismissible: true, 
       builder: (BuildContext dialogContext) {
         return Dialog(
-          backgroundColor:
-              Colors.transparent, // Latar belakang dialog transparan
-          insetPadding: const EdgeInsets.all(10), // Padding di sekitar
-          elevation: 0, // Tanpa bayangan
-          child: InteractiveViewer(
-            // Widget ini memungkinkan zoom dan pan
-            panEnabled: true,
-            minScale: 0.8,
-            maxScale: 4.0,
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.contain, // Pastikan gambar utuh
-              // Tampilkan loading indicator saat gambar dimuat
-              loadingBuilder:
-                  (
-                    BuildContext context,
-                    Widget child,
-                    ImageChunkEvent? loadingProgress,
-                  ) {
-                    if (loadingProgress == null) return child;
-                    return const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
-                    );
-                  },
-              // Tampilkan ikon error jika gambar gagal dimuat
-              errorBuilder:
-                  (
-                    BuildContext context,
-                    Object exception,
-                    StackTrace? stackTrace,
-                  ) {
-                    return const Center(
-                      child: Icon(
-                        Icons.broken_image,
-                        color: Colors.white,
-                        size: 50,
-                      ),
-                    );
-                  },
+          backgroundColor: Colors.transparent, 
+          insetPadding: const EdgeInsets.all(10), 
+          elevation: 0, 
+          // --- PERBAIKAN DI SINI ---
+          // Bungkus InteractiveViewer dengan GestureDetector
+          child: GestureDetector(
+            // Fungsi ini akan menutup dialog saat area gambar/kosong diketuk
+            onTap: () {
+              Navigator.of(dialogContext).pop();
+            },
+            // HitTestBehavior.translucent memastikan area kosong juga bisa diketuk
+            behavior: HitTestBehavior.translucent, 
+            child: InteractiveViewer(
+              panEnabled: true,
+              minScale: 0.8,
+              maxScale: 4.0,
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.contain, 
+                loadingBuilder: (
+                  BuildContext context,
+                  Widget child,
+                  ImageChunkEvent? loadingProgress,
+                ) {
+                  if (loadingProgress == null) return child;
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                },
+                errorBuilder: (
+                  BuildContext context,
+                  Object exception,
+                  StackTrace? stackTrace,
+                ) {
+                  // Pastikan widget error mengisi ruang agar mudah diketuk
+                  return Container(
+                    alignment: Alignment.center,
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.broken_image,
+                          color: Colors.white,
+                          size: 50,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Gagal memuat gambar.\nKetuk untuk menutup.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.white),
+                        )
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -102,6 +122,7 @@ class AccountPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AuthService authService = AuthService();
+    final UserService userService = UserService();
     final User? user = authService.getCurrentUser();
 
     return Scaffold(
@@ -141,6 +162,64 @@ class AccountPage extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
+
+                  const SizedBox(height: 16),
+                  FutureBuilder<String?>(
+                    future: userService.getUserRole(), // Ambil role dari Firestore
+                    builder: (context, snapshot) {
+                      // Tampilkan loading kecil saat memuat
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const SizedBox(
+                          height: 20, 
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        );
+                      }
+                      
+                      // Jika data ada dan tidak null
+                      if (snapshot.hasData && snapshot.data != null) {
+                        // Format text agar lebih rapi (misal: "ahli_gizi" -> "Ahli Gizi")
+                        String roleRaw = snapshot.data!;
+                        String roleFormatted = roleRaw
+                            .split('_')
+                            .map((word) => word.isNotEmpty
+                                ? '${word[0].toUpperCase()}${word.substring(1)}'
+                                : '')
+                            .join(' ');
+
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16, 
+                            vertical: 6
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.teal, // Warna background badge
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha:0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            roleFormatted, 
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        );
+                      }
+                      
+                      // Jika error atau null (misal offline dan tidak ada cache), sembunyikan
+                      return const SizedBox.shrink();
+                    },
+                  ),
+
                 ],
               ),
             ),

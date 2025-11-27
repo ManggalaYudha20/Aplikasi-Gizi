@@ -1,5 +1,6 @@
 //lib\src\features\nutrition_info\presentation\pages\nutrition_info_page.dart
 
+import 'package:aplikasi_diagnosa_gizi/src/features/admin/user_management_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/presentation/pages/disease_calculation_page.dart';
@@ -11,7 +12,9 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dar
 import 'package:aplikasi_diagnosa_gizi/src/features/about/presentation/pages/about_page.dart';
 
 class NutritionInfoPage extends StatelessWidget {
-  const NutritionInfoPage({super.key});
+  final String userRole;
+
+ const NutritionInfoPage({super.key, required this.userRole});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +37,7 @@ class NutritionInfoPage extends StatelessWidget {
       {
         'text': 'Kalkulator\nGizi',
         'icon': Icons.calculate,
-        'page': const FormulaCalculationPage(),
+        'page': FormulaCalculationPage(userRole: userRole),
       },
       {
         'text': 'Tentang\n Kami',
@@ -42,6 +45,14 @@ class NutritionInfoPage extends StatelessWidget {
         'page': const AboutPage(),
       },
     ];
+
+    if (userRole == 'admin') {
+      menuItems.add({
+        'text': 'Manajemen\n Pengguna',
+        'icon': Icons.manage_accounts, // Icon yang sesuai
+        'page': const UserManagementPage(),
+      });
+    }
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(150, 255, 255, 255),

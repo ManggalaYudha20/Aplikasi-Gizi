@@ -9,7 +9,12 @@ import 'package:flutter/services.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
 class IMTUFormPage extends StatefulWidget {
-  const IMTUFormPage({super.key});
+  final String userRole; 
+
+  const IMTUFormPage({
+    super.key,
+    required this.userRole, // Wajib
+  });
 
   @override
   State<IMTUFormPage> createState() => _IMTUFormPageState();
@@ -240,10 +245,9 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                 PatientPickerWidget(
                     key: _patientPickerKey,
                     onPatientSelected: _fillDataFromPatient,
+                    userRole: widget.userRole,
                   ),
-                  
-                const SizedBox(height: 10), // Sedikit jarak
-                const Divider(),
+
                 const SizedBox(height: 20),
                 const Text(
                   'Input Data IMT/U  5-18 Tahun',

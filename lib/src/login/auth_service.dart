@@ -45,7 +45,7 @@ class AuthService {
             'displayName': user.displayName,
             'email': user.email,
             'photoURL': user.photoURL,
-            'role': 'ahli_gizi',
+            'role': 'tamu',
           });
         }
       }

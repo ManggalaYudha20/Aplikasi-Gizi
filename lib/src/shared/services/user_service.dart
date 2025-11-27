@@ -30,7 +30,7 @@ class UserService {
       } else {
         // Jika dokumen tidak ada (kasus yang jarang terjadi setelah login),
         // kembalikan role default atau null.
-        return 'ahli_gizi';
+        return 'tamu';
       }
     } catch (e) {
       print("--- Error fetching user role: $e ---");
