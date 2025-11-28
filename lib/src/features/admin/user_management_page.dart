@@ -187,6 +187,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
         title: 'Manajemen Pengguna',
         subtitle: 'Kelola hak akses dan data',
@@ -214,6 +215,45 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   final email = (data['email'] ?? '').toString().toLowerCase();
                   return name.contains(_searchQuery) || email.contains(_searchQuery);
                 }).toList();
+
+                filteredUsers.sort((a, b) {
+                  final dataA = a.data() as Map<String, dynamic>;
+                  final dataB = b.data() as Map<String, dynamic>;
+                  final String idA = a.id;
+                  final String idB = b.id;
+
+                  // A. Prioritas Utama: Akun Sendiri (Anda) selalu paling atas
+                  if (idA == currentUserId) return -1; // a naik ke atas
+                  if (idB == currentUserId) return 1;  // b naik ke atas
+
+                  // B. Prioritas Kedua: Role
+                  final String roleA = dataA['role'] ?? 'tamu';
+                  final String roleB = dataB['role'] ?? 'tamu';
+
+                  // Map Bobot Prioritas (Angka lebih kecil = Posisi lebih atas)
+                  final Map<String, int> rolePriority = {
+                    'admin': 1,
+                    'ahli_gizi': 2,
+                    'tamu': 3,
+                  };
+
+                  // Ambil bobot (default 99 jika role tidak dikenali)
+                  int priorityA = rolePriority[roleA] ?? 99;
+                  int priorityB = rolePriority[roleB] ?? 99;
+
+                  // Bandingkan bobot role
+                  int roleComparison = priorityA.compareTo(priorityB);
+                  
+                  // Jika role beda, kembalikan hasil sorting role
+                  if (roleComparison != 0) {
+                    return roleComparison;
+                  }
+
+                  // C. Prioritas Ketiga (Opsional): Urutkan nama abjad jika role sama
+                  final String nameA = (dataA['displayName'] ?? '').toString().toLowerCase();
+                  final String nameB = (dataB['displayName'] ?? '').toString().toLowerCase();
+                  return nameA.compareTo(nameB);
+                });
 
                 if (filteredUsers.isEmpty) {
                   return const Center(child: Text('Tidak ada pengguna ditemukan.'));
