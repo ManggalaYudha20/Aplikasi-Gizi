@@ -54,7 +54,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
     if (mounted) {
       setState(() {
-        _patientsStream = query.snapshots();
+        _patientsStream = query.snapshots(includeMetadataChanges: true);
       });
     }
   }
@@ -92,7 +92,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(250, 245, 245, 245),
+      backgroundColor: const Color.fromARGB(150, 255, 255, 255),
       appBar: const CustomAppBar(title: 'Statistik Data', subtitle: ''),
       body: _patientsStream == null 
           ? const Center(child: CircularProgressIndicator())
@@ -289,7 +289,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 return SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildSummaryCard(totalPasien),
                       const SizedBox(height: 24),
@@ -299,13 +299,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
                      Container(
                         // Container luar untuk border & shadow (sama seperti desain lama)
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.grey.shade300),
                           boxShadow: [
-                            BoxShadow(color: Colors.grey.withValues(alpha:0.05), blurRadius: 5)
+                            BoxShadow(color: Colors.grey.withValues(alpha:0.1), blurRadius: 10, offset: const Offset(0, 2))
                           ],
                         ),
                         child: DropdownSearch<String>(
@@ -337,6 +337,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
                           // 3. Konfigurasi Popup (Menu Pilihan)
                           popupProps: PopupProps.menu(
+                            fit: FlexFit.tight,
                             // A. Batasi tinggi agar hanya muat kira-kira 4 item (4 * 50px = 200px)
                             constraints: const BoxConstraints(maxHeight: 200),
                             
@@ -365,7 +366,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
                           // 5. Ikon Kustom (Bar Chart Hijau)
                           dropdownButtonProps: const DropdownButtonProps(
-                            icon: Icon(Icons.bar_chart, color: Color.fromARGB(255, 0, 148, 68)),
+                            icon: Icon(Icons.category, color: Color.fromARGB(255, 0, 148, 68)),
                           ),
                         ),
                       ),

@@ -443,6 +443,13 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
         constraints: BoxConstraints(
            maxHeight: menuHeight ?? 180,
         ),
+
+        scrollbarProps: const ScrollbarProps(
+          thumbVisibility: true, // Membuat scrollbar selalu terlihat
+          thickness: 6,          // Mengatur ketebalan scrollbar (opsional)
+          radius: Radius.circular(10), // Membuat sudut scrollbar bulat (opsional)
+        ),
+        
       ),
       items: items,
       dropdownDecoratorProps: DropDownDecoratorProps(

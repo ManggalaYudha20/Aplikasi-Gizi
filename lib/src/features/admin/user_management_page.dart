@@ -34,10 +34,10 @@ class _UserManagementPageState extends State<UserManagementPage> {
           title: const Text('Pilih Role Baru'),
           children: <Widget>[
             SimpleDialogOption(
-              onPressed: () { Navigator.pop(context, 'tamu'); },
+              onPressed: () { Navigator.pop(context, 'admin'); },
               child: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0),
-                child: Text('Tamu (Default)'),
+                child: Text('Admin'),
               ),
             ),
             SimpleDialogOption(
@@ -48,10 +48,10 @@ class _UserManagementPageState extends State<UserManagementPage> {
               ),
             ),
             SimpleDialogOption(
-              onPressed: () { Navigator.pop(context, 'admin'); },
+              onPressed: () { Navigator.pop(context, 'tamu'); },
               child: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0),
-                child: Text('Admin'),
+                child: Text('Tamu'),
               ),
             ),
           ],
@@ -193,37 +193,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
       ),
       body: Column(
         children: [
-          // 1. Search Bar (TETAP SAMA)
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Cari Nama atau Email',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        setState(() {
-                          _searchController.clear();
-                          _searchQuery = "";
-                        });
-                      },
-                    )
-                  : null,
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value.toLowerCase();
-                });
-              },
-            ),
-          ),
-
+         _buildSearchBar(),
           // 2. User List (DIPERBARUI)
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
@@ -291,7 +261,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: role == 'admin' ? Colors.red.shade100 : 
-                                       role == 'ahli_gizi' ? Colors.teal.shade100 : Colors.grey.shade200,
+                                       role == 'ahli_gizi' ? Colors.teal.shade100 : Colors.lightGreen.shade100,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -300,7 +270,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                                   fontSize: 10, 
                                   fontWeight: FontWeight.bold,
                                   color: role == 'admin' ? Colors.red : 
-                                         role == 'ahli_gizi' ? Colors.teal : Colors.grey[700]
+                                         role == 'ahli_gizi' ? Colors.teal : Colors.lightGreen[700]
                                 ),
                               ),
                             ),
@@ -337,6 +307,55 @@ class _UserManagementPageState extends State<UserManagementPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // --- WIDGET SEARCH BAR BARU (Meniru style Patient Home) ---
+  Widget _buildSearchBar() {
+    return Container(
+      margin: const EdgeInsets.all(16.0), // Memberi jarak dari tepi layar
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            // Menggunakan withValues sesuai update Flutter terbaru (atau withOpacity untuk versi lama)
+            color: Colors.grey.withValues(alpha: 0.1), 
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Cari Nama atau Email...',
+          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear, color: Colors.grey),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() {
+                      _searchQuery = "";
+                    });
+                  },
+                )
+              : null,
+          border: InputBorder.none, // Menghilangkan garis border bawaan
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        ),
+        style: const TextStyle(fontSize: 16),
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value.toLowerCase();
+          });
+        },
       ),
     );
   }
