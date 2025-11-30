@@ -391,7 +391,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
         children: [
           SpeedDialChild(
             child: const Icon(Icons.child_care),
-            label: 'Pasien Anak (0-5 th)',
+            label: 'Pasien Anak',
             backgroundColor: Colors.green,
             foregroundColor: Colors.white,
             onTap: () {

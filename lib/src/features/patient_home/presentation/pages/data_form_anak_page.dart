@@ -374,7 +374,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
 
         double calculatedBBI = 0;
         if (_selectedDate != null) {
-          calculatedBBI = _hitungBBIBehrman(_selectedDate!);
+          calculatedBBI = _hitungBBIAnak(_selectedDate!);
         }
 
         final calculationResult = NutritionCalculationHelper.calculateAll(
@@ -499,16 +499,14 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
         }
 
         final updatedPatientObj = PatientAnak(
-          id: widget.patient?.id ?? '', // Gunakan ID lama jika edit
+          id: widget.patient?.id ?? '',
           noRM: _noRMController.text,
           namaLengkap: _namaLengkapController.text,
           tanggalLahir: _selectedDate!,
           jenisKelamin: _jenisKelaminController.text,
           beratBadan: beratBadan,
           tinggiBadan: tinggiBadan,
-          tanggalPemeriksaan:
-              widget.patient?.tanggalPemeriksaan ??
-              DateTime.now(), // Pertahankan tgl asli atau baru
+          tanggalPemeriksaan: DateTime.now(),
           createdBy: widget.patient?.createdBy ?? currentUser.uid,
           diagnosisMedis: _diagnosisMedisController.text,
           tipePasien: 'anak',
@@ -569,6 +567,16 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
         if (mounted) {
           Navigator.of(context).pop(updatedPatientObj);
         }
+
+      } on TimeoutException catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Mode Offline: Data disimpan lokal.'),
+            backgroundColor: Colors.orange,
+          ));
+          // Tetap kembali meskipun offline (opsional)
+          Navigator.of(context).pop();
+        }
       } catch (e) {
         // Catch error selain timeout (misal permission error)
         if (mounted) {
@@ -605,8 +613,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     }
   }
 
-  // Logika Rumus Behrman (Anak 1-6 Tahun)
-  double _hitungBBIBehrman(DateTime tanggalLahir) {
+ double _hitungBBIAnak(DateTime tanggalLahir) {
     final now = DateTime.now();
 
     // 1. Hitung selisih tahun dan bulan
@@ -614,7 +621,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     int months = now.month - tanggalLahir.month;
     int days = now.day - tanggalLahir.day;
 
-    // Koreksi jika bulan belum genap (misal: sekarang Mei, lahir Juni)
+    // Koreksi jika bulan/hari belum genap
     if (days < 0) {
       months--;
     }
@@ -623,14 +630,69 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
       months += 12;
     }
 
-    // 2. Konversi Usia ke Desimal (n)
-    // Contoh: 1 tahun 10 bulan -> 1 + (10/12) = 1.8333...
-    double n = years + (months / 12.0);
+    double bbi = 0.0;
 
-    // 3. Masukkan ke Rumus Behrman: BBI = (2 * n) + 8
-    double bbi = (2 * n) + 8;
+    // --- LOGIKA PERHITUNGAN BERDASARKAN USIA ---
 
-    // 4. Pembulatan 2 angka di belakang koma (misal: 11.67)
+    // KATEGORI 1: Usia 0 - 11 Bulan
+    // Rumus: (n + 9) / 2
+    // n dalam bulan
+    if (years == 0) {
+      // Menggunakan bulan yang sudah berjalan (completed months)
+      double n = months.toDouble(); 
+      // Opsi alternatif: double n = months + (days / 30.0); jika ingin desimal
+      
+      bbi = (n + 9) / 2;
+    }
+    
+    // KATEGORI 2: Usia 1 - 6 Tahun (Rumus Behrman)
+    // Rumus: 2n + 8
+    // n dalam tahun (gunakan desimal untuk presisi, misal 1 tahun 6 bulan = 1.5)
+    else if (years >= 1 && years <= 6) {
+      double n = years + (months / 12.0);
+      bbi = (2 * n) + 8;
+    }
+    
+    // KATEGORI 3: Usia 7 - 12 Tahun
+    // Rumus: (7n - 5) / 2
+    // n dalam tahun
+    else if (years >= 7 && years <= 12) {
+      double n = years + (months / 12.0);
+      bbi = ((7 * n) - 5) / 2;
+    }
+    
+    // KATEGORI 4: Usia > 12 Tahun (Rumus Broca)
+    // Rumus: (TB - 100) - (TB - 100) * 10% (atau 15% untuk wanita)
+    else {
+      // Mengambil data Tinggi Badan dari controller
+      double tb = double.tryParse(_tinggiBadanController.text) ?? 0;
+
+      if (tb > 0) {
+        // Cek Jenis Kelamin
+        bool isPerempuan = _jenisKelaminController.text.toLowerCase().contains('perempuan') || 
+                           _jenisKelaminController.text.toLowerCase().contains('wanita');
+
+        // --- MODIFIKASI BROCA ---
+        // Jika Wanita < 150 cm ATAU Pria < 160 cm
+        // Rumus: (TB - 100) * 1
+        if ((isPerempuan && tb < 150) || (!isPerempuan && tb < 160)) {
+           bbi = (tb - 100) * 1.0;
+        } 
+        // --- BROCA STANDAR ---
+        // Jika Tinggi Badan Normal/Tinggi
+        // Wanita: (TB-100) - 15%
+        // Pria: (TB-100) - 10%
+        else {
+           double percentage = isPerempuan ? 0.15 : 0.10;
+           bbi = (tb - 100) - ((tb - 100) * percentage);
+        }
+      } else {
+        // Fallback jika TB belum diisi, kembalikan 0
+        return 0.0;
+      }
+    }
+
+    // Pembulatan 2 angka di belakang koma
     return double.parse(bbi.toStringAsFixed(2));
   }
 

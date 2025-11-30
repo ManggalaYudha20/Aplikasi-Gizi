@@ -7,6 +7,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/services/user_service.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/statistics/statistics_pdf_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 
 class StatisticsPage extends StatefulWidget {
   const StatisticsPage({super.key});
@@ -16,6 +21,7 @@ class StatisticsPage extends StatefulWidget {
 }
 
 class _StatisticsPageState extends State<StatisticsPage> {
+  final GlobalKey _chartKey = GlobalKey();
   int touchedIndex = -1;
 
   String _chartType = 'Pie';
@@ -40,12 +46,30 @@ class _StatisticsPageState extends State<StatisticsPage> {
     _initStream();
   }
 
+  Future<Uint8List?> _captureChart() async {
+    try {
+      RenderRepaintBoundary? boundary = _chartKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) return null;
+
+      // pixelRatio 3.0 agar hasil gambar di PDF tajam (high resolution)
+      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      
+      return byteData?.buffer.asUint8List();
+    } catch (e) {
+      print("Error capturing chart: $e");
+      return null;
+    }
+  }
+
   Future<void> _initStream() async {
     final userService = UserService();
     final String? userRole = await userService.getUserRole();
     final String? currentUserUid = FirebaseAuth.instance.currentUser?.uid;
 
-    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('patients');
+    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection(
+      'patients',
+    );
 
     // Jika bukan admin, hanya tampilkan data buatan sendiri
     if (userRole != 'admin') {
@@ -62,7 +86,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
   // Helper: Membersihkan string dan menangani null
   String cleanString(dynamic value) {
     if (value == null) return "Tidak Diketahui";
-    return value.toString().trim().isEmpty ? "Tidak Diketahui" : value.toString().trim();
+    return value.toString().trim().isEmpty
+        ? "Tidak Diketahui"
+        : value.toString().trim();
   }
 
   // Helper: Parsing angka dengan aman (handle int, double, String)
@@ -82,8 +108,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
   int calculateAge(DateTime birthDate) {
     DateTime today = DateTime.now();
     int age = today.year - birthDate.year;
-    if (today.month < birthDate.month || 
-       (today.month == birthDate.month && today.day < birthDate.day)) {
+    if (today.month < birthDate.month ||
+        (today.month == birthDate.month && today.day < birthDate.day)) {
       age--;
     }
     return age;
@@ -94,7 +120,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(150, 255, 255, 255),
       appBar: const CustomAppBar(title: 'Statistik Data', subtitle: ''),
-      body: _patientsStream == null 
+      body: _patientsStream == null
           ? const Center(child: CircularProgressIndicator())
           : StreamBuilder<QuerySnapshot>(
               stream: _patientsStream,
@@ -103,7 +129,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return const Center(child: Text("Terjadi kesalahan memuat data"));
+                  return const Center(
+                    child: Text("Terjadi kesalahan memuat data"),
+                  );
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(child: Text("Belum ada data statistik"));
@@ -113,37 +141,49 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 int totalPasien = docs.length;
 
                 // --- VARIABEL PENAMPUNG DATA ---
-                int totalDewasa = 0, totalAnak = 0, totalLaki = 0, totalPerempuan = 0;
-                
+                int totalDewasa = 0,
+                    totalAnak = 0,
+                    totalLaki = 0,
+                    totalPerempuan = 0;
+
                 Map<String, double> statusGiziMap = {};
                 Map<String, double> diagnosisMap = {};
-                
+
                 // Urutan map penting untuk legend chart
                 Map<String, double> usiaMap = {
-                  "Balita (0-5)": 0, "Anak (6-11)": 0, "Remaja (12-25)": 0, 
-                  "Dewasa (26-45)": 0, "Lansia (>45)": 0
+                  "Balita (0-5)": 0,
+                  "Anak (6-11)": 0,
+                  "Remaja (12-25)": 0,
+                  "Dewasa (26-45)": 0,
+                  "Lansia (>45)": 0,
                 };
                 Map<String, double> bbMap = {
-                  "< 40 kg": 0, "40 - 50 kg": 0, "50 - 60 kg": 0, 
-                  "60 - 70 kg": 0, "70 - 80 kg": 0, "> 80 kg": 0
+                  "< 40 kg": 0,
+                  "40 - 50 kg": 0,
+                  "50 - 60 kg": 0,
+                  "60 - 70 kg": 0,
+                  "70 - 80 kg": 0,
+                  "> 80 kg": 0,
                 };
                 Map<String, double> tbMap = {
-                  "< 150 cm": 0, "150 - 160 cm": 0, 
-                  "160 - 170 cm": 0, "> 170 cm": 0
+                  "< 150 cm": 0,
+                  "150 - 160 cm": 0,
+                  "160 - 170 cm": 0,
+                  "> 170 cm": 0,
                 };
 
                 // --- LOGIKA PENGOLAHAN DATA ---
                 for (var doc in docs) {
                   final data = doc.data() as Map<String, dynamic>;
                   String tipe = data['tipePasien'] ?? 'dewasa';
-                  
+
                   // A. Tipe & Gender
                   if (tipe == 'anak') {
                     totalAnak++;
                   } else {
                     totalDewasa++;
                   }
-                  
+
                   String gender = data['jenisKelamin'] ?? '';
                   if (gender.toLowerCase().contains('laki')) {
                     totalLaki++;
@@ -155,11 +195,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   if (tipe != 'anak') {
                     String status = cleanString(data['monevStatusGizi']);
                     if (status != "Tidak Diketahui") {
-                       // Kapitalisasi huruf pertama
-                       String statusKey = status.length > 1 
-                          ? status[0].toUpperCase() + status.substring(1).toLowerCase() 
+                      // Kapitalisasi huruf pertama
+                      String statusKey = status.length > 1
+                          ? status[0].toUpperCase() +
+                                status.substring(1).toLowerCase()
                           : status;
-                       statusGiziMap[statusKey] = (statusGiziMap[statusKey] ?? 0) + 1;
+                      statusGiziMap[statusKey] =
+                          (statusGiziMap[statusKey] ?? 0) + 1;
                     }
                   }
 
@@ -170,18 +212,23 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   }
 
                   // D. Usia (Dengan Pengecekan Tipe Data Timestamp)
-                  if (data['tanggalLahir'] != null && data['tanggalLahir'] is Timestamp) {
+                  if (data['tanggalLahir'] != null &&
+                      data['tanggalLahir'] is Timestamp) {
                     Timestamp tglLahir = data['tanggalLahir'];
-                    int age = calculateAge(tglLahir.toDate()); // Menggunakan fungsi presisi
-                    
+                    int age = calculateAge(
+                      tglLahir.toDate(),
+                    ); // Menggunakan fungsi presisi
+
                     if (age <= 5) {
                       usiaMap["Balita (0-5)"] = usiaMap["Balita (0-5)"]! + 1;
                     } else if (age <= 11) {
                       usiaMap["Anak (6-11)"] = usiaMap["Anak (6-11)"]! + 1;
                     } else if (age <= 25) {
-                      usiaMap["Remaja (12-25)"] = usiaMap["Remaja (12-25)"]! + 1;
+                      usiaMap["Remaja (12-25)"] =
+                          usiaMap["Remaja (12-25)"]! + 1;
                     } else if (age <= 45) {
-                      usiaMap["Dewasa (26-45)"] = usiaMap["Dewasa (26-45)"]! + 1;
+                      usiaMap["Dewasa (26-45)"] =
+                          usiaMap["Dewasa (26-45)"]! + 1;
                     } else {
                       usiaMap["Lansia (>45)"] = usiaMap["Lansia (>45)"]! + 1;
                     }
@@ -232,86 +279,135 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
                 if (_selectedCategory == 'Kategori Pasien') {
                   chartTitle = "Persentase Tipe Pasien";
-                  chartData = {"Dewasa": totalDewasa.toDouble(), "Anak": totalAnak.toDouble()};
+                  chartData = {
+                    "Dewasa": totalDewasa.toDouble(),
+                    "Anak": totalAnak.toDouble(),
+                  };
                   chartColors = [Colors.blue, Colors.orange];
-
                 } else if (_selectedCategory == 'Jenis Kelamin') {
                   chartTitle = "Persentase Gender";
-                  chartData = {"Laki-laki": totalLaki.toDouble(), "Perempuan": totalPerempuan.toDouble()};
+                  chartData = {
+                    "Laki-laki": totalLaki.toDouble(),
+                    "Perempuan": totalPerempuan.toDouble(),
+                  };
                   chartColors = [Colors.cyan, Colors.pinkAccent];
-
                 } else if (_selectedCategory == 'Status Gizi (Dewasa)') {
                   chartTitle = "Status Gizi (Dewasa)";
                   chartData = statusGiziMap;
-                  chartColors = [Colors.green,Colors.orange, Colors.red,  Colors.blueGrey, Colors.purple];
-
+                  chartColors = [
+                    Colors.green,
+                    Colors.orange,
+                    Colors.red,
+                    Colors.blueGrey,
+                    Colors.purple,
+                  ];
                 } else if (_selectedCategory == 'Diagnosis Medis') {
-                   chartTitle = "Diagnosis Medis Terbanyak";
-                   // Urutkan diagnosis dari yang terbanyak
-                   var sortedKeys = diagnosisMap.keys.toList(growable: false)
-                      ..sort((k1, k2) => diagnosisMap[k2]!.compareTo(diagnosisMap[k1]!));
-                   
-                   // Ambil Top 5, sisanya gabung ke "Lainnya"
-                   double countLainnya = 0;
-                   int maxItems = 5;
-                   for (int i = 0; i < sortedKeys.length; i++) {
-                     if (i < maxItems) {
-                       chartData[sortedKeys[i]] = diagnosisMap[sortedKeys[i]]!;
-                     } else {
-                       countLainnya += diagnosisMap[sortedKeys[i]]!;
-                     }
-                   }
-                   if (countLainnya > 0) chartData["Lainnya"] = countLainnya;
-                   chartColors = [Colors.redAccent, Colors.blueAccent, Colors.orangeAccent, Colors.green, Colors.purpleAccent, Colors.grey];
+                  chartTitle = "Diagnosis Medis Terbanyak";
+                  // Urutkan diagnosis dari yang terbanyak
+                  var sortedKeys = diagnosisMap.keys.toList(growable: false)
+                    ..sort(
+                      (k1, k2) =>
+                          diagnosisMap[k2]!.compareTo(diagnosisMap[k1]!),
+                    );
 
+                  // Ambil Top 5, sisanya gabung ke "Lainnya"
+                  double countLainnya = 0;
+                  int maxItems = 5;
+                  for (int i = 0; i < sortedKeys.length; i++) {
+                    if (i < maxItems) {
+                      chartData[sortedKeys[i]] = diagnosisMap[sortedKeys[i]]!;
+                    } else {
+                      countLainnya += diagnosisMap[sortedKeys[i]]!;
+                    }
+                  }
+                  if (countLainnya > 0) chartData["Lainnya"] = countLainnya;
+                  chartColors = [
+                    Colors.redAccent,
+                    Colors.blueAccent,
+                    Colors.orangeAccent,
+                    Colors.green,
+                    Colors.purpleAccent,
+                    Colors.grey,
+                  ];
                 } else if (_selectedCategory == 'Usia') {
                   chartTitle = "Rentang Usia Pasien";
                   chartData = usiaMap;
-                  chartColors = [Colors.lightBlue, Colors.blue, Colors.indigo, Colors.deepPurple, Colors.teal];
-
+                  chartColors = [
+                    Colors.lightBlue,
+                    Colors.blue,
+                    Colors.indigo,
+                    Colors.deepPurple,
+                    Colors.teal,
+                  ];
                 } else if (_selectedCategory == 'Berat Badan') {
                   chartTitle = "Sebaran Berat Badan";
                   chartData = bbMap;
-                  chartColors = [Colors.brown.shade300, Colors.brown.shade400, Colors.brown.shade500, Colors.brown.shade600, Colors.brown.shade700, Colors.brown.shade800];
-
+                  chartColors = [
+                    Colors.brown.shade300,
+                    Colors.brown.shade400,
+                    Colors.brown.shade500,
+                    Colors.brown.shade600,
+                    Colors.brown.shade700,
+                    Colors.brown.shade800,
+                  ];
                 } else if (_selectedCategory == 'Tinggi Badan') {
                   chartTitle = "Sebaran Tinggi Badan";
                   chartData = tbMap;
-                  chartColors = [Colors.teal.shade300, Colors.teal.shade400, Colors.teal.shade500, Colors.teal.shade700];
+                  chartColors = [
+                    Colors.teal.shade300,
+                    Colors.teal.shade400,
+                    Colors.teal.shade500,
+                    Colors.teal.shade700,
+                  ];
                 }
 
                 // Handle jika chartData kosong
                 if (chartData.isEmpty) {
-                   chartData = {"Tidak ada data": 1};
-                   chartColors = [Colors.grey.shade300];
+                  chartData = {"Tidak ada data": 1};
+                  chartColors = [Colors.grey.shade300];
                 }
 
-                return SingleChildScrollView(
+                return FadeInTransition( 
+                  child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildSummaryCard(totalPasien),
                       const SizedBox(height: 24),
-                      
-                      const Text("Pilih Statistik:", style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.bold)),
+
+                      const Text(
+                        "Pilih Statistik:",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 8),
 
-                     Container(
+                      Container(
                         // Container luar untuk border & shadow (sama seperti desain lama)
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.grey.shade300),
                           boxShadow: [
-                            BoxShadow(color: Colors.grey.withValues(alpha:0.1), blurRadius: 10, offset: const Offset(0, 2))
+                            BoxShadow(
+                              color: Colors.grey.withValues(alpha: 0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
                           ],
                         ),
                         child: DropdownSearch<String>(
                           items: _categoryOptions,
                           selectedItem: _selectedCategory,
-                          
+
                           // 1. Logika Perubahan
                           onChanged: (newValue) {
                             if (newValue != null) {
@@ -340,14 +436,15 @@ class _StatisticsPageState extends State<StatisticsPage> {
                             fit: FlexFit.tight,
                             // A. Batasi tinggi agar hanya muat kira-kira 4 item (4 * 50px = 200px)
                             constraints: const BoxConstraints(maxHeight: 200),
-                            
+
                             // B. Tampilkan Scrollbar (Slider di kanan)
                             scrollbarProps: const ScrollbarProps(
-                              thumbVisibility: true, // Selalu tampilkan scrollbar
+                              thumbVisibility:
+                                  true, // Selalu tampilkan scrollbar
                               thickness: 6,
                               radius: Radius.circular(10),
                             ),
-                            
+
                             // Styling menu popup
                             menuProps: MenuProps(
                               borderRadius: BorderRadius.circular(12),
@@ -360,13 +457,18 @@ class _StatisticsPageState extends State<StatisticsPage> {
                             dropdownSearchDecoration: InputDecoration(
                               border: InputBorder.none,
                               // Sesuaikan padding agar teks berada di tengah vertikal
-                              contentPadding: EdgeInsets.symmetric(vertical: 12), 
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 12,
+                              ),
                             ),
                           ),
 
                           // 5. Ikon Kustom (Bar Chart Hijau)
                           dropdownButtonProps: const DropdownButtonProps(
-                            icon: Icon(Icons.category, color: Color.fromARGB(255, 0, 148, 68)),
+                            icon: Icon(
+                              Icons.category,
+                              color: Color.fromARGB(255, 0, 148, 68),
+                            ),
                           ),
                         ),
                       ),
@@ -391,43 +493,123 @@ class _StatisticsPageState extends State<StatisticsPage> {
                           ),
                         ],
                       ),
-                      
+
+                      const SizedBox(height: 50),
+
+                      Text(
+                        chartTitle,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 16),
 
-                      Text(chartTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 16),
-                      
                       // WIDGET DIAGRAM LINGKARAN
-                      Container(
-                        height: 300, 
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha:0.1), blurRadius: 10)],
-                        ),
-                        child: _chartType == 'Pie'
-                            ? _buildPieChartOnly(
-                                dataMap: chartData,
-                                colors: chartColors,
-                                touchedIndex: touchedIndex,
-                                onTouch: (index) => setState(() => touchedIndex = index),
-                              )
-                            : _buildBarChartOnly( // Panggil Widget Bar Chart
-                                dataMap: chartData,
-                                colors: chartColors,
+                      RepaintBoundary( // <--- TAMBAHKAN INI
+                        key: _chartKey, // <--- PASANG KEY DISINI
+                        child: Container(
+                          height: 300,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white, // Pastikan background putih agar terlihat di PDF
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withValues(alpha: 0.1),
+                                blurRadius: 10,
                               ),
+                            ],
+                          ),
+                          child: _chartType == 'Pie'
+                              ? _buildPieChartOnly(
+                                  dataMap: chartData,
+                                  colors: chartColors,
+                                  touchedIndex: touchedIndex,
+                                  onTouch: (index) =>
+                                      setState(() => touchedIndex = index),
+                                )
+                              : _buildBarChartOnly(
+                                  dataMap: chartData,
+                                  colors: chartColors,
+                                ),
+                        ),
                       ),
-                      
+
                       const SizedBox(height: 20),
 
                       // WIDGET INDIKATOR (LEGEND)
-                      const Text("Detail Data:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      const Text(
+                        "Detail Data:",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       _buildIndicatorList(chartData, chartColors),
 
                       const SizedBox(height: 50),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            // Tampilkan loading indicator kecil jika perlu atau langsung panggil
+                            try {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "Sedang menyiapkan dokumen PDF...",
+                                  ),
+                                ),
+                              );
+
+                              final Uint8List? chartImage = await _captureChart();
+
+                              await StatisticsPdfService.generateAndOpenPdf(
+                                chartTitle: chartTitle,
+                                selectedCategory: _selectedCategory,
+                                dataMap: chartData,
+                                totalPasien: totalPasien,
+                                chartImageBytes: chartImage,
+                              );
+                            } catch (e) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("Gagal membuka PDF: $e")),
+                              );
+                            }
+                          },
+                          icon: const Icon(
+                            Icons.picture_as_pdf,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            "Download Laporan (PDF)",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              0,
+                              148,
+                              68,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 4,
+                          ),
+                        ),
+                      ),
                     ],
+                  ),
                   ),
                 );
               },
@@ -448,12 +630,16 @@ class _StatisticsPageState extends State<StatisticsPage> {
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: isSelected ? [const BoxShadow(color: Colors.black12, blurRadius: 2)] : [],
+          boxShadow: isSelected
+              ? [const BoxShadow(color: Colors.black12, blurRadius: 2)]
+              : [],
         ),
         child: Icon(
           icon,
           size: 20,
-          color: isSelected ? const Color.fromARGB(255, 0, 148, 68) : Colors.grey,
+          color: isSelected
+              ? const Color.fromARGB(255, 0, 148, 68)
+              : Colors.grey,
         ),
       ),
     );
@@ -488,11 +674,19 @@ class _StatisticsPageState extends State<StatisticsPage> {
               String key = dataMap.keys.elementAt(group.x.toInt());
               return BarTooltipItem(
                 '$key\n',
-                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
                 children: [
                   TextSpan(
                     text: (rod.toY).toInt().toString(),
-                    style: const TextStyle(color: Colors.yellow, fontSize: 12, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      color: Colors.yellow,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               );
@@ -507,19 +701,25 @@ class _StatisticsPageState extends State<StatisticsPage> {
               getTitlesWidget: (double value, TitleMeta meta) {
                 int index = value.toInt();
                 if (index < 0 || index >= dataMap.length) return const SizedBox();
-                
+
                 // Tampilkan teks singkatan atau indeks jika label terlalu panjang
                 // Logic: Ambil 3 huruf pertama atau tampilkan inisial
                 String text = dataMap.keys.elementAt(index);
                 if (text.length > 5) {
                   text = "${text.substring(0, 6)}..";
                 }
-                
+
                 return SideTitleWidget(
                   // Ganti 'axisSide: meta.axisSide' dengan 'meta: meta'
-                  meta: meta, 
+                  meta: meta,
                   space: 4,
-                  child: Text(text, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    text,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 );
               },
               reservedSize: 30,
@@ -531,14 +731,21 @@ class _StatisticsPageState extends State<StatisticsPage> {
               reservedSize: 30,
               getTitlesWidget: (value, meta) {
                 if (value == value.toInt().toDouble()) {
-                   return Text(value.toInt().toString(), style: const TextStyle(fontSize: 10));
+                  return Text(
+                    value.toInt().toString(),
+                    style: const TextStyle(fontSize: 10),
+                  );
                 }
                 return const SizedBox();
               },
             ),
           ),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
         ),
         gridData: const FlGridData(show: true, drawVerticalLine: false),
         borderData: FlBorderData(show: false),
@@ -570,8 +777,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
     required Function(int) onTouch,
   }) {
     double total = dataMap.values.fold(0, (prev, item) => prev + item);
-    
-    if (total == 0 || (dataMap.length == 1 && dataMap.keys.first == "Tidak ada data")) {
+
+    if (total == 0 ||
+        (dataMap.length == 1 && dataMap.keys.first == "Tidak ada data")) {
       return const Center(child: Text("Data Kosong"));
     }
 
@@ -596,8 +804,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
           final radius = isTouched ? 110.0 : 100.0;
           final fontSize = isTouched ? 20.0 : 14.0;
           final value = dataMap.values.elementAt(i);
-          final percentage = total > 0 ? (value / total * 100).toStringAsFixed(1) : "0";
-          
+          final percentage = total > 0
+              ? (value / total * 100).toStringAsFixed(1)
+              : "0";
+
           return PieChartSectionData(
             color: colors[i % colors.length],
             value: value,
@@ -625,9 +835,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
         final key = dataMap.keys.elementAt(index);
         final value = dataMap.values.elementAt(index);
         final color = colors[index % colors.length];
-        
-        final percentageStr = total > 0 
-            ? "${((value / total) * 100).toStringAsFixed(1)}%" 
+
+        final percentageStr = total > 0
+            ? "${((value / total) * 100).toStringAsFixed(1)}%"
             : "0%";
 
         return Container(
@@ -638,7 +848,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.grey.shade200),
             boxShadow: [
-              BoxShadow(color: Colors.grey.withValues(alpha:0.05), blurRadius: 5, offset: const Offset(0, 2))
+              BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.05),
+                blurRadius: 5,
+                offset: const Offset(0, 2),
+              ),
             ],
           ),
           child: Row(
@@ -648,22 +862,49 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 width: 60,
                 height: 40,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: Text(
                   percentageStr,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
               // Nama Kategori
               Expanded(
-                child: Text(key, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
+                child: Text(
+                  key,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
               ),
               // Jumlah Angka
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(20)),
-                child: Text("${value.toInt()} Orang", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey.shade800)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  "${value.toInt()} Orang",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
               ),
             ],
           ),
@@ -678,14 +919,17 @@ class _StatisticsPageState extends State<StatisticsPage> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color.fromARGB(255, 0, 148, 68), Color.fromARGB(255, 85, 201, 137)],
+          colors: [
+            Color.fromARGB(255, 0, 148, 68),
+            Color.fromARGB(255, 85, 201, 137),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha:0.3),
+            color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -694,10 +938,23 @@ class _StatisticsPageState extends State<StatisticsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Total Pasien Terdaftar", style: TextStyle(color: Colors.white, fontSize: 16)),
+          const Text(
+            "Total Pasien Terdaftar",
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
           const SizedBox(height: 8),
-          Text("$total", style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
-          const Text("Pasien", style: TextStyle(color: Colors.white70, fontSize: 14)),
+          Text(
+            "$total",
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const Text(
+            "Pasien",
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+          ),
         ],
       ),
     );

@@ -13,6 +13,8 @@ import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/expert_system_service.dart';
+//import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/nutrition_reference_data.dart';
 
 class DataFormPage extends StatefulWidget {
   final Patient? patient; // Optional patient for editing
@@ -70,26 +72,50 @@ class _DataFormPageState extends State<DataFormPage> {
   final _namaNutrisionisController = TextEditingController();
   final AuthService _authService = AuthService();
 
+  bool _sukaManis = false;
+  bool _sukaAsin = false;
+  bool _makanBerlemak = false;
+  bool _jarangOlahraga = false;
+
   @override
   void initState() {
     super.initState();
     final controllers = [
-      _noRMController, _namaLengkapController, _tanggalLahirController,
-      _jenisKelaminController, _diagnosisMedisController, _beratBadanController,
-      _lilaController, _beratBadanDuluController, _tinggiBadanController,
-      _tlController, _kehilanganNafsuMakanController, _aktivitasController,
-      _alergiMakananController, _detailAlergiController, _polaMakanController,
-      _biokimiaGDSController, _biokimiaUreumController, _biokimiaHGBController,
-      _biokimiaENTController, _klinikTDController, _klinikKUController,
-      _klinikKESController, _klinikNadiController, _klinikSuhuController,
+      _noRMController,
+      _namaLengkapController,
+      _tanggalLahirController,
+      _jenisKelaminController,
+      _diagnosisMedisController,
+      _beratBadanController,
+      _lilaController,
+      _beratBadanDuluController,
+      _tinggiBadanController,
+      _tlController,
+      _kehilanganNafsuMakanController,
+      _aktivitasController,
+      _alergiMakananController,
+      _detailAlergiController,
+      _polaMakanController,
+      _biokimiaGDSController,
+      _biokimiaUreumController,
+      _biokimiaHGBController,
+      _biokimiaENTController,
+      _klinikTDController,
+      _klinikKUController,
+      _klinikKESController,
+      _klinikNadiController,
+      _klinikSuhuController,
       _klinikRRController,
       _klinikSPO2Controller,
       _riwayatPenyakitSekarangController,
-      _riwayatPenyakitDahuluController, _diagnosaGiziController,
-      _intervensiDietController, _intervensiBentukMakananController,
+      _riwayatPenyakitDahuluController,
+      _diagnosaGiziController,
+      _intervensiDietController,
+      _intervensiBentukMakananController,
       _intervensiViaController,
       _intervensiTujuanController,
-      _monevAsupanController,_monevHasilLabController,
+      _monevAsupanController,
+      _monevHasilLabController,
       _namaNutrisionisController,
     ];
 
@@ -156,6 +182,13 @@ class _DataFormPageState extends State<DataFormPage> {
     _klinikKESController.text = patient.klinikKES ?? '';
     _klinikSPO2Controller.text = patient.klinikSPO2 ?? '';
     _namaNutrisionisController.text = patient.namaNutrisionis ?? '';
+
+    setState(() {
+      _sukaManis = patient.sukaManis ?? false;
+      _sukaAsin = patient.sukaAsin ?? false;
+      _makanBerlemak = patient.makanBerlemak ?? false;
+      _jarangOlahraga = patient.jarangOlahraga ?? false;
+    });
   }
 
   @override
@@ -379,6 +412,66 @@ class _DataFormPageState extends State<DataFormPage> {
 
         final totalSkor = skorIMT + skorKehilanganBB + skorEfekPenyakit;
 
+        // 1. Parsing Data Lab & Fisik
+        final double? gdsVal = _biokimiaGDSController.text.isNotEmpty
+            ? double.tryParse(_biokimiaGDSController.text)
+            : null;
+        final double? hba1cVal = _biokimiaHGBController.text.isNotEmpty
+            ? double.tryParse(_biokimiaHGBController.text)
+            : null; // Asumsi HGB dipakai untuk HbA1c atau tambah field baru
+        final double? ureumVal = _biokimiaUreumController.text.isNotEmpty
+            ? double.tryParse(_biokimiaUreumController.text)
+            : null;
+
+        // 2. Parsing Tekanan Darah (Format "120/80")
+        String bpStatus = "Normal";
+        if (_klinikTDController.text.contains('/')) {
+          try {
+            final parts = _klinikTDController.text.split('/');
+            final sys = double.parse(parts[0].trim());
+            final dia = double.parse(parts[1].trim());
+            if (sys >= 140 || dia >= 90) bpStatus = "Hipertensi";
+          } catch (_) {}
+        }
+
+        // 3. Kumpulkan Riwayat Makan (Dari variabel state)
+        List<String> dietaryHistoryList = [];
+        if (_sukaManis) dietaryHistoryList.add('Suka manis');
+        if (_sukaAsin) dietaryHistoryList.add('Suka asin');
+        if (_makanBerlemak) dietaryHistoryList.add('Suka berlemak');
+        if (_jarangOlahraga) dietaryHistoryList.add('Jarang olahraga');
+
+        // 4. Deteksi Masalah Ginjal (Ureum tinggi atau Diagnosa Medis)
+        bool kidneyIssue =
+            (ureumVal != null && ureumVal > 50) ||
+            (diagnosisMedis.toLowerCase().contains('ginjal'));
+
+        // 5. JALANKAN SERVICE SISTEM PAKAR
+        final expertInput = ExpertSystemInput(
+          imt: imt,
+          gds: gdsVal,
+          gdp: null, // Tambahkan controller GDP jika ada
+          hba1c: hba1cVal,
+          cholesterol: null, // Tambahkan controller Kolesterol jika ada
+          bloodPressure: bpStatus,
+          dietaryHistory: dietaryHistoryList,
+          medicalDiagnosis: diagnosisMedis,
+          hasKidneyIssue: kidneyIssue,
+        );
+
+        final expertService = DiabetesExpertService();
+        final carePlan = expertService.generateCarePlan(expertInput);
+
+        // 6. Format Hasil Sistem Pakar ke String
+        String autoDiagnosis = carePlan.suggestedDiagnoses
+            .map((d) => "[${d.code}] ${d.label}")
+            .join('\n');
+
+        String autoInterventionDiet = carePlan.suggestedInterventions
+            .where((i) => i.code.startsWith('ND'))
+            .map((i) => "${i.label}")
+            .join(', ');
+
         // --- Siapkan data untuk Firestore ---
         final patientData = {
           'noRM': noRM,
@@ -417,12 +510,20 @@ class _DataFormPageState extends State<DataFormPage> {
           'klinikRR': _klinikRRController.text,
           'riwayatPenyakitSekarang': _riwayatPenyakitSekarangController.text,
           'riwayatPenyakitDahulu': _riwayatPenyakitDahuluController.text,
-          'diagnosaGizi': _diagnosaGiziController.text,
-          'intervensiDiet': _intervensiDietController.text,
+          'diagnosaGizi': _diagnosaGiziController.text.isNotEmpty
+              ? _diagnosaGiziController.text
+              : autoDiagnosis,
+          'intervensiDiet': _intervensiDietController.text.isNotEmpty
+              ? _intervensiDietController.text
+              : autoInterventionDiet,
           'intervensiBentukMakanan': _intervensiBentukMakananController.text,
           'intervensiVia': _intervensiViaController.text,
           'intervensiTujuan': _intervensiTujuanController.text,
-          'monevAsupan': _monevAsupanController.text,
+          'monevAsupan': _monevAsupanController.text.isNotEmpty
+              ? _monevAsupanController.text
+              : (carePlan.suggestedMonitoring.any((m) => m.code == 'FH-1.1.1')
+                    ? 'Monitoring Asupan Energi'
+                    : ''),
           'monevHasilLab': _monevHasilLabController.text,
           'monevStatusGizi': statusGizi,
           'biokimiaENT': _biokimiaENTController.text,
@@ -474,7 +575,8 @@ class _DataFormPageState extends State<DataFormPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text(
-                    'Mode Offline: Data disimpan lokal dan akan diupload saat ada internet.'),
+                  'Mode Offline: Data disimpan lokal dan akan diupload saat ada internet.',
+                ),
                 backgroundColor: Colors.orange, // Warna pembeda
                 duration: Duration(seconds: 3),
               ),
@@ -518,8 +620,12 @@ class _DataFormPageState extends State<DataFormPage> {
             klinikRR: _klinikRRController.text,
             riwayatPenyakitSekarang: _riwayatPenyakitSekarangController.text,
             riwayatPenyakitDahulu: _riwayatPenyakitDahuluController.text,
-            diagnosaGizi: _diagnosaGiziController.text,
-            intervensiDiet: _intervensiDietController.text,
+            diagnosaGizi: _diagnosaGiziController.text.isNotEmpty
+                ? _diagnosaGiziController.text
+                : autoDiagnosis,
+            intervensiDiet: _intervensiDietController.text.isNotEmpty
+                ? _intervensiDietController.text
+                : autoInterventionDiet,
             intervensiBentukMakanan: _intervensiBentukMakananController.text,
             intervensiVia: _intervensiViaController.text,
             intervensiTujuan: _intervensiTujuanController.text,
@@ -564,7 +670,10 @@ class _DataFormPageState extends State<DataFormPage> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        _tanggalLahirController.text = DateFormat('d MMMM y','id_ID').format(picked);
+        _tanggalLahirController.text = DateFormat(
+          'd MMMM y',
+          'id_ID',
+        ).format(picked);
       });
     }
   }
@@ -808,7 +917,6 @@ class _DataFormPageState extends State<DataFormPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       _buildSectionHeader('Riwayat Gizi/FH'),
 
                       _buildCustomDropdown(
@@ -856,10 +964,69 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _polaMakanController,
                     label: 'Pola Makan / Asupan',
                     prefixIcon: const Icon(Icons.restaurant),
-                    focusNode:
-                        _focusNodes[14],
+                    focusNode: _focusNodes[14],
                     maxLength: 20, // Ganti 14 dengan index yang benar
                     validator: (value) => null, // Opsional, tidak wajib diisi
+                  ),
+
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Kebiasaan Makan & Aktivitas (Centang yang sesuai):',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+
+                  CheckboxListTile(
+                    title: const Text(
+                      'Sering konsumsi manis (Gula/Minuman Manis)',
+                    ),
+                    value: _sukaManis,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _sukaManis = value ?? false;
+                      });
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+
+                  CheckboxListTile(
+                    title: const Text('Sering konsumsi asin/garam tinggi'),
+                    value: _sukaAsin,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _sukaAsin = value ?? false;
+                      });
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+
+                  CheckboxListTile(
+                    title: const Text(
+                      'Sering konsumsi makanan berlemak/gorengan',
+                    ),
+                    value: _makanBerlemak,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _makanBerlemak = value ?? false;
+                      });
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+
+                  CheckboxListTile(
+                    title: const Text(
+                      'Jarang berolahraga (< 150 menit/minggu)',
+                    ),
+                    value: _jarangOlahraga,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _jarangOlahraga = value ?? false;
+                      });
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
                   ),
 
                   _buildSectionHeader('Biokimia/BD'),
@@ -906,7 +1073,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     maxLength: 8,
                     validator: (value) => null,
                   ),
-                  
+
                   _buildSectionHeader('Klinik/Fisik/PD'),
 
                   _buildTextFormField(
@@ -936,8 +1103,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     label: 'Suhu Badan (SB)',
                     prefixIcon: const Icon(Icons.thermostat),
                     suffixText: '°C',
-                    focusNode:
-                        _focusNodes[21],
+                    focusNode: _focusNodes[21],
                     maxLength: 4,
                     validator: (value) => null,
                   ),
@@ -983,7 +1149,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     maxLength: 4,
                     validator: (value) => null,
                   ),
-                  
+
                   _buildSectionHeader('Riwayat Personal/CH'),
 
                   _buildTextFormField(
@@ -1007,13 +1173,10 @@ class _DataFormPageState extends State<DataFormPage> {
                   const SizedBox(height: 24),
 
                   const Text(
-                        'Diagnosa Gizi',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
+                    'Diagnosa Gizi',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 24),
 
                   _buildTextFormField(
                     controller: _diagnosaGiziController,
@@ -1052,7 +1215,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     prefixIcon: const Icon(Icons.route),
                     focusNode: _focusNodes[31],
                     items: const ['Oral', 'Enteral', 'Parenteral'],
-                    validator: (value) => null, 
+                    validator: (value) => null,
                   ),
                   const SizedBox(height: 16),
 
@@ -1075,7 +1238,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     maxLength: 500,
                     validator: (value) => null,
                   ),
-                   const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
                   _buildTextFormField(
                     controller: _monevHasilLabController,
@@ -1101,10 +1264,7 @@ class _DataFormPageState extends State<DataFormPage> {
         const SizedBox(height: 24),
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 24),
       ],
@@ -1123,7 +1283,7 @@ class _DataFormPageState extends State<DataFormPage> {
     // DIUBAH: Tambahkan parameter validator
     String? Function(String?)? validator,
     int? maxLength,
-   }) {
+  }) {
     return TextFormField(
       controller: controller,
       focusNode: focusNode,
@@ -1191,9 +1351,10 @@ class _DataFormPageState extends State<DataFormPage> {
             });
           },
       selectedItem: controller.text.isEmpty ? null : controller.text,
-      validator: validator ??
-      (value) =>
-          (value == null || value.isEmpty) ? '$label harus dipilih' : null,
+      validator:
+          validator ??
+          (value) =>
+              (value == null || value.isEmpty) ? '$label harus dipilih' : null,
     );
   }
 }

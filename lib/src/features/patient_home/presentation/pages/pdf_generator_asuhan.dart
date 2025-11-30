@@ -42,7 +42,7 @@ class PdfGeneratorAsuhan {
               pw.Column(
                 children: [
                   pw.Text(
-                    'Rumah Sakit Umum Daerah ODSK',
+                    'Rumah Sakit Umum Daerah',
                     style: pw.TextStyle(
                       fontWeight: pw.FontWeight.bold,
                       fontSize: 12,
@@ -201,7 +201,7 @@ class PdfGeneratorAsuhan {
             padding: const pw.EdgeInsets.all(4),
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: _buildInfoRowSatu(
-              'N1/NC/NB :',
+              '',
               ' ${patient.diagnosaGizi ?? '-'} ',
             ),
           ),

@@ -404,9 +404,9 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
               ),
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
-                _buildInfoRow(
-                  'Intervensi Jenis Diet',
-                  (_currentPatient.intervensiDiet != null &&
+                _buildInfoDisplay(
+                 label :'Intervensi Jenis Diet',
+                 value: (_currentPatient.intervensiDiet != null &&
                           _currentPatient.intervensiDiet!.isNotEmpty)
                       ? '${_currentPatient.intervensiDiet}'
                       : '-',

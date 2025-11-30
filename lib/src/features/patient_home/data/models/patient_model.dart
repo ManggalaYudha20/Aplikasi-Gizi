@@ -50,6 +50,10 @@ class Patient {
   final String createdBy;
   final String? monevHasilLab;
   final bool isCompleted;
+  final bool? sukaManis;
+  final bool? sukaAsin;
+  final bool? makanBerlemak;
+  final bool? jarangOlahraga;
 
   Patient({
     required this.id,
@@ -98,6 +102,10 @@ class Patient {
     this.namaNutrisionis,
     required this.createdBy,
     this.isCompleted = false,
+    this.sukaManis,
+    this.sukaAsin,
+    this.makanBerlemak,
+    this.jarangOlahraga,
   });
 
   factory Patient.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -150,6 +158,11 @@ class Patient {
       namaNutrisionis: data['namaNutrisionis'] as String?,
       createdBy: data['createdBy'] ?? '',
       isCompleted: data['isCompleted'] ?? false,
+
+      sukaManis: data['sukaManis'] as bool? ?? false,
+      sukaAsin: data['sukaAsin'] as bool? ?? false,
+      makanBerlemak: data['makanBerlemak'] as bool? ?? false,
+      jarangOlahraga: data['jarangOlahraga'] as bool? ?? false,
     );
   }
 
@@ -200,6 +213,11 @@ class Patient {
       'namaNutrisionis': namaNutrisionis,
       'createdBy': createdBy,
       'isCompleted': isCompleted,
+
+      'sukaManis': sukaManis ?? false,
+      'sukaAsin': sukaAsin ?? false,
+      'makanBerlemak': makanBerlemak ?? false,
+      'jarangOlahraga': jarangOlahraga ?? false,
     };
   }
 

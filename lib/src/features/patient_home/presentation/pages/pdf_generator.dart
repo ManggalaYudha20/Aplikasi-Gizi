@@ -41,7 +41,7 @@ class PdfGenerator {
                   pw.Column(
                     children: [
                       pw.Text(
-                        'Rumah Sakit Umum Daerah ODSK',
+                        'Rumah Sakit Umum Daerah',
                         style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold,
                           fontSize: 12,
