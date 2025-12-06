@@ -32,6 +32,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     'Kategori Pasien',
     'Jenis Kelamin',
     'Status Gizi (Dewasa)',
+    'Status Gizi Anak (BB/U)',
     'Usia',
     'Diagnosis Medis',
     'Berat Badan',
@@ -133,11 +134,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     child: Text("Terjadi kesalahan memuat data"),
                   );
                 }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("Belum ada data statistik"));
-                }
 
-                final docs = snapshot.data!.docs;
+                final docs = snapshot.data?.docs ?? [];
                 int totalPasien = docs.length;
 
                 // --- VARIABEL PENAMPUNG DATA ---
@@ -147,6 +145,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     totalPerempuan = 0;
 
                 Map<String, double> statusGiziMap = {};
+                
+                Map<String, double> statusGiziAnakBBUMap = {};
+
                 Map<String, double> diagnosisMap = {};
 
                 // Urutan map penting untuk legend chart
@@ -180,6 +181,21 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   // A. Tipe & Gender
                   if (tipe == 'anak') {
                     totalAnak++;
+
+                    String statusBBU = cleanString(data['statusGiziBBU']);
+                    if (statusBBU == "Tidak Diketahui") {
+                       statusBBU = cleanString(data['statusGiziAnak']);
+                    }
+
+                    if (statusBBU != "Tidak Diketahui") {
+                      // Kapitalisasi agar rapi (misal: "gizi baik" -> "Gizi baik")
+                      if (statusBBU.length > 1) {
+                         statusBBU = statusBBU[0].toUpperCase() + statusBBU.substring(1);
+                      }
+                      statusGiziAnakBBUMap[statusBBU] = 
+                          (statusGiziAnakBBUMap[statusBBU] ?? 0) + 1;
+                    }
+
                   } else {
                     totalDewasa++;
                   }
@@ -273,33 +289,47 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 tbMap.removeWhere((key, value) => value == 0);
 
                 // --- PERSIAPAN DATA CHART ---
+                Map<String, double> rawData = {};
                 Map<String, double> chartData = {};
                 List<Color> chartColors = [];
                 String chartTitle = "";
 
                 if (_selectedCategory == 'Kategori Pasien') {
                   chartTitle = "Persentase Tipe Pasien";
-                  chartData = {
+                  rawData = {
                     "Dewasa": totalDewasa.toDouble(),
                     "Anak": totalAnak.toDouble(),
                   };
                   chartColors = [Colors.blue, Colors.orange];
                 } else if (_selectedCategory == 'Jenis Kelamin') {
                   chartTitle = "Persentase Gender";
-                  chartData = {
+                  rawData = {
                     "Laki-laki": totalLaki.toDouble(),
                     "Perempuan": totalPerempuan.toDouble(),
                   };
                   chartColors = [Colors.cyan, Colors.pinkAccent];
                 } else if (_selectedCategory == 'Status Gizi (Dewasa)') {
                   chartTitle = "Status Gizi (Dewasa)";
-                  chartData = statusGiziMap;
+                  rawData = statusGiziMap;
                   chartColors = [
-                    Colors.green,
                     Colors.orange,
+                    Colors.green,
                     Colors.red,
                     Colors.blueGrey,
                     Colors.purple,
+                  ];
+                } else if (_selectedCategory == 'Status Gizi Anak (BB/U)') {
+                  // --- KONFIGURASI CHART BARU ---
+                  chartTitle = "Status Gizi Anak (BB/U)";
+                  rawData = statusGiziAnakBBUMap;
+                  
+                  // Palette warna indikatif
+                  chartColors = [
+                    Colors.green,        
+                    Colors.redAccent,    
+                    Colors.orangeAccent, 
+                    Colors.blueAccent,   
+                    Colors.purpleAccent,
                   ];
                 } else if (_selectedCategory == 'Diagnosis Medis') {
                   chartTitle = "Diagnosis Medis Terbanyak";
@@ -315,12 +345,12 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   int maxItems = 5;
                   for (int i = 0; i < sortedKeys.length; i++) {
                     if (i < maxItems) {
-                      chartData[sortedKeys[i]] = diagnosisMap[sortedKeys[i]]!;
+                      rawData[sortedKeys[i]] = diagnosisMap[sortedKeys[i]]!;
                     } else {
                       countLainnya += diagnosisMap[sortedKeys[i]]!;
                     }
                   }
-                  if (countLainnya > 0) chartData["Lainnya"] = countLainnya;
+                  if (countLainnya > 0) rawData["Lainnya"] = countLainnya;
                   chartColors = [
                     Colors.redAccent,
                     Colors.blueAccent,
@@ -331,7 +361,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   ];
                 } else if (_selectedCategory == 'Usia') {
                   chartTitle = "Rentang Usia Pasien";
-                  chartData = usiaMap;
+                  rawData = usiaMap;
                   chartColors = [
                     Colors.lightBlue,
                     Colors.blue,
@@ -341,7 +371,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   ];
                 } else if (_selectedCategory == 'Berat Badan') {
                   chartTitle = "Sebaran Berat Badan";
-                  chartData = bbMap;
+                  rawData = bbMap;
                   chartColors = [
                     Colors.brown.shade300,
                     Colors.brown.shade400,
@@ -352,7 +382,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   ];
                 } else if (_selectedCategory == 'Tinggi Badan') {
                   chartTitle = "Sebaran Tinggi Badan";
-                  chartData = tbMap;
+                  rawData = tbMap;
                   chartColors = [
                     Colors.teal.shade300,
                     Colors.teal.shade400,
@@ -360,6 +390,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     Colors.teal.shade700,
                   ];
                 }
+
+                chartData = Map.from(rawData);
+                chartData.removeWhere((key, value) => value == 0);
 
                 // Handle jika chartData kosong
                 if (chartData.isEmpty) {
@@ -561,17 +594,18 @@ class _StatisticsPageState extends State<StatisticsPage> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
-                                    "Sedang menyiapkan dokumen PDF...",
+                                    "Membuat File PDF...",
                                   ),
                                 ),
                               );
 
                               final Uint8List? chartImage = await _captureChart();
+                              final dataToSend = rawData.isEmpty ? {"Tidak ada data": 0.0} : rawData;
 
                               await StatisticsPdfService.generateAndOpenPdf(
                                 chartTitle: chartTitle,
                                 selectedCategory: _selectedCategory,
-                                dataMap: chartData,
+                                dataMap: dataToSend,
                                 totalPasien: totalPasien,
                                 chartImageBytes: chartImage,
                               );
@@ -827,8 +861,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   // --- WIDGET HELPER: LIST INDIKATOR ---
   Widget _buildIndicatorList(Map<String, double> dataMap, List<Color> colors) {
+    
     double total = dataMap.values.fold(0, (prev, item) => prev + item);
-    if (total == 0) return const SizedBox.shrink();
 
     return Column(
       children: List.generate(dataMap.length, (index) {
@@ -836,9 +870,17 @@ class _StatisticsPageState extends State<StatisticsPage> {
         final value = dataMap.values.elementAt(index);
         final color = colors[index % colors.length];
 
-        final percentageStr = total > 0
-            ? "${((value / total) * 100).toStringAsFixed(1)}%"
-            : "0%";
+        bool isDummyData = key == "Tidak ada data";
+
+        // Jika dummy, paksa tampilkan "0%". Jika tidak, hitung normal.
+        final percentageStr = isDummyData 
+            ? "0%" 
+            : (total > 0 ? "${((value / total) * 100).toStringAsFixed(1)}%" : "0%");
+
+        // Jika dummy, paksa tampilkan "0". Jika tidak, ambil value aslinya.
+        final countStr = isDummyData 
+            ? "0" 
+            : "${value.toInt()}";
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -898,7 +940,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  "${value.toInt()} Orang",
+                  "$countStr Orang",
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,

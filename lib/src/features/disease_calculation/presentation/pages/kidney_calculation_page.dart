@@ -7,9 +7,15 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/kidney_meal_planner_service.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/services.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
 class KidneyCalculationPage extends StatefulWidget {
-  const KidneyCalculationPage({super.key});
+  final String userRole;
+
+  const KidneyCalculationPage({
+    super.key,
+    required this.userRole,
+  });
 
   @override
   State<KidneyCalculationPage> createState() => _KidneyCalculationPageState();
@@ -19,6 +25,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
   final _formKey = GlobalKey<FormState>();
   final _calculatorService = KidneyCalculatorService();
   List<FoodItem>? _mealPlan;
+  final GlobalKey<PatientPickerWidgetState> _patientPickerKey = GlobalKey();
 
   // Controllers
   final _heightController = TextEditingController();
@@ -39,6 +46,45 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     _genderController.dispose();
     _proteinFactorController.dispose();
     super.dispose();
+  }
+
+  String _calculateAgeInYears(DateTime birthDate) {
+    final now = DateTime.now();
+    int age = now.year - birthDate.year;
+    if (now.month < birthDate.month ||
+        (now.month == birthDate.month && now.day < birthDate.day)) {
+      age--;
+    }
+    return age.toString();
+  }
+
+  // TAMBAHAN: Fungsi callback saat pasien dipilih
+  void _fillDataFromPatient(
+      double weight, double height, String gender, DateTime dob) {
+    setState(() {
+      _heightController.text = height.toString();
+      _ageController.text = _calculateAgeInYears(dob);
+
+      String incomingGender = gender.toLowerCase();
+      String normalizedGender = '';
+
+      if (incomingGender.contains('laki') ||
+          incomingGender.contains('pria') ||
+          incomingGender == 'l') {
+        normalizedGender = 'Laki-laki';
+      } else if (incomingGender.contains('perempuan') ||
+          incomingGender.contains('wanita') ||
+          incomingGender == 'p') {
+        normalizedGender = 'Perempuan';
+      } else {
+        normalizedGender = gender;
+      }
+      _genderController.text = normalizedGender;
+
+      // Reset hasil sebelumnya
+      _result = null;
+      _mealPlan = null;
+    });
   }
 
   void _calculateKidneyDiet() {
@@ -76,6 +122,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     _formKey.currentState?.reset();
     _heightController.clear();
     _ageController.clear();
+    _patientPickerKey.currentState?.resetSelection();
     setState(() {
       _dialysisController.clear();
       _genderController.clear();
@@ -118,6 +165,11 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  PatientPickerWidget(
+                    key: _patientPickerKey,
+                    onPatientSelected: _fillDataFromPatient,
+                    userRole: widget.userRole,
+                  ),
                   const SizedBox(height: 20),
                   const Text(
                     'Input Data Pasien Ginjal',

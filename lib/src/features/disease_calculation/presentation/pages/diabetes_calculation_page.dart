@@ -5,9 +5,15 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.da
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/menu_generator_service.dart';
 import 'package:flutter/services.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
 class DiabetesCalculationPage extends StatefulWidget {
-  const DiabetesCalculationPage({super.key});
+  final String userRole;
+
+  const DiabetesCalculationPage({
+    super.key,
+    required this.userRole,
+  });
 
   @override
   State<DiabetesCalculationPage> createState() =>
@@ -17,6 +23,7 @@ class DiabetesCalculationPage extends StatefulWidget {
 class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   final _formKey = GlobalKey<FormState>();
   final _calculatorService = DiabetesCalculatorService();
+  final GlobalKey<PatientPickerWidgetState> _patientPickerKey = GlobalKey();
 
   // Form controllers
   final _ageController = TextEditingController();
@@ -60,6 +67,45 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     _bloodPressureController.dispose();
     _hospitalizedStatusController.dispose();
     super.dispose();
+  }
+
+  String _calculateAgeInYears(DateTime birthDate) {
+    final now = DateTime.now();
+    int age = now.year - birthDate.year;
+    if (now.month < birthDate.month ||
+        (now.month == birthDate.month && now.day < birthDate.day)) {
+      age--;
+    }
+    return age.toString();
+  }
+
+  // TAMBAHAN: Fungsi callback saat pasien dipilih
+  void _fillDataFromPatient(
+      double weight, double height, String gender, DateTime dob) {
+    setState(() {
+      _weightController.text = weight.toString();
+      _heightController.text = height.toString();
+      _ageController.text = _calculateAgeInYears(dob);
+
+      String incomingGender = gender.toLowerCase();
+      String normalizedGender = '';
+
+      if (incomingGender.contains('laki') ||
+          incomingGender.contains('pria') ||
+          incomingGender == 'l') {
+        normalizedGender = 'Laki-laki';
+      } else if (incomingGender.contains('perempuan') ||
+          incomingGender.contains('wanita') ||
+          incomingGender == 'p') {
+        normalizedGender = 'Perempuan';
+      } else {
+        normalizedGender = gender;
+      }
+      _genderController.text = normalizedGender;
+
+      // Reset hasil sebelumnya jika ada data baru masuk
+      _result = null;
+    });
   }
 
   void _scrollToResult() {
@@ -112,6 +158,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     _ageController.clear();
     _weightController.clear();
     _heightController.clear();
+    _patientPickerKey.currentState?.resetSelection();
     setState(() {
       _genderController.clear();
       _activityController.clear();
@@ -144,6 +191,11 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  PatientPickerWidget(
+                    key: _patientPickerKey,
+                    onPatientSelected: _fillDataFromPatient,
+                    userRole: widget.userRole,
+                  ),
                   const SizedBox(height: 20),
                   const Text(
                     'Input Data Diabetes Melitus',

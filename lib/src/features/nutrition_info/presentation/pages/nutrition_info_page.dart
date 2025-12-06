@@ -22,7 +22,7 @@ class NutritionInfoPage extends StatelessWidget {
       {
         'text': 'Hitung Diet\nPenyakit',
         'icon': Icons.medical_services,
-        'page': const DiseaseCalculationPage(),
+        'page': DiseaseCalculationPage(userRole: userRole),
       },
       {
         'text': 'Daftar\nMakanan',

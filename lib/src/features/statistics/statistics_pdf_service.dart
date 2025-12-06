@@ -49,10 +49,22 @@ class StatisticsPdfService {
     ];
 
     dataMap.forEach((key, value) {
-      final percentage = totalDataValue > 0
+      // Cek apakah ini data dummy (yang disuntikkan UI agar chart tidak crash)
+      bool isDummy = key == "Tidak ada data";
+
+      // 1. Tentukan Persentase
+      // Jika dummy, paksa "0%". Jika tidak, hitung normal.
+      final percentage = (totalDataValue > 0 && !isDummy)
           ? "${((value / totalDataValue) * 100).toStringAsFixed(1)}%"
           : "0%";
-      tableData.add([key, "${value.toInt()} Orang", percentage]);
+      
+      // 2. Tentukan Jumlah Orang
+      // Jika dummy, paksa "0 Orang". Jika tidak, ambil value aslinya.
+      final countStr = isDummy 
+          ? "0 Orang" 
+          : "${value.toInt()} Orang";
+
+      tableData.add([key, countStr, percentage]);
     });
 
     // 2. Buat Halaman PDF

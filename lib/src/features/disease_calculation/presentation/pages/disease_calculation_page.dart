@@ -4,7 +4,12 @@ import 'diabetes_calculation_page.dart';
 import 'kidney_calculation_page.dart';
 
 class DiseaseCalculationPage extends StatelessWidget {
-  const DiseaseCalculationPage({super.key});
+  final String userRole; // 1. Terima Role
+
+  const DiseaseCalculationPage({
+    super.key,
+    required this.userRole, // Wajib
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +135,7 @@ class DiseaseCalculationPage extends StatelessWidget {
       Navigator.push(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const DiabetesCalculationPage(),
+          pageBuilder: (context, animation, secondaryAnimation) => DiabetesCalculationPage(userRole: userRole),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
               position: Tween<Offset>(
@@ -146,7 +151,7 @@ class DiseaseCalculationPage extends StatelessWidget {
       Navigator.push(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const KidneyCalculationPage(),
+          pageBuilder: (context, animation, secondaryAnimation) => KidneyCalculationPage(userRole: userRole),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
               position: Tween<Offset>(

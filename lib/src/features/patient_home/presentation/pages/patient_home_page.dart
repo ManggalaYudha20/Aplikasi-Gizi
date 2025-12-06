@@ -319,6 +319,42 @@ class _PatientHomePageState extends State<PatientHomePage> {
                             return matchesSearch && matchesFilter;
                           }).toList();
 
+                          filteredPatients.sort((a, b) {
+                            final dataA = a.data();
+                            final dataB = b.data();
+
+                            // A. Urutkan Berdasarkan Tanggal (Prioritas 1)
+                            // Ganti 'tanggalPemeriksaan' dengan 'createdAt' jika Anda menyimpan timestamp pembuatan
+                            Timestamp? timeA =
+                                dataA['tanggalPemeriksaan'] as Timestamp?;
+                            Timestamp? timeB =
+                                dataB['tanggalPemeriksaan'] as Timestamp?;
+
+                            // Konversi ke DateTime (Default tahun 1900 jika null)
+                            DateTime dateA = timeA?.toDate() ?? DateTime(1900);
+                            DateTime dateB = timeB?.toDate() ?? DateTime(1900);
+
+                            // compareTo logika:
+                            // dateB.compareTo(dateA) = Descending (Terbaru di atas)
+                            // dateA.compareTo(dateB) = Ascending (Terlama di atas)
+                            int dateComparison = dateB.compareTo(dateA);
+
+                            // Jika tanggal tidak sama, kembalikan hasil urutan tanggal
+                            if (dateComparison != 0) {
+                              return dateComparison;
+                            }
+
+                            // B. Urutkan Berdasarkan Abjad Nama (Prioritas 2 - jika tanggal sama persis)
+                            String nameA = (dataA['namaLengkap'] ?? '')
+                                .toString()
+                                .toLowerCase();
+                            String nameB = (dataB['namaLengkap'] ?? '')
+                                .toString()
+                                .toLowerCase();
+
+                            return nameA.compareTo(nameB); // A-Z
+                          });
+
                           return Column(
                             children: [
                               Expanded(
