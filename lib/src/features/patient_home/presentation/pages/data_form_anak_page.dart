@@ -970,6 +970,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                       focusNode: FocusNode(), 
                       prefixIcon: const Icon(Icons.edit_note),
                     ),
+                    const SizedBox(height: 20),
                   ],
 
                   const SizedBox(height: 16),

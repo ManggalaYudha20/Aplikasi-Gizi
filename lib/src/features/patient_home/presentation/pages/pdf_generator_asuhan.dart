@@ -25,7 +25,7 @@ class PdfGeneratorAsuhan {
     // FUNGSI BARU UNTUK MEMBUAT BARIS HEADER YANG DIGABUNG
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: PdfPageFormat.legal,
         margin: const pw.EdgeInsets.all(36),
         build: (pw.Context context) => [
           // HEADER
@@ -251,7 +251,7 @@ class PdfGeneratorAsuhan {
           ),
           // Footer
           // Footer
-          pw.Spacer(),
+          pw.SizedBox(height: 20),
           pw.Padding(
             padding: const pw.EdgeInsets.only(
               right: 50,

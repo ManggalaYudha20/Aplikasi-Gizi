@@ -7,6 +7,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_anak_model.dart';
 import 'package:flutter/services.dart';
+import 'package:pdf/pdf.dart';
 
 class PdfGeneratorAnak {
   static Future<File> generate(PatientAnak patient) async {
@@ -20,6 +21,7 @@ class PdfGeneratorAnak {
 
     pdf.addPage(
       pw.Page(
+        pageFormat: PdfPageFormat.legal,
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -119,14 +121,14 @@ class PdfGeneratorAnak {
               pw.Text(
                 '*) Penyakit yang beresiko terjadi gangguan gizi diantaranya : dirawat di HCU/ICU, penurunan kesadaran, kegawatan abdomen (pendarahan, ileus, peritonitis, asites massif, tumor intraadomen besar, post operasi), gangguan pernapasan berat, keganasan dengan komplikasi, gagal jantung, gagal ginjal kronik, gagal hati, diabetes melitus, atau kondisi sakit berat lainnya',
               textAlign: pw.TextAlign.justify,
-              style : pw.TextStyle(fontSize: 8)
+              style : pw.TextStyle(fontSize: 10)
               ),
               pw.SizedBox(height: 5),
 
               _buildInterpretation(patient.totalPymsScore),
 
               // Footer
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 20),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Column(

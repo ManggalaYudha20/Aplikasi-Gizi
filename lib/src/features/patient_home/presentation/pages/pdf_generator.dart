@@ -7,6 +7,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_model.dart'; // Impor model pasien
 import 'package:flutter/services.dart';
+import 'package:pdf/pdf.dart';
 
 class PdfGenerator {
   static Future<File> generate(Patient patient) async {
@@ -21,6 +22,7 @@ class PdfGenerator {
 
     pdf.addPage(
       pw.Page(
+        pageFormat: PdfPageFormat.legal,
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -136,7 +138,7 @@ class PdfGenerator {
               _buildInterpretation(patient.totalSkor),
 
               // Footer
-              pw.Spacer(),
+              pw.SizedBox(height: 20),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Column(

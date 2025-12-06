@@ -70,7 +70,7 @@ class StatisticsPdfService {
     // 2. Buat Halaman PDF
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: PdfPageFormat.legal,
         margin: const pw.EdgeInsets.all(40),
         build: (pw.Context context) {
           return [_buildHeader(sulutLogo, rsLogo, dateStr),

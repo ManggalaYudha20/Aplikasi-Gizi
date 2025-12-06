@@ -1,11 +1,12 @@
-// lib\src\shared\widgets\patient_filter_form.dart
+// lib/src/shared/widgets/patient_filter_form.dart
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:dropdown_search/dropdown_search.dart'; // Import package
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_filter_model.dart';
 
 class PatientFilterSheet extends StatefulWidget {
   final PatientFilterModel currentFilters;
-
   final VoidCallback onResetPressed;
 
   const PatientFilterSheet({
@@ -19,7 +20,6 @@ class PatientFilterSheet extends StatefulWidget {
 }
 
 class _PatientFilterSheetState extends State<PatientFilterSheet> {
-  // State sementara untuk modal, diinisialisasi dari filter aktif
   late PatientFilterModel _tempFilters;
 
   @override
@@ -37,12 +37,11 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
     );
     if (picked != null) {
       setState(() {
-        // Ganti 'copyWith' dengan ini
         _tempFilters = PatientFilterModel(
           statusGizi: _tempFilters.statusGizi,
           ageGroup: _tempFilters.ageGroup,
           isCompleted: _tempFilters.isCompleted,
-          dateRange: picked, // Nilai baru
+          dateRange: picked,
         );
       });
     }
@@ -54,6 +53,13 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
     }
     final format = DateFormat('dd MMM yyyy', 'id_ID');
     return '${format.format(range.start)} - ${format.format(range.end)}';
+  }
+
+  // Helper untuk menentukan label status penyelesaian dari nilai boolean
+  String _getCompletionLabel(bool? val) {
+    if (val == true) return 'Selesai';
+    if (val == false) return 'Belum Selesai';
+    return 'Semua Status';
   }
 
   @override
@@ -71,103 +77,164 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
           const Text('Filter Pasien', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 24),
 
-          DropdownButtonFormField<bool?>(
-            initialValue: _tempFilters.isCompleted,
-            isExpanded: true,
-            hint: const Text('Semua Status Penyelesaian'),
-            items: [
-              DropdownMenuItem<bool?>(
-                value: null,
-                child: Text('Semua Status'),
+          // --- Filter Status Penyelesaian (DropdownSearch) ---
+          DropdownSearch<String>(
+            items: const ['Semua Status', 'Selesai', 'Belum Selesai'],
+            selectedItem: _getCompletionLabel(_tempFilters.isCompleted),
+            popupProps: PopupProps.menu(
+              showSearchBox: false,
+              fit: FlexFit.loose,
+              constraints: const BoxConstraints(maxHeight: 180),
+              menuProps: MenuProps(
+                borderRadius: BorderRadius.circular(12),
+                elevation: 4,
+                // Logika posisi DI BAWAH form
+                positionCallback: (RenderBox findRenderObject, RenderBox overlay) {
+                  Offset localToGlobal = findRenderObject.localToGlobal(Offset.zero, ancestor: overlay);
+                  return RelativeRect.fromLTRB(
+                    localToGlobal.dx,
+                    localToGlobal.dy + findRenderObject.size.height, // Mulai dari bawah tombol
+                    overlay.size.width - (localToGlobal.dx + findRenderObject.size.width),
+                    0, // Biarkan memanjang ke bawah
+                  );
+                },
               ),
-              DropdownMenuItem<bool?>(
-                value: true,
-                child: Text('Selesai'),
+            ),
+            dropdownDecoratorProps: DropDownDecoratorProps(
+              dropdownSearchDecoration: InputDecoration(
+                labelText: 'Status Penyelesaian',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               ),
-              DropdownMenuItem<bool?>(
-                value: false,
-                child: Text('Belum Selesai'),
-              ),
-            ],
-            onChanged: (bool? newValue) {
+            ),
+            onChanged: (String? newValue) {
+              bool? newStatus;
+              if (newValue == 'Selesai') {
+                newStatus = true;
+              } else if (newValue == 'Belum Selesai') {
+                newStatus = false;
+              } else {
+                newStatus = null; // Semua Status
+              }
+
               setState(() {
                 _tempFilters = PatientFilterModel(
                   statusGizi: _tempFilters.statusGizi,
                   dateRange: _tempFilters.dateRange,
                   ageGroup: _tempFilters.ageGroup,
-                  isCompleted: newValue, // Set nilai baru
+                  isCompleted: newStatus,
                 );
               });
             },
-            decoration: InputDecoration(
-              labelText: 'Status Penyelesaian',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            ),
           ),
+          
           const SizedBox(height: 16),
 
-          // --- Filter Status Gizi ---
-          DropdownButtonFormField<String>(
-            initialValue: _tempFilters.statusGizi, // Sudah benar
-            hint: const Text('Semua Status Gizi'),
-            isExpanded: true,
-            items: ['Gizi Kurang (Underweight)', 'Gizi Baik (Normal)', 'Gizi Lebih (Overweight)', 'Obesitas']
-                .map((String status) {
-              return DropdownMenuItem<String>(
-                value: status,
-                child: Text(status),
-              );
-            }).toList(),
-            onChanged: (newValue) {
+          // --- Filter Status Gizi (DropdownSearch) ---
+          DropdownSearch<String>(
+            items: const [
+              'Semua Status Gizi',
+              'Gizi Kurang (Underweight)',
+              'Gizi Baik (Normal)',
+              'Gizi Lebih (Overweight)',
+              'Obesitas'
+            ],
+            selectedItem: _tempFilters.statusGizi ?? 'Semua Status Gizi',
+            popupProps: PopupProps.menu(
+              showSearchBox: false,
+              fit: FlexFit.loose,
+              constraints: const BoxConstraints(maxHeight: 200),
+              menuProps: MenuProps(
+                borderRadius: BorderRadius.circular(12),
+                elevation: 4,
+                // Logika posisi DI BAWAH form
+                positionCallback: (RenderBox findRenderObject, RenderBox overlay) {
+                  Offset localToGlobal = findRenderObject.localToGlobal(Offset.zero, ancestor: overlay);
+                  return RelativeRect.fromLTRB(
+                    localToGlobal.dx,
+                    localToGlobal.dy + findRenderObject.size.height,
+                    overlay.size.width - (localToGlobal.dx + findRenderObject.size.width),
+                    0,
+                  );
+                },
+              ),
+              scrollbarProps: const ScrollbarProps(thumbVisibility: true, thickness: 6, radius: Radius.circular(10)),
+            ),
+            dropdownDecoratorProps: DropDownDecoratorProps(
+              dropdownSearchDecoration: InputDecoration(
+                labelText: 'Status Gizi',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              ),
+            ),
+            onChanged: (String? newValue) {
               setState(() {
-                // --- PERBAIKAN LOGIKA STATE ---
-                // Jangan gunakan copyWith, agar bisa di-set ke null
+                final valueToSave = newValue == 'Semua Status Gizi' ? null : newValue;
                 _tempFilters = PatientFilterModel(
-                  statusGizi: newValue, // Nilai baru
-                  dateRange: _tempFilters.dateRange, // Nilai lama
-                  ageGroup: _tempFilters.ageGroup, // Nilai lama
+                  statusGizi: valueToSave,
+                  dateRange: _tempFilters.dateRange,
+                  ageGroup: _tempFilters.ageGroup,
                   isCompleted: _tempFilters.isCompleted,
                 );
               });
             },
-            decoration: InputDecoration(
-              labelText: 'Status Gizi',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            ),
           ),
+
           const SizedBox(height: 16),
 
-          // --- Filter Kelompok Usia ---
-          DropdownButtonFormField<String>(
-            initialValue: _tempFilters.ageGroup, // Sudah benar
-            hint: const Text('Semua Kelompok Usia'),
-            isExpanded: true,
+          // --- Filter Kelompok Usia (DropdownSearch) ---
+          DropdownSearch<String>(
             items: [
+              'Semua Kelompok Usia',
               PatientFilterModel.ageAnak,
               PatientFilterModel.ageDewasa,
               PatientFilterModel.ageLansia,
-            ].map((String group) {
-              return DropdownMenuItem<String>(
-                value: group,
-                child: Text(group),
-              );
-            }).toList(),
-            onChanged: (newValue) {
+            ],
+            selectedItem: _tempFilters.ageGroup ?? 'Semua Kelompok Usia',
+            popupProps: PopupProps.menu(
+              showSearchBox: false,
+              fit: FlexFit.loose,
+              constraints: const BoxConstraints(maxHeight: 170),
+              menuProps: MenuProps(
+                borderRadius: BorderRadius.circular(12),
+                elevation: 4,
+                // Logika posisi DI BAWAH form
+                positionCallback: (RenderBox findRenderObject, RenderBox overlay) {
+                  Offset localToGlobal = findRenderObject.localToGlobal(Offset.zero, ancestor: overlay);
+                  return RelativeRect.fromLTRB(
+                    localToGlobal.dx,
+                    localToGlobal.dy + findRenderObject.size.height,
+                    overlay.size.width - (localToGlobal.dx + findRenderObject.size.width),
+                    0,
+                  );
+                },
+              ),
+              scrollbarProps: const ScrollbarProps(
+                thumbVisibility: true,
+                thickness: 6,
+                radius: Radius.circular(10),
+              ),
+            ),
+            dropdownDecoratorProps: DropDownDecoratorProps(
+              dropdownSearchDecoration: InputDecoration(
+                labelText: 'Kelompok Usia',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              ),
+            ),
+            onChanged: (String? newValue) {
               setState(() {
-                // --- PERBAIKAN LOGIKA STATE ---
+                final valueToSave = newValue == 'Semua Kelompok Usia' ? null : newValue;
                 _tempFilters = PatientFilterModel(
-                  statusGizi: _tempFilters.statusGizi, // Nilai lama
-                  dateRange: _tempFilters.dateRange, // Nilai lama
-                  ageGroup: newValue, // Nilai baru
+                  statusGizi: _tempFilters.statusGizi,
+                  dateRange: _tempFilters.dateRange,
+                  ageGroup: valueToSave,
                   isCompleted: _tempFilters.isCompleted,
                 );
               });
             },
-            decoration: InputDecoration(
-              labelText: 'Kelompok Usia',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            ),
           ),
+
           const SizedBox(height: 16),
 
           // --- Filter Tanggal ---
@@ -196,27 +263,21 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
             children: [
               TextButton(
                 child: const Text('Reset Filter'),
-                // --- MODIFIKASI BAGIAN INI ---
                 onPressed: () {
-                  // 1. Reset state LOKAL di dalam sheet
                   setState(() {
                     _tempFilters = PatientFilterModel();
                   });
-                  // 2. Panggil callback untuk eksekusi di halaman home
                   widget.onResetPressed();
-                  // 3. JANGAN panggil Navigator.pop
                 },
-                // --- AKHIR MODIFIKASI ---
               ),
               const Spacer(),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 0, 148, 68), // Warna hijau Anda
+                  backgroundColor: const Color.fromARGB(255, 0, 148, 68),
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Terapkan Filter'),
                 onPressed: () {
-                  // Kirim balik filter yang sudah diisi
                   Navigator.pop(context, _tempFilters);
                 },
               ),
