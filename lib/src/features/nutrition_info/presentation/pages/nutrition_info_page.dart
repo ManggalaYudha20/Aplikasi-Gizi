@@ -10,6 +10,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pa
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/menu_button.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/about/presentation/pages/about_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/reference_page.dart';
 
 class NutritionInfoPage extends StatelessWidget {
   final String userRole;
@@ -43,6 +44,11 @@ class NutritionInfoPage extends StatelessWidget {
         'text': 'Tentang\n Kami',
         'icon': Icons.info,
         'page': const AboutPage(),
+      },
+      {
+        'text': 'Referensi',
+        'icon': Icons.menu_book,
+        'page': const ReferencePage(),
       },
     ];
 

@@ -3,17 +3,18 @@ import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/menu_generator_service.dart';
 import 'package:flutter/services.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/diabetes_meal_planner_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/food_database_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/pdf_generator_dm.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/food_search_delegate.dart';
 
 class DiabetesCalculationPage extends StatefulWidget {
   final String userRole;
 
-  const DiabetesCalculationPage({
-    super.key,
-    required this.userRole,
-  });
+  const DiabetesCalculationPage({super.key, required this.userRole});
 
   @override
   State<DiabetesCalculationPage> createState() =>
@@ -36,6 +37,10 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   final _bloodSugarController = TextEditingController();
   final _bloodPressureController = TextEditingController();
   final _hospitalizedStatusController = TextEditingController();
+  final _foodDbService = FoodDatabaseService();
+  late final _mealPlannerService = DiabetesMealPlannerService(_foodDbService);
+  List<DmMealSession>? _dailyMenu;
+  bool _isGeneratingMenu = false;
 
   // Form fields
   //List<GeneratedMeal>? _generatedMenu;
@@ -81,7 +86,11 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
 
   // TAMBAHAN: Fungsi callback saat pasien dipilih
   void _fillDataFromPatient(
-      double weight, double height, String gender, DateTime dob) {
+    double weight,
+    double height,
+    String gender,
+    DateTime dob,
+  ) {
     setState(() {
       _weightController.text = weight.toString();
       _heightController.text = height.toString();
@@ -136,16 +145,17 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
 
       setState(() {
         _result = result;
-        //_isGeneratingMenu = true; // Mulai loading
-        //_generatedMenu = null;
+        _isGeneratingMenu = true; // Mulai loading
+        _dailyMenu = null;
       });
 
       // Generate menu baru
-      final menuService = MenuGeneratorService();
-      menuService.generateMenu(result.dailyMealDistribution).then((menu) {
+      _mealPlannerService.generateDailyPlan(result.dailyMealDistribution).then((
+        menu,
+      ) {
         setState(() {
-          //_generatedMenu = menu;
-          //_isGeneratingMenu = false;
+          _dailyMenu = menu;
+          _isGeneratingMenu = false; // Set loading false
         });
       });
 
@@ -249,9 +259,9 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                     prefixIcon: const Icon(Icons.height),
                     suffixText: 'cm',
                     validator: (value) {
-                      if (value == null || value.isEmpty)return 'Masukkan tinggi badan';
+                      if (value == null || value.isEmpty) return 'Masukkan tinggi badan';
                       final height = double.tryParse(value);
-                      if (height == null || height < 30 || height > 300)return 'Masukkan tinggi badan yang valid (30-300 cm)';
+                      if (height == null || height < 30 || height > 300) return 'Masukkan tinggi badan yang valid (30-300 cm)';
                       return null;
                     },
                   ),
@@ -397,7 +407,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                           if (_result!.weightCorrection != 0)
                             _buildNutritionRow(
                               'Koreksi Berat Badan',
-                              '+${_result!.weightCorrection.round()} kkal/hari',
+                              '${_result!.weightCorrection > 0 ? '+' : ''}${_result!.weightCorrection.round()} kkal/hari',
                             ),
                           if (_hospitalizedStatusController.text == 'Ya')
                             _buildNutritionRow(
@@ -633,20 +643,9 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                       ],
                     ),
 
-                    /*
                     const SizedBox(height: 16),
-                    ExpansionTile(
-                      title: const Text('Contoh Menu Sehari'),
-                      children: [
-                        if (_isGeneratingMenu)
-                          const Center(child: CircularProgressIndicator())
-                        else if (_generatedMenu != null &&
-                            _generatedMenu!.isNotEmpty)
-                          _buildGeneratedMenuTable(),
-                      ],
-                    ), 
-                    */
-
+                    
+                    _buildDailyMenuSection(),
                   ],
                 ],
               ),
@@ -657,168 +656,234 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     );
   }
 
-  // Hapus method _buildDetailedMenuTable() yang lama, dan tambahkan method baru ini
-/*
-  Widget _buildGeneratedMenuTable() {
-    final headerStyle = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 12,
-      color: Colors.grey.shade700,
-    );
-    final cellStyle = TextStyle(fontSize: 12, color: Colors.grey.shade800);
-    const cellPadding = EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0);
+ Widget _buildDailyMenuSection() {
 
-    // Helper untuk membuat grup baris (misal: semua baris untuk 'Pagi')
-    Widget buildMealRowGroup(GeneratedMeal meal, {required Color color}) {
-      final List<Widget> foodRows = meal.rows.map((row) {
-        return Container(
-          padding: cellPadding,
-          decoration: BoxDecoration(
-            color: color,
-            border: Border(
-              top: BorderSide(color: Colors.grey.shade200, width: 1),
-            ),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: Text(row.menuItem, style: cellStyle),
-              ), // Kolom Menu
-              Expanded(
-                flex: 4,
-                child: Text(row.foodGroup, style: cellStyle),
-              ), // Kolom Bahan Makanan
-              Expanded(
-                flex: 3,
-                child: Text(
-                  row.portion is String
-                      ? row.portion
-                      : '${_formatNumber(row.portion as double)} P',
-                  textAlign: TextAlign.center,
-                  style: cellStyle,
-                ),
-              ), // Kolom Penukar
-            ],
-          ),
-        );
-      }).toList();
-
-      if (foodRows.isEmpty) return const SizedBox.shrink();
-
-      return IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Kolom 1: Waktu (Sel yang di-merge)
-            Container(
-              width: 80,
-              padding: cellPadding,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: color,
-                border: Border.all(color: Colors.grey.shade200, width: 0.5),
-              ),
-              child: Text(
-                meal.mealTime,
-                textAlign: TextAlign.center,
-                style: cellStyle,
-              ),
-            ),
-            // Kolom 2: Daftar Menu, Bahan & Penukar
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: foodRows,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Bangun Tampilan Akhir
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange.shade200),
+    // 3. Widget Utama (ExpansionTile -> Container -> Isi Menu Biru)
+    return ExpansionTile(
+      title: const Text(
+        'Rekomendasi Menu Sehari',
       ),
-      child: Column(
-        children: [
-          const Text(
-            'Contoh Menu Sehari',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.orange,
-            ),
-          ),
-          const SizedBox(height: 16),
+      children: [
+        const SizedBox(height: 10),
+
+        if (_isGeneratingMenu)
           Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300, width: 1),
-            ),
+            height: 150, // Beri tinggi agar loading terlihat jelas di tengah
+            alignment: Alignment.center,
             child: Column(
-              children: [
-                // Header
-                Container(
-                  padding: cellPadding,
-                  color: Colors.grey.shade100,
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 80,
-                        child: Text(
-                          'Waktu',
-                          style: headerStyle,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 4,
-                        child: Text(
-                          'Menu',
-                          style: headerStyle,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 4,
-                        child: Text(
-                          'Bahan Makanan',
-                          style: headerStyle,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          'Penukar',
-                          style: headerStyle,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Isi Tabel
-                ..._generatedMenu!.map((meal) {
-                  final index = _generatedMenu!.indexOf(meal);
-                  return buildMealRowGroup(
-                    meal,
-                    color: index % 2 == 0 ? Colors.white : Colors.grey.shade50,
-                  );
-                }),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text("Sedang membuat menu...", style: TextStyle(color: Colors.grey)),
               ],
             ),
+          )
+        
+        // KONDISI 2: DATA ADA (Tampilkan Container Biru)
+        else if (_dailyMenu != null && _dailyMenu!.isNotEmpty)
+        
+        // Container Pembungkus (Style dirapikan, warna disesuaikan dengan tema Biru konten Anda)
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.blue.withValues(alpha: 0.1), // Background Biru Transparan
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.blue.shade300), // Border Biru
           ),
-        ],
-      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header Judul (Warna Tetap Biru)
+              const Center(
+                child: Text(
+                  'Rekomendasi Menu Sehari',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue, // Tetap Biru
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Ketuk ikon pensil untuk mengganti menu',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 16),
+
+              // Loop Sesi Makan
+              ..._dailyMenu!.map((session) {
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      // Header Waktu Makan (Warna Tetap Biru Muda)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade100, // Tetap Biru Muda
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          session.sessionName,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade900, // Tetap Biru Tua
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      // List Makanan
+                      ...session.items.map((item) {
+                        // Logika Tampilan Porsi
+                        String portionText;
+                        if (item.portion == 'S') {
+                          portionText = "(S)";
+                        } else {
+                          String val = item.portion is num
+                              ? _formatNumber(item.portion)
+                              : item.portion.toString();
+                          portionText = "($val P)";
+                        }
+
+                        return ListTile(
+                          dense: true,
+                          title: Text(
+                            item.categoryLabel,
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                          subtitle: Text(
+                            "${item.foodName} $portionText",
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(
+                              Icons.edit,
+                              size: 20,
+                              color: Colors.orange, // Icon Edit tetap Orange sesuai request
+                            ),
+                            onPressed: () => _showEditDialog(item),
+                          ),
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                );
+              }).toList(),
+
+              // Tombol Download PDF (Warna Tetap Biru)
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _downloadPdf,
+                icon: const Icon(Icons.download),
+                label: const Text(
+                  "Download Menu PDF",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue, // Tetap Biru
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+      ],
     );
   }
-  */
+
+  // --- LOGIKA EDIT MAKANAN ---
+  void _showEditDialog(DmMenuItem item) async {
+    // Membuka halaman pencarian
+    // Tipe generic <FoodItem?> ditambahkan agar sesuai dengan delegate
+    final FoodItem? selectedFood = await showSearch<FoodItem?>(
+      context: context,
+      delegate: FoodSearchDelegate(_foodDbService,initialQuery: item.foodName,),
+    );
+
+    if (selectedFood != null) {
+      setState(() {
+        // Update item menu dengan data baru
+        item.foodName = selectedFood.name;
+        item.foodData = selectedFood;
+      });
+    }
+  }
+
+  // --- LOGIKA DOWNLOAD PDF ---
+  // Di dalam class DiabetesCalculationPage (atau state-nya)
+
+  void _downloadPdf() async {
+    // Validasi data kosong
+    if (_dailyMenu == null || _dailyMenu!.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Menu belum tersedia.')));
+      return;
+    }
+
+    // Tampilkan Loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // PANGGIL FUNGSI YANG BARU KITA BUAT DI SERVICE
+      // Ganti "Pasien" dengan variabel nama pasien yang sesuai di kode Anda (misal: _selectedPatient?.name ?? "Pasien")
+      await saveAndOpenDmPdf(_dailyMenu!, "Pasien");
+
+      // Tutup loading dialog jika sukses
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      // Opsional: Tampilkan pesan sukses kecil jika file berhasil terbuka (biasanya tidak perlu karena file langsung terbuka)
+      // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PDF berhasil dibuka'), backgroundColor: Colors.green));
+    } catch (e) {
+      // Tutup loading dialog jika error
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      // Tampilkan pesan error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll("Exception: ", "")),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   // Widget untuk Input Teks
   Widget _buildTextFormField({
