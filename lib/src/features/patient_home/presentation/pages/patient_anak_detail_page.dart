@@ -223,7 +223,7 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                       children: [
                         Icon(Icons.picture_as_pdf, size: 20),
                         SizedBox(width: 8),
-                        Text('Cetak Formulir Skrining Gizi Anak'),
+                        Text('Formulir Skrining Gizi Anak'),
                       ],
                     ),
                   ),
@@ -492,7 +492,7 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                       children: [
                         Icon(Icons.picture_as_pdf, size: 20),
                         SizedBox(width: 8),
-                        Text('Formulir Asuhan Gizi'),
+                        Text('Formulir Asuhan Gizi Anak'),
                       ],
                     ),
                   ),

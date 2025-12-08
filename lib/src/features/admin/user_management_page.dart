@@ -259,90 +259,98 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   return const Center(child: Text('Tidak ada pengguna ditemukan.'));
                 }
 
-                return ListView.builder(
-                  itemCount: filteredUsers.length,
-                  itemBuilder: (context, index) {
-                    final doc = filteredUsers[index];
-                    final data = doc.data() as Map<String, dynamic>;
-                    
-                    final String userId = doc.id; // ID User di dalam list
-                    final String role = data['role'] ?? 'user';
-                    final String name = data['displayName'] ?? 'Tanpa Nama';
-                    final String email = data['email'] ?? '-';
-                    final String? photoUrl = data['photoURL'];
+                // === PERUBAHAN DI SINI: Menambahkan Scrollbar ===
+                return Scrollbar(
+                  thumbVisibility: false, // Membuat scrollbar selalu terlihat (opsional)
+                  thickness: 6.0,        // Ketebalan scrollbar
+                  radius: const Radius.circular(10), // Membuat sudut scrollbar melengkung
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 20), // Tambahan padding bawah agar card terakhir tidak terpotong
+                    itemCount: filteredUsers.length,
+                    itemBuilder: (context, index) {
+                      final doc = filteredUsers[index];
+                      final data = doc.data() as Map<String, dynamic>;
+                      
+                      final String userId = doc.id; // ID User di dalam list
+                      final String role = data['role'] ?? 'user';
+                      final String name = data['displayName'] ?? 'Tanpa Nama';
+                      final String email = data['email'] ?? '-';
+                      final String? photoUrl = data['photoURL'];
 
-                    // LOGIKA UTAMA: Cek apakah user ini adalah diri sendiri
-                    final bool isSelf = currentUserId == userId;
+                      // LOGIKA UTAMA: Cek apakah user ini adalah diri sendiri
+                      final bool isSelf = currentUserId == userId;
 
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
-                          child: photoUrl == null ? const Icon(Icons.person) : null,
-                        ),
-                        title: Text(
-                          name + (isSelf ? ' (Anda)' : ''), // Menandai akun sendiri
-                          style: const TextStyle(fontWeight: FontWeight.bold)
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              email,
-                              style: TextStyle(
-                                fontSize: 11, // Ubah angka ini untuk ukuran Email
-                                color: Colors.grey[700], // Opsional: Warna teks email
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            // Badge Role
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: role == 'admin' ? Colors.red.shade100 : 
-                                       role == 'ahli_gizi' ? Colors.teal.shade100 : Colors.lightGreen.shade100,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                role.toUpperCase(),
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                            child: photoUrl == null ? const Icon(Icons.person) : null,
+                          ),
+                          title: Text(
+                            name + (isSelf ? ' (Anda)' : ''), // Menandai akun sendiri
+                            style: const TextStyle(fontWeight: FontWeight.bold)
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                email,
                                 style: TextStyle(
-                                  fontSize: 10, 
-                                  fontWeight: FontWeight.bold,
-                                  color: role == 'admin' ? Colors.red : 
-                                         role == 'ahli_gizi' ? Colors.teal : Colors.lightGreen[700]
+                                  fontSize: 11, // Ubah angka ini untuk ukuran Email
+                                  color: Colors.grey[700], // Opsional: Warna teks email
                                 ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 4),
+                              // Badge Role
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: role == 'admin' ? Colors.red.shade100 : 
+                                         role == 'ahli_gizi' ? Colors.teal.shade100 : Colors.lightGreen.shade100,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  role.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 10, 
+                                    fontWeight: FontWeight.bold,
+                                    color: role == 'admin' ? Colors.red : 
+                                             role == 'ahli_gizi' ? Colors.teal : Colors.lightGreen[700]
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Tombol Edit Role
+                              IconButton(
+                                // Jika akun sendiri (isSelf), warna jadi abu-abu
+                                icon: Icon(Icons.edit, color: isSelf ? Colors.grey : Colors.blue),
+                                // Jika akun sendiri, onPressed jadi null (tombol mati)
+                                onPressed: isSelf 
+                                  ? null 
+                                  : () => _updateUserRole(userId, role),
+                              ),
+                              // Tombol Hapus
+                              IconButton(
+                                // Jika akun sendiri (isSelf), warna jadi abu-abu
+                                icon: Icon(Icons.delete, color: isSelf ? Colors.grey : Colors.red),
+                                // Jika akun sendiri, onPressed jadi null (tombol mati)
+                                onPressed: isSelf 
+                                  ? null 
+                                  : () => _deleteUser(userId),
+                              ),
+                            ],
+                          ),
                         ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Tombol Edit Role
-                            IconButton(
-                              // Jika akun sendiri (isSelf), warna jadi abu-abu
-                              icon: Icon(Icons.edit, color: isSelf ? Colors.grey : Colors.blue),
-                              // Jika akun sendiri, onPressed jadi null (tombol mati)
-                              onPressed: isSelf 
-                                ? null 
-                                : () => _updateUserRole(userId, role),
-                            ),
-                            // Tombol Hapus
-                            IconButton(
-                              // Jika akun sendiri (isSelf), warna jadi abu-abu
-                              icon: Icon(Icons.delete, color: isSelf ? Colors.grey : Colors.red),
-                              // Jika akun sendiri, onPressed jadi null (tombol mati)
-                              onPressed: isSelf 
-                                ? null 
-                                : () => _deleteUser(userId),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 );
+                // === AKHIR PERUBAHAN ===
               },
             ),
           ),

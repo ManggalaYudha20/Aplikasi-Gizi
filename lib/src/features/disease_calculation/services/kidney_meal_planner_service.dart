@@ -95,4 +95,14 @@ class KidneyMealPlans {
   static List<FoodItem>? getPlan(int protein) {
     return _mealPlans[protein];
   }
+
+  static List<FoodItem> getPlanFor(int proteinTarget) {
+    // Jika target persis ada (30, 35, 40...) ambil. 
+    // Jika tidak, ambil yang terdekat atau default 60g.
+    if (_mealPlans.containsKey(proteinTarget)) {
+      return _mealPlans[proteinTarget]!;
+    }
+    // Fallback logic
+    return _mealPlans[40]!; 
+  }
 }

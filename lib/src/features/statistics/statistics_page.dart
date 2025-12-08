@@ -617,11 +617,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
                             }
                           },
                           icon: const Icon(
-                            Icons.picture_as_pdf,
+                            Icons.download,
                             color: Colors.white,
                           ),
                           label: const Text(
-                            "Download Laporan (PDF)",
+                            "Download Laporan PDF",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
