@@ -76,10 +76,35 @@ class _KidneyDynamicMenuSectionState extends State<KidneyDynamicMenuSection> {
     }
 
     // 3. Tampilan Menu Makanan (List Card) + Tombol PDF
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch, // Agar tombol full width
-      children: [
-        
+    return Container(
+       padding: const EdgeInsets.all(16),
+       decoration: BoxDecoration(
+        color: Colors.teal.withAlpha(25),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.teal.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+      const Center(
+          child: Text(
+            'Rekomendasi Menu Sehari',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.teal, // Tetap Biru
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Ketuk ikon pensil untuk mengganti menu',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 10),
+        const Divider(height: 30),
         // --- LIST MENU ---
         ...widget.generatedMenu!.map((session) {
           int sessionIndex = widget.generatedMenu!.indexOf(session);
@@ -93,7 +118,7 @@ class _KidneyDynamicMenuSectionState extends State<KidneyDynamicMenuSection> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.teal.shade50,
+                    color: Colors.teal.shade100,
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                   ),
                   child: Text(
@@ -137,7 +162,7 @@ class _KidneyDynamicMenuSectionState extends State<KidneyDynamicMenuSection> {
           child: ElevatedButton.icon(
             onPressed: _isDownloadingPdf ? null : _handleDownloadPdf,
             style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue, // Tetap Biru
+                  backgroundColor: Colors.teal, // Tetap Biru
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -154,10 +179,11 @@ class _KidneyDynamicMenuSectionState extends State<KidneyDynamicMenuSection> {
                 : const Icon(Icons.download),
             label: Text( "Download Menu PDF",
               style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

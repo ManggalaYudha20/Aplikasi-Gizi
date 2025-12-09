@@ -39,10 +39,7 @@ class PatientAnak {
 
   // --- Asuhan Gizi (Baru ditambahkan) ---
   // 1. Biokimia
-  final String? biokimiaGDS;
-  final String? biokimiaUreum;
-  final String? biokimiaHGB;
-  final String? biokimiaENT;
+  final Map<String, String> labResults;
 
   // 2. Klinik/Fisik
   final String? klinikTD;
@@ -100,10 +97,7 @@ class PatientAnak {
     this.lila,
     this.lingkarKepala,
     this.bbi,
-    this.biokimiaGDS,
-    this.biokimiaUreum,
-    this.biokimiaHGB,
-    this.biokimiaENT,
+    this.labResults = const {},
     this.klinikTD,
     this.klinikNadi,
     this.klinikSuhu,
@@ -152,6 +146,11 @@ class PatientAnak {
       return 0; // Default jika tidak dikenali
     }
 
+    Map<String, String> parsedLabs = {};
+    if (data['labResults'] != null) {
+      parsedLabs = Map<String, String>.from(data['labResults']);
+    }
+
     return PatientAnak(
       id: doc.id,
       noRM: data['noRM'] ?? '',
@@ -185,10 +184,7 @@ class PatientAnak {
       lingkarKepala: (data['lingkarKepala'] as num?)?.toDouble(),
       bbi: (data['bbi'] as num?)?.toDouble(),
       
-      biokimiaGDS: data['biokimiaGDS'] as String?,
-      biokimiaUreum: data['biokimiaUreum'] as String?,
-      biokimiaHGB: data['biokimiaHGB'] as String?,
-      biokimiaENT: data['biokimiaENT'] as String?,
+      labResults: parsedLabs,
       
       klinikTD: data['klinikTD'] as String?,
       klinikNadi: data['klinikNadi'] as String?,
@@ -246,10 +242,7 @@ class PatientAnak {
       'lila': lila,
       'lingkarKepala': lingkarKepala,
       'bbi': bbi,
-      'biokimiaGDS': biokimiaGDS,
-      'biokimiaUreum': biokimiaUreum,
-      'biokimiaHGB': biokimiaHGB,
-      'biokimiaENT': biokimiaENT,
+      'labResults': labResults,
       'klinikTD': klinikTD,
       'klinikNadi': klinikNadi,
       'klinikSuhu': klinikSuhu,

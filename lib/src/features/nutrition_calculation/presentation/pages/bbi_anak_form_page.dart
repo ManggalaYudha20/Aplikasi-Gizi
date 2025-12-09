@@ -65,7 +65,7 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
       // Implementasi Rumus BBI Anak
       if (category == '0 - 11 Bulan') {
         // Rumus: (Usia dalam bulan / 2) + 4
-        bbi = (ageValue / 2) + 4;
+        bbi = (ageValue + 9) / 2;
       } else if (category == '1 - 6 Tahun') {
         // Rumus: (2 x Usia dalam tahun) + 8
         bbi = (2 * ageValue) + 8;
@@ -269,7 +269,7 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
   // Helper untuk deskripsi rumus yang dipakai
   String _getFormulaDescription() {
     if (_categoryController.text == '0 - 11 Bulan') {
-      return 'Rumus: (Usia bulan / 2) + 4';
+      return 'Rumus: (Usia bulan + 9) / 2';
     } else if (_categoryController.text == '1 - 6 Tahun') {
       return 'Rumus: (2 x Usia tahun) + 8';
     } else if (_categoryController.text == '7 - 12 Tahun') {

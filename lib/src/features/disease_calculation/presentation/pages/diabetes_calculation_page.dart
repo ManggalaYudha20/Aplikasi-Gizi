@@ -776,7 +776,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                             icon: const Icon(
                               Icons.edit,
                               size: 20,
-                              color: Colors.orange, // Icon Edit tetap Orange sesuai request
+                              color: Colors.grey, // Icon Edit tetap Orange sesuai request
                             ),
                             onPressed: () => _showEditDialog(item),
                           ),

@@ -135,18 +135,23 @@ class PdfGeneratorAsuhan {
                 _buildAssessmentCategorysatu(
                   'Biokimia /BD (Biochemical Data)',
                   [
-                    _buildAssessmentItemRow(
-                      'GDS : ${patient.biokimiaGDS ?? '-'} mg/dl',
-                      '',
-                      'ENT : ${patient.biokimiaENT ?? '-'}',
-                      '',
-                    ),
-                    _buildAssessmentItemRow(
-                      'Ureum : ${patient.biokimiaUreum ?? '-'} mg/dl',
-                      '',
-                      'HGB : ${patient.biokimiaHGB ?? '-'}',
-                      '',
-                    ),
+                   if (patient.labResults.isEmpty)
+                    pw.Text('-', style: const pw.TextStyle(fontSize: 9))
+                    else
+                    // Kita gunakan Collection for untuk membuat widget
+                    for (var i = 0; i < patient.labResults.length; i += 2) ...[
+                      // Ambil data pair (pasangan) untuk layout 2 kolom
+                      _buildAssessmentItemRow(
+                        // Kolom Kiri
+                        '${patient.labResults.keys.elementAt(i)} : ${patient.labResults.values.elementAt(i)} mg/dl',
+                        '', // Spacer kosong untuk format row fungsi ini
+                        // Kolom Kanan (Cek apakah ada item selanjutnya)
+                        (i + 1 < patient.labResults.length)
+                            ? '${patient.labResults.keys.elementAt(i + 1)} : ${patient.labResults.values.elementAt(i + 1)}'
+                            : '', // Jika ganjil, kanan kosong
+                        '', // Spacer kosong
+                      ),
+                    ],
                   ],
                 ),
                 _buildAssessmentCategorysatu(

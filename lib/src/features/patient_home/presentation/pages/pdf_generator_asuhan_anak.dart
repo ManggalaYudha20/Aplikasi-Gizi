@@ -230,18 +230,42 @@ class PdfGeneratorAsuhanAnak {
                   ),
                 ]),
                 _buildAssessmentCategorysatu('Biokimia /BD (Biochemical Data)', [
-                  _buildAssessmentItemRow(
-                    'GDS : ${formatString(patient.biokimiaGDS)}', // Value GDS
-                    '',
-                    'ENT : ${formatString(patient.biokimiaENT)}', // Value ENT
-                    '',
-                  ),
-                  _buildAssessmentItemRow(
-                    'Ureum : ${formatString(patient.biokimiaUreum)}', // Value Ureum
-                    '',
-                    'HGB : ${formatString(patient.biokimiaHGB)}', // Value HGB
-                    '',
-                  ),
+                 if (patient.labResults.isEmpty)
+                      pw.Text('-', style: const pw.TextStyle(fontSize: 9))
+                    else
+                      // Menampilkan 2 item per baris
+                      for (var i = 0; i < patient.labResults.length; i += 2) ...[
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          child: pw.Row(
+                            children: [
+                              // Kolom Kiri
+                              pw.Expanded(
+                                flex: 1,
+                                child: pw.Text('${patient.labResults.keys.elementAt(i)} ', style: const pw.TextStyle(fontSize: 9)),
+                              ),
+                              pw.Expanded(
+                                flex: 1,
+                                child: pw.Text(': ${patient.labResults.values.elementAt(i)}', style: const pw.TextStyle(fontSize: 9)),
+                              ),
+                              
+                              // Kolom Kanan (Jika ada)
+                              if (i + 1 < patient.labResults.length) ...[
+                                pw.Expanded(
+                                  flex: 1,
+                                  child: pw.Text('${patient.labResults.keys.elementAt(i + 1)} ', style: const pw.TextStyle(fontSize: 9)),
+                                ),
+                                pw.Expanded(
+                                  flex: 1,
+                                  child: pw.Text(': ${patient.labResults.values.elementAt(i + 1)}', style: const pw.TextStyle(fontSize: 9)),
+                                ),
+                              ] else ...[
+                                pw.Expanded(flex: 2, child: pw.Container()), // Spacer
+                              ]
+                            ],
+                          ),
+                        )
+                      ]
                 ]),
                 _buildAssessmentCategorysatu(
                   'Klinik /Fisik /PD (Physical Data)',

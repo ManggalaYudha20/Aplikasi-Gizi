@@ -15,6 +15,12 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/expert_system_service.dart';
 //import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/nutrition_reference_data.dart';
+class LabInputItem {
+  TextEditingController valueController;
+  String? selectedType;
+
+  LabInputItem({required this.valueController, this.selectedType});
+}
 
 class DataFormPage extends StatefulWidget {
   final Patient? patient; // Optional patient for editing
@@ -49,10 +55,12 @@ class _DataFormPageState extends State<DataFormPage> {
   // BARU: Controllers untuk Asuhan Gizi
   final _detailAlergiController = TextEditingController();
   final _polaMakanController = TextEditingController();
-  final _biokimiaGDSController = TextEditingController();
-  final _biokimiaUreumController = TextEditingController();
-  final _biokimiaHGBController = TextEditingController();
-  final _biokimiaENTController = TextEditingController();
+  final List<LabInputItem> _labItems = [];
+  final List<String> _labOptions = [
+    'GDS', 'GDP', 'HbA1c', 'Ureum', 'HGB', 'ENT', 
+    'Kolesterol Total', 'HDL', 'LDL', 'Trigliserida', 
+    'Asam Urat', 'Kreatinin', 'SGOT', 'SGPT', 'Natrium', 'Kalium'
+  ];
   final _klinikTDController = TextEditingController();
   final _klinikKUController = TextEditingController();
   final _klinikKESController = TextEditingController();
@@ -80,53 +88,27 @@ class _DataFormPageState extends State<DataFormPage> {
   @override
   void initState() {
     super.initState();
-    final controllers = [
-      _noRMController,
-      _namaLengkapController,
-      _tanggalLahirController,
-      _jenisKelaminController,
-      _diagnosisMedisController,
-      _beratBadanController,
-      _lilaController,
-      _beratBadanDuluController,
-      _tinggiBadanController,
-      _tlController,
-      _kehilanganNafsuMakanController,
-      _aktivitasController,
-      _alergiMakananController,
-      _detailAlergiController,
-      _polaMakanController,
-      _biokimiaGDSController,
-      _biokimiaUreumController,
-      _biokimiaHGBController,
-      _biokimiaENTController,
-      _klinikTDController,
-      _klinikKUController,
-      _klinikKESController,
-      _klinikNadiController,
-      _klinikSuhuController,
-      _klinikRRController,
-      _klinikSPO2Controller,
-      _riwayatPenyakitSekarangController,
-      _riwayatPenyakitDahuluController,
-      _diagnosaGiziController,
-      _intervensiDietController,
-      _intervensiBentukMakananController,
-      _intervensiViaController,
-      _intervensiTujuanController,
-      _monevAsupanController,
-      _monevHasilLabController,
-      _namaNutrisionisController,
-    ];
 
-    // Buat FocusNode untuk setiap controller
-    for (int i = 0; i < controllers.length; i++) {
+    for (int i = 0; i < 50; i++) {
       _focusNodes.add(FocusNode());
     }
 
     if (widget.patient != null) {
       _initializeFormWithPatientData();
+    } else {
+      // Jika pasien baru, tambahkan 1 field lab kosong default
+      _addLabItem(null, '');
     }
+  }
+
+  void _addLabItem(String? type, String value) {
+    if (_labItems.length >= 6) return; // Batasan Max 6
+    setState(() {
+      _labItems.add(LabInputItem(
+        valueController: TextEditingController(text: value),
+        selectedType: type,
+      ));
+    });
   }
 
   void _initializeFormWithPatientData() {
@@ -159,9 +141,14 @@ class _DataFormPageState extends State<DataFormPage> {
     // BARU: Inisialisasi data asuhan gizi
     _detailAlergiController.text = patient.detailAlergi ?? '';
     _polaMakanController.text = patient.polaMakan ?? '';
-    _biokimiaGDSController.text = patient.biokimiaGDS ?? '';
-    _biokimiaUreumController.text = patient.biokimiaUreum ?? '';
-    _biokimiaHGBController.text = patient.biokimiaHGB ?? '';
+    _labItems.clear();
+    if (patient.labResults.isNotEmpty) {
+      patient.labResults.forEach((key, value) {
+        _addLabItem(key, value);
+      });
+    } else {
+      _addLabItem(null, '');
+    }
     _klinikTDController.text = patient.klinikTD ?? '';
     _klinikNadiController.text = patient.klinikNadi ?? '';
     _klinikSuhuController.text = patient.klinikSuhu ?? '';
@@ -177,7 +164,6 @@ class _DataFormPageState extends State<DataFormPage> {
     _intervensiTujuanController.text = patient.intervensiTujuan ?? '';
     _monevAsupanController.text = patient.monevAsupan ?? '';
     _monevHasilLabController.text = patient.monevHasilLab ?? '';
-    _biokimiaENTController.text = patient.biokimiaENT ?? '';
     _klinikKUController.text = patient.klinikKU ?? '';
     _klinikKESController.text = patient.klinikKES ?? '';
     _klinikSPO2Controller.text = patient.klinikSPO2 ?? '';
@@ -206,9 +192,11 @@ class _DataFormPageState extends State<DataFormPage> {
     // BARU: Dispose controllers asuhan gizi
     _detailAlergiController.dispose();
     _polaMakanController.dispose();
-    _biokimiaGDSController.dispose();
-    _biokimiaUreumController.dispose();
-    _biokimiaHGBController.dispose();
+
+    for (var item in _labItems) {
+      item.valueController.dispose();
+    }
+
     _klinikTDController.dispose();
     _klinikNadiController.dispose();
     _klinikSuhuController.dispose();
@@ -222,7 +210,6 @@ class _DataFormPageState extends State<DataFormPage> {
     _intervensiTujuanController.dispose();
     _monevAsupanController.dispose();
     _monevHasilLabController.dispose();
-    _biokimiaENTController.dispose();
     _klinikKUController.dispose();
     _klinikKESController.dispose();
     _klinikSPO2Controller.dispose();
@@ -260,9 +247,13 @@ class _DataFormPageState extends State<DataFormPage> {
       _selectedDate = null;
       _detailAlergiController.clear();
       _polaMakanController.clear();
-      _biokimiaGDSController.clear();
-      _biokimiaUreumController.clear();
-      _biokimiaHGBController.clear();
+
+      for (var item in _labItems) {
+        item.valueController.dispose();
+      }
+      _labItems.clear();
+      _addLabItem(null, '');
+
       _klinikTDController.clear();
       _klinikNadiController.clear();
       _klinikSuhuController.clear();
@@ -276,7 +267,6 @@ class _DataFormPageState extends State<DataFormPage> {
       _intervensiTujuanController.clear();
       _monevAsupanController.clear();
       _monevHasilLabController.clear();
-      _biokimiaENTController.clear();
       _klinikKUController.clear();
       _klinikKESController.clear();
       _klinikSPO2Controller.clear();
@@ -413,15 +403,31 @@ class _DataFormPageState extends State<DataFormPage> {
         final totalSkor = skorIMT + skorKehilanganBB + skorEfekPenyakit;
 
         // 1. Parsing Data Lab & Fisik
-        final double? gdsVal = _biokimiaGDSController.text.isNotEmpty
-            ? double.tryParse(_biokimiaGDSController.text)
-            : null;
-        final double? hba1cVal = _biokimiaHGBController.text.isNotEmpty
-            ? double.tryParse(_biokimiaHGBController.text)
-            : null; // Asumsi HGB dipakai untuk HbA1c atau tambah field baru
-        final double? ureumVal = _biokimiaUreumController.text.isNotEmpty
-            ? double.tryParse(_biokimiaUreumController.text)
-            : null;
+        Map<String, String> labResultsMap = {};
+        double? gdsVal;
+        double? gdpVal;
+        double? hba1cVal;
+        double? ureumVal;
+        double? cholesterolVal;
+        
+        for (var item in _labItems) {
+          if (item.selectedType != null && item.valueController.text.isNotEmpty) {
+            // 1. Simpan ke Map untuk Database
+            labResultsMap[item.selectedType!] = item.valueController.text;
+            
+            // 2. Ambil nilai numerik untuk Sistem Pakar (Fix Error Interpolasi di sini)
+            try {
+              double? val = double.tryParse(item.valueController.text);
+              if (val != null) {
+                if (item.selectedType == 'GDS') gdsVal = val;
+                if (item.selectedType == 'GDP') gdpVal = val;
+                if (item.selectedType == 'HbA1c') hba1cVal = val;
+                if (item.selectedType == 'Ureum') ureumVal = val;
+                if (item.selectedType == 'Kolesterol Total') cholesterolVal = val;
+              }
+            } catch (_) {}
+          }
+        }
 
         // 2. Parsing Tekanan Darah (Format "120/80")
         String bpStatus = "Normal";
@@ -442,17 +448,18 @@ class _DataFormPageState extends State<DataFormPage> {
         if (_jarangOlahraga) dietaryHistoryList.add('Jarang olahraga');
 
         // 4. Deteksi Masalah Ginjal (Ureum tinggi atau Diagnosa Medis)
-        bool kidneyIssue =
-            (ureumVal != null && ureumVal > 50) ||
-            (diagnosisMedis.toLowerCase().contains('ginjal'));
+        bool kidneyIssue = (ureumVal != null && ureumVal > 50) ||
+            (diagnosisMedis.toLowerCase().contains('ginjal')) ||
+            (diagnosisMedis.toLowerCase().contains('ckd')) ||
+            (diagnosisMedis.toLowerCase().contains('gagal ginjal'));
 
         // 5. JALANKAN SERVICE SISTEM PAKAR
         final expertInput = ExpertSystemInput(
           imt: imt,
           gds: gdsVal,
-          gdp: null, // Tambahkan controller GDP jika ada
+          gdp: gdpVal,
           hba1c: hba1cVal,
-          cholesterol: null, // Tambahkan controller Kolesterol jika ada
+          cholesterol: cholesterolVal,
           bloodPressure: bpStatus,
           dietaryHistory: dietaryHistoryList,
           medicalDiagnosis: diagnosisMedis,
@@ -468,9 +475,10 @@ class _DataFormPageState extends State<DataFormPage> {
             .join('\n');
 
         String autoInterventionDiet = carePlan.suggestedInterventions
-            .where((i) => i.code.startsWith('ND'))
-            .map((i) => "${i.label}")
+            .where((i) => i.code.startsWith('ND')) // Ambil Intervensi Diet (ND)
+            .map((i) => "${i.label} ")
             .join(', ');
+            
 
         // --- Siapkan data untuk Firestore ---
         final patientData = {
@@ -501,9 +509,7 @@ class _DataFormPageState extends State<DataFormPage> {
           // BARU: Data Asuhan Gizi
           'detailAlergi': _detailAlergiController.text,
           'polaMakan': _polaMakanController.text,
-          'biokimiaGDS': _biokimiaGDSController.text,
-          'biokimiaUreum': _biokimiaUreumController.text,
-          'biokimiaHGB': _biokimiaHGBController.text,
+          'labResults': labResultsMap,
           'klinikTD': _klinikTDController.text,
           'klinikNadi': _klinikNadiController.text,
           'klinikSuhu': _klinikSuhuController.text,
@@ -526,7 +532,6 @@ class _DataFormPageState extends State<DataFormPage> {
                     : ''),
           'monevHasilLab': _monevHasilLabController.text,
           'monevStatusGizi': statusGizi,
-          'biokimiaENT': _biokimiaENTController.text,
           'klinikKU': _klinikKUController.text,
           'klinikKES': _klinikKESController.text,
           'klinikSPO2': _klinikSPO2Controller.text,
@@ -611,9 +616,7 @@ class _DataFormPageState extends State<DataFormPage> {
             alergiMakanan: _alergiMakananController.text,
             detailAlergi: _detailAlergiController.text,
             polaMakan: _polaMakanController.text,
-            biokimiaGDS: _biokimiaGDSController.text,
-            biokimiaUreum: _biokimiaUreumController.text,
-            biokimiaHGB: _biokimiaHGBController.text,
+            labResults: labResultsMap,
             klinikTD: _klinikTDController.text,
             klinikNadi: _klinikNadiController.text,
             klinikSuhu: _klinikSuhuController.text,
@@ -632,7 +635,6 @@ class _DataFormPageState extends State<DataFormPage> {
             monevAsupan: _monevAsupanController.text,
             monevHasilLab: _monevHasilLabController.text,
             monevStatusGizi: statusGizi,
-            biokimiaENT: _biokimiaENTController.text,
             klinikKU: _klinikKUController.text,
             klinikKES: _klinikKESController.text,
             klinikSPO2: _klinikSPO2Controller.text,
@@ -902,7 +904,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _namaNutrisionisController,
                     label: 'Nama Nutrisionis',
                     prefixIcon: const Icon(Icons.person),
-                    focusNode: _focusNodes[34],
+                    focusNode: _focusNodes[12],
                     validator: (value) => null,
                     maxLength: 100,
                   ),
@@ -925,7 +927,7 @@ class _DataFormPageState extends State<DataFormPage> {
                         prefixIcon: const Icon(Icons.no_food),
                         items: ['Ya', 'Tidak'],
                         focusNode:
-                            _focusNodes[12], // Ganti 12 dengan index yang benar
+                            _focusNodes[13], // Ganti 12 dengan index yang benar
                         onChanged: (value) {
                           // onChanged khusus untuk memicu setState agar field di bawahnya muncul/hilang
                           setState(() {
@@ -947,7 +949,7 @@ class _DataFormPageState extends State<DataFormPage> {
                             prefixIcon: const Icon(Icons.description),
                             maxLength: 100,
                             focusNode:
-                                _focusNodes[13], // Ganti 13 dengan index yang benar
+                                _focusNodes[14], // Ganti 13 dengan index yang benar
                             validator: (value) {
                               // Validasi ini hanya berjalan jika field-nya terlihat
                               if (value == null || value.isEmpty) {
@@ -964,7 +966,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _polaMakanController,
                     label: 'Pola Makan / Asupan',
                     prefixIcon: const Icon(Icons.restaurant),
-                    focusNode: _focusNodes[14],
+                    focusNode: _focusNodes[15],
                     maxLength: 20, // Ganti 14 dengan index yang benar
                     validator: (value) => null, // Opsional, tidak wajib diisi
                   ),
@@ -1031,48 +1033,90 @@ class _DataFormPageState extends State<DataFormPage> {
 
                   _buildSectionHeader('Biokimia/BD'),
 
-                  _buildTextFormField(
-                    controller: _biokimiaGDSController,
-                    label: 'GDS',
-                    prefixIcon: const Icon(Icons.science),
-                    suffixText: 'mg/dl',
-                    maxLength: 8,
-                    focusNode:
-                        _focusNodes[15], // Ganti 15 dengan index yang benar
-                    validator: (value) => null, // Opsional
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _labItems.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // DROPDOWN JENIS LAB
+                            Expanded(
+                              flex: 2,
+                              child: DropdownButtonFormField<String>(
+                                decoration: const InputDecoration(
+                                  labelText: 'Jenis Tes',
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                                ),
+                                // Pastikan value ada di list items atau null
+                                initialValue: _labItems[index].selectedType, 
+                                items: _labOptions.map((String type) {
+                                  return DropdownMenuItem<String>(
+                                    value: type,
+                                    child: Text(type, style: const TextStyle(fontSize: 13)),
+                                  );
+                                }).toList(),
+                                onChanged: (val) {
+                                  setState(() {
+                                    _labItems[index].selectedType = val;
+                                  });
+                                },
+                                validator: (val) {
+                                   if (_labItems[index].valueController.text.isNotEmpty && val == null) {
+                                     return 'Pilih jenis';
+                                   }
+                                   return null;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            
+                            // INPUT HASIL LAB
+                            Expanded(
+                              flex: 2,
+                              child: TextFormField(
+                                controller: _labItems[index].valueController,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: 'Hasil',
+                                  border: OutlineInputBorder(),
+                                  suffixText: 'mg/dL',
+                                ),
+                                validator: (val) {
+                                  if (_labItems[index].selectedType != null && (val == null || val.isEmpty)) {
+                                     return 'Isi nilai';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            
+                            // TOMBOL HAPUS (Muncul jika item > 1)
+                            if (_labItems.length > 1 || index > 0)
+                              IconButton(
+                                icon: const Icon(Icons.remove_circle, color: Colors.red),
+                                onPressed: () {
+                                  setState(() {
+                                    _labItems[index].valueController.dispose();
+                                    _labItems.removeAt(index);
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 16),
-
-                  // Lanjutkan pola yang sama untuk semua field berikutnya...
-                  _buildTextFormField(
-                    controller: _biokimiaUreumController,
-                    label: 'Ureum',
-                    prefixIcon: const Icon(Icons.science),
-                    suffixText: 'mg/dl',
-                    focusNode: _focusNodes[16], // Index selanjutnya
-                    maxLength: 8,
-                    validator: (value) => null,
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildTextFormField(
-                    controller: _biokimiaHGBController,
-                    label: 'HGB',
-                    prefixIcon: const Icon(Icons.science),
-                    focusNode: _focusNodes[17],
-                    maxLength: 8,
-                    validator: (value) => null,
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildTextFormField(
-                    controller: _biokimiaENTController,
-                    label: 'ENT',
-                    prefixIcon: const Icon(Icons.science),
-                    focusNode: _focusNodes[18],
-                    maxLength: 8,
-                    validator: (value) => null,
-                  ),
+                  if (_labItems.length < 6)
+                    OutlinedButton.icon(
+                      onPressed: () => _addLabItem(null, ''),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Tambah Hasil Lab Lain'),
+                    ),
 
                   _buildSectionHeader('Klinik/Fisik/PD'),
 
@@ -1081,7 +1125,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     label: 'Tekanan Darah (TD)',
                     prefixIcon: const Icon(Icons.favorite),
                     suffixText: 'mmHg',
-                    focusNode: _focusNodes[19],
+                    focusNode: _focusNodes[17],
                     maxLength: 8,
                     validator: (value) => null, // Opsional
                   ),
@@ -1092,7 +1136,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     label: 'Nadi (N)',
                     prefixIcon: const Icon(Icons.monitor_heart),
                     suffixText: 'x/menit',
-                    focusNode: _focusNodes[20],
+                    focusNode: _focusNodes[18],
                     maxLength: 4,
                     validator: (value) => null, // Opsional
                   ),
@@ -1103,7 +1147,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     label: 'Suhu Badan (SB)',
                     prefixIcon: const Icon(Icons.thermostat),
                     suffixText: '°C',
-                    focusNode: _focusNodes[21],
+                    focusNode: _focusNodes[19],
                     maxLength: 4,
                     validator: (value) => null,
                   ),
@@ -1114,7 +1158,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     label: 'Respirasi (R)',
                     prefixIcon: const Icon(Icons.air),
                     suffixText: 'x/menit',
-                    focusNode: _focusNodes[22],
+                    focusNode: _focusNodes[20],
                     maxLength: 4,
                     validator: (value) => null,
                   ),
@@ -1124,7 +1168,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _klinikKUController,
                     label: 'Keadaan Umum (KU)',
                     prefixIcon: const Icon(Icons.monitor_heart),
-                    focusNode: _focusNodes[23],
+                    focusNode: _focusNodes[21],
                     validator: (value) => null,
                     maxLength: 20,
                   ),
@@ -1134,7 +1178,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _klinikKESController,
                     label: 'Kesadaran (KES)',
                     prefixIcon: const Icon(Icons.monitor_heart),
-                    focusNode: _focusNodes[24],
+                    focusNode: _focusNodes[22],
                     validator: (value) => null,
                     maxLength: 20,
                   ),
@@ -1145,7 +1189,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     label: 'Saturasi Oksigen (SpO2)',
                     prefixIcon: const Icon(Icons.air),
                     suffixText: '%',
-                    focusNode: _focusNodes[25],
+                    focusNode: _focusNodes[23],
                     maxLength: 4,
                     validator: (value) => null,
                   ),
@@ -1156,7 +1200,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _riwayatPenyakitSekarangController,
                     label: 'Riwayat Penyakit Sekarang (RPS)',
                     prefixIcon: const Icon(Icons.history_edu),
-                    focusNode: _focusNodes[26],
+                    focusNode: _focusNodes[24],
                     maxLength: 500,
                     validator: (value) => null,
                   ),
@@ -1166,7 +1210,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _riwayatPenyakitDahuluController,
                     label: 'Riwayat Penyakit Dahulu (RPD)',
                     prefixIcon: const Icon(Icons.history),
-                    focusNode: _focusNodes[27],
+                    focusNode: _focusNodes[25],
                     maxLength: 500,
                     validator: (value) => null,
                   ),
@@ -1182,7 +1226,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _diagnosaGiziController,
                     label: 'Diagnosa Gizi',
                     prefixIcon: const Icon(Icons.medical_services),
-                    focusNode: _focusNodes[28],
+                    focusNode: _focusNodes[26],
                     maxLength: 500,
                     validator: (value) => null,
                   ),
@@ -1193,7 +1237,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _intervensiDietController,
                     label: 'Jenis Diet',
                     prefixIcon: const Icon(Icons.food_bank),
-                    focusNode: _focusNodes[29],
+                    focusNode: _focusNodes[27],
                     maxLength: 200,
                     validator: (value) => null,
                   ),
@@ -1203,7 +1247,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _intervensiBentukMakananController,
                     label: 'Bentuk Makanan',
                     prefixIcon: const Icon(Icons.fastfood),
-                    focusNode: _focusNodes[30],
+                    focusNode: _focusNodes[28],
                     maxLength: 200,
                     validator: (value) => null,
                   ),
@@ -1213,7 +1257,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _intervensiViaController,
                     label: 'Via',
                     prefixIcon: const Icon(Icons.route),
-                    focusNode: _focusNodes[31],
+                    focusNode: _focusNodes[29],
                     items: const ['Oral', 'Enteral', 'Parenteral'],
                     validator: (value) => null,
                   ),
@@ -1223,7 +1267,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _intervensiTujuanController,
                     label: 'Tujuan Diet',
                     prefixIcon: const Icon(Icons.flag),
-                    focusNode: _focusNodes[32],
+                    focusNode: _focusNodes[30],
                     maxLength: 500,
                     validator: (value) => null,
                   ),
@@ -1234,7 +1278,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _monevAsupanController,
                     label: 'Asupan Makanan',
                     prefixIcon: const Icon(Icons.monitor),
-                    focusNode: _focusNodes[33],
+                    focusNode: _focusNodes[31],
                     maxLength: 500,
                     validator: (value) => null,
                   ),
@@ -1244,7 +1288,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _monevHasilLabController,
                     label: 'Hasil Lab',
                     prefixIcon: const Icon(Icons.document_scanner),
-                    focusNode: _focusNodes[35],
+                    focusNode: _focusNodes[32],
                     maxLength: 500,
                     validator: (value) => null,
                   ),

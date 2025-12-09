@@ -26,9 +26,7 @@ class Patient {
   final String? alergiMakanan;
   final String? detailAlergi;
   final String? polaMakan;
-  final String? biokimiaGDS;
-  final String? biokimiaUreum;
-  final String? biokimiaHGB;
+  final Map<String, String> labResults;
   final String? klinikTD;
   final String? klinikNadi;
   final String? klinikSuhu;
@@ -42,7 +40,6 @@ class Patient {
   final String? intervensiTujuan;
   final String? monevAsupan;
   final String? monevStatusGizi;
-  final String? biokimiaENT;
   final String? klinikKU;
   final String? klinikKES;
   final String? klinikSPO2;
@@ -78,9 +75,7 @@ class Patient {
     this.alergiMakanan,
     this.detailAlergi,
     this.polaMakan,
-    this.biokimiaGDS,
-    this.biokimiaUreum,
-    this.biokimiaHGB,
+    this.labResults = const {},
     this.klinikTD,
     this.klinikNadi,
     this.klinikSuhu,
@@ -95,7 +90,6 @@ class Patient {
     this.monevAsupan,
     this.monevStatusGizi,
     this.monevHasilLab,
-    this.biokimiaENT,
     this.klinikKU,
     this.klinikKES,
     this.klinikSPO2,
@@ -110,6 +104,26 @@ class Patient {
 
   factory Patient.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
+    Map<String, String> parsedLabs = {};
+
+    // 1. Jika ada field 'labResults' (Format Baru), ambil isinya
+    if (data['labResults'] != null) {
+      parsedLabs = Map<String, String>.from(data['labResults']);
+    }
+
+    // 2. Cek field lama (Format Lama), jika ada, masukkan ke Map
+    if (data['biokimiaGDS'] != null && data['biokimiaGDS'].toString().isNotEmpty) {
+      parsedLabs['GDS'] = data['biokimiaGDS'].toString();
+    }
+    if (data['biokimiaUreum'] != null && data['biokimiaUreum'].toString().isNotEmpty) {
+      parsedLabs['Ureum'] = data['biokimiaUreum'].toString();
+    }
+    if (data['biokimiaHGB'] != null && data['biokimiaHGB'].toString().isNotEmpty) {
+      parsedLabs['HGB'] = data['biokimiaHGB'].toString();
+    }
+    if (data['biokimiaENT'] != null && data['biokimiaENT'].toString().isNotEmpty) {
+      parsedLabs['ENT'] = data['biokimiaENT'].toString();
+    }
     return Patient(
       id: doc.id,
       noRM: data['noRM'] ?? '',
@@ -134,9 +148,6 @@ class Patient {
       alergiMakanan: data['alergiMakanan'] as String?,
       detailAlergi: data['detailAlergi'] as String?,
       polaMakan: data['polaMakan'] as String?,
-      biokimiaGDS: data['biokimiaGDS'] as String?,
-      biokimiaUreum: data['biokimiaUreum'] as String?,
-      biokimiaHGB: data['biokimiaHGB'] as String?,
       klinikTD: data['klinikTD'] as String?,
       klinikNadi: data['klinikNadi'] as String?,
       klinikSuhu: data['klinikSuhu'] as String?,
@@ -151,13 +162,13 @@ class Patient {
       monevAsupan: data['monevAsupan'] as String?,
       monevStatusGizi: data['monevStatusGizi'] as String?,
       monevHasilLab: data['monevHasilLab'] as String?,
-      biokimiaENT: data['biokimiaENT'] as String?,
       klinikKU: data['klinikKU'] as String?,
       klinikKES: data['klinikKES'] as String?,
       klinikSPO2: data['klinikSPO2'] as String?,
       namaNutrisionis: data['namaNutrisionis'] as String?,
       createdBy: data['createdBy'] ?? '',
       isCompleted: data['isCompleted'] ?? false,
+      labResults: parsedLabs,
 
       sukaManis: data['sukaManis'] as bool? ?? false,
       sukaAsin: data['sukaAsin'] as bool? ?? false,
@@ -189,9 +200,7 @@ class Patient {
       'alergiMakanan': alergiMakanan,
       'detailAlergi': detailAlergi,
       'polaMakan': polaMakan,
-      'biokimiaGDS': biokimiaGDS,
-      'biokimiaUreum': biokimiaUreum,
-      'biokimiaHGB': biokimiaHGB,
+      'labResults': labResults,
       'klinikTD': klinikTD,
       'klinikNadi': klinikNadi,
       'klinikSuhu': klinikSuhu,
@@ -206,7 +215,6 @@ class Patient {
       'monevAsupan': monevAsupan,
       'monevStatusGizi': monevStatusGizi,
       'monevHasilLab' : monevHasilLab,
-      'biokimiaENT': biokimiaENT,
       'klinikKU': klinikKU,
       'klinikKES': klinikKES,
       'klinikSPO2': klinikSPO2,

@@ -332,7 +332,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
 
                     if (_mealPlan != null)
                       ExpansionTile(
-                        title: Text('Bahan Makanan Sehari (Mentah)'),
+                        title: Text('Bahan Makanan Sehari'),
                         children: [
                           const SizedBox(height: 10),
                           _buildMealPlanCard(_mealPlan!),
@@ -348,7 +348,6 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                       ),
                       // Opsional: Jika ingin otomatis terbuka saat selesai loading, bisa pakai key atau state variable
                       children: [
-                        const SizedBox(height: 10),
                         KidneyDynamicMenuSection(
                           isLoading: _isGeneratingMenu,
                           generatedMenu: _generatedMenu,
@@ -527,6 +526,17 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Center(
+            child: Text(
+              'Asupan Gizi per Hari (Diet Protein ${_result!.recommendedDiet}g)',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+          ),
+          const Divider(height: 24),
            _buildInfoRow('Energi', '${nutritionInfo.energi} kkal'),
            _buildInfoRow('Protein', '${nutritionInfo.protein} g'),
            _buildInfoRow('Lemak', '${nutritionInfo.lemak} g'),
@@ -571,6 +581,15 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+           Text(
+              'Bahan Makanan Sehari (Diet Protein ${_result!.recommendedDiet}g)',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.purple,
+              ),
+            ),
+          const Divider(height: 24),
           Table(
             columnWidths: const {
               0: FlexColumnWidth(3),

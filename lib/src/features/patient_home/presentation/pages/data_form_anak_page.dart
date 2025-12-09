@@ -15,6 +15,13 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_validator_utils.d
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_calculation_helper.dart';
 import 'dart:async';
 
+class LabInputItem {
+  TextEditingController valueController;
+  String? selectedType;
+
+  LabInputItem({required this.valueController, this.selectedType});
+}
+
 class DataFormAnakPage extends StatefulWidget {
   final PatientAnak? patient;
 
@@ -51,10 +58,12 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
   final _bbiController = TextEditingController();
 
   // Controllers Asuhan Gizi - Biokimia
-  final _biokimiaGDSController = TextEditingController();
-  final _biokimiaUreumController = TextEditingController();
-  final _biokimiaHGBController = TextEditingController();
-  final _biokimiaENTController = TextEditingController();
+  final List<LabInputItem> _labItems = [];
+  final List<String> _labOptions = [
+    'Hb', 'Leukosit', 'Trombosit', 'Hematokrit', 
+    'GDS', 'Albumin', 'Protein Total', 'Ureum', 'Kreatinin',
+    'SGOT', 'SGPT', 'Natrium', 'Kalium', 'Kalsium', 'CRP'
+  ];
 
   // Controllers Asuhan Gizi - Klinik/Fisik
   final _klinikTDController = TextEditingController();
@@ -102,52 +111,27 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
   @override
   void initState() {
     super.initState();
-    final controllers = [
-      _noRMController,
-      _namaLengkapController,
-      _tanggalLahirController,
-      _jenisKelaminController,
-      _beratBadanController,
-      _tinggiBadanController,
-      _namaNutrisionisController,
-      _diagnosisMedisController,
-      _kehilanganBeratBadanController,
-      _kehilanganNafsuMakanController,
-      _anakSakitBeratController,
-      _lilaController,
-      _lingkarKepalaController,
-      _bbiController,
-      _biokimiaGDSController,
-      _biokimiaUreumController,
-      _biokimiaHGBController,
-      _biokimiaENTController,
-      _klinikTDController,
-      _klinikNadiController,
-      _klinikSuhuController,
-      _klinikRRController,
-      _klinikSPO2Controller,
-      _klinikKUController,
-      _klinikKESController,
-      _riwayatPenyakitSekarangController,
-      _riwayatPenyakitDahuluController,
-      _alergiMakananController,
-      _polaMakanController,
-      _diagnosaGiziController,
-      _intervensiDietController,
-      _intervensiBentukMakananController,
-      _intervensiViaController,
-      _intervensiTujuanController,
-      _monevAsupanController,
-    ];
 
     // Buat FocusNode untuk setiap controller
-    for (int i = 0; i < controllers.length; i++) {
+    for (int i = 0; i < 50; i++) {
       _focusNodes.add(FocusNode());
     }
 
     if (widget.patient != null) {
       _initializeForm(widget.patient!);
+    } else {
+      // 3. TAMBAHKAN DEFAULT LAB
+      _addLabItem(null, '');
     }
+  }
+  void _addLabItem(String? type, String value) {
+    if (_labItems.length >= 8) return; 
+    setState(() {
+      _labItems.add(LabInputItem(
+        valueController: TextEditingController(text: value),
+        selectedType: type,
+      ));
+    });
   }
 
   void _initializeForm(PatientAnak patient) {
@@ -170,10 +154,14 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     _lingkarKepalaController.text = patient.lingkarKepala?.toString() ?? '';
     _bbiController.text = patient.bbi?.toString() ?? '';
 
-    _biokimiaGDSController.text = patient.biokimiaGDS ?? '';
-    _biokimiaUreumController.text = patient.biokimiaUreum ?? '';
-    _biokimiaHGBController.text = patient.biokimiaHGB ?? '';
-    _biokimiaENTController.text = patient.biokimiaENT ?? '';
+    _labItems.clear();
+    if (patient.labResults.isNotEmpty) {
+      patient.labResults.forEach((key, value) {
+        _addLabItem(key, value);
+      });
+    } else {
+      _addLabItem(null, '');
+    }
 
     _klinikTDController.text = patient.klinikTD ?? '';
     _klinikNadiController.text = patient.klinikNadi ?? '';
@@ -266,10 +254,9 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     _lilaController.dispose();
     _lingkarKepalaController.dispose();
     _bbiController.dispose();
-    _biokimiaGDSController.dispose();
-    _biokimiaUreumController.dispose();
-    _biokimiaHGBController.dispose();
-    _biokimiaENTController.dispose();
+    for (var item in _labItems) {
+      item.valueController.dispose();
+    }
     _klinikTDController.dispose();
     _klinikNadiController.dispose();
     _klinikSuhuController.dispose();
@@ -312,10 +299,11 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
       _lilaController.clear();
       _lingkarKepalaController.clear();
       _bbiController.clear();
-      _biokimiaGDSController.clear();
-      _biokimiaUreumController.clear();
-      _biokimiaHGBController.clear();
-      _biokimiaENTController.clear();
+      for (var item in _labItems) {
+        item.valueController.dispose();
+      }
+      _labItems.clear();
+      _addLabItem(null, '');
       _klinikTDController.clear();
       _klinikNadiController.clear();
       _klinikSuhuController.clear();
@@ -391,6 +379,13 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
         final resultBBTB = calculationResult['bbPerTB'];
         final resultIMTU = calculationResult['imtPerU'];
 
+        Map<String, String> labResultsMap = {};
+        for (var item in _labItems) {
+          if (item.selectedType != null && item.valueController.text.isNotEmpty) {
+            labResultsMap[item.selectedType!] = item.valueController.text;
+          }
+        }
+
         final patientAnakData = {
           'noRM': _noRMController.text,
           'namaLengkap': _namaLengkapController.text,
@@ -423,10 +418,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
           'lingkarKepala': double.tryParse(_lingkarKepalaController.text),
           'bbi': calculatedBBI,
 
-          'biokimiaGDS': _biokimiaGDSController.text,
-          'biokimiaUreum': _biokimiaUreumController.text,
-          'biokimiaHGB': _biokimiaHGBController.text,
-          'biokimiaENT': _biokimiaENTController.text,
+          'labResults': labResultsMap,
 
           'klinikTD': _klinikTDController.text,
           'klinikNadi': _klinikNadiController.text,
@@ -531,10 +523,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
           bbi: calculatedBBI,
 
           // 2. Biokimia
-          biokimiaGDS: _biokimiaGDSController.text,
-          biokimiaUreum: _biokimiaUreumController.text,
-          biokimiaHGB: _biokimiaHGBController.text,
-          biokimiaENT: _biokimiaENTController.text,
+          labResults: labResultsMap,
 
           // 3. Klinik/Fisik
           klinikTD: _klinikTDController.text,
@@ -1004,47 +993,89 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                   // 2. Biokimia
                   _buildSectionHeader('Biokimia/BD'),
                   
-                  _buildTextFormField(
-                    controller: _biokimiaGDSController,
-                    label: 'GDS',
-                    prefixIcon: const Icon(Icons.science),
-                    suffixText: 'mg/dl',
-                    keyboardType: TextInputType.number,
-                    focusNode: _focusNodes[17],
-                    validator: (v) => null,
-                    maxLength: 8,
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _labItems.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // DROPDOWN JENIS LAB
+                            Expanded(
+                              flex: 2,
+                              child: DropdownButtonFormField<String>(
+                                key: ObjectKey(_labItems[index]), // PENTING AGAR TIDAK ERROR
+                                decoration: const InputDecoration(
+                                  labelText: 'Jenis Tes',
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                                ),
+                                initialValue: _labItems[index].selectedType,
+                                items: _labOptions.map((String type) {
+                                  return DropdownMenuItem<String>(
+                                    value: type,
+                                    child: Text(type, style: const TextStyle(fontSize: 13)),
+                                  );
+                                }).toList(),
+                                onChanged: (val) {
+                                  setState(() {
+                                    _labItems[index].selectedType = val;
+                                  });
+                                },
+                                validator: (val) {
+                                   if (_labItems[index].valueController.text.isNotEmpty && val == null) {
+                                     return 'Pilih jenis';
+                                   }
+                                   return null;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            
+                            // INPUT HASIL LAB
+                            Expanded(
+                              flex: 2,
+                              child: TextFormField(
+                                controller: _labItems[index].valueController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Hasil',
+                                  border: OutlineInputBorder(),
+                                ),
+                                validator: (val) {
+                                  if (_labItems[index].selectedType != null && (val == null || val.isEmpty)) {
+                                     return 'Isi nilai';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            
+                            // TOMBOL HAPUS
+                            if (_labItems.length > 1 || index > 0)
+                              IconButton(
+                                icon: const Icon(Icons.remove_circle, color: Colors.red),
+                                onPressed: () {
+                                  setState(() {
+                                    _labItems[index].valueController.dispose();
+                                    _labItems.removeAt(index);
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 16),
-                  _buildTextFormField(
-                    controller: _biokimiaUreumController,
-                    label: 'Ureum',
-                    prefixIcon: const Icon(Icons.science),
-                    suffixText: 'mg/dl',
-                    keyboardType: TextInputType.number,
-                    focusNode: _focusNodes[18],
-                    validator: (v) => null,
-                    maxLength: 8,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextFormField(
-                    controller: _biokimiaHGBController,
-                    label: 'HGB',
-                    prefixIcon: const Icon(Icons.science),
-                    keyboardType: TextInputType.number,
-                    focusNode: _focusNodes[19],
-                    validator: (v) => null,
-                    maxLength: 8,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextFormField(
-                    controller: _biokimiaENTController,
-                    label: 'ENT',
-                    prefixIcon: const Icon(Icons.science),
-                    keyboardType: TextInputType.number,
-                    focusNode: _focusNodes[20],
-                    validator: (v) => null,
-                    maxLength: 8,
-                  ),
+                  
+                  if (_labItems.length < 8)
+                    OutlinedButton.icon(
+                      onPressed: () => _addLabItem(null, ''),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Tambah Hasil Lab Lain'),
+                    ),
 
                   // 3. Klinik / Fisik
                   _buildSectionHeader('Klinik/Fisik/PD'),

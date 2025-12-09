@@ -263,35 +263,18 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
               ),
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
-                _buildInfoRow(
-                  'GDS',
-                  // Gunakan string interpolation untuk menggabungkan nilai dan satuan
-                  (_currentPatient.biokimiaGDS != null &&
-                          _currentPatient.biokimiaGDS!.isNotEmpty)
-                      ? '${_currentPatient.biokimiaGDS} mg/dL'
-                      : '-',
-                ),
-                _buildInfoRow(
-                  'Ureum',
-                  (_currentPatient.biokimiaUreum != null &&
-                          _currentPatient.biokimiaUreum!.isNotEmpty)
-                      ? '${_currentPatient.biokimiaUreum} mg/dL'
-                      : '-',
-                ),
-                _buildInfoRow(
-                  'HGB',
-                  (_currentPatient.biokimiaHGB != null &&
-                          _currentPatient.biokimiaHGB!.isNotEmpty)
-                      ? '${_currentPatient.biokimiaHGB} g/dL'
-                      : '-',
-                ),
-                _buildInfoRow(
-                  'ENT',
-                  (_currentPatient.biokimiaENT != null &&
-                          _currentPatient.biokimiaENT!.isNotEmpty)
-                      ? '${_currentPatient.biokimiaENT} g/dL' // Satuan untuk ENT bisa bervariasi, sesuaikan jika perlu
-                      : '-',
-                ),
+               if (_currentPatient.labResults.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text('Tidak ada data laboratorium.'),
+                  )
+                else
+                  ..._currentPatient.labResults.entries.map((entry) {
+                    return _buildInfoRow(
+                      entry.key, 
+                      entry.value, 
+                    );
+                  }).toList(),
               ],
             ),
 

@@ -150,10 +150,21 @@ class DiabetesCalculatorService {
     double totalCalories = bmr + activityCorrection + weightCorrection;
 
     double ageCorrection = 0;
-    if (age > 40) {
+
+    // Cek umur diatas atau sama dengan 70 tahun (20%)
+    if (age >= 70) {
+      ageCorrection = bmr * 0.20;
+    } 
+    // Cek umur 60 - 69 tahun (10%)
+    else if (age >= 60) {
+      ageCorrection = bmr * 0.10;
+    } 
+    // Cek umur 40 - 59 tahun (5%)
+    else if (age >= 40) {
       ageCorrection = bmr * 0.05;
-      totalCalories -= ageCorrection;
     }
+    
+    totalCalories -= ageCorrection;
 
     double stressMetabolicCorrection = 0;
     if (hospitalizedStatus == 'Ya') {
