@@ -279,7 +279,7 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                     entry.key, // Key (misal: "GDS")
                     '${entry.value} mg/dL', // Value (misal: "120"), default unit mg/dL
                   );
-                }).toList(),
+                }),
               ],
             ),
             // Kategori 3: Data Klinis/Fisik

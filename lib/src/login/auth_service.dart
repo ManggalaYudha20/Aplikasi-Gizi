@@ -3,6 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -52,7 +53,7 @@ class AuthService {
 
       return userCredential;
     } catch (e) {
-      print('Error saat sign-in dengan Google: $e');
+      debugPrint('Error saat sign-in dengan Google: $e');
       throw Exception('Gagal masuk dengan Google. Silakan coba lagi.');
     }
   }
@@ -72,7 +73,7 @@ class AuthService {
         await user.delete();
       }
     } catch (e) {
-      print('Error saat menghapus akun: $e');
+      debugPrint('Error saat menghapus akun: $e');
       // Mungkin perlu re-autentikasi
     }
   }

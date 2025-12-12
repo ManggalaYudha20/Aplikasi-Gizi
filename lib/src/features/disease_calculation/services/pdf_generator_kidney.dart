@@ -22,19 +22,21 @@ Future<Uint8List> generateKidneyPdfBytes(
   final DateTime nowWita = now.toUtc().add(const Duration(hours: 8)); 
   final dateStr = "${DateFormat('EEEE, dd MMMM yyyy, HH:mm', 'id_ID').format(nowWita)} WITA";
 
-  // Load Gambar Aset (Pastikan path sesuai pubspec.yaml)
-  final sulutLogoData = await rootBundle.load('assets/images/sulut.png');
-  final rsLogoData = await rootBundle.load('assets/images/logo.png');
-  final sulutLogo = pw.MemoryImage(sulutLogoData.buffer.asUint8List());
-  final rsLogo = pw.MemoryImage(rsLogoData.buffer.asUint8List());
+
 
   pdf.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat.legal,
-      margin: const pw.EdgeInsets.all(32),
+      margin: const pw.EdgeInsets.all(32), 
       build: (context) => [
         // 1. Kop Surat
-        _buildHeader(sulutLogo, rsLogo, dateStr),
+        pw.Align(
+          alignment: pw.Alignment.centerRight,
+          child: pw.Text(
+            "Dicetak: $dateStr",
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+          ),
+        ),
 
         pw.SizedBox(height: 20),
 
@@ -103,42 +105,12 @@ Future<Uint8List> generateKidneyPdfBytes(
               pw.SizedBox(height: 15),
             ],
           );
-        }).toList(),
+        }),
       ],
     ),
   );
 
   return pdf.save();
-}
-
-// Widget Kop Surat (Sama dengan DM)
-pw.Widget _buildHeader(pw.MemoryImage logoSulut, pw.MemoryImage logoRs, String fullDate) {
-  return pw.Column(
-    children: [
-      pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.center,
-        children: [
-          pw.Container(width: 50, height: 50, child: pw.Image(logoSulut)),
-          pw.SizedBox(width: 15),
-          pw.Column(
-            children: [
-              pw.Text('Rumah Sakit Umum Daerah', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
-              pw.Text('Provinsi Sulawesi Utara', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
-              pw.Text('Jl. Bethesda No. 77, Manado', style: const pw.TextStyle(fontSize: 10)),
-            ],
-          ),
-          pw.SizedBox(width: 15),
-          pw.Container(width: 60, height: 60, child: pw.Image(logoRs)),
-        ],
-      ),
-      pw.SizedBox(height: 5),
-      pw.Divider(thickness: 2),
-      pw.Align(
-        alignment: pw.Alignment.centerRight,
-        child: pw.Text("Dicetak: $fullDate", style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
-      ),
-    ],
-  );
 }
 
 // Fungsi Utama dipanggil UI

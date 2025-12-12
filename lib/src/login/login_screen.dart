@@ -173,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen>
                   final userCredential = await _authService.signInWithGoogle();
 
                   // 2. Cek apakah widget masih ada di tree (best practice)
-                  if (!mounted) return;
+                  if (!context.mounted) return;
 
                   // 3. Jika berhasil (userCredential tidak null), navigasi ke halaman utama
                   if (userCredential != null && userCredential.user != null) {
@@ -192,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen>
                   }
                 } catch (e) {
                   // 4. Jika terjadi error (dari 'throw Exception' di AuthService)
-                  if (!mounted) return;
+                  if (!context.mounted) return;
 
                   // Tampilkan pesan error kepada pengguna
                   ScaffoldMessenger.of(context).showSnackBar(

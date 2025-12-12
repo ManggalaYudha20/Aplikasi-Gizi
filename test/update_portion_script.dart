@@ -12,7 +12,7 @@ Future<void> main() async {
   final CollectionReference foodCollection =
       FirebaseFirestore.instance.collection('food_items');
 
-  print('Memulai proses pembaruan data porsi_gram...');
+  debugPrint('Memulai proses pembaruan data porsi_gram...');
 
   // Mengambil semua dokumen dari koleksi
   final QuerySnapshot snapshot = await foodCollection.get();
@@ -30,7 +30,7 @@ Future<void> main() async {
     if (updateCount % 500 == 0) {
       await batch.commit();
       batch = FirebaseFirestore.instance.batch();
-      print('Batch $updateCount dokumen telah di-commit...');
+      debugPrint('Batch $updateCount dokumen telah di-commit...');
     }
   }
 
@@ -39,5 +39,5 @@ Future<void> main() async {
     await batch.commit();
   }
 
-  print('Pembaruan selesai. Total $updateCount dokumen telah diperbarui.');
+  debugPrint('Pembaruan selesai. Total $updateCount dokumen telah diperbarui.');
 }

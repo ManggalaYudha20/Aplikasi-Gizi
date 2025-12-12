@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 class StatisticsPdfService {
   /// Fungsi utama untuk generate dan membuka PDF
@@ -131,7 +132,7 @@ class StatisticsPdfService {
       await OpenFile.open(file.path);
     } catch (e) {
       // Error handling sederhana, biasanya dilempar ke UI
-      print("Gagal membuat PDF: $e");
+      debugPrint("Gagal membuat PDF: $e");
     }
   }
 

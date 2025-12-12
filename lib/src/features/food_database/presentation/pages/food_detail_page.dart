@@ -177,7 +177,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                             ),
                           );
                           // Cek mounted setelah await
-                          if (result == true && mounted) {
+                          if (result == true && context.mounted) {
                             Navigator.of(context).pop(true);
                           }
                         },

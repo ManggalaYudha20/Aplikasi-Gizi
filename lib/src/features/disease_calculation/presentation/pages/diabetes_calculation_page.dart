@@ -781,11 +781,11 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                             onPressed: () => _showEditDialog(item),
                           ),
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 );
-              }).toList(),
+              }),
 
               // Tombol Download PDF (Warna Tetap Biru)
               const SizedBox(height: 16),

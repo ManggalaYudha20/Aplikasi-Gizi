@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/widgets.dart';
 
 /// Kelas ini bertanggung jawab untuk semua interaksi yang terkait
 /// dengan data pengguna di Firestore, seperti mengambil role.
@@ -33,7 +34,7 @@ class UserService {
         return 'tamu';
       }
     } catch (e) {
-      print("--- Error fetching user role: $e ---");
+      debugPrint("--- Error fetching user role: $e ---");
       // Jika terjadi error saat komunikasi dengan Firestore, kembalikan null.
       return null;
     }

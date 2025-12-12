@@ -143,7 +143,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                             context,
                             widget.leaflet!,
                           );
-                          if (result == true && mounted) {
+                          if (result == true && context.mounted) {
                             Navigator.of(context).pop();
                           }
                         },

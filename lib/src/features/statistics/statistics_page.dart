@@ -58,7 +58,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
       
       return byteData?.buffer.asUint8List();
     } catch (e) {
-      print("Error capturing chart: $e");
+      debugPrint("Error capturing chart: $e");
       return null;
     }
   }
@@ -610,7 +610,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                                 chartImageBytes: chartImage,
                               );
                             } catch (e) {
-                              if (!mounted) return;
+                              if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text("Gagal membuka PDF: $e")),
                               );

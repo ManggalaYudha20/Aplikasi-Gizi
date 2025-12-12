@@ -274,7 +274,7 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                       entry.key, 
                       entry.value, 
                     );
-                  }).toList(),
+                  }),
               ],
             ),
 

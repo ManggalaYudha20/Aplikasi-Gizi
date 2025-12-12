@@ -6,29 +6,28 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.da
 import 'package:flutter/material.dart';
 
 // Import file planner dengan alias 'planner'
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/kidney_meal_planner_service.dart' as planner;
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/kidney_meal_planner_service.dart'
+    as planner;
 
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/services.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
 // Import Service & Model Baru
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/kidney_menu_models.dart'; 
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/kidney_dynamic_menu_service.dart'; 
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/kidney_menu_models.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/kidney_dynamic_menu_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/food_database_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/food_search_delegate.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/kidney_dynamic_menu_section.dart';
 
 // Import file database dengan alias 'db'
-import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart' as db;
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart'
+    as db;
 
 class KidneyCalculationPage extends StatefulWidget {
   final String userRole;
 
-  const KidneyCalculationPage({
-    super.key,
-    required this.userRole,
-  });
+  const KidneyCalculationPage({super.key, required this.userRole});
 
   @override
   State<KidneyCalculationPage> createState() => _KidneyCalculationPageState();
@@ -37,10 +36,10 @@ class KidneyCalculationPage extends StatefulWidget {
 class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
   final _formKey = GlobalKey<FormState>();
   final _calculatorService = KidneyCalculatorService();
-  
+
   // Menggunakan 'planner.FoodItem' untuk data rencana statis
   List<planner.FoodItem>? _mealPlan;
-  
+
   final GlobalKey<PatientPickerWidgetState> _patientPickerKey = GlobalKey();
 
   // Controllers
@@ -51,13 +50,16 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
   final _dialysisController = TextEditingController();
   final _genderController = TextEditingController();
   final _proteinFactorController = TextEditingController(text: '0.6 (Rendah)');
-  
+  final _currentWeightController = TextEditingController();
+  bool _isHighPotassium = false;
+
   KidneyDietResult? _result;
   late KidneyDynamicMenuService _menuGenerator;
-  
+
   // State untuk Menu Dinamis Baru
-  List<KidneyMealSession>? _generatedMenu; 
-  bool _isGeneratingMenu = false; // Loading KHUSUS untuk menu, tidak memblokir UI utama
+  List<KidneyMealSession>? _generatedMenu;
+  bool _isGeneratingMenu =
+      false; // Loading KHUSUS untuk menu, tidak memblokir UI utama
 
   @override
   void initState() {
@@ -66,80 +68,91 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
   }
 
   void _calculateAndGenerateMenu() async {
-     if (_formKey.currentState!.validate()) {
-        
-        // 1. Ambil data (Synchronous)
-        final height = double.tryParse(_heightController.text) ?? 0;
-        final age = int.tryParse(_ageController.text) ?? 0;
-        final isDialysis = _dialysisController.text == 'Ya';
-        final gender = _genderController.text;
-        final proteinFactorString = _proteinFactorController.text.split(' ')[0];
-        final proteinFactor = double.tryParse(proteinFactorString);
+    if (_formKey.currentState!.validate()) {
+      // 1. Ambil data (Synchronous)
+      final height = double.tryParse(_heightController.text) ?? 0;
+      final age = int.tryParse(_ageController.text) ?? 0;
+      final isDialysis = _dialysisController.text == 'Ya';
+      final gender = _genderController.text;
+      final proteinFactorString = _proteinFactorController.text.split(' ')[0];
+      final proteinFactor = double.tryParse(proteinFactorString);
 
-        // 2. Hitung Hasil Utama (Synchronous - Sangat Cepat)
-        final result = _calculatorService.calculate(
-          height: height,
-          isDialysis: isDialysis,
-          gender: gender,
-          proteinFactor: isDialysis ? null : proteinFactor,
-          age: age,
+      // 2. Hitung Hasil Utama (Synchronous - Sangat Cepat)
+      final result = _calculatorService.calculate(
+        height: height,
+        isDialysis: isDialysis,
+        gender: gender,
+        proteinFactor: isDialysis ? null : proteinFactor,
+        age: age,
+      );
+
+      // 3. Ambil Rencana Bahan Mentah (Synchronous - Cepat)
+      final mealPlan = planner.KidneyMealPlans.getPlan(result.recommendedDiet);
+
+      // 4. UPDATE STATE PERTAMA: Tampilkan Hasil Hitungan SEGERA
+      // Ini membuat UI langsung muncul tanpa delay
+      setState(() {
+        _result = result;
+        _mealPlan = mealPlan;
+        _generatedMenu = null; // Reset menu lama
+        _isGeneratingMenu =
+            true; // Tandai menu sedang diproses (loading di dalam expansion tile)
+      });
+
+      _scrollToResult();
+
+      // 5. Generate Menu (Asynchronous - Lambat/Butuh Waktu)
+      // Proses ini berjalan di background sementara user sudah melihat hasil hitungan
+      try {
+        int targetProtein = result.recommendedDiet;
+
+        // UPDATE DISINI: Tambahkan parameter isHighPotassium
+        final dynamicMenu = await _menuGenerator.generateDailyMenu(
+          targetProtein,
+          isHighPotassium: _isHighPotassium, // Ambil dari state checkbox
         );
 
-        // 3. Ambil Rencana Bahan Mentah (Synchronous - Cepat)
-        final mealPlan = planner.KidneyMealPlans.getPlan(result.recommendedDiet);
-
-        // 4. UPDATE STATE PERTAMA: Tampilkan Hasil Hitungan SEGERA
-        // Ini membuat UI langsung muncul tanpa delay
-        setState(() {
-          _result = result;
-          _mealPlan = mealPlan;
-          _generatedMenu = null;      // Reset menu lama
-          _isGeneratingMenu = true;   // Tandai menu sedang diproses (loading di dalam expansion tile)
-        });
-
-        _scrollToResult();
-
-        // 5. Generate Menu (Asynchronous - Lambat/Butuh Waktu)
-        // Proses ini berjalan di background sementara user sudah melihat hasil hitungan
-        try {
-          int targetProtein = result.recommendedDiet; 
-          final dynamicMenu = await _menuGenerator.generateDailyMenu(targetProtein);
-          
-          // 6. UPDATE STATE KEDUA: Tampilkan Menu setelah selesai
-          if (mounted) {
-            setState(() {
-              _generatedMenu = dynamicMenu;
-              _isGeneratingMenu = false; // Matikan loading menu
-            });
-          }
-        } catch (e) {
-          if (mounted) {
-            setState(() => _isGeneratingMenu = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Gagal membuat menu otomatis: $e')),
-            );
-          }
+        if (mounted) {
+          setState(() {
+            _generatedMenu = dynamicMenu;
+            _isGeneratingMenu = false;
+          });
         }
-     }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isGeneratingMenu = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal membuat menu otomatis: $e')),
+          );
+        }
+      }
+    }
   }
-  
+
   // Fungsi Edit Menu
-  Future<void> _editMenuItem(KidneyMenuItem item, int sessionIndex, int itemIndex) async {
+  Future<void> _editMenuItem(
+    KidneyMenuItem item,
+    int sessionIndex,
+    int itemIndex,
+  ) async {
     final db.FoodItem? selectedFood = await showSearch<db.FoodItem?>(
       context: context,
-      delegate: FoodSearchDelegate(FoodDatabaseService(), initialQuery: item.foodName),
+      delegate: FoodSearchDelegate(
+        FoodDatabaseService(),
+        initialQuery: item.foodName,
+      ),
     );
 
     if (selectedFood != null && _generatedMenu != null) {
       setState(() {
         final oldItem = _generatedMenu![sessionIndex].items[itemIndex];
-        
+
         _generatedMenu![sessionIndex].items[itemIndex] = KidneyMenuItem(
-           categoryLabel: oldItem.categoryLabel,
-           foodName: selectedFood.name,
-           weight: oldItem.weight, 
-           urt: oldItem.urt,
-           foodData: selectedFood,
+          categoryLabel: oldItem.categoryLabel,
+          foodName: selectedFood.name,
+          weight: oldItem.weight,
+          urt: oldItem.urt,
+          foodData: selectedFood,
         );
       });
     }
@@ -153,6 +166,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     _dialysisController.dispose();
     _genderController.dispose();
     _proteinFactorController.dispose();
+    _currentWeightController.dispose();
     super.dispose();
   }
 
@@ -167,10 +181,16 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
   }
 
   void _fillDataFromPatient(
-      double weight, double height, String gender, DateTime dob) {
+    double weight,
+    double height,
+    String gender,
+    DateTime dob,
+  ) {
     setState(() {
       _heightController.text = height.toString();
       _ageController.text = _calculateAgeInYears(dob);
+      _currentWeightController.text = weight.toString();
+      _isHighPotassium = false;
 
       String incomingGender = gender.toLowerCase();
       String normalizedGender = '';
@@ -187,7 +207,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
         normalizedGender = gender;
       }
       _genderController.text = normalizedGender;
-      
+
       _result = null;
       _mealPlan = null;
       _generatedMenu = null;
@@ -199,6 +219,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     _heightController.clear();
     _ageController.clear();
     _patientPickerKey.currentState?.resetSelection();
+    _currentWeightController.clear();
     setState(() {
       _dialysisController.clear();
       _genderController.clear();
@@ -206,6 +227,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
       _result = null;
       _mealPlan = null;
       _generatedMenu = null;
+      _isHighPotassium = false;
     });
   }
 
@@ -259,7 +281,8 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                     prefixIcon: const Icon(Icons.bloodtype_outlined),
                     items: ['Ya', 'Tidak'],
                     itemAsString: (item) => item,
-                    onChanged: (value) => setState(() => _dialysisController.text = value ?? ''),
+                    onChanged: (value) =>
+                        setState(() => _dialysisController.text = value ?? ''),
                   ),
                   const SizedBox(height: 16),
 
@@ -272,17 +295,21 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                         prefixIcon: const Icon(Icons.rule),
                         items: ['0.6 (Rendah)', '0.7 (Sedang)', '0.8 (Tinggi)'],
                         itemAsString: (item) => item,
-                        onChanged: (value) => setState(() => _proteinFactorController.text = value ?? '0.6 (Rendah)'),
+                        onChanged: (value) => setState(
+                          () => _proteinFactorController.text =
+                              value ?? '0.6 (Rendah)',
+                        ),
                       ),
                     ),
-                  
+
                   _buildCustomDropdown<String>(
                     controller: _genderController,
                     label: 'Jenis Kelamin',
                     prefixIcon: const Icon(Icons.person),
                     items: ['Laki-laki', 'Perempuan'],
                     itemAsString: (item) => item,
-                    onChanged: (value) => setState(() => _genderController.text = value ?? ''),
+                    onChanged: (value) =>
+                        setState(() => _genderController.text = value ?? ''),
                   ),
                   const SizedBox(height: 16),
 
@@ -295,10 +322,33 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                   const SizedBox(height: 16),
 
                   _buildTextFormField(
+                    controller: _currentWeightController,
+                    label: 'Berat Badan Aktual',
+                    prefixIcon: const Icon(Icons.monitor_weight_outlined),
+                    suffixText: 'kg',
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
                     controller: _ageController,
                     label: 'Usia',
                     prefixIcon: const Icon(Icons.calendar_today),
                     suffixText: 'tahun',
+                  ),
+
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text("Kondisi Kalium Tinggi (Hiperkalemia)?"),
+                    subtitle: const Text(
+                      "Aktifkan untuk menyaring pisang, bayam, alpukat, dll.",
+                    ),
+                    value: _isHighPotassium,
+                    activeThumbColor: const Color.fromARGB(255, 0, 148, 68),
+                    onChanged: (bool value) {
+                      setState(() {
+                        _isHighPotassium = value;
+                      });
+                    },
                   ),
                   const SizedBox(height: 32),
 
@@ -307,22 +357,26 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                     onSubmit: _calculateAndGenerateMenu,
                     resetButtonColor: Colors.white,
                     resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
-                    submitIcon: const Icon(Icons.calculate, color: Colors.white),
+                    submitIcon: const Icon(
+                      Icons.calculate,
+                      color: Colors.white,
+                    ),
                   ),
-                  
+
                   const SizedBox(height: 32),
 
                   // --- TAMPILAN HASIL ---
                   // Hapus Global Loading Indicator di sini agar tidak memblokir UI
-                  
                   if (_result != null) ...[
                     const Divider(height: 32),
                     const SizedBox(height: 25),
                     _buildResultCard(),
                     const SizedBox(height: 25),
-                    
+
                     ExpansionTile(
-                      title: Text('Asupan Gizi per Hari (Diet Protein ${_result!.recommendedDiet}g)'),
+                      title: Text(
+                        'Asupan Gizi per Hari (Diet Protein ${_result!.recommendedDiet}g)',
+                      ),
                       children: [
                         if (_result!.nutritionInfo != null)
                           _buildNutritionCard(_result!.nutritionInfo!),
@@ -343,9 +397,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                     // WIDGET EXPANSION TILE UNTUK MENU MATANG
                     // Loading hanya terjadi di dalam sini
                     ExpansionTile(
-                      title: const Text(
-                        "Rekomendasi Menu Sehari",
-                      ),
+                      title: const Text("Rekomendasi Menu Sehari"),
                       // Opsional: Jika ingin otomatis terbuka saat selesai loading, bisa pakai key atau state variable
                       children: [
                         KidneyDynamicMenuSection(
@@ -367,7 +419,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
   }
 
   // Helper Widgets
-  
+
   Widget _buildTextFormField({
     required TextEditingController controller,
     required String label,
@@ -445,6 +497,28 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
         ? '*Pasien hemodialisis membutuhkan asupan protein lebih tinggi (1.2 g/kg BBI).'
         : '*Pasien pre-dialisis membutuhkan asupan protein lebih rendah (${proteinFactorValue}g/kg BBI) untuk memperlambat laju penyakit.';
 
+    final currentWeight = double.tryParse(_currentWeightController.text) ?? 0;
+    final heightM =
+        (double.tryParse(_heightController.text) ?? 0) / 100; // ubah ke meter
+
+    // Hitung IMT
+    String nutritionalStatus = '-';
+    double imt = 0;
+
+    if (currentWeight > 0 && heightM > 0) {
+      imt = currentWeight / (heightM * heightM);
+
+      if (imt < 18.5) {
+        nutritionalStatus = 'BB Kurang';
+      } else if (imt < 25) {
+        nutritionalStatus = 'Normal';
+      } else if (imt < 30) {
+        nutritionalStatus = 'BB Lebih';
+      } else {
+        nutritionalStatus = 'Obesitas';
+      }
+    }
+
     return Container(
       key: _resultCardKey,
       padding: const EdgeInsets.all(16),
@@ -469,6 +543,14 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
           _buildInfoRow(
             'Berat Badan Ideal (BBI)',
             '${_result!.idealBodyWeight.toStringAsFixed(1)} kg',
+          ),
+          _buildInfoRow(
+            'Berat Badan Aktual',
+            '${currentWeight.toStringAsFixed(1)} kg',
+          ),
+          _buildInfoRow(
+            'Indeks Massa Tubuh (IMT)',
+            '${imt.toStringAsFixed(1)} ($nutritionalStatus)', // Menampilkan status gizi
           ),
           if (_result!.bmr > 0)
             _buildInfoRow(
@@ -537,18 +619,18 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
             ),
           ),
           const Divider(height: 24),
-           _buildInfoRow('Energi', '${nutritionInfo.energi} kkal'),
-           _buildInfoRow('Protein', '${nutritionInfo.protein} g'),
-           _buildInfoRow('Lemak', '${nutritionInfo.lemak} g'),
-           _buildInfoRow('Karbohidrat', '${nutritionInfo.karbohidrat} g'),
-           _buildInfoRow('Kalsium', '${nutritionInfo.kalsium} mg'),
-           _buildInfoRow('Zat Besi', '${nutritionInfo.zatBesi} mg'),
-           _buildInfoRow('Fosfor', '${nutritionInfo.fosfor} mg'),
-           _buildInfoRow('Vitamin A', '${nutritionInfo.vitaminA} RE'),
-           _buildInfoRow('Tiamin', '${nutritionInfo.tiamin} mg'),
-           _buildInfoRow('Vitamin C', '${nutritionInfo.vitaminC} mg'),
-           _buildInfoRow('Natrium', '${nutritionInfo.natrium} mg'),
-           _buildInfoRow('Kalium', '${nutritionInfo.kalium} mg'),
+          _buildInfoRow('Energi', '${nutritionInfo.energi} kkal'),
+          _buildInfoRow('Protein', '${nutritionInfo.protein} g'),
+          _buildInfoRow('Lemak', '${nutritionInfo.lemak} g'),
+          _buildInfoRow('Karbohidrat', '${nutritionInfo.karbohidrat} g'),
+          _buildInfoRow('Kalsium', '${nutritionInfo.kalsium} mg'),
+          _buildInfoRow('Zat Besi', '${nutritionInfo.zatBesi} mg'),
+          _buildInfoRow('Fosfor', '${nutritionInfo.fosfor} mg'),
+          _buildInfoRow('Vitamin A', '${nutritionInfo.vitaminA} RE'),
+          _buildInfoRow('Tiamin', '${nutritionInfo.tiamin} mg'),
+          _buildInfoRow('Vitamin C', '${nutritionInfo.vitaminC} mg'),
+          _buildInfoRow('Natrium', '${nutritionInfo.natrium} mg'),
+          _buildInfoRow('Kalium', '${nutritionInfo.kalium} mg'),
         ],
       ),
     );
@@ -581,14 +663,14 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-           Text(
-              'Bahan Makanan Sehari (Diet Protein ${_result!.recommendedDiet}g)',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.purple,
-              ),
+          Text(
+            'Bahan Makanan Sehari (Diet Protein ${_result!.recommendedDiet}g)',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.purple,
             ),
+          ),
           const Divider(height: 24),
           Table(
             columnWidths: const {
@@ -605,15 +687,27 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                 children: [
                   Padding(
                     padding: EdgeInsets.all(8.0),
-                    child: Text('Bahan', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                    child: Text(
+                      'Bahan',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                   Padding(
                     padding: EdgeInsets.all(8.0),
-                    child: Text('Berat (g)', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                    child: Text(
+                      'Berat (g)',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                   Padding(
                     padding: EdgeInsets.all(8.0),
-                    child: Text('URT', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                    child: Text(
+                      'URT',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ],
               ),
@@ -626,11 +720,14 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text(item.weight.toString(), textAlign: TextAlign.center),
+                      child: Text(
+                        item.weight.toString(),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text(item.urt), 
+                      child: Text(item.urt),
                     ),
                   ],
                 );

@@ -3,6 +3,7 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
+import 'package:flutter/widgets.dart';
 
 class FoodDatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -23,7 +24,7 @@ class FoodDatabaseService {
       }
       return [];
     } catch (e) {
-      print('Error fetching all food items: $e');
+      debugPrint('Error fetching all food items: $e');
       return [];
     }
   }
@@ -46,7 +47,7 @@ class FoodDatabaseService {
       }).toList();
       
     } catch (e) {
-      print('Error searching food: $e');
+      debugPrint('Error searching food: $e');
       return [];
     }
   }
@@ -65,7 +66,7 @@ class FoodDatabaseService {
       }
       return null;
     } catch (e) {
-      print('Error fetching random food: $e');
+      debugPrint('Error fetching random food: $e');
       return null;
     }
   }

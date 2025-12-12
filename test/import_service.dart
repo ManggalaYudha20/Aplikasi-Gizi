@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csv/csv.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
 
 class FoodImportService {
   static Future<int> importFoodData() async {
@@ -66,7 +67,7 @@ class FoodImportService {
         );
         foodItemsToUpload.add(foodItem.toFirestore());
       } catch (e) {
-        print('Gagal memproses baris $i (${row[2]}): $e');
+        debugPrint('Gagal memproses baris $i (${row[2]}): $e');
       }
     }
 
