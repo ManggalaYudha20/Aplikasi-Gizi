@@ -14,12 +14,31 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_validator_utils.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_calculation_helper.dart';
 import 'dart:async';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/nutrition_reference_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/diagnosis_terminology.dart';
 
 class LabInputItem {
   TextEditingController valueController;
   String? selectedType;
 
   LabInputItem({required this.valueController, this.selectedType});
+}
+
+class DiagnosisInput {
+  TextEditingController pController; // Problem
+  TextEditingController eController; // Etiology
+  TextEditingController sController; // Signs/Symptoms
+
+  DiagnosisInput({String? p, String? e, String? s})
+      : pController = TextEditingController(text: p),
+        eController = TextEditingController(text: e),
+        sController = TextEditingController(text: s);
+
+  void dispose() {
+    pController.dispose();
+    eController.dispose();
+    sController.dispose();
+  }
 }
 
 class DataFormAnakPage extends StatefulWidget {
@@ -79,14 +98,17 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
   final _riwayatPenyakitDahuluController = TextEditingController();
   final _alergiMakananController = TextEditingController(text: 'Tidak');
   final _polaMakanController = TextEditingController();
+  final _polaMakanFreqController = TextEditingController(); // Helper UI: Frekuensi
+  final _polaMakanPercentController = TextEditingController();
 
   // Controllers Diagnosa & Intervensi & Monev
-  final _diagnosaGiziController = TextEditingController();
+  final List<DiagnosisInput> _diagnosisItems = [];
   final _intervensiDietController = TextEditingController();
   final _intervensiBentukMakananController = TextEditingController();
   final _intervensiViaController = TextEditingController();
   final _intervensiTujuanController = TextEditingController();
   final _monevAsupanController = TextEditingController();
+  final _monevHasilLabController = TextEditingController();
 
   bool _alergiTelur = false;
   bool _alergiSusu = false;
@@ -122,6 +144,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     } else {
       // 3. TAMBAHKAN DEFAULT LAB
       _addLabItem(null, '');
+      _addDiagnosisItem();
     }
   }
   void _addLabItem(String? type, String value) {
@@ -131,6 +154,26 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
         valueController: TextEditingController(text: value),
         selectedType: type,
       ));
+    });
+  }
+
+  void _addDiagnosisItem({String? p, String? e, String? s}) {
+    if (_diagnosisItems.length >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Maksimal 3 Diagnosa Gizi')),
+      );
+      return;
+    }
+    setState(() {
+      _diagnosisItems.add(DiagnosisInput(p: p, e: e, s: s));
+    });
+  }
+
+  // FUNGSI HAPUS DIAGNOSA
+  void _removeDiagnosisItem(int index) {
+    setState(() {
+      _diagnosisItems[index].dispose();
+      _diagnosisItems.removeAt(index);
     });
   }
 
@@ -176,7 +219,59 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     _riwayatPenyakitDahuluController.text = patient.riwayatPenyakitDahulu ?? '';
     _polaMakanController.text = patient.polaMakan ?? '';
 
-    _diagnosaGiziController.text = patient.diagnosaGizi ?? '';
+    if (_polaMakanController.text.contains(' // ')) {
+      final parts = _polaMakanController.text.split(' // ');
+      _polaMakanFreqController.text = parts[0];
+      // Ambil bagian persen dan hapus simbol % untuk ditampilkan di input angka
+      if (parts.length > 1) {
+        _polaMakanPercentController.text = parts[1].replaceAll('%', '');
+      }
+    } else {
+      // Jika format lama (belum dipisah), masukkan semua ke frekuensi
+      _polaMakanFreqController.text = _polaMakanController.text;
+    }
+
+    _diagnosisItems.clear();
+    if (patient.diagnosaGizi != null && patient.diagnosaGizi!.isNotEmpty) {
+        final rawText = patient.diagnosaGizi!;
+        bool isFormatted = RegExp(r'^\d+\.').hasMatch(rawText);
+
+        if (isFormatted) {
+          final lines = rawText.split('\n');
+          String? currentP;
+          String? currentE;
+          String? currentS;
+
+          for (var line in lines) {
+            line = line.trim();
+            if (line.isEmpty) continue;
+
+            if (RegExp(r'^\d+\.').hasMatch(line)) {
+              if (currentP != null) {
+                _diagnosisItems.add(DiagnosisInput(p: currentP, e: currentE, s: currentS));
+              }
+              currentP = line.replaceFirst(RegExp(r'^\d+\.\s*'), '');
+              currentE = null;
+              currentS = null;
+            } 
+            else if (line.startsWith('Berkaitan dengan:')) {
+              currentE = line.replaceFirst('Berkaitan dengan:', '').trim();
+            } 
+            else if (line.startsWith('Ditandai dengan:')) {
+              currentS = line.replaceFirst('Ditandai dengan:', '').trim();
+            }
+          }
+          if (currentP != null) {
+            _diagnosisItems.add(DiagnosisInput(p: currentP, e: currentE, s: currentS));
+          }
+        } else {
+          _diagnosisItems.add(DiagnosisInput(p: rawText));
+        }
+    } 
+    
+    if (_diagnosisItems.isEmpty) {
+      _diagnosisItems.add(DiagnosisInput());
+    }
 
     _intervensiDietController.text = patient.intervensiDiet ?? '';
     _intervensiBentukMakananController.text =
@@ -185,6 +280,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     _intervensiTujuanController.text = patient.intervensiTujuan ?? '';
 
     _monevAsupanController.text = patient.monevAsupan ?? '';
+    _monevHasilLabController.text = patient.monevHasilLab ?? '';
 
     if (patient.alergiMakanan != null && patient.alergiMakanan != 'Tidak') {
       // Pecah string menjadi list, misal: ["Telur", "Kacang", "Stroberi"]
@@ -268,12 +364,17 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     _riwayatPenyakitDahuluController.dispose();
     _alergiMakananController.dispose();
     _polaMakanController.dispose();
-    _diagnosaGiziController.dispose();
+    _polaMakanFreqController.dispose();
+    _polaMakanPercentController.dispose();
+    for (var item in _diagnosisItems) {
+      item.dispose();
+    }
     _intervensiDietController.dispose();
     _intervensiBentukMakananController.dispose();
     _intervensiViaController.dispose();
     _intervensiTujuanController.dispose();
     _monevAsupanController.dispose();
+    _monevHasilLabController.dispose();
     // Dispose semua FocusNode
     for (final node in _focusNodes) {
       node.dispose();
@@ -315,12 +416,17 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
       _riwayatPenyakitDahuluController.clear();
       _alergiMakananController.text = 'Tidak';
       _polaMakanController.clear();
-      _diagnosaGiziController.clear();
+      _polaMakanFreqController.clear();
+      _polaMakanPercentController.clear();
+
+      _diagnosisItems.clear();
+      _addDiagnosisItem();
       _intervensiDietController.clear();
       _intervensiBentukMakananController.clear();
       _intervensiViaController.clear();
       _intervensiTujuanController.clear();
       _monevAsupanController.clear();
+      _monevHasilLabController.clear();
     });
   }
 
@@ -341,6 +447,17 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
       listAlergi.add(_alergiLainnyaController.text);
     }
     String stringAlergiFinal = listAlergi.isEmpty ? 'Tidak' : listAlergi.join(', ');
+
+    String polaMakanFinal = '';
+    if (_polaMakanFreqController.text.isNotEmpty) {
+       polaMakanFinal = _polaMakanFreqController.text;
+       if (_polaMakanPercentController.text.isNotEmpty) {
+           polaMakanFinal += ' // ${_polaMakanPercentController.text}%';
+       }
+    } else if (_polaMakanPercentController.text.isNotEmpty) {
+       polaMakanFinal = ' // ${_polaMakanPercentController.text}%';
+    }
+    _polaMakanController.text = polaMakanFinal;
 
     if (FormValidatorUtils.validateAndScroll(
       context: context,
@@ -383,6 +500,21 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
         for (var item in _labItems) {
           if (item.selectedType != null && item.valueController.text.isNotEmpty) {
             labResultsMap[item.selectedType!] = item.valueController.text;
+          }
+        }
+
+        StringBuffer diagnosaString = StringBuffer();
+        for (int i = 0; i < _diagnosisItems.length; i++) {
+          var item = _diagnosisItems[i];
+          if (item.pController.text.isNotEmpty) {
+            diagnosaString.writeln('${i + 1}. ${item.pController.text}');
+            if (item.eController.text.isNotEmpty) {
+                diagnosaString.writeln('   Berkaitan dengan: ${item.eController.text}');
+            }
+            if (item.sController.text.isNotEmpty) {
+                diagnosaString.writeln('   Ditandai dengan: ${item.sController.text}');
+            }
+            diagnosaString.writeln(); 
           }
         }
 
@@ -433,7 +565,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
           'alergiMakanan': stringAlergiFinal,
           'polaMakan': _polaMakanController.text,
 
-          'diagnosaGizi': _diagnosaGiziController.text,
+          'diagnosaGizi': diagnosaString.toString().trim(),
 
           'intervensiDiet': _intervensiDietController.text,
           'intervensiBentukMakanan': _intervensiBentukMakananController.text,
@@ -441,6 +573,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
           'intervensiTujuan': _intervensiTujuanController.text,
 
           'monevAsupan': _monevAsupanController.text,
+          'monevHasilLab': _monevHasilLabController.text,
         };
 
         try {
@@ -541,7 +674,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
           polaMakan: _polaMakanController.text,
 
           // 5. Diagnosa
-          diagnosaGizi: _diagnosaGiziController.text,
+          diagnosaGizi: diagnosaString.toString().trim(),
 
           // 6. Intervensi
           intervensiDiet: _intervensiDietController.text,
@@ -551,6 +684,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
 
           // 7. Monev
           monevAsupan: _monevAsupanController.text,
+          monevHasilLab: _monevHasilLabController.text,
         );
 
         if (mounted) {
@@ -963,20 +1097,43 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                   ],
 
                   const SizedBox(height: 16),
-                  _buildTextFormField(
-                    controller: _polaMakanController,
-                    label: 'Pola Makan / Asupan',
-                    prefixIcon: const Icon(Icons.restaurant_menu),
-                    focusNode: _focusNodes[14],
-                    validator: (v) => null,
-                    maxLength: 20,
+                Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Kolom 1: Frekuensi
+                      Expanded(
+                        flex: 2,
+                        child: _buildTextFormField(
+                          controller: _polaMakanFreqController,
+                          label: 'Pola Makan', // Agar Jelas
+                          prefixIcon: const Icon(Icons.restaurant_menu),
+                          focusNode: _focusNodes[14],
+                          validator: (v) => null,
+                          maxLength: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Kolom 2: Asupan (%)
+                      Expanded(
+                        flex: 1,
+                        child: _buildTextFormField(
+                          controller: _polaMakanPercentController,
+                          label: 'Asupan',
+                          suffixText: '%', // Agar Jelas
+                          keyboardType: TextInputType.number,
+                          focusNode: _focusNodes[15], // Focus node baru agar tidak tabrakan
+                          validator: (v) => null,
+                          maxLength: 3,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   _buildTextFormField(
                     controller: _riwayatPenyakitSekarangController,
                     label: 'Riwayat Penyakit Sekarang (RPS)',
                     prefixIcon: const Icon(Icons.history_edu),
-                    focusNode: _focusNodes[15],
+                    focusNode: _focusNodes[16],
                     validator: (v) => null,
                     maxLength: 500,
                   ),
@@ -985,7 +1142,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     controller: _riwayatPenyakitDahuluController,
                     label: 'Riwayat Penyakit Dahulu (RPD)',
                     prefixIcon: const Icon(Icons.history),
-                    focusNode: _focusNodes[16],
+                    focusNode: _focusNodes[17],
                     validator: (v) => null,
                     maxLength: 500,
                   ),
@@ -1156,14 +1313,147 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                   // 4. Diagnosa Gizi
                   _buildSectionHeader('Diagnosa Gizi'),
 
-                  _buildTextFormField(
-                    controller: _diagnosaGiziController,
-                    label: 'Diagnosa Gizi',
-                    prefixIcon: const Icon(Icons.medical_services),
-                    focusNode: _focusNodes[28],
-                    validator: (v) => null,
-                    maxLength: 500,
+                 ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _diagnosisItems.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        color: Colors.grey[50],
+                        elevation: 1,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text("Diagnosa #${index + 1}", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green[700])),
+                                  const Spacer(),
+                                  if (_diagnosisItems.length > 1)
+                                    InkWell(
+                                      onTap: () => _removeDiagnosisItem(index),
+                                      child: const Icon(Icons.delete, color: Colors.red, size: 20),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              // P (AUTOCOMPLETE)
+                              LayoutBuilder(
+                              builder: (context, constraints) {
+                                return Autocomplete<NutritionReferenceItem>(
+                                  optionsBuilder: (TextEditingValue textEditingValue) {
+                                    if (textEditingValue.text.isEmpty) {
+                                      return const Iterable<NutritionReferenceItem>.empty();
+                                    }
+                                    return DiagnosisTerminology.allDiagnoses.where((NutritionReferenceItem option) {
+                                      final String keyword = textEditingValue.text.toLowerCase();
+                                      return option.label.toLowerCase().contains(keyword) ||
+                                            option.code.toLowerCase().contains(keyword) ||
+                                            (option.definition?.toLowerCase().contains(keyword) ?? false);
+                                    });
+                                  },
+                                  displayStringForOption: (NutritionReferenceItem option) => 
+                                      '[${option.code}] ${option.label}',
+                                  onSelected: (NutritionReferenceItem selection) {
+                                    _diagnosisItems[index].pController.text = '[${selection.code}] ${selection.label}';
+                                  },
+                                  fieldViewBuilder: (context, fieldTextEditingController, fieldFocusNode, onFieldSubmitted) {
+                                    if (_diagnosisItems[index].pController.text.isNotEmpty && 
+                                        fieldTextEditingController.text.isEmpty) {
+                                        fieldTextEditingController.text = _diagnosisItems[index].pController.text;
+                                    }
+                                    fieldTextEditingController.addListener(() {
+                                        _diagnosisItems[index].pController.text = fieldTextEditingController.text;
+                                    });
+
+                                    return TextFormField(
+                                      controller: fieldTextEditingController,
+                                      focusNode: fieldFocusNode,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Problem (P)',
+                                        isDense: true,
+                                        border: OutlineInputBorder(),
+                                        suffixIcon: Icon(Icons.search),
+                                      ),
+                                      maxLines: null,
+                                    );
+                                  },
+                                  optionsViewBuilder: (context, onSelected, options) {
+                                    return Align(
+                                      alignment: Alignment.topLeft,
+                                      child: Material(
+                                        elevation: 4.0,
+                                        child: SizedBox(
+                                          width: constraints.maxWidth,
+                                          height: 200,
+                                          child: ListView.builder(
+                                            padding: const EdgeInsets.all(8.0),
+                                            itemCount: options.length,
+                                            itemBuilder: (BuildContext context, int i) {
+                                              final NutritionReferenceItem option = options.elementAt(i);
+                                              return ListTile(
+                                                title: Text(
+                                                  '${option.code} - ${option.label}',
+                                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                                ),
+                                                subtitle: Text(option.definition ?? '-'),
+                                                onTap: () {
+                                                  onSelected(option);
+                                                },
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              }
+                            ),
+                              const SizedBox(height: 8),
+                              // E
+                              TextFormField(
+                                controller: _diagnosisItems[index].eController,
+                                decoration: const InputDecoration(labelText: 'Berkaitan dengan - Etiology (E)', isDense: true, border: OutlineInputBorder()),
+                                maxLines: null,
+                              ),
+                              const SizedBox(height: 8),
+                              // S
+                              TextFormField(
+                                controller: _diagnosisItems[index].sController,
+                                decoration: const InputDecoration(labelText: 'Ditandai dengan - Signs/Symptoms (S)', isDense: true, border: OutlineInputBorder()),
+                                maxLines: null,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
+                  
+                  if (_diagnosisItems.length < 3)
+                    OutlinedButton.icon(
+                      onPressed: () => _addDiagnosisItem(),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Tambah Diagnosa'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.green[700],
+                        side: BorderSide(color: Colors.green[700]!),
+                      ),
+                    ),
+                  
+                  if (_diagnosisItems.length >= 3)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Center(
+                        child: Text(
+                          "Batas maksimal 3 diagnosa tercapai",
+                          style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                        ),
+                      ),
+                    ),
 
                   _buildSectionHeader('Intervensi Gizi'),
 
@@ -1212,6 +1502,16 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     focusNode: _focusNodes[33],
                     maxLength: 500,
                     validator: (v) => null,
+                  ),
+                  const SizedBox(height: 16),
+                  // [BARU] Field Hasil Lab Monev
+                  _buildTextFormField(
+                    controller: _monevHasilLabController,
+                    label: 'Hasil Lab',
+                    prefixIcon: const Icon(Icons.document_scanner),
+                    focusNode: _focusNodes[34],
+                    maxLength: 500,
+                    validator: (value) => null,
                   ),
                   const SizedBox(height: 32),
                 ],

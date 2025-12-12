@@ -206,8 +206,8 @@ class PdfGeneratorAsuhan {
             padding: const pw.EdgeInsets.all(4),
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: _buildInfoRowSatu(
-              '',
               ' ${patient.diagnosaGizi ?? '-'} ',
+              '',
             ),
           ),
 

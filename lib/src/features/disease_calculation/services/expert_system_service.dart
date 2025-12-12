@@ -1,17 +1,20 @@
-// lib/src/features/disease_calculation/services/expert_system_service.dart
-
 import '../data/nutrition_reference_data.dart';
 
-// Model sederhana untuk input data pasien (Bisa disesuaikan dengan Patient Model Anda)
 class ExpertSystemInput {
   final double imt;
-  final double? gds;      // Glukosa Darah Sewaktu
-  final double? gdp;      // Glukosa Darah Puasa
+  final double? gds;      
+  final double? gdp;      
   final double? hba1c;
   final double? cholesterol;
-  final String bloodPressure; // Format "120/80" atau status "Tinggi"
-  final List<String> dietaryHistory; // Contoh: ["Suka manis", "Jarang olahraga", "Makan tidak teratur"]
-  final bool hasKidneyIssue; // Dari riwayat medis / Ureum Creatinin
+  
+  // PARAMETER GINJAL & ELEKTROLIT
+  final double? ureum;
+  final double? kreatinin;
+  final double? kalium;
+  
+  final String bloodPressure; 
+  final List<String> dietaryHistory; 
+  final bool hasKidneyIssue; 
   final String? medicalDiagnosis;
 
   ExpertSystemInput({
@@ -20,6 +23,9 @@ class ExpertSystemInput {
     this.gdp,
     this.hba1c,
     this.cholesterol,
+    this.ureum,
+    this.kreatinin,
+    this.kalium,
     this.bloodPressure = "Normal",
     this.dietaryHistory = const [],
     this.hasKidneyIssue = false,
@@ -39,126 +45,186 @@ class ExpertSystemResult {
   });
 }
 
-class DiabetesExpertService {
+class DiseaseExpertService {
   
   ExpertSystemResult generateCarePlan(ExpertSystemInput input) {
     final List<NutritionReferenceItem> diagnoses = [];
     final List<NutritionReferenceItem> interventions = [];
     final List<NutritionReferenceItem> monitoring = [];
 
-    // --- 1. LOGIKA DIAGNOSIS (Problem Identification) ---
+    // --- 1. DETEKSI MASALAH KLINIS (Problem Identification) ---
+    
+    // Cek Diabetes (Lab: GDS >= 200, GDP >= 126, HbA1c >= 6.5)
+    bool isDiabetes = false;
+    if ((input.medicalDiagnosis?.toLowerCase().contains('diabetes') ?? false) ||
+        (input.medicalDiagnosis?.toLowerCase().contains('dm') ?? false) ||
+        (input.gds != null && input.gds! >= 200) || 
+        (input.gdp != null && input.gdp! >= 126) ||
+        (input.hba1c != null && input.hba1c! >= 6.5)) {
+      isDiabetes = true;
+    }
 
-    bool isMedicallyDiabetes = false;
-    if (input.medicalDiagnosis != null) {
-      final dx = input.medicalDiagnosis!.toLowerCase();
-      if (dx.contains('diabetes') || dx.contains('dm') || dx.contains('kencing manis')) {
-        isMedicallyDiabetes = true;
+    // Cek Ginjal Kronik (Lab: Ureum > 50, Kreatinin > 1.5)
+    bool isKidney = input.hasKidneyIssue;
+    if (!isKidney) {
+      if ((input.ureum != null && input.ureum! > 50) || 
+          (input.kreatinin != null && input.kreatinin! > 1.5)) {
+        isKidney = true;
       }
     }
 
-    bool highLabs = (input.gds != null && input.gds! >= 200) || 
-                    (input.gdp != null && input.gdp! >= 126) ||
-                    (input.hba1c != null && input.hba1c! >= 7.0);
-
-    if (highLabs) {
-      // Jika Lab Tinggi -> Pasti Masalah Gizi (NC-2.2)
-      diagnoses.add(NutritionKnowledgeBase.diagnoses.firstWhere((d) => d.code == 'NC-2.2'));
-    } 
+    // Cek Hipertensi (TD > 140/90)
+    bool isHypertension = input.bloodPressure.toLowerCase().contains('tinggi') || 
+                          input.bloodPressure.toLowerCase().contains('hipertensi');
     
-    // LOGIKA KHUSUS: Pasien DM tapi Gula Normal (Terkontrol)
-    // Kita bisa mengangkat diagnosis risiko atau perilaku jika ada riwayat makan salah
-    if (isMedicallyDiabetes && !highLabs) {
-       // Opsional: Bisa tambahkan diagnosis "NB-1.7 Pemilihan makanan salah" 
-       // jika riwayat makannya buruk, meskipun gula darah saat ini bagus.
-       if (input.dietaryHistory.isNotEmpty) {
-          diagnoses.add(NutritionKnowledgeBase.diagnoses.firstWhere((d) => d.code == 'NB-1.7'));
-       }
+    // --- 2. DIAGNOSIS GIZI (P - Problem) ---
+
+    // A. Domain Klinis (NC) - Nilai Lab
+    if (isDiabetes) {
+      diagnoses.add(NutritionReferenceItem(
+        code: 'NC-2.2', 
+        label: 'Perubahan nilai lab terkait gizi (Glukosa/HbA1c)', 
+        definition: 'Kadar glukosa darah/HbA1c di atas nilai normal'
+      ));
+    }
+    
+    if (isKidney) {
+      diagnoses.add(NutritionReferenceItem(
+        code: 'NC-2.2', 
+        label: 'Perubahan nilai lab terkait gizi (Profil Ginjal)', 
+        definition: 'Peningkatan kadar Ureum/Kreatinin akibat penurunan fungsi ginjal'
+      ));
+      // Diagnosis spesifik penurunan kebutuhan protein untuk ginjal
+      diagnoses.add(NutritionReferenceItem(
+        code: 'NI-5.4', 
+        label: 'Penurunan kebutuhan zat gizi (Protein)', 
+        definition: 'Berkaitan dengan gangguan fungsi ginjal (ureum/kreatinin tinggi)'
+      ));
     }
 
-    // A. Status Gizi (Antropometri)
-    // Cut-off IMT Asia Pasifik (PERKENI 2024): >= 23 BB Lebih, >= 25 Obesitas
+    // B. Domain Asupan (NI)
+    // Kelebihan Karbohidrat (Suka Manis)
+    if (input.dietaryHistory.any((h) => h.toLowerCase().contains('manis'))) {
+      diagnoses.add(NutritionReferenceItem(
+        code: 'NI-5.8.3', 
+        label: 'Kelebihan asupan karbohidrat sederhana', 
+        definition: 'Sering mengonsumsi gula murni/makanan manis'
+      ));
+    }
+
+    // Kelebihan Natrium (Suka Asin + Hipertensi/Ginjal)
+    if (input.dietaryHistory.any((h) => h.toLowerCase().contains('asin')) && (isHypertension || isKidney)) {
+      diagnoses.add(NutritionReferenceItem(
+        code: 'NI-5.10.2', 
+        label: 'Kelebihan asupan mineral (Natrium)', 
+        definition: 'Sering mengonsumsi makanan asin/awetan'
+      ));
+    }
+
+    // Hiperkalemia pada Ginjal
+    if (input.kalium != null && input.kalium! > 5.0) {
+      diagnoses.add(NutritionReferenceItem(
+        code: 'NI-5.10.1', 
+        label: 'Kelebihan asupan mineral (Kalium)', 
+        definition: 'Kadar Kalium darah tinggi (Hiperkalemia)'
+      ));
+    }
+
+    // C. Domain Perilaku (NB)
+    // Kurang Olahraga
+    if (input.dietaryHistory.any((h) => h.toLowerCase().contains('olahraga') || h.toLowerCase().contains('aktivitas'))) {
+       diagnoses.add(NutritionReferenceItem(
+        code: 'NB-2.1', 
+        label: 'Kurang aktivitas fisik', 
+        definition: 'Jarang berolahraga (< 150 menit/minggu)'
+      ));
+    }
+
+    // Pemilihan Makanan Salah (Umum untuk DM/Ginjal)
+    if (isDiabetes || isKidney) {
+       diagnoses.add(NutritionReferenceItem(
+        code: 'NB-1.7', 
+        label: 'Pemilihan makanan yang salah', 
+        definition: 'Kurang pengetahuan terkait makanan yang dianjurkan'
+      ));
+    }
+
+    // D. Status Gizi (Antropometri)
     if (input.imt >= 25) {
-      diagnoses.add(NutritionKnowledgeBase.diagnoses.firstWhere((d) => d.code == 'NC-3.3'));
+      diagnoses.add(NutritionReferenceItem(code: 'NC-3.3', label: 'Obesitas/Berat Badan Lebih', definition: 'IMT diatas normal'));
     } else if (input.imt < 18.5) {
-      diagnoses.add(NutritionKnowledgeBase.diagnoses.firstWhere((d) => d.code == 'NC-3.1'));
+      diagnoses.add(NutritionReferenceItem(code: 'NC-3.1', label: 'Berat Badan Kurang', definition: 'IMT dibawah normal'));
     }
 
-    // B. Nilai Lab (Glukosa)
-    // Target: HbA1c < 7%, GDP 80-130, GDS < 200 (Pedoman PERKENI 2024, Tabel 7)
-    bool hyperglycemia = (input.gds != null && input.gds! >= 200) || 
-                         (input.gdp != null && input.gdp! >= 126) ||
-                         (input.hba1c != null && input.hba1c! >= 7.0);
-    
-    bool dyslipidemia = (input.cholesterol != null && input.cholesterol! > 200);
+    // --- 3. INTERVENSI GIZI (I - Intervention) ---
 
-    if (hyperglycemia || dyslipidemia) {
-      diagnoses.add(NutritionKnowledgeBase.diagnoses.firstWhere((d) => d.code == 'NC-2.2'));
-    }
-
-    // C. Riwayat Makan (Intake/Behavior)
-    if (input.dietaryHistory.contains('Suka manis') || input.dietaryHistory.contains('Sering ngemil')) {
-      diagnoses.add(NutritionKnowledgeBase.diagnoses.firstWhere((d) => d.code == 'NI-5.8.3'));
-    }
-    if (input.dietaryHistory.contains('Makan tidak teratur')) {
-      diagnoses.add(NutritionKnowledgeBase.diagnoses.firstWhere((d) => d.code == 'NB-1.5'));
-    }
-
-    // --- 2. LOGIKA INTERVENSI (Planning) ---
-    if (isMedicallyDiabetes || highLabs) {
-      interventions.add(NutritionKnowledgeBase.interventions.firstWhere((i) => i.code == 'ND-1.1')); // Diet Seimbang
-      
-      // Tambahkan detail spesifik untuk DM
+    // Intervensi Diabetes
+    if (isDiabetes) {
       interventions.add(NutritionReferenceItem(
         code: 'ND-1.2', 
-        label: 'Diet Diabetes Melitus (Prinsip 3J)',
-        definition: 'Jadwal, Jumlah, dan Jenis makanan diatur ketat sesuai kebutuhan.',
+        label: 'Diet Diabetes Melitus (3J)', 
+        definition: 'Atur Jadwal, Jumlah, dan Jenis makanan. Batasi Karbohidrat Sederhana.'
       ));
-
-      interventions.add(NutritionKnowledgeBase.interventions.firstWhere((i) => i.code == 'E-1.1')); // Edukasi
     }
-    // Intervensi Dasar DM (3J)
-    interventions.add(NutritionKnowledgeBase.interventions.firstWhere((i) => i.code == 'ND-1.1'));
-    interventions.add(NutritionKnowledgeBase.interventions.firstWhere((i) => i.code == 'E-1.1')); // Edukasi wajib
 
-    // Jika Obesitas -> Diet Rendah Kalori
-    if (input.imt >= 25) {
-      var dietMod = NutritionKnowledgeBase.interventions.firstWhere((i) => i.code == 'ND-1.2');
-      interventions.add(NutritionReferenceItem(
-        code: dietMod.code,
-        label: '${dietMod.label} (Defisit 500-750 kkal)',
-        definition: dietMod.definition,
-      ));
+    // Intervensi Ginjal (CKD)
+    if (isKidney) {
+      // Cek apakah pasien HD (Hemodialisa) atau Pre-HD
+      bool isHD = input.medicalDiagnosis?.toLowerCase().contains('hd') ?? false;
       
-      // Rekomendasi Aktivitas Fisik (RC-1.4)
-      interventions.add(NutritionKnowledgeBase.interventions.firstWhere((i) => i.code == 'RC-1.4'));
-    }
+      if (isHD) {
+         interventions.add(NutritionReferenceItem(
+          code: 'ND-1.2', 
+          label: 'Diet Tinggi Protein (Dialisis)', 
+          definition: '1.2 g/kg BB untuk mengganti protein yang hilang saat cuci darah.'
+        ));
+      } else {
+         interventions.add(NutritionReferenceItem(
+          code: 'ND-1.2', 
+          label: 'Diet Rendah Protein (RP)', 
+          definition: '0.6 - 0.8 g/kg BB untuk meringankan kerja ginjal.'
+        ));
+      }
 
-    // Jika Hipertensi -> Diet Rendah Garam (DASH)
-    if (input.bloodPressure.contains('Tinggi') || input.bloodPressure.contains('Hipertensi')) {
-      var dietMod = NutritionKnowledgeBase.interventions.firstWhere((i) => i.code == 'ND-1.2');
+      // Restriksi Cairan
       interventions.add(NutritionReferenceItem(
-        code: dietMod.code,
-        label: '${dietMod.label} (Rendah Garam/DASH)',
-        definition: 'Batasi Natrium < 2300mg/hari',
+        code: 'ND-1.2', 
+        label: 'Restriksi Cairan', 
+        definition: 'Sesuaikan dengan urin output + 500ml (IWL).'
       ));
     }
 
-    // --- 3. LOGIKA MONITORING (Monev) ---
-    
-    // Monitoring Glukosa (Wajib untuk DM)
-    monitoring.add(NutritionKnowledgeBase.monitoring.firstWhere((m) => m.code == 'S-2.5'));
-    
-    // Monitoring Asupan
-    monitoring.add(NutritionKnowledgeBase.monitoring.firstWhere((m) => m.code == 'FH-1.1.1'));
-
-    // Monitoring BB (Jika status gizi bermasalah)
-    if (input.imt >= 23 || input.imt < 18.5) {
-      monitoring.add(NutritionKnowledgeBase.monitoring.firstWhere((m) => m.code == 'S-1.1'));
+    // Intervensi Hipertensi
+    if (isHypertension) {
+      interventions.add(NutritionReferenceItem(
+        code: 'ND-1.2', 
+        label: 'Diet Rendah Garam (RG) / DASH', 
+        definition: 'Batasi Natrium < 2000 mg/hari.'
+      ));
     }
 
-    if (isMedicallyDiabetes || highLabs) {
-      monitoring.add(NutritionKnowledgeBase.monitoring.firstWhere((m) => m.code == 'S-2.5')); // Profil Glukosa
-      monitoring.add(NutritionKnowledgeBase.monitoring.firstWhere((m) => m.code == 'FH-1.1.1')); // Asupan Energi
+    // Edukasi Gizi (Selalu ada)
+    interventions.add(NutritionReferenceItem(code: 'E-1.1', label: 'Edukasi & Konseling Gizi', definition: ''));
+
+    // --- 4. MONITORING & EVALUASI (ME - Monitoring) ---
+    
+    monitoring.add(NutritionReferenceItem(code: 'FH-1.1.1', label: 'Asupan Energi & Zat Gizi', definition: '')); //
+    
+    if (isDiabetes) {
+      monitoring.add(NutritionReferenceItem(code: 'S-2.5', label: 'Profil Glukosa Darah (GDS/GDP/HbA1c)', definition: '')); //
+    }
+    
+    if (isKidney) {
+      monitoring.add(NutritionReferenceItem(code: 'S-2.2', label: 'Profil Ginjal (Ureum/Kreatinin/Elektrolit)', definition: ''));
+      monitoring.add(NutritionReferenceItem(code: 'S-3.1', label: 'Balance Cairan & Edema', definition: ''));
+    }
+    
+    if (isHypertension) {
+      monitoring.add(NutritionReferenceItem(code: 'S-3.1', label: 'Tekanan Darah', definition: '')); //
+    }
+
+    if (input.imt >= 25 || input.imt < 18.5) {
+      monitoring.add(NutritionReferenceItem(code: 'S-1.1', label: 'Berat Badan / IMT', definition: '')); //
     }
 
     return ExpertSystemResult(

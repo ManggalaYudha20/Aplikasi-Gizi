@@ -310,6 +310,11 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
+          if (_selectedPatientId == docId) {
+            return; // Jika ya, hentikan proses (jangan tampilkan snackbar lagi)
+          }
+
+          // 2. Jika belum, set state baru
           setState(() {
             _selectedPatientId = docId;
           });
@@ -321,6 +326,9 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
             dob
           );
           
+      ScaffoldMessenger.of(context).hideCurrentSnackBar(); 
+
+          // 5. Tampilkan Snackbar baru
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Data $name terpilih!'),
