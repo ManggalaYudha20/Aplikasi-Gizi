@@ -427,6 +427,11 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
               children: [
                 _buildInfoRow('Status Gizi', _currentPatient.statusGizi),
                 _buildInfoDisplay(
+                  label: 'Indikator Monitoring :',
+                  value: _currentPatient.monevIndikator,
+                  emptyValueMessage: '-',
+                ),
+                _buildInfoDisplay(
                   label: 'Asupan Makanan :',
                   value: _currentPatient.monevAsupan,
                   emptyValueMessage: '-',

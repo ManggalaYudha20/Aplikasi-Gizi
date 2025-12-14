@@ -234,39 +234,26 @@ class PdfGeneratorAsuhanAnak {
                       pw.Text('-', style: const pw.TextStyle(fontSize: 9))
                     else
                       // Menampilkan 2 item per baris
-                      for (var i = 0; i < patient.labResults.length; i += 2) ...[
+                      for (var i = 0; i < patient.labResults.length; i += 4) ...[
                         pw.Padding(
-                          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          padding: const pw.EdgeInsets.symmetric(vertical: 2),
                           child: pw.Row(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
                             children: [
-                              // Kolom Kiri
-                              pw.Expanded(
-                                flex: 1,
-                                child: pw.Text('${patient.labResults.keys.elementAt(i)} ', style: const pw.TextStyle(fontSize: 9)),
-                              ),
-                              pw.Expanded(
-                                flex: 1,
-                                child: pw.Text(': ${patient.labResults.values.elementAt(i)}', style: const pw.TextStyle(fontSize: 9)),
-                              ),
-                              
-                              // Kolom Kanan (Jika ada)
-                              if (i + 1 < patient.labResults.length) ...[
-                                pw.Expanded(
-                                  flex: 1,
-                                  child: pw.Text('${patient.labResults.keys.elementAt(i + 1)} ', style: const pw.TextStyle(fontSize: 9)),
-                                ),
-                                pw.Expanded(
-                                  flex: 1,
-                                  child: pw.Text(': ${patient.labResults.values.elementAt(i + 1)}', style: const pw.TextStyle(fontSize: 9)),
-                                ),
-                              ] else ...[
-                                pw.Expanded(flex: 2, child: pw.Container()), // Spacer
-                              ]
+                              // KOLOM 1
+                              _buildCompactLabItem(patient.labResults, i),
+                              // KOLOM 2
+                              _buildCompactLabItem(patient.labResults, i + 1),
+                              // KOLOM 3
+                              _buildCompactLabItem(patient.labResults, i + 2),
+                              // KOLOM 4
+                              _buildCompactLabItem(patient.labResults, i + 3),
                             ],
                           ),
-                        )
-                      ]
-                ]),
+                        ),
+                  ],
+                ],),
+                
                 _buildAssessmentCategorysatu(
                   'Klinik /Fisik /PD (Physical Data)',
                   [
@@ -394,6 +381,10 @@ class PdfGeneratorAsuhanAnak {
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: pw.Column(
               children: [
+                _buildInfoRowSatu(
+                  'Indikator Monitoring :',
+                  ' ${formatString(patient.monevIndikator)}',
+                ),
                 _buildInfoRowSatu(
                   'Asupan Makanan :',
                   ' ${formatString(patient.monevAsupan)}',
@@ -625,6 +616,31 @@ class PdfGeneratorAsuhanAnak {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  static pw.Widget _buildCompactLabItem(Map<String, dynamic> data, int index) {
+    // Jika index melebihi jumlah data, kembalikan Container kosong (spacer)
+    // agar alignment kolom tetap terjaga
+    if (index >= data.length) {
+      return pw.Expanded(
+        flex: 1,
+        child: pw.Container(),
+      );
+    }
+
+    final key = data.keys.elementAt(index);
+    final value = data.values.elementAt(index);
+
+    return pw.Expanded(
+      flex: 1,
+      child: pw.Padding(
+        padding: const pw.EdgeInsets.only(right: 4),
+        child: pw.Text(
+          '$key : $value', 
+          style: const pw.TextStyle(fontSize: 8), // Font kecil agar muat
+        ),
       ),
     );
   }

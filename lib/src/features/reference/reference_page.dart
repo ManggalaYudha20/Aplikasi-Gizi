@@ -130,7 +130,7 @@ class ReferencePage extends StatelessWidget {
                 title: 'Kebutuhan Kalori Diet DM',
                 formulaName: 'Metode PERKENI 2024',
                 formula: const Text(
-                  'Total = (BBI x Kalori Basal) + %Aktivitas - %Usia +/- %Koreksi BB',
+                  'Total = (BBI x Kalori Basal) + Aktivitas - Usia +/- Koreksi BB +/- Stress Metabolik',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'monospace',

@@ -51,6 +51,7 @@ class Patient {
   final bool? sukaAsin;
   final bool? makanBerlemak;
   final bool? jarangOlahraga;
+  final String? monevIndikator;
 
   Patient({
     required this.id,
@@ -100,6 +101,7 @@ class Patient {
     this.sukaAsin,
     this.makanBerlemak,
     this.jarangOlahraga,
+    this.monevIndikator,
   });
 
   factory Patient.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -174,6 +176,7 @@ class Patient {
       sukaAsin: data['sukaAsin'] as bool? ?? false,
       makanBerlemak: data['makanBerlemak'] as bool? ?? false,
       jarangOlahraga: data['jarangOlahraga'] as bool? ?? false,
+      monevIndikator: data['monevIndikator'] as String?,
     );
   }
 
@@ -226,6 +229,7 @@ class Patient {
       'sukaAsin': sukaAsin ?? false,
       'makanBerlemak': makanBerlemak ?? false,
       'jarangOlahraga': jarangOlahraga ?? false,
+      'monevIndikator': monevIndikator,
     };
   }
 

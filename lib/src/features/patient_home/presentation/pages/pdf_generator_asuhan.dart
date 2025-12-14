@@ -122,36 +122,73 @@ class PdfGeneratorAsuhan {
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: pw.Column(
               children: [
-                _buildAssessmentCategorysatu(
+              _buildAssessmentCategorysatu(
                   'Riwayat Gizi /FH (Food History)',
                   [
-                  _buildInfoRowSatu('Alergi Makanan', ': ${patient.alergiMakanan ?? '-'}'),
-                  if (patient.alergiMakanan == 'Ya')
-                  _buildInfoRowSatu('Jika Jawaban Ya, Sebutkan :', ' ${patient.detailAlergi ?? ''}'),
-                  pw.SizedBox(height: 10),
-                  _buildInfoRowSatu('Pola Makan / Asupan (%) :', ' ${patient.polaMakan ?? '-'}'),
+                    pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        // KOLOM KIRI: Alergi & Pola Makan
+                        pw.Expanded(
+                          child: pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              _buildInfoRowSatu('Alergi Makanan', ': ${patient.alergiMakanan ?? '-'}'),
+                              if (patient.alergiMakanan == 'Ya')
+                                _buildInfoRowSatu('Detail Alergi', ': ${patient.detailAlergi ?? ''}'),
+                              pw.SizedBox(height: 5),
+                              _buildInfoRowSatu('Pola Makan / Asupan (%)', ': ${patient.polaMakan ?? '-'}'),
+                            ],
+                          ),
+                        ),
+                        // KOLOM KANAN: Checkbox Kebiasaan
+                        pw.Expanded(
+                          child: pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Text(
+                                'Kebiasaan & Aktivitas:',
+                                style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+                              ),
+                              pw.SizedBox(height: 2),
+                              _buildCheckboxRow('Suka Manis/Gula', patient.sukaManis ?? false),
+                              _buildCheckboxRow('Suka Asin/Garam', patient.sukaAsin ?? false),
+                              _buildCheckboxRow('Suka Berlemak/Gorengan', patient.makanBerlemak ?? false),
+                              _buildCheckboxRow('Jarang Olahraga', patient.jarangOlahraga ?? false),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
                 _buildAssessmentCategorysatu(
                   'Biokimia /BD (Biochemical Data)',
                   [
-                   if (patient.labResults.isEmpty)
-                    pw.Text('-', style: const pw.TextStyle(fontSize: 9))
+                    if (patient.labResults.isEmpty)
+                      pw.Text('-', style: const pw.TextStyle(fontSize: 9))
                     else
-                    // Kita gunakan Collection for untuk membuat widget
-                    for (var i = 0; i < patient.labResults.length; i += 2) ...[
-                      // Ambil data pair (pasangan) untuk layout 2 kolom
-                      _buildAssessmentItemRow(
-                        // Kolom Kiri
-                        '${patient.labResults.keys.elementAt(i)} : ${patient.labResults.values.elementAt(i)} mg/dl',
-                        '', // Spacer kosong untuk format row fungsi ini
-                        // Kolom Kanan (Cek apakah ada item selanjutnya)
-                        (i + 1 < patient.labResults.length)
-                            ? '${patient.labResults.keys.elementAt(i + 1)} : ${patient.labResults.values.elementAt(i + 1)}'
-                            : '', // Jika ganjil, kanan kosong
-                        '', // Spacer kosong
-                      ),
-                    ],
+                      // LOOPING: Tambah i sebanyak 4 setiap iterasi (4 Kolom per baris)
+                      for (var i = 0; i < patient.labResults.length; i += 4)
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.symmetric(vertical: 2),
+                          child: pw.Row(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              // KOLOM 1
+                              _buildCompactLabItem(patient.labResults, i),
+                              
+                              // KOLOM 2
+                              _buildCompactLabItem(patient.labResults, i + 1),
+                              
+                              // KOLOM 3
+                              _buildCompactLabItem(patient.labResults, i + 2),
+                              
+                              // KOLOM 4
+                              _buildCompactLabItem(patient.labResults, i + 3),
+                            ],
+                          ),
+                        ),
                   ],
                 ),
                 _buildAssessmentCategorysatu(
@@ -226,9 +263,12 @@ class PdfGeneratorAsuhan {
                 ),
                 _buildAssessmentItemRow(
                   'BM : ${patient.intervensiBentukMakanan ?? '-'}',
-                  'Jenis Diet : ${patient.intervensiDiet ?? '-'}',
                   'Via : ${patient.intervensiVia ?? '-'}',
                   '',
+                ),
+                _buildInfoRowSatu(
+                  'Jenis Diet :',
+                  ' ${patient.intervensiDiet ?? '-'}',
                 ),
                 _buildInfoRowSatu(
                   'Tujuan Diet :',
@@ -245,6 +285,10 @@ class PdfGeneratorAsuhan {
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: pw.Column(
               children: [
+                _buildInfoRowSatu(
+                  'Indikator Monitoring :',
+                  ' ${patient.monevIndikator ?? '-'} ',
+                ),
                 _buildInfoRowSatu(
                   'Asupan Makanan :',
                   ' ${patient.monevAsupan ?? '-'} ',
@@ -322,6 +366,61 @@ class PdfGeneratorAsuhan {
               flex: 3,
               child: pw.Text(value2, style: const pw.TextStyle(fontSize: 9)),
             ),
+        ],
+      ),
+    );
+  }
+
+  static pw.Widget _buildCompactLabItem(Map<String, dynamic> data, int index) {
+    // Jika index melebihi jumlah data, kembalikan Container kosong (spacer)
+    // agar alignment kolom tetap terjaga
+    if (index >= data.length) {
+      return pw.Expanded(
+        flex: 1,
+        child: pw.Container(),
+      );
+    }
+
+    final key = data.keys.elementAt(index);
+    final value = data.values.elementAt(index);
+
+    return pw.Expanded(
+      flex: 1,
+      child: pw.Padding(
+        padding: const pw.EdgeInsets.only(right: 4),
+        child: pw.Text(
+          '$key : $value', // Tips: Hapus 'mg/dl' jika ingin muat lebih banyak, atau biarkan jika perlu
+          style: const pw.TextStyle(fontSize: 8), // Font diperkecil sedikit ke 8 agar muat 4 kolom
+          softWrap: true,
+        ),
+      ),
+    );
+  }
+
+  static pw.Widget _buildCheckboxRow(String label, bool isChecked) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 3),
+      child: pw.Row(
+        mainAxisSize: pw.MainAxisSize.min,
+        children: [
+          pw.Container(
+            width: 8,
+            height: 8,
+            decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
+            child: isChecked
+                ? pw.Center(
+                    child: pw.Text(
+                      'X', // Simbol Centang
+                      style: pw.TextStyle(
+                        fontSize: 8,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                  )
+                : null,
+          ),
+          pw.SizedBox(width: 4),
+          pw.Text(label, style: const pw.TextStyle(fontSize: 9)),
         ],
       ),
     );

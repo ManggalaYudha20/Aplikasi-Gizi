@@ -16,6 +16,10 @@ import 'package:flutter/services.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/expert_system_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/nutrition_reference_data.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/diagnosis_terminology.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/intervensi_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/monitoring_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/searchable_terminology_field.dart';
+
 class LabInputItem {
   TextEditingController valueController;
   String? selectedType;
@@ -29,9 +33,9 @@ class DiagnosisInput {
   TextEditingController sController; // Signs/Symptoms
 
   DiagnosisInput({String? p, String? e, String? s})
-      : pController = TextEditingController(text: p),
-        eController = TextEditingController(text: e),
-        sController = TextEditingController(text: s);
+    : pController = TextEditingController(text: p),
+      eController = TextEditingController(text: e),
+      sController = TextEditingController(text: s);
 
   void dispose() {
     pController.dispose();
@@ -73,13 +77,29 @@ class _DataFormPageState extends State<DataFormPage> {
   // BARU: Controllers untuk Asuhan Gizi
   final _detailAlergiController = TextEditingController();
   final _polaMakanController = TextEditingController();
-  final _polaMakanFreqController = TextEditingController(); // Helper UI: Frekuensi
+  final _polaMakanFreqController =
+      TextEditingController(); // Helper UI: Frekuensi
   final _polaMakanPercentController = TextEditingController();
   final List<LabInputItem> _labItems = [];
   final List<String> _labOptions = [
-    'GDS', 'GDP', 'HbA1c', 'Ureum', 'HGB', 'ENT', 
-    'Kolesterol Total', 'HDL', 'LDL', 'Trigliserida', 
-    'Asam Urat', 'Kreatinin', 'SGOT', 'SGPT', 'Natrium', 'Kalium', 'Leukosit', 'Trombosit'
+    'GDS',
+    'GDP',
+    'HbA1c',
+    'Ureum',
+    'HGB',
+    'ENT',
+    'Kolesterol Total',
+    'HDL',
+    'LDL',
+    'Trigliserida',
+    'Asam Urat',
+    'Kreatinin',
+    'SGOT',
+    'SGPT',
+    'Natrium',
+    'Kalium',
+    'Leukosit',
+    'Trombosit',
   ];
   final _klinikTDController = TextEditingController();
   final _klinikKUController = TextEditingController();
@@ -99,6 +119,7 @@ class _DataFormPageState extends State<DataFormPage> {
   final _monevHasilLabController = TextEditingController();
   final _namaNutrisionisController = TextEditingController();
   final AuthService _authService = AuthService();
+  final _monevIndikatorController = TextEditingController();
 
   bool _sukaManis = false;
   bool _sukaAsin = false;
@@ -118,16 +139,19 @@ class _DataFormPageState extends State<DataFormPage> {
     } else {
       // Jika pasien baru, tambahkan 1 field lab kosong default
       _addLabItem(null, '');
+      _addDiagnosisItem();
     }
   }
 
   void _addLabItem(String? type, String value) {
     if (_labItems.length >= 6) return; // Batasan Max 6
     setState(() {
-      _labItems.add(LabInputItem(
-        valueController: TextEditingController(text: value),
-        selectedType: type,
-      ));
+      _labItems.add(
+        LabInputItem(
+          valueController: TextEditingController(text: value),
+          selectedType: type,
+        ),
+      );
     });
   }
 
@@ -135,9 +159,9 @@ class _DataFormPageState extends State<DataFormPage> {
   void _addDiagnosisItem({String? p, String? e, String? s}) {
     // BATASAN: Cek jika jumlah sudah 3, hentikan proses
     if (_diagnosisItems.length >= 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Maksimal 3 Diagnosa Gizi')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Maksimal 3 Diagnosa Gizi')));
       return;
     }
 
@@ -154,15 +178,42 @@ class _DataFormPageState extends State<DataFormPage> {
     });
   }
 
- void _generateExpertDiagnosis() {
-    // 1. Ambil data fisik (BB/TB/IMT)
+  void _generateExpertDiagnosis() {
+    bool isBasicDataEmpty =
+        _beratBadanController.text.isEmpty ||
+        _tinggiBadanController.text.isEmpty;
+    bool isLabEmpty = _labItems.every(
+      (item) => item.valueController.text.isEmpty,
+    );
+    bool isClinicEmpty = _klinikTDController.text.isEmpty;
+
+    if (isBasicDataEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal: Harap lengkapi Berat Badan dan Tinggi Badan.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    if (isLabEmpty && isClinicEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Peringatan: Data Lab & Klinis kosong. Hasil diagnosa mungkin kurang spesifik.',
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+
+    // 1. Ambil data fisik
     double? beratBadan = double.tryParse(_beratBadanController.text);
     double? tinggiBadan = double.tryParse(_tinggiBadanController.text);
-    
     double imt = 0;
     if (beratBadan != null && tinggiBadan != null && tinggiBadan > 0) {
-       final tbMeter = tinggiBadan / 100;
-       imt = beratBadan / (tbMeter * tbMeter);
+      final tbMeter = tinggiBadan / 100;
+      imt = beratBadan / (tbMeter * tbMeter);
     }
 
     // 2. Ambil Data Lab
@@ -201,87 +252,83 @@ class _DataFormPageState extends State<DataFormPage> {
       kreatinin: kreatinin,
       kalium: kalium,
       cholesterol: kolesterol,
-      bloodPressure: _klinikTDController.text, 
+      bloodPressure: _klinikTDController.text,
       dietaryHistory: dietaryHistoryList,
       medicalDiagnosis: _diagnosisMedisController.text,
     );
 
     // 5. Panggil Service
-    final service = DiseaseExpertService(); 
+    final service = DiseaseExpertService();
     final result = service.generateCarePlan(input);
 
-    // 6. Update UI (Masuk ke Form PES Dinamis)
+    // 6. Update UI
     setState(() {
       _diagnosisItems.clear(); // Reset form lama
 
-    for (var diag in result.suggestedDiagnoses) {
-        // BATASAN: Berhenti jika sudah mencapai 3 diagnosa
+      // --- DIAGNOSA (PES) ---
+      for (var diag in result.suggestedDiagnoses) {
         if (_diagnosisItems.length >= 3) break;
         String problem = "[${diag.code}] ${diag.label}";
-        String etiology = "";
-        String signs = "";
+        String etiology =
+            diag.definition; // Menggunakan definisi dari Expert System
+        String signs =
+            ""; // Signs bisa ditambahkan logika manual jika perlu (seperti lab value)
 
-        // --- Logika Cerdas Pengisi E dan S ---
-       if (diag.code == 'NC-2.2') { 
-          etiology = "Gangguan fungsi endokrin/metabolisme (Diabetes/Ginjal)";
-          List<String> bukti = [];
-          if (gds != null && gds >= 200) {
-            bukti.add("GDS $gds");
-          }
-          if (gdp != null && gdp >= 126) {
-            bukti.add("GDP $gdp");
-          }
-          if (ureum != null && ureum > 50) {
-            bukti.add("Ureum $ureum");
-          }
-          if (kreatinin != null && kreatinin > 1.5) {
-            bukti.add("Kreatinin $kreatinin");
-          }
-          signs = "Hasil Lab: ${bukti.join(', ')}";
+        // Logika tambahan untuk Signs (Opsional, agar lebih detail)
+        if (diag.code == 'NC-2.2') {
+          // Kumpulkan semua data lab yang tidak null ke dalam list
+          List<String> labFindings = [];
+          if (gds != null) labFindings.add("GDS: ${gds.round()}");
+          if (gdp != null) labFindings.add("GDP: ${gdp.round()}");
+          if (hba1c != null) labFindings.add("HbA1c: $hba1c");
+          if (ureum != null) labFindings.add("Ureum: ${ureum.round()}");
+          if (kreatinin != null) labFindings.add("Kreatinin: $kreatinin");
+          if (kolesterol != null) labFindings.add("Kolesterol: ${kolesterol.round()}");
+          if (kalium != null) labFindings.add("Kalium: $kalium");
 
-        } else if (diag.code == 'NI-5.8.3') { 
-          etiology = "Kurangnya pengetahuan terkait gizi / Kebiasaan makan salah";
-          signs = "Riwayat: Suka makanan manis";
-
-        } else if (diag.code == 'NI-5.10.1' || diag.code == 'NI-5.10.2') { 
-          etiology = "Disfungsi ginjal / Pola makan tinggi garam";
-          if (kalium != null && kalium > 5) {
-            signs = "Kalium $kalium";
+          if (labFindings.isNotEmpty) {
+            signs = "Hasil Lab: ${labFindings.join(', ')}";
           } else {
-            signs = "Riwayat suka asin, TD ${_klinikTDController.text}";
+             // Fallback jika lab kosong tapi diagnosa ini muncul (misal dari diagnosa medis)
+            signs = "Perubahan nilai lab terkait"; 
           }
-
+        } 
+        // --- Logika Signs Lainnya ---
+        else if (diag.code == 'NI-5.8.3') {
+           signs = "Riwayat: Suka makanan manis";
+        } else if (diag.code == 'NI-5.10.1') {
+           if (kalium != null) signs = "Kalium: $kalium";
+        } else if (diag.code == 'NI-5.10.2') {
+           signs = "Riwayat suka asin, TD: ${_klinikTDController.text}";
         } else if (diag.code == 'NC-3.3' || diag.code == 'NC-3.1') {
-          etiology = "Asupan energi tidak sesuai kebutuhan";
-          signs = "IMT ${imt.toStringAsFixed(1)}";
-        
+           signs = "IMT: ${imt.toStringAsFixed(1)}";
         } else if (diag.code == 'NB-2.1') {
-          etiology = "Kurangnya motivasi/sarana olahraga";
-          signs = "Riwayat: Jarang berolahraga";
+           signs = "Riwayat: Jarang berolahraga";
         }
-        
-        // PERBAIKAN ERROR 245: Menggunakan ?? '' untuk menangani null string
-        if (etiology.isEmpty) {
-          etiology = diag.definition ?? ''; 
-        }
-
         _addDiagnosisItem(p: problem, e: etiology, s: signs);
       }
-
-      // Jika tidak ada hasil, buat 1 form kosong
       if (_diagnosisItems.isEmpty) _addDiagnosisItem();
 
-      // Isi Intervensi & Monev Otomatis
+      // --- INTERVENSI ---
+      // Format harus: [KODE] Label
+      // Agar terbaca otomatis oleh SearchableTerminologyField
       if (_intervensiDietController.text.isEmpty) {
-        _intervensiDietController.text = result.suggestedInterventions.map((i) => i.label).join(', ');
+        _intervensiDietController.text = result.suggestedInterventions
+            .map((i) => '[${i.code}] ${i.label}')
+            .join('; '); // Gunakan ; sebagai pemisah jika ada banyak
       }
-      if (_monevAsupanController.text.isEmpty) {
-        _monevAsupanController.text = result.suggestedMonitoring.map((m) => m.label).join(', ');
+
+      // --- MONITORING (UPDATED) ---
+      // Masuk ke _monevIndikatorController (Bukan Asupan)
+      if (_monevIndikatorController.text.isEmpty) {
+        _monevIndikatorController.text = result.suggestedMonitoring
+            .map((m) => '[${m.code}] ${m.label}')
+            .join('; ');
       }
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Saran Diagnosa PES berhasil dimuat.')),
+      const SnackBar(content: Text('Saran Diagnosa otomatis berhasil dimuat.')),
     );
   }
 
@@ -315,7 +362,7 @@ class _DataFormPageState extends State<DataFormPage> {
     // BARU: Inisialisasi data asuhan gizi
     _detailAlergiController.text = patient.detailAlergi ?? '';
     _polaMakanController.text = patient.polaMakan ?? '';
-      if (_polaMakanController.text.contains(' // ')) {
+    if (_polaMakanController.text.contains(' // ')) {
       final parts = _polaMakanController.text.split(' // ');
       _polaMakanFreqController.text = parts[0];
       // Ambil bagian persen dan hapus simbol % untuk ditampilkan di input angka
@@ -341,7 +388,6 @@ class _DataFormPageState extends State<DataFormPage> {
     _riwayatPenyakitSekarangController.text =
         patient.riwayatPenyakitSekarang ?? '';
     _riwayatPenyakitDahuluController.text = patient.riwayatPenyakitDahulu ?? '';
-    
 
     _intervensiDietController.text = patient.intervensiDiet ?? '';
     _intervensiBentukMakananController.text =
@@ -350,6 +396,7 @@ class _DataFormPageState extends State<DataFormPage> {
     _intervensiTujuanController.text = patient.intervensiTujuan ?? '';
     _monevAsupanController.text = patient.monevAsupan ?? '';
     _monevHasilLabController.text = patient.monevHasilLab ?? '';
+    _monevIndikatorController.text = patient.monevIndikator ?? '';
     _klinikKUController.text = patient.klinikKU ?? '';
     _klinikKESController.text = patient.klinikKES ?? '';
     _klinikSPO2Controller.text = patient.klinikSPO2 ?? '';
@@ -383,19 +430,21 @@ class _DataFormPageState extends State<DataFormPage> {
               // Jika ada data sebelumnya yang belum disimpan, masukkan ke list
               if (currentP != null) {
                 // Bypass limit check saat loading data
-                _diagnosisItems.add(DiagnosisInput(p: currentP, e: currentE, s: currentS));
+                _diagnosisItems.add(
+                  DiagnosisInput(p: currentP, e: currentE, s: currentS),
+                );
               }
-              
+
               // Reset untuk item baru
               // Hapus nomor urut di depan (misal "1. Masalah" jadi "Masalah")
               currentP = line.replaceFirst(RegExp(r'^\d+\.\s*'), '');
               currentE = null;
               currentS = null;
-            } 
+            }
             // Cek Etiologi
             else if (line.startsWith('Berkaitan dengan:')) {
               currentE = line.replaceFirst('Berkaitan dengan:', '').trim();
-            } 
+            }
             // Cek Signs/Symptoms
             else if (line.startsWith('Ditandai dengan:')) {
               currentS = line.replaceFirst('Ditandai dengan:', '').trim();
@@ -404,14 +453,16 @@ class _DataFormPageState extends State<DataFormPage> {
 
           // Jangan lupa tambahkan item terakhir setelah loop selesai
           if (currentP != null) {
-            _diagnosisItems.add(DiagnosisInput(p: currentP, e: currentE, s: currentS));
+            _diagnosisItems.add(
+              DiagnosisInput(p: currentP, e: currentE, s: currentS),
+            );
           }
         } else {
           // Fallback: Jika format tidak dikenali (data lama/manual), masukkan semua ke P
           _diagnosisItems.add(DiagnosisInput(p: rawText));
         }
-      } 
-      
+      }
+
       // Jika kosong atau gagal parse, buat 1 field kosong
       if (_diagnosisItems.isEmpty) {
         _diagnosisItems.add(DiagnosisInput());
@@ -447,7 +498,7 @@ class _DataFormPageState extends State<DataFormPage> {
     _klinikRRController.dispose();
     _riwayatPenyakitSekarangController.dispose();
     _riwayatPenyakitDahuluController.dispose();
-    
+
     for (var item in _diagnosisItems) {
       item.dispose();
     }
@@ -465,6 +516,7 @@ class _DataFormPageState extends State<DataFormPage> {
     _aktivitasController.dispose();
     _kehilanganNafsuMakanController.dispose();
     _alergiMakananController.dispose();
+    _monevIndikatorController.dispose();
 
     // Dispose semua FocusNode
     for (final node in _focusNodes) {
@@ -497,6 +549,11 @@ class _DataFormPageState extends State<DataFormPage> {
       _polaMakanFreqController.clear();
       _polaMakanPercentController.clear();
 
+      _sukaManis = false;
+      _sukaAsin = false;
+      _makanBerlemak = false;
+      _jarangOlahraga = false;
+
       for (var item in _labItems) {
         item.valueController.dispose();
       }
@@ -521,6 +578,7 @@ class _DataFormPageState extends State<DataFormPage> {
       _klinikKESController.clear();
       _klinikSPO2Controller.clear();
       _namaNutrisionisController.clear();
+      _monevIndikatorController.clear();
     });
   }
 
@@ -655,7 +713,8 @@ class _DataFormPageState extends State<DataFormPage> {
         // 1. Parsing Data Lab & Fisik
         Map<String, String> labResultsMap = {};
         for (var item in _labItems) {
-          if (item.selectedType != null && item.valueController.text.isNotEmpty) {
+          if (item.selectedType != null &&
+              item.valueController.text.isNotEmpty) {
             labResultsMap[item.selectedType!] = item.valueController.text;
           }
         }
@@ -666,27 +725,32 @@ class _DataFormPageState extends State<DataFormPage> {
           if (item.pController.text.isNotEmpty) {
             diagnosaString.writeln('${i + 1}. ${item.pController.text}');
             if (item.eController.text.isNotEmpty) {
-                diagnosaString.writeln('   Berkaitan dengan: ${item.eController.text}');
+              // [PERBAIKAN] Bersihkan teks dari spasi dan titik dua di awal
+              String cleanE = item.eController.text.trim();
+              if (cleanE.startsWith(':')) {
+                cleanE = cleanE.substring(1).trim();
+              }
+              diagnosaString.writeln('   Berkaitan dengan: $cleanE');
             }
             if (item.sController.text.isNotEmpty) {
-                diagnosaString.writeln('   Ditandai dengan: ${item.sController.text}');
+              diagnosaString.writeln(
+                '   Ditandai dengan: ${item.sController.text}',
+              );
             }
-            diagnosaString.writeln(); 
+            diagnosaString.writeln();
           }
         }
 
-          String polaMakanFinal = '';
-          if (_polaMakanFreqController.text.isNotEmpty) {
-            polaMakanFinal = _polaMakanFreqController.text;
-            if (_polaMakanPercentController.text.isNotEmpty) {
-                polaMakanFinal += ' // ${_polaMakanPercentController.text}%';
-            }
-          } else if (_polaMakanPercentController.text.isNotEmpty) {
-            polaMakanFinal = ' // ${_polaMakanPercentController.text}%';
+        String polaMakanFinal = '';
+        if (_polaMakanFreqController.text.isNotEmpty) {
+          polaMakanFinal = _polaMakanFreqController.text;
+          if (_polaMakanPercentController.text.isNotEmpty) {
+            polaMakanFinal += ' // ${_polaMakanPercentController.text}%';
           }
-          _polaMakanController.text = polaMakanFinal;
-
-            
+        } else if (_polaMakanPercentController.text.isNotEmpty) {
+          polaMakanFinal = ' // ${_polaMakanPercentController.text}%';
+        }
+        _polaMakanController.text = polaMakanFinal;
 
         // --- Siapkan data untuk Firestore ---
         final patientData = {
@@ -714,6 +778,11 @@ class _DataFormPageState extends State<DataFormPage> {
           'kehilanganNafsuMakan': _kehilanganNafsuMakanController.text,
           'alergiMakanan': _alergiMakananController.text,
 
+          'sukaManis': _sukaManis,
+          'sukaAsin': _sukaAsin,
+          'makanBerlemak': _makanBerlemak,
+          'jarangOlahraga': _jarangOlahraga,
+
           // BARU: Data Asuhan Gizi
           'detailAlergi': _detailAlergiController.text,
           'polaMakan': _polaMakanController.text,
@@ -729,6 +798,7 @@ class _DataFormPageState extends State<DataFormPage> {
           'intervensiBentukMakanan': _intervensiBentukMakananController.text,
           'intervensiVia': _intervensiViaController.text,
           'intervensiTujuan': _intervensiTujuanController.text,
+          'monevIndikator': _monevIndikatorController.text,
           'monevAsupan': _monevAsupanController.text,
           'monevHasilLab': _monevHasilLabController.text,
           'monevStatusGizi': statusGizi,
@@ -836,6 +906,11 @@ class _DataFormPageState extends State<DataFormPage> {
             klinikSPO2: _klinikSPO2Controller.text,
             namaNutrisionis: _namaNutrisionisController.text,
             createdBy: currentUser.uid,
+            sukaManis: _sukaManis,
+            sukaAsin: _sukaAsin,
+            makanBerlemak: _makanBerlemak,
+            jarangOlahraga: _jarangOlahraga,
+            monevIndikator: _monevIndikatorController.text,
           );
 
           // Navigate back to previous screen with updated patient data
@@ -1182,7 +1257,8 @@ class _DataFormPageState extends State<DataFormPage> {
                           label: 'Asupan',
                           suffixText: '%', // Agar Jelas
                           keyboardType: TextInputType.number,
-                          focusNode: _focusNodes[16], // Focus node baru agar tidak tabrakan
+                          focusNode:
+                              _focusNodes[16], // Focus node baru agar tidak tabrakan
                           validator: (v) => null,
                           maxLength: 3,
                         ),
@@ -1269,14 +1345,20 @@ class _DataFormPageState extends State<DataFormPage> {
                                 decoration: const InputDecoration(
                                   labelText: 'Jenis Tes',
                                   border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 15,
+                                  ),
                                 ),
                                 // Pastikan value ada di list items atau null
-                                initialValue: _labItems[index].selectedType, 
+                                initialValue: _labItems[index].selectedType,
                                 items: _labOptions.map((String type) {
                                   return DropdownMenuItem<String>(
                                     value: type,
-                                    child: Text(type, style: const TextStyle(fontSize: 13)),
+                                    child: Text(
+                                      type,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
                                   );
                                 }).toList(),
                                 onChanged: (val) {
@@ -1285,15 +1367,19 @@ class _DataFormPageState extends State<DataFormPage> {
                                   });
                                 },
                                 validator: (val) {
-                                   if (_labItems[index].valueController.text.isNotEmpty && val == null) {
-                                     return 'Pilih jenis';
-                                   }
-                                   return null;
+                                  if (_labItems[index]
+                                          .valueController
+                                          .text
+                                          .isNotEmpty &&
+                                      val == null) {
+                                    return 'Pilih jenis';
+                                  }
+                                  return null;
                                 },
                               ),
                             ),
                             const SizedBox(width: 10),
-                            
+
                             // INPUT HASIL LAB
                             Expanded(
                               flex: 2,
@@ -1306,18 +1392,22 @@ class _DataFormPageState extends State<DataFormPage> {
                                   suffixText: 'mg/dL',
                                 ),
                                 validator: (val) {
-                                  if (_labItems[index].selectedType != null && (val == null || val.isEmpty)) {
-                                     return 'Isi nilai';
+                                  if (_labItems[index].selectedType != null &&
+                                      (val == null || val.isEmpty)) {
+                                    return 'Isi nilai';
                                   }
                                   return null;
                                 },
                               ),
                             ),
-                            
+
                             // TOMBOL HAPUS (Muncul jika item > 1)
                             if (_labItems.length > 1 || index > 0)
                               IconButton(
-                                icon: const Icon(Icons.remove_circle, color: Colors.red),
+                                icon: const Icon(
+                                  Icons.remove_circle,
+                                  color: Colors.red,
+                                ),
                                 onPressed: () {
                                   setState(() {
                                     _labItems[index].valueController.dispose();
@@ -1384,10 +1474,21 @@ class _DataFormPageState extends State<DataFormPage> {
                   const SizedBox(height: 16),
 
                   _buildTextFormField(
+                    controller: _klinikSPO2Controller,
+                    label: 'Saturasi Oksigen (SpO2)',
+                    prefixIcon: const Icon(Icons.air),
+                    suffixText: '%',
+                    focusNode: _focusNodes[21],
+                    maxLength: 4,
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextFormField(
                     controller: _klinikKUController,
                     label: 'Keadaan Umum (KU)',
-                    prefixIcon: const Icon(Icons.monitor_heart),
-                    focusNode: _focusNodes[21],
+                    prefixIcon: const Icon(Icons.accessibility_new),
+                    focusNode: _focusNodes[22],
                     validator: (value) => null,
                     maxLength: 20,
                   ),
@@ -1396,21 +1497,10 @@ class _DataFormPageState extends State<DataFormPage> {
                   _buildTextFormField(
                     controller: _klinikKESController,
                     label: 'Kesadaran (KES)',
-                    prefixIcon: const Icon(Icons.monitor_heart),
-                    focusNode: _focusNodes[22],
+                    prefixIcon: const Icon(Icons.psychology),
+                    focusNode: _focusNodes[23],
                     validator: (value) => null,
                     maxLength: 20,
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildTextFormField(
-                    controller: _klinikSPO2Controller,
-                    label: 'Saturasi Oksigen (SpO2)',
-                    prefixIcon: const Icon(Icons.air),
-                    suffixText: '%',
-                    focusNode: _focusNodes[23],
-                    maxLength: 4,
-                    validator: (value) => null,
                   ),
 
                   _buildSectionHeader('Riwayat Personal/CH'),
@@ -1436,31 +1526,35 @@ class _DataFormPageState extends State<DataFormPage> {
                   const SizedBox(height: 24),
 
                   Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Diagnosa Gizi',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: _generateExpertDiagnosis,
-                      icon: const Icon(Icons.auto_awesome, size: 16),
-                      label: const Text('Bantu Diagnosa Otomatis'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[50], // Warna soft
-                        foregroundColor: Colors.blue,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Diagnosa Gizi',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: _generateExpertDiagnosis,
+                        icon: const Icon(Icons.auto_awesome, size: 16),
+                        label: const Text('Bantu Diagnosa Otomatis'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[50], // Warna soft
+                          foregroundColor: Colors.blue,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
 
-           ListView.builder(
+                  ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: _diagnosisItems.length,
                     itemBuilder: (context, index) {
                       return Card(
+                        key: ObjectKey(_diagnosisItems[index]),
                         margin: const EdgeInsets.only(bottom: 12),
                         color: Colors.grey[50],
                         elevation: 1,
@@ -1471,119 +1565,206 @@ class _DataFormPageState extends State<DataFormPage> {
                             children: [
                               Row(
                                 children: [
-                                  Text("Diagnosa #${index + 1}", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green[700])),
+                                  Text(
+                                    "Diagnosa #${index + 1}",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green[700],
+                                    ),
+                                  ),
                                   const Spacer(),
                                   if (_diagnosisItems.length > 1)
                                     InkWell(
                                       onTap: () => _removeDiagnosisItem(index),
-                                      child: const Icon(Icons.delete, color: Colors.red, size: 20),
+                                      child: const Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
                                     ),
                                 ],
                               ),
                               const SizedBox(height: 8),
                               // P
                               LayoutBuilder(
-                              builder: (context, constraints) {
-                                return Autocomplete<NutritionReferenceItem>(
-                                  // 1. Data yang akan ditampilkan berdasarkan ketikan user
-                                  optionsBuilder: (TextEditingValue textEditingValue) {
-                                    if (textEditingValue.text.isEmpty) {
-                                      return const Iterable<NutritionReferenceItem>.empty();
-                                    }
-                                    // Logika pencarian: Cocokkan Label, Kode, atau Definisi
-                                    return DiagnosisTerminology.allDiagnoses.where((NutritionReferenceItem option) {
-                                      final String keyword = textEditingValue.text.toLowerCase();
-                                      return option.label.toLowerCase().contains(keyword) ||
-                                            option.code.toLowerCase().contains(keyword) ||
-                                            (option.definition?.toLowerCase().contains(keyword) ?? false);
-                                    });
-                                  },
+                                builder: (context, constraints) {
+                                  return Autocomplete<NutritionReferenceItem>(
+                                    // 1. Data yang akan ditampilkan berdasarkan ketikan user
+                                    optionsBuilder:
+                                        (TextEditingValue textEditingValue) {
+                                          if (textEditingValue.text.isEmpty) {
+                                            return const Iterable<
+                                              NutritionReferenceItem
+                                            >.empty();
+                                          }
+                                          // Logika pencarian: Cocokkan Label, Kode, atau Definisi
+                                          return DiagnosisTerminology
+                                              .allDiagnoses
+                                              .where((
+                                                NutritionReferenceItem option,
+                                              ) {
+                                                final String keyword =
+                                                    textEditingValue.text
+                                                        .toLowerCase();
+                                                return option.label
+                                                        .toLowerCase()
+                                                        .contains(keyword) ||
+                                                    option.code
+                                                        .toLowerCase()
+                                                        .contains(keyword) ||
+                                                    (option.definition
+                                                        .toLowerCase()
+                                                        .contains(keyword));
+                                              });
+                                        },
 
-                                  // 2. Apa yang ditampilkan di text field saat item dipilih
-                                  displayStringForOption: (NutritionReferenceItem option) => 
-                                      '[${option.code}] ${option.label}',
+                                    // 2. Apa yang ditampilkan di text field saat item dipilih
+                                    displayStringForOption:
+                                        (NutritionReferenceItem option) =>
+                                            '[${option.code}] ${option.label}',
 
-                                  // 3. Aksi saat item dipilih
-                                  onSelected: (NutritionReferenceItem selection) {
-                                    // Update controller manual agar tersimpan di state
-                                    _diagnosisItems[index].pController.text = '[${selection.code}] ${selection.label}';
-                                    
-                                    // (Opsional) Otomatis isi Etiologi atau Signs jika mau
-                                    // _diagnosisItems[index].eController.text = selection.definition ?? ''; 
-                                  },
+                                    // 3. Aksi saat item dipilih
+                                    onSelected: (NutritionReferenceItem selection) {
+                                      // Update controller manual agar tersimpan di state
+                                      _diagnosisItems[index].pController.text =
+                                          '[${selection.code}] ${selection.label}';
 
-                                  // 4. Membangun Text Field-nya (Agar tetap terlihat sama dengan style aplikasi)
-                                  fieldViewBuilder: (context, fieldTextEditingController, fieldFocusNode, onFieldSubmitted) {
-                                    // PENTING: Sinkronisasi controller bawaan Autocomplete dengan controller kita
-                                    // Jika controller kita sudah ada isinya (misal dari edit pasien), pasang ke controller autocomplete
-                                    if (_diagnosisItems[index].pController.text.isNotEmpty && 
-                                        fieldTextEditingController.text.isEmpty) {
-                                        fieldTextEditingController.text = _diagnosisItems[index].pController.text;
-                                    }
-                                    
-                                    // Listener: Jika user mengetik manual (bukan pilih opsi), tetap simpan ke controller utama
-                                    fieldTextEditingController.addListener(() {
-                                        _diagnosisItems[index].pController.text = fieldTextEditingController.text;
-                                    });
+                                      // (Opsional) Otomatis isi Etiologi atau Signs jika mau
+                                      // _diagnosisItems[index].eController.text = selection.definition ?? '';
+                                    },
 
-                                    return TextFormField(
-                                      controller: fieldTextEditingController,
-                                      focusNode: fieldFocusNode,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Problem (P)',
-                                        isDense: true,
-                                        border: OutlineInputBorder(),
-                                        suffixIcon: Icon(Icons.search), // Indikator bahwa ini bisa dicari
-                                      ),
-                                      maxLines: null,
-                                    );
-                                  },
+                                    // 4. Membangun Text Field-nya (Agar tetap terlihat sama dengan style aplikasi)
+                                    fieldViewBuilder:
+                                        (
+                                          context,
+                                          fieldTextEditingController,
+                                          fieldFocusNode,
+                                          onFieldSubmitted,
+                                        ) {
+                                          // PENTING: Sinkronisasi controller bawaan Autocomplete dengan controller kita
+                                          // Jika controller kita sudah ada isinya (misal dari edit pasien), pasang ke controller autocomplete
+                                          if (_diagnosisItems[index]
+                                                  .pController
+                                                  .text
+                                                  .isNotEmpty &&
+                                              fieldTextEditingController
+                                                  .text
+                                                  .isEmpty) {
+                                            WidgetsBinding.instance
+                                                .addPostFrameCallback((_) {
+                                                  if (context.mounted) {
+                                                    fieldTextEditingController
+                                                            .text =
+                                                        _diagnosisItems[index]
+                                                            .pController
+                                                            .text;
+                                                  }
+                                                });
+                                          }
 
-                                  // 5. Tampilan List Saran (Dropdown di bawah)
-                                  optionsViewBuilder: (context, onSelected, options) {
-                                    return Align(
-                                      alignment: Alignment.topLeft,
-                                      child: Material(
-                                        elevation: 4.0,
-                                        child: SizedBox(
-                                          width: constraints.maxWidth, // Lebar menyesuaikan form
-                                          height: 100, // Tinggi maksimal dropdown
-                                          child: ListView.builder(
-                                            padding: const EdgeInsets.all(8.0),
-                                            itemCount: options.length,
-                                            itemBuilder: (BuildContext context, int i) {
-                                              final NutritionReferenceItem option = options.elementAt(i);
-                                              return ListTile(
-                                                title: Text(
-                                                  '${option.code} - ${option.label}',
-                                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                                ),
-                                                subtitle: Text(option.definition ?? '-'),
-                                                onTap: () {
-                                                  onSelected(option);
-                                                },
-                                              );
-                                            },
+                                          // Listener: Jika user mengetik manual (bukan pilih opsi), tetap simpan ke controller utama
+                                          fieldTextEditingController
+                                              .addListener(() {
+                                                _diagnosisItems[index]
+                                                        .pController
+                                                        .text =
+                                                    fieldTextEditingController
+                                                        .text;
+                                              });
+
+                                          return TextFormField(
+                                            controller:
+                                                fieldTextEditingController,
+                                            focusNode: fieldFocusNode,
+                                            maxLength: 200,
+                                            textInputAction:
+                                                TextInputAction.done,
+                                            decoration: const InputDecoration(
+                                              labelText: 'Problem (P)',
+                                              isDense: true,
+                                              border: OutlineInputBorder(),
+                                              suffixIcon: Icon(
+                                                Icons.search,
+                                              ), // Indikator bahwa ini bisa dicari
+                                            ),
+                                            maxLines: null,
+                                          );
+                                        },
+
+                                    // 5. Tampilan List Saran (Dropdown di bawah)
+                                    optionsViewBuilder: (context, onSelected, options) {
+                                      return Align(
+                                        alignment: Alignment.topLeft,
+                                        child: Material(
+                                          elevation: 4.0,
+                                          child: SizedBox(
+                                            width: constraints
+                                                .maxWidth, // Lebar menyesuaikan form
+                                            height:
+                                                100, // Tinggi maksimal dropdown
+                                            child: ListView.builder(
+                                              padding: const EdgeInsets.all(
+                                                8.0,
+                                              ),
+                                              itemCount: options.length,
+                                              itemBuilder:
+                                                  (
+                                                    BuildContext context,
+                                                    int i,
+                                                  ) {
+                                                    final NutritionReferenceItem
+                                                    option = options.elementAt(
+                                                      i,
+                                                    );
+                                                    return ListTile(
+                                                      title: Text(
+                                                        '${option.code} - ${option.label}',
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      subtitle: Text(
+                                                        option.definition,
+                                                      ),
+                                                      onTap: () {
+                                                        onSelected(option);
+                                                      },
+                                                    );
+                                                  },
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              }
-                            ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
                               const SizedBox(height: 8),
                               // E
                               TextFormField(
                                 controller: _diagnosisItems[index].eController,
-                                decoration: const InputDecoration(labelText: 'Berkaitan dengan - Etiology (E)', isDense: true, border: OutlineInputBorder()),
+                                maxLength: 200,
+                                textInputAction: TextInputAction.done,
+                                decoration: const InputDecoration(
+                                  labelText: 'Berkaitan dengan - Etiology (E)',
+                                  isDense: true,
+                                  border: OutlineInputBorder(),
+                                ),
                                 maxLines: null,
                               ),
                               const SizedBox(height: 8),
                               // S
                               TextFormField(
                                 controller: _diagnosisItems[index].sController,
-                                decoration: const InputDecoration(labelText: 'Ditandai dengan - Signs/Symptoms (S)', isDense: true, border: OutlineInputBorder()),
+                                maxLength: 200,
+                                textInputAction: TextInputAction.done,
+                                decoration: const InputDecoration(
+                                  labelText:
+                                      'Ditandai dengan - Signs/Symptoms (S)',
+                                  isDense: true,
+                                  border: OutlineInputBorder(),
+                                ),
                                 maxLines: null,
                               ),
                             ],
@@ -1592,9 +1773,9 @@ class _DataFormPageState extends State<DataFormPage> {
                       );
                     },
                   ),
-                  
+
                   // Tombol Tambah Diagnosa
-                 if (_diagnosisItems.length < 3)
+                  if (_diagnosisItems.length < 3)
                     OutlinedButton.icon(
                       onPressed: () => _addDiagnosisItem(),
                       icon: const Icon(Icons.add),
@@ -1604,7 +1785,7 @@ class _DataFormPageState extends State<DataFormPage> {
                         side: BorderSide(color: Colors.green[700]!),
                       ),
                     ),
-                  
+
                   // Opsional: Tampilkan pesan jika sudah penuh (biar UI tidak terlihat kosong tiba-tiba)
                   if (_diagnosisItems.length >= 3)
                     const Padding(
@@ -1612,16 +1793,21 @@ class _DataFormPageState extends State<DataFormPage> {
                       child: Center(
                         child: Text(
                           "Batas maksimal 3 diagnosa tercapai",
-                          style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontStyle: FontStyle.italic,
+                          ),
                         ),
                       ),
                     ),
 
                   _buildSectionHeader('Intervensi Gizi'),
 
-                  _buildTextFormField(
+                  SearchableTerminologyField(
+                    label: 'Jenis Diet / Intervensi',
                     controller: _intervensiDietController,
-                    label: 'Jenis Diet',
+                    dataList: IntervensiData
+                        .allInterventions, // Pastikan tipe datanya TerminologyItem
                     prefixIcon: const Icon(Icons.food_bank),
                     focusNode: _focusNodes[27],
                     maxLength: 200,
@@ -1639,32 +1825,43 @@ class _DataFormPageState extends State<DataFormPage> {
                   ),
                   const SizedBox(height: 16),
 
-                  _buildCustomDropdown(
-                    controller: _intervensiViaController,
-                    label: 'Via',
-                    prefixIcon: const Icon(Icons.route),
-                    focusNode: _focusNodes[29],
-                    items: const ['Oral', 'Enteral', 'Parenteral'],
-                    validator: (value) => null,
-                  ),
-                  const SizedBox(height: 16),
-
                   _buildTextFormField(
                     controller: _intervensiTujuanController,
                     label: 'Tujuan Diet',
                     prefixIcon: const Icon(Icons.flag),
-                    focusNode: _focusNodes[30],
+                    focusNode: _focusNodes[29],
                     maxLength: 500,
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildCustomDropdown(
+                    controller: _intervensiViaController,
+                    label: 'Via',
+                    prefixIcon: const Icon(Icons.route),
+                    focusNode: _focusNodes[30],
+                    items: const ['Oral', 'Enteral', 'Parenteral'],
                     validator: (value) => null,
                   ),
 
                   _buildSectionHeader('Monitoring & Evaluasi'),
 
+                  SearchableTerminologyField(
+                    label: 'Indikator Monitoring',
+                    controller: _monevIndikatorController,
+                    dataList: MonitoringData.allMonitoringItems,
+                    prefixIcon: const Icon(Icons.monitor_heart),
+                    focusNode: _focusNodes[31],
+                    maxLength: 500,
+                    validator: (value) => null,
+                  ),
+                  const SizedBox(height: 16),
+
                   _buildTextFormField(
                     controller: _monevAsupanController,
                     label: 'Asupan Makanan',
                     prefixIcon: const Icon(Icons.monitor),
-                    focusNode: _focusNodes[31],
+                    focusNode: _focusNodes[32],
                     maxLength: 500,
                     validator: (value) => null,
                   ),
@@ -1674,7 +1871,7 @@ class _DataFormPageState extends State<DataFormPage> {
                     controller: _monevHasilLabController,
                     label: 'Hasil Lab',
                     prefixIcon: const Icon(Icons.document_scanner),
-                    focusNode: _focusNodes[32],
+                    focusNode: _focusNodes[33],
                     maxLength: 500,
                     validator: (value) => null,
                   ),

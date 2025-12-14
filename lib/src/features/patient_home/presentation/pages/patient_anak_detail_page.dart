@@ -413,6 +413,10 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                   value: _currentPatient.statusGiziBBU,
                 ),
                 _buildInfoDisplay(
+                  label: 'Indikator Monitoring :',
+                  value: _currentPatient.monevIndikator,
+                ),
+                _buildInfoDisplay(
                   label: 'Asupan Makanan :',
                   value: _currentPatient.monevAsupan,
                 ),
