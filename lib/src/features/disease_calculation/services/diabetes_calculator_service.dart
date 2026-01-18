@@ -121,8 +121,8 @@ class DiabetesCalculatorService {
     required String activity,
     required String hospitalizedStatus,
     required double stressMetabolic,
-    required String bloodSugar,
-    required String bloodPressure,
+    //required String bloodSugar,
+    //required String bloodPressure,
   }) {
     final bbIdeal = _calculateBBIdeal(height, gender);
     final bmiCategory = _calculateBMICategory(weight, height);
@@ -172,13 +172,13 @@ class DiabetesCalculatorService {
       totalCalories += stressMetabolicCorrection;
     }
 
-    if (bloodSugar == 'Tidak terkendali') {
+    /*if (bloodSugar == 'Tidak terkendali') {
       totalCalories *= 0.9;
     }
 
     if (bloodPressure == 'Tinggi') {
       totalCalories *= 0.95;
-    }
+    }*/
 
     final dietInfo = _getDietType(totalCalories);
     final foodGroupDiet = _getFoodGroupDiet(totalCalories);

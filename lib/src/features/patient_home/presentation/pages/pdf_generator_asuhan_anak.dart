@@ -345,7 +345,7 @@ class PdfGeneratorAsuhanAnak {
             padding: const pw.EdgeInsets.all(4),
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: _buildInfoRowSatu(
-              'Diagnosa Gizi :',
+              '',
               ' ${formatString(patient.diagnosaGizi)}',
             ),
           ),
@@ -360,11 +360,14 @@ class PdfGeneratorAsuhanAnak {
               children: [
                 _buildAssessmentItemRow(
                   'BM : ${formatString(patient.intervensiBentukMakanan)}',
-                  'Jenis Diet : ${formatString(patient.intervensiDiet)}',
                   'Via : ${formatString(patient.intervensiVia)}',
                   '',
                 ),
                 pw.SizedBox(height: 4),
+                _buildInfoRowSatu(
+                  'Jenis Diet :',
+                  ' ${formatString(patient.intervensiDiet)}',
+                ),
                 _buildInfoRowSatu(
                   'Tujuan Diet :',
                   ' ${formatString(patient.intervensiTujuan)}',

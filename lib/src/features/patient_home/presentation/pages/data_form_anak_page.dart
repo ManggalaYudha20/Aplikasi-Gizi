@@ -378,8 +378,8 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     _riwayatPenyakitDahuluController.text = patient.riwayatPenyakitDahulu ?? '';
     _polaMakanController.text = patient.polaMakan ?? '';
 
-    if (_polaMakanController.text.contains(' // ')) {
-      final parts = _polaMakanController.text.split(' // ');
+    if (_polaMakanController.text.contains(' / ')) {
+      final parts = _polaMakanController.text.split(' / ');
       _polaMakanFreqController.text = parts[0];
       // Ambil bagian persen dan hapus simbol % untuk ditampilkan di input angka
       if (parts.length > 1) {
@@ -627,10 +627,10 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     if (_polaMakanFreqController.text.isNotEmpty) {
       polaMakanFinal = _polaMakanFreqController.text;
       if (_polaMakanPercentController.text.isNotEmpty) {
-        polaMakanFinal += ' // ${_polaMakanPercentController.text}%';
+        polaMakanFinal += ' / ${_polaMakanPercentController.text}%';
       }
     } else if (_polaMakanPercentController.text.isNotEmpty) {
-      polaMakanFinal = ' // ${_polaMakanPercentController.text}%';
+      polaMakanFinal = ' / ${_polaMakanPercentController.text}%';
     }
     _polaMakanController.text = polaMakanFinal;
 
@@ -851,7 +851,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
           // 4. Riwayat
           riwayatPenyakitSekarang: _riwayatPenyakitSekarangController.text,
           riwayatPenyakitDahulu: _riwayatPenyakitDahuluController.text,
-          alergiMakanan: _alergiMakananController.text,
+          alergiMakanan: stringAlergiFinal,
           polaMakan: _polaMakanController.text,
 
           // 5. Diagnosa
@@ -1529,8 +1529,8 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                         icon: const Icon(Icons.auto_awesome, size: 16),
                         label: const Text('Bantu Diagnosa Otomatis'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange[50], // Pembeda warna
-                          foregroundColor: Colors.orange[800],
+                          backgroundColor: Colors.blue[50], // Pembeda warna
+                          foregroundColor: Colors.blue,
                         ),
                       ),
                     ],

@@ -410,7 +410,7 @@ class PdfGeneratorAsuhan {
             child: isChecked
                 ? pw.Center(
                     child: pw.Text(
-                      'X', // Simbol Centang
+                      'V', // Simbol Centang
                       style: pw.TextStyle(
                         fontSize: 8,
                         fontWeight: pw.FontWeight.bold,

@@ -34,8 +34,8 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   final GlobalKey _resultCardKey = GlobalKey();
   final _genderController = TextEditingController();
   final _activityController = TextEditingController();
-  final _bloodSugarController = TextEditingController();
-  final _bloodPressureController = TextEditingController();
+  //final _bloodSugarController = TextEditingController();
+  //final _bloodPressureController = TextEditingController();
   final _hospitalizedStatusController = TextEditingController();
   final _foodDbService = FoodDatabaseService();
   late final _mealPlannerService = DiabetesMealPlannerService(_foodDbService);
@@ -57,8 +57,8 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     'Sedang',
     'Berat',
   ];
-  final List<String> _bloodSugarOptions = ['Terkendali', 'Tidak terkendali'];
-  final List<String> _bloodPressureOptions = ['Normal', 'Tinggi'];
+  //final List<String> _bloodSugarOptions = ['Terkendali', 'Tidak terkendali'];
+  //final List<String> _bloodPressureOptions = ['Normal', 'Tinggi'];
 
   @override
   void dispose() {
@@ -68,8 +68,8 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     _scrollController.dispose();
     _genderController.dispose();
     _activityController.dispose();
-    _bloodSugarController.dispose();
-    _bloodPressureController.dispose();
+    //_bloodSugarController.dispose();
+    //_bloodPressureController.dispose();
     _hospitalizedStatusController.dispose();
     super.dispose();
   }
@@ -139,8 +139,8 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
         activity: _activityController.text, // Perbaikan
         hospitalizedStatus: _hospitalizedStatusController.text, // Perbaikan
         stressMetabolic: _stressMetabolic,
-        bloodSugar: _bloodSugarController.text, // Perbaikan
-        bloodPressure: _bloodPressureController.text,
+        //bloodSugar: _bloodSugarController.text, // Perbaikan
+        //bloodPressure: _bloodPressureController.text,
       );
 
       setState(() {
@@ -172,8 +172,8 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     setState(() {
       _genderController.clear();
       _activityController.clear();
-      _bloodSugarController.clear();
-      _bloodPressureController.clear();
+      //_bloodSugarController.clear();
+      //_bloodPressureController.clear();
       _hospitalizedStatusController.clear();
       _stressMetabolic = 20.0;
       _result = null;
@@ -277,7 +277,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                   const SizedBox(height: 16),
 
                   // Dropdown Gula Darah
-                  _buildCustomDropdown(
+                 /* _buildCustomDropdown(
                     controller: _bloodSugarController,
                     label: 'Gula Darah',
                     prefixIcon: const Icon(Icons.bloodtype),
@@ -292,7 +292,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                     prefixIcon: const Icon(Icons.monitor_heart),
                     items: _bloodPressureOptions,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 16),*/
 
                   _buildCustomDropdown(
                     controller: _hospitalizedStatusController,
