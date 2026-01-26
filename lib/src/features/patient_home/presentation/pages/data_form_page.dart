@@ -1266,11 +1266,8 @@ class _DataFormPageState extends State<DataFormPage> {
                     ],
                   ),
 
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Kebiasaan Makan & Aktivitas (Centang yang sesuai):',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                  
+                  _buildSectionHeader('Kebiasaan Makan & Aktivitas (Centang yang sesuai):'),
 
                   CheckboxListTile(
                     title: const Text(

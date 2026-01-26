@@ -357,6 +357,25 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                   value: _currentPatient.riwayatPenyakitDahulu,
                   emptyValueMessage: '-',
                 ),
+                const Divider(), // Pemisah visual antara riwayat penyakit dan kebiasaan
+                
+                // Implementasi Data Kebiasaan Baru
+                _buildInfoRow(
+                  'Suka Manis',
+                  (_currentPatient.sukaManis ?? false) ? 'Ya' : 'Tidak',
+                ),
+                _buildInfoRow(
+                  'Suka Asin',
+                  (_currentPatient.sukaAsin ?? false) ? 'Ya' : 'Tidak',
+                ),
+                _buildInfoRow(
+                  'Makan Berlemak',
+                  (_currentPatient.makanBerlemak ?? false) ? 'Ya' : 'Tidak',
+                ),
+                _buildInfoRow(
+                  'Jarang Olahraga',
+                  (_currentPatient.jarangOlahraga ?? false) ? 'Ya' : 'Tidak',
+                ),
               ],
             ),
             // Kategori 5: Diagnosis Gizi
