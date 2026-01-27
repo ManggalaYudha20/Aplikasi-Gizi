@@ -14,6 +14,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/statistics/statistics_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/services/user_service.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -107,18 +108,26 @@ class _MainScreenState extends State<MainScreen> {
 
   // Fungsi baru untuk mengambil role dan setup menu
   Future<void> _fetchUserRoleAndSetupMenu() async {
-    final userService = UserService();
-    final role = await userService.getUserRole();
+  // 1. Mulai Trace
+  final Trace trace = FirebasePerformance.instance.newTrace('fetch_user_role');
+  await trace.start();
+
+  try {
+    final userService = UserService(); //
+    final role = await userService.getUserRole(); //
 
     if (mounted) {
       setState(() {
         _userRole = role ?? 'tamu';
-        _setupNavigationMenu(); // Panggil fungsi setup menu
+        _setupNavigationMenu(); 
         _isLoading = false;
       });
     }
+  } finally {
+    // 2. Hentikan Trace (selalu di dalam finally agar terekam meski error)
+    await trace.stop();
   }
-
+}
   void _setupNavigationMenu() {
     // 1. Definisi SEMUA halaman (Urutan Wajib Sama dengan Nav Items)
     final allPages = [

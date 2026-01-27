@@ -2,6 +2,17 @@
 
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Classpath untuk Firebase Performance Plugin
+        classpath("com.google.firebase:perf-plugin:1.4.2") 
+    }
+}
+
 configurations.all {
     resolutionStrategy {
         eachDependency {

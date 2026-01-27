@@ -23,20 +23,11 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -66,4 +57,37 @@ class DefaultFirebaseOptions {
     projectId: 'project-aplikasi-gizi',
     storageBucket: 'project-aplikasi-gizi.firebasestorage.app',
   );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyBIIAxWHg6hp4Y3nx2s4firTIkW7KUJIIc',
+    appId: '1:291481355943:ios:7e8c1fc38fa4f4fe587d82',
+    messagingSenderId: '291481355943',
+    projectId: 'project-aplikasi-gizi',
+    storageBucket: 'project-aplikasi-gizi.firebasestorage.app',
+    androidClientId: '291481355943-aum3neeg3ju50tdckvdb5lu7dvl1dcq2.apps.googleusercontent.com',
+    iosClientId: '291481355943-r7nb9n7ll0knp8spv6f7jir2rhimilv0.apps.googleusercontent.com',
+    iosBundleId: 'com.example.aplikasiDiagnosaGizi',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyBIIAxWHg6hp4Y3nx2s4firTIkW7KUJIIc',
+    appId: '1:291481355943:ios:7e8c1fc38fa4f4fe587d82',
+    messagingSenderId: '291481355943',
+    projectId: 'project-aplikasi-gizi',
+    storageBucket: 'project-aplikasi-gizi.firebasestorage.app',
+    androidClientId: '291481355943-aum3neeg3ju50tdckvdb5lu7dvl1dcq2.apps.googleusercontent.com',
+    iosClientId: '291481355943-r7nb9n7ll0knp8spv6f7jir2rhimilv0.apps.googleusercontent.com',
+    iosBundleId: 'com.example.aplikasiDiagnosaGizi',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyBbto8M76DjiKT7mUaMHeOErw4_5L6dLJs',
+    appId: '1:291481355943:web:44f207b29368636b587d82',
+    messagingSenderId: '291481355943',
+    projectId: 'project-aplikasi-gizi',
+    authDomain: 'project-aplikasi-gizi.firebaseapp.com',
+    storageBucket: 'project-aplikasi-gizi.firebasestorage.app',
+    measurementId: 'G-8284DLQ37W',
+  );
+
 }
