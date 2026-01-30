@@ -658,6 +658,20 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
 
  Widget _buildDailyMenuSection() {
 
+  final String currentRole = widget.userRole.toLowerCase();
+
+    // Daftar role yang diperbolehkan mengakses fitur ini
+    // Catatan: Saya sertakan 'nutrisionis' juga jaga-jaga jika di database Anda
+    // menggunakan istilah tersebut selain 'ahli gizi'.
+    bool isAllowed = currentRole == 'admin' || 
+                     currentRole == 'ahli_gizi' || 
+                     currentRole == 'nutrisionis';
+
+    // Jika role TIDAK diizinkan (misal: 'tamu'), kembalikan widget kosong (hilang)
+    if (!isAllowed) {
+      return const SizedBox.shrink();
+    }
+
     // 3. Widget Utama (ExpansionTile -> Container -> Isi Menu Biru)
     return ExpansionTile(
       title: const Text(

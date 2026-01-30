@@ -245,6 +245,8 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool canAccessMenu = ['admin', 'ahli gizi', 'nutrisionis']
+        .contains(widget.userRole.toLowerCase());
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(
@@ -396,18 +398,18 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
 
                     // WIDGET EXPANSION TILE UNTUK MENU MATANG
                     // Loading hanya terjadi di dalam sini
-                    ExpansionTile(
-                      title: const Text("Rekomendasi Menu Sehari"),
-                      // Opsional: Jika ingin otomatis terbuka saat selesai loading, bisa pakai key atau state variable
-                      children: [
-                        KidneyDynamicMenuSection(
-                          isLoading: _isGeneratingMenu,
-                          generatedMenu: _generatedMenu,
-                          onEditItem: _editMenuItem,
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                    ),
+                    if (canAccessMenu) 
+                      ExpansionTile(
+                        title: const Text("Rekomendasi Menu Sehari"),
+                        children: [
+                          KidneyDynamicMenuSection(
+                            isLoading: _isGeneratingMenu,
+                            generatedMenu: _generatedMenu,
+                            onEditItem: _editMenuItem,
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+                      ),
                   ],
                 ],
               ),

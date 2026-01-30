@@ -126,6 +126,10 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
   final _monevAsupanController = TextEditingController();
   final _monevHasilLabController = TextEditingController();
   final _monevIndikatorController = TextEditingController();
+  final _sistolikController = TextEditingController();
+  final _diastolikController = TextEditingController();
+  final _sistolikFocusNode = FocusNode();
+  final _diastolikFocusNode = FocusNode();
 
   bool _alergiTelur = false;
   bool _alergiSusu = false;
@@ -147,6 +151,28 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
   };
   final Map<String, int> _sickMap = {'Tidak': 0, 'Ya': 2};
 
+  void _parseTD(String? tdData) {
+    if (tdData != null && tdData.contains('/')) {
+      final parts = tdData.split('/');
+      if (parts.length >= 2) {
+        _sistolikController.text = parts[0];
+        _diastolikController.text = parts[1];
+      }
+    } else {
+      _sistolikController.text = tdData ?? '';
+      _diastolikController.clear();
+    }
+  }
+
+  // Listener untuk menggabungkan dua form kembali ke _klinikTDController
+  void _updateCombineTD() {
+    if (_sistolikController.text.isNotEmpty && _diastolikController.text.isNotEmpty) {
+      _klinikTDController.text = '${_sistolikController.text}/${_diastolikController.text}';
+    } else {
+      _klinikTDController.text = ''; // Kosongkan jika belum lengkap agar tidak tersimpan data parsial
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -163,6 +189,8 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
       _addLabItem(null, '');
       _addDiagnosisItem();
     }
+    _sistolikController.addListener(_updateCombineTD);
+    _diastolikController.addListener(_updateCombineTD);
   }
 
   void _addLabItem(String? type, String value) {
@@ -365,6 +393,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
       _addLabItem(null, '');
     }
 
+    _parseTD(patient.klinikTD);
     _klinikTDController.text = patient.klinikTD ?? '';
     _klinikNadiController.text = patient.klinikNadi ?? '';
     _klinikSuhuController.text = patient.klinikSuhu ?? '';
@@ -516,6 +545,10 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
       item.valueController.dispose();
     }
     _klinikTDController.dispose();
+    _sistolikController.dispose();
+    _diastolikController.dispose();
+    _sistolikFocusNode.dispose();
+    _diastolikFocusNode.dispose();
     _klinikNadiController.dispose();
     _klinikSuhuController.dispose();
     _klinikRRController.dispose();
@@ -570,6 +603,8 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
       _labItems.clear();
       _addLabItem(null, '');
       _klinikTDController.clear();
+      _sistolikController.clear();
+      _diastolikController.clear();
       _klinikNadiController.clear();
       _klinikSuhuController.clear();
       _klinikRRController.clear();
@@ -1438,16 +1473,79 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                   // 3. Klinik / Fisik
                   _buildSectionHeader('Klinik/Fisik/PD'),
 
-                  _buildTextFormField(
-                    controller: _klinikTDController,
-                    label: 'Tekanan Darah (TD)',
-                    prefixIcon: const Icon(Icons.favorite),
-                    suffixText: 'mmHg',
-                    keyboardType: TextInputType.number,
-                    focusNode: _focusNodes[21],
-                    validator: (v) => null,
-                    maxLength: 8,
+                   const Text(
+                        'Tekanan Darah (TD)',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                  const SizedBox(height: 10),
+
+                Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // INPUT SISTOLIK
+                      Expanded(
+                        child: TextFormField(
+                          controller: _sistolikController,
+                          focusNode: _sistolikFocusNode,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.bloodtype),
+                            labelText: 'Sistolik',
+                            border: OutlineInputBorder(),
+                            suffixText: 'mmHg',
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 16,
+                            ),
+                          ),
+                          validator: (value) => (value == null || value.isEmpty)
+                              ? 'Wajib isi'
+                              : null,
+                        ),
+                      ),
+
+                      // PEMISAH (GARIS MIRING)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 15.0,
+                        ),
+                        child: Text(
+                          "/",
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+
+                      // INPUT DIASTOLIK
+                      Expanded(
+                        child: TextFormField(
+                          controller: _diastolikController,
+                          focusNode: _diastolikFocusNode,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Diastolik',
+                            border: OutlineInputBorder(),
+                            suffixText: 'mmHg',
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 16,
+                            ),
+                          ),
+                          validator: (value) => (value == null || value.isEmpty)
+                              ? 'Wajib isi'
+                              : null,
+                        ),
+                      ),
+                    ],
                   ),
+                  
                   const SizedBox(height: 16),
                   _buildTextFormField(
                     controller: _klinikNadiController,
