@@ -8,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 class StatisticsPdfService {
   /// Fungsi utama untuk generate dan membuka PDF
@@ -18,6 +18,7 @@ class StatisticsPdfService {
     required Map<String, double> dataMap,
     required int totalPasien,
     Uint8List? chartImageBytes,
+    DateTimeRange? dateRange,
   }) async {
     final pdf = pw.Document();
 
@@ -36,13 +37,17 @@ class StatisticsPdfService {
 
     final DateTime now = DateTime.now();
     final DateTime nowWita = now.toUtc().add(const Duration(hours: 8));
-    
+
     // 3. Gunakan locale 'id_ID' agar nama bulan/hari dalam Bahasa Indonesia
     // DateTime.now() secara default sudah mengambil jam lokal device pengguna
-    final dateStr = "${DateFormat('EEEE, dd MMMM yyyy, HH:mm', 'id_ID').format(nowWita)} WITA";
-    
+    final dateStr =
+        "${DateFormat('EEEE, dd MMMM yyyy, HH:mm', 'id_ID').format(nowWita)} WITA";
+
     // Hitung total nilai data untuk persentase
-    double totalDataValue = dataMap.values.fold(0, (prev, element) => prev + element);
+    double totalDataValue = dataMap.values.fold(
+      0,
+      (prev, element) => prev + element,
+    );
 
     // Persiapan data tabel (Header + Isi)
     final List<List<String>> tableData = [
@@ -58,12 +63,10 @@ class StatisticsPdfService {
       final percentage = (totalDataValue > 0 && !isDummy)
           ? "${((value / totalDataValue) * 100).toStringAsFixed(1)}%"
           : "0%";
-      
+
       // 2. Tentukan Jumlah Orang
       // Jika dummy, paksa "0 Orang". Jika tidak, ambil value aslinya.
-      final countStr = isDummy 
-          ? "0 Orang" 
-          : "${value.toInt()} Orang";
+      final countStr = isDummy ? "0 Orang" : "${value.toInt()} Orang";
 
       tableData.add([key, countStr, percentage]);
     });
@@ -74,22 +77,39 @@ class StatisticsPdfService {
         pageFormat: PdfPageFormat.legal,
         margin: const pw.EdgeInsets.all(40),
         build: (pw.Context context) {
-          return [_buildHeader(sulutLogo, rsLogo, dateStr),
-            
+          return [
+            _buildHeader(sulutLogo, rsLogo, dateStr),
+
             pw.SizedBox(height: 20),
-            
+
             // Judul Laporan Spesifik
             pw.Center(
               child: pw.Text(
                 "LAPORAN STATISTIK",
-                style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold, decoration: pw.TextDecoration.underline),
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                  decoration: pw.TextDecoration.underline,
+                ),
               ),
             ),
-             pw.SizedBox(height: 5),
+            pw.SizedBox(height: 5),
             pw.Center(
               child: pw.Text(
                 "Kategori: $chartTitle",
-                style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+                style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 5),
+            pw.Center(
+              child: pw.Text(
+                dateRange == null
+                    ? "Periode: Semua Waktu"
+                    : "Periode: ${DateFormat('dd/MM/yyyy').format(dateRange.start)} - ${DateFormat('dd/MM/yyyy').format(dateRange.end)}",
+                style: pw.TextStyle(fontSize: 11, color: PdfColors.grey800),
               ),
             ),
 
@@ -100,18 +120,17 @@ class StatisticsPdfService {
                 child: pw.Image(chartImage, fit: pw.BoxFit.contain),
               ),
 
-            
             pw.SizedBox(height: 20),
             pw.Text(
               "Rincian Data:",
               style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 5),
-            
+
             _buildTable(tableData),
             pw.SizedBox(height: 20),
             _buildSummary(totalPasien),
-            
+
             pw.SizedBox(height: 40),
             _buildFooter(nowWita),
           ];
@@ -125,7 +144,7 @@ class StatisticsPdfService {
       // Nama file unik berdasarkan waktu
       final fileName = "Statistik_${DateTime.now().millisecondsSinceEpoch}.pdf";
       final file = File("${output.path}/$fileName");
-      
+
       await file.writeAsBytes(await pdf.save());
 
       // 4. Buka File menggunakan package open_file
@@ -138,7 +157,11 @@ class StatisticsPdfService {
 
   // --- Widget Helper PDF ---
 
-  static pw.Widget _buildHeader(pw.MemoryImage logoSulut, pw.MemoryImage logoRs, String fullDate) {
+  static pw.Widget _buildHeader(
+    pw.MemoryImage logoSulut,
+    pw.MemoryImage logoRs,
+    String fullDate,
+  ) {
     return pw.Column(
       children: [
         pw.Row(
@@ -152,7 +175,7 @@ class StatisticsPdfService {
               child: pw.Image(logoSulut, fit: pw.BoxFit.contain),
             ),
             pw.SizedBox(width: 10),
-            
+
             // Teks Tengah
             pw.Column(
               children: [
@@ -176,9 +199,9 @@ class StatisticsPdfService {
                 ),
               ],
             ),
-            
+
             pw.SizedBox(width: 10),
-            
+
             // Logo Kanan (RS)
             pw.Container(
               width: 60, // Sedikit disesuaikan
@@ -188,13 +211,19 @@ class StatisticsPdfService {
           ],
         ),
         pw.SizedBox(height: 5),
-        pw.Divider(thickness: 2, height: 2), // Garis ganda untuk kesan kop surat
+        pw.Divider(
+          thickness: 2,
+          height: 2,
+        ), // Garis ganda untuk kesan kop surat
         pw.SizedBox(height: 5),
-        
+
         // Menampilkan Tanggal Cetak di kanan atas (di bawah garis)
         pw.Align(
           alignment: pw.Alignment.centerRight,
-          child: pw.Text("Dicetak: $fullDate", style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+          child: pw.Text(
+            "Dicetak: $fullDate",
+            style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+          ),
         ),
       ],
     );
@@ -211,8 +240,18 @@ class StatisticsPdfService {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text("Total Pasien Terdaftar:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-          pw.Text("$total Pasien", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.green800)),
+          pw.Text(
+            "Total Pasien Terdaftar:",
+            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.Text(
+            "$total Pasien",
+            style: pw.TextStyle(
+              fontSize: 18,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.green800,
+            ),
+          ),
         ],
       ),
     );
@@ -222,7 +261,10 @@ class StatisticsPdfService {
     return pw.TableHelper.fromTextArray(
       headers: data[0],
       data: data.sublist(1),
-      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+      headerStyle: pw.TextStyle(
+        fontWeight: pw.FontWeight.bold,
+        color: PdfColors.white,
+      ),
       headerDecoration: const pw.BoxDecoration(color: PdfColors.green700),
       rowDecoration: const pw.BoxDecoration(color: PdfColors.grey100),
       cellAlignments: {
@@ -235,14 +277,11 @@ class StatisticsPdfService {
     );
   }
 
- static pw.Widget _buildFooter(DateTime date) {
+  static pw.Widget _buildFooter(DateTime date) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.end,
       children: [
-        pw.Text(
-          'Mengetahui,',
-          style: const pw.TextStyle(fontSize: 10),
-        ),
+        pw.Text('Mengetahui,', style: const pw.TextStyle(fontSize: 10)),
         pw.SizedBox(height: 40), // Ruang tanda tangan
         pw.Text(
           'Administrator / Ahli Gizi',
@@ -250,12 +289,12 @@ class StatisticsPdfService {
         ),
         pw.SizedBox(height: 20),
         pw.Align(
-           alignment: pw.Alignment.centerLeft,
-           child: pw.Text(
+          alignment: pw.Alignment.centerLeft,
+          child: pw.Text(
             "* Dokumen ini digenerate secara otomatis oleh Sistem Aplikasi Diagnosa Gizi.",
             style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
           ),
-        )
+        ),
       ],
     );
   }

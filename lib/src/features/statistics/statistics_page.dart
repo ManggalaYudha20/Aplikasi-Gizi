@@ -19,15 +19,21 @@ class StatisticsPage extends StatefulWidget {
   @override
   State<StatisticsPage> createState() => _StatisticsPageState();
 }
+enum DateFilterType { all, thisWeek, thisMonth, thisYear, custom }
 
 class _StatisticsPageState extends State<StatisticsPage> {
+  DateFilterType _selectedFilterType = DateFilterType.all;
+  DateTimeRange? _selectedDateRange; // Menyimpan tanggal start & end aktual
+  String _filterLabel = "Semua Waktu"; // Label untuk ditampilkan di tombol
   final GlobalKey _chartKey = GlobalKey();
   int touchedIndex = -1;
-
   String _chartType = 'Pie';
-
-  // Opsi Kategori Statistik
   String _selectedCategory = 'Kategori Pasien';
+
+  int totalUsers = 0;
+  Map<String, int> roleCounts = {'admin': 0, 'ahli_gizi': 0, 'tamu': 0};
+  bool isAdmin = false;
+
   final List<String> _categoryOptions = [
     'Kategori Pasien',
     'Jenis Kelamin',
@@ -44,18 +50,22 @@ class _StatisticsPageState extends State<StatisticsPage> {
   @override
   void initState() {
     super.initState();
-    _initStream();
+    _initData();
   }
 
   Future<Uint8List?> _captureChart() async {
     try {
-      RenderRepaintBoundary? boundary = _chartKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      RenderRepaintBoundary? boundary =
+          _chartKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary == null) return null;
 
       // pixelRatio 3.0 agar hasil gambar di PDF tajam (high resolution)
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      
+      ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
+
       return byteData?.buffer.asUint8List();
     } catch (e) {
       debugPrint("Error capturing chart: $e");
@@ -63,24 +73,139 @@ class _StatisticsPageState extends State<StatisticsPage> {
     }
   }
 
-  Future<void> _initStream() async {
+  void _updateStream() {
+    final String? currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+    
+    // Mulai query dasar
+    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('patients');
+
+    // 1. Filter Role (Jika bukan admin, hanya lihat data sendiri)
+    if (!isAdmin) {
+      query = query.where('createdBy', isEqualTo: currentUserUid);
+    }
+
+    setState(() {
+      _patientsStream = query.snapshots(includeMetadataChanges: true);
+    });
+  }
+
+ Future<void> _handleDateFilter(DateFilterType type) async {
+    DateTime now = DateTime.now();
+    DateTime? start;
+    DateTime? end = now; // Default end adalah sekarang
+    String label = "Semua Waktu";
+
+    switch (type) {
+      case DateFilterType.thisWeek:
+        // Mencari hari Senin minggu ini
+        start = now.subtract(Duration(days: now.weekday - 1));
+        // Reset jam ke 00:00:00
+        start = DateTime(start.year, start.month, start.day); 
+        label = "Minggu Ini";
+        break;
+
+      case DateFilterType.thisMonth:
+        start = DateTime(now.year, now.month, 1);
+        label = "Bulan Ini";
+        break;
+
+      case DateFilterType.thisYear:
+        start = DateTime(now.year, 1, 1);
+        label = "Tahun Ini";
+        break;
+
+      case DateFilterType.custom:
+        final DateTimeRange? picked = await showDateRangePicker(
+          context: context,
+          firstDate: DateTime(2023),
+          lastDate: now,
+          initialDateRange: _selectedDateRange,
+          builder: (context, child) {
+            return Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: const ColorScheme.light(
+                  primary: Color(0xFF009444),
+                  onPrimary: Colors.white,
+                  onSurface: Colors.black,
+                ),
+              ),
+              child: child!,
+            );
+          },
+        );
+        if (picked != null) {
+          start = picked.start;
+          end = picked.end;
+          label = "${picked.start.day}/${picked.start.month} - ${picked.end.day}/${picked.end.month}";
+        } else {
+          // User membatalkan custom, jangan ubah apa-apa
+          return;
+        }
+        break;
+
+      case DateFilterType.all:
+        start = null;
+        end = null;
+        label = "Semua Waktu";
+        break;
+    }
+
+    setState(() {
+      _selectedFilterType = type;
+      _filterLabel = label;
+      
+     if (start != null && end != null) {
+        // Hapus tanda seru (!)
+        DateTime endOfDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
+        _selectedDateRange = DateTimeRange(start: start, end: endOfDay);
+      } else {
+        _selectedDateRange = null;
+      }
+    });
+
+    // Panggil fungsi update stream setelah filter berubah
+    _updateStream();
+  }
+
+  Future<void> _initData() async {
     final userService = UserService();
     final String? userRole = await userService.getUserRole();
-    final String? currentUserUid = FirebaseAuth.instance.currentUser?.uid;
 
-    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection(
-      'patients',
-    );
-
-    // Jika bukan admin, hanya tampilkan data buatan sendiri
-    if (userRole != 'admin') {
-      query = query.where('createdBy', isEqualTo: currentUserUid);
+    // Logika hitung user untuk admin (Biarkan tetap ada)
+    if (userRole == 'admin') {
+      try {
+        final userSnapshot = await FirebaseFirestore.instance.collection('users').get();
+        int admins = 0, nutritionists = 0, guests = 0;
+        for (var doc in userSnapshot.docs) {
+          String role = doc.data()['role'] ?? 'tamu';
+          if (role == 'admin') {
+            admins++;
+          } else if (role == 'ahli_gizi') {
+            nutritionists++;
+          } else {
+            guests++;
+          }
+        }
+        if (mounted) {
+          setState(() {
+            totalUsers = userSnapshot.docs.length;
+            roleCounts = {'admin': admins, 'ahli_gizi': nutritionists, 'tamu': guests};
+          });
+        }
+      } catch (e) {
+        debugPrint("Error fetching users: $e");
+      }
     }
 
     if (mounted) {
       setState(() {
-        _patientsStream = query.snapshots(includeMetadataChanges: true);
+        isAdmin = userRole == 'admin';
+        if (isAdmin && !_categoryOptions.contains('Pengguna')) {
+          _categoryOptions.add('Pengguna');
+        }
       });
+      // Panggil updateStream untuk inisialisasi awal
+      _updateStream();
     }
   }
 
@@ -135,7 +260,37 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   );
                 }
 
-                final docs = snapshot.data?.docs ?? [];
+                final allDocs = snapshot.data?.docs ?? [];
+                
+                // --- LOGIKA FILTER TANGGAL (CLIENT SIDE) ---
+                List<QueryDocumentSnapshot> docs = [];
+
+                if (_selectedDateRange == null) {
+                  // Jika filter "Semua Waktu", pakai semua data
+                  docs = allDocs;
+                } else {
+                  // Jika ada filter tanggal, kita saring manual
+                  docs = allDocs.where((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    
+                    // CEK 1: Pastikan field 'createdAt' ada dan tidak null
+                    // GANTI 'createdAt' dengan nama field tanggal di databasemu jika berbeda
+                    if (data['tanggalPemeriksaan'] == null) return false;
+
+                    Timestamp timestamp;
+                    try {
+                      timestamp = data['tanggalPemeriksaan'] as Timestamp;
+                    } catch (e) {
+                      return false; // Skip jika format bukan timestamp
+                    }
+
+                    DateTime date = timestamp.toDate();
+                    
+                    // Logika Range Inclusive (Start <= Date <= End)
+                    return date.isAfter(_selectedDateRange!.start.subtract(const Duration(seconds: 1))) &&
+                           date.isBefore(_selectedDateRange!.end.add(const Duration(seconds: 1)));
+                  }).toList();
+                }
                 int totalPasien = docs.length;
 
                 // --- VARIABEL PENAMPUNG DATA ---
@@ -145,7 +300,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     totalPerempuan = 0;
 
                 Map<String, double> statusGiziMap = {};
-                
+
                 Map<String, double> statusGiziAnakBBUMap = {};
 
                 Map<String, double> diagnosisMap = {};
@@ -184,18 +339,18 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
                     String statusBBU = cleanString(data['statusGiziBBU']);
                     if (statusBBU == "Tidak Diketahui") {
-                       statusBBU = cleanString(data['statusGiziAnak']);
+                      statusBBU = cleanString(data['statusGiziAnak']);
                     }
 
                     if (statusBBU != "Tidak Diketahui") {
                       // Kapitalisasi agar rapi (misal: "gizi baik" -> "Gizi baik")
                       if (statusBBU.length > 1) {
-                         statusBBU = statusBBU[0].toUpperCase() + statusBBU.substring(1);
+                        statusBBU =
+                            statusBBU[0].toUpperCase() + statusBBU.substring(1);
                       }
-                      statusGiziAnakBBUMap[statusBBU] = 
+                      statusGiziAnakBBUMap[statusBBU] =
                           (statusGiziAnakBBUMap[statusBBU] ?? 0) + 1;
                     }
-
                   } else {
                     totalDewasa++;
                   }
@@ -294,7 +449,15 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 List<Color> chartColors = [];
                 String chartTitle = "";
 
-                if (_selectedCategory == 'Kategori Pasien') {
+                if (_selectedCategory == 'Pengguna' && isAdmin) {
+                  chartTitle = "Distribusi Role Pengguna";
+                  rawData = {
+                    "Admin": roleCounts['admin']!.toDouble(),
+                    "Ahli Gizi": roleCounts['ahli_gizi']!.toDouble(),
+                    "Tamu": roleCounts['tamu']!.toDouble(),
+                  };
+                  chartColors = [Colors.red, Colors.teal, Colors.lightGreen];
+                } else if (_selectedCategory == 'Kategori Pasien') {
                   chartTitle = "Persentase Tipe Pasien";
                   rawData = {
                     "Dewasa": totalDewasa.toDouble(),
@@ -322,13 +485,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   // --- KONFIGURASI CHART BARU ---
                   chartTitle = "Status Gizi Anak (BB/U)";
                   rawData = statusGiziAnakBBUMap;
-                  
+
                   // Palette warna indikatif
                   chartColors = [
-                    Colors.green,        
-                    Colors.redAccent,    
-                    Colors.orangeAccent, 
-                    Colors.blueAccent,   
+                    Colors.green,
+                    Colors.redAccent,
+                    Colors.orangeAccent,
+                    Colors.blueAccent,
                     Colors.purpleAccent,
                   ];
                 } else if (_selectedCategory == 'Diagnosis Medis') {
@@ -400,250 +563,385 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   chartColors = [Colors.grey.shade300];
                 }
 
-                return FadeInTransition( 
+                return FadeInTransition(
                   child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildSummaryCard(totalPasien),
-                      const SizedBox(height: 24),
-
-                      const Text(
-                        "Pilih Statistik:",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      Container(
-                        // Container luar untuk border & shadow (sama seperti desain lama)
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withValues(alpha: 0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: DropdownSearch<String>(
-                          items: _categoryOptions,
-                          selectedItem: _selectedCategory,
-
-                          // 1. Logika Perubahan
-                          onChanged: (newValue) {
-                            if (newValue != null) {
-                              setState(() {
-                                _selectedCategory = newValue;
-                                touchedIndex = -1;
-                              });
-                            }
-                          },
-
-                          // 2. (PENTING) Gunakan dropdownBuilder agar tampilan "Selected Item" rapi
-                          // Ini mengubah tampilan input menjadi Teks biasa yang mudah diatur gayanya
-                          dropdownBuilder: (context, selectedItem) {
-                            return Text(
-                              selectedItem ?? "",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14, // Sesuaikan ukuran font agar pas
-                                color: Colors.black87,
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (isAdmin)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildSummaryCard(
+                                  "Total Pasien",
+                                  totalPasien,
+                                  const [Color(0xFF009444), Color(0xFF55C989)],
+                                ),
                               ),
-                            );
-                          },
-
-                          // 3. Konfigurasi Popup (Menu Pilihan)
-                          popupProps: PopupProps.menu(
-                            fit: FlexFit.tight,
-                            // A. Batasi tinggi agar hanya muat kira-kira 4 item (4 * 50px = 200px)
-                            constraints: const BoxConstraints(maxHeight: 200),
-
-                            // B. Tampilkan Scrollbar (Slider di kanan)
-                            scrollbarProps: const ScrollbarProps(
-                              thumbVisibility:
-                                  true, // Selalu tampilkan scrollbar
-                              thickness: 6,
-                              radius: Radius.circular(10),
-                            ),
-
-                            // Styling menu popup
-                            menuProps: MenuProps(
-                              borderRadius: BorderRadius.circular(12),
-                              elevation: 4,
-                            ),
-                          ),
-
-                          // 4. Styling Dekorasi (Hilangkan border bawaan input)
-                          dropdownDecoratorProps: const DropDownDecoratorProps(
-                            dropdownSearchDecoration: InputDecoration(
-                              border: InputBorder.none,
-                              // Sesuaikan padding agar teks berada di tengah vertikal
-                              contentPadding: EdgeInsets.symmetric(
-                                vertical: 12,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildSummaryCard(
+                                  "Total Pengguna",
+                                  totalUsers,
+                                  [Colors.blue.shade700, Colors.blue.shade400],
+                                ),
                               ),
-                            ),
+                            ],
+                          )
+                        else
+                          _buildSummaryCard(
+                            "Total Pasien Terdaftar",
+                            totalPasien,
+                            const [Color(0xFF009444), Color(0xFF55C989)],
                           ),
+                        const SizedBox(height: 24),
 
-                          // 5. Ikon Kustom (Bar Chart Hijau)
-                          dropdownButtonProps: const DropdownButtonProps(
-                            icon: Icon(
-                              Icons.category,
-                              color: Color.fromARGB(255, 0, 148, 68),
-                            ),
+                        const Text(
+                          "Pilih Statistik:",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 8),
 
-                      const SizedBox(height: 24),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              children: [
-                                _buildChartTypeButton("Pie", Icons.pie_chart),
-                                _buildChartTypeButton("Bar", Icons.bar_chart),
-                              ],
-                            ),
+                        Container(
+                          // Container luar untuk border & shadow (sama seperti desain lama)
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 2,
                           ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 50),
-
-                      Text(
-                        chartTitle,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // WIDGET DIAGRAM LINGKARAN
-                      RepaintBoundary( // <--- TAMBAHKAN INI
-                        key: _chartKey, // <--- PASANG KEY DISINI
-                        child: Container(
-                          height: 300,
-                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white, // Pastikan background putih agar terlihat di PDF
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade300),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
+                                offset: const Offset(0, 2),
                               ),
                             ],
                           ),
-                          child: _chartType == 'Pie'
-                              ? _buildPieChartOnly(
-                                  dataMap: chartData,
-                                  colors: chartColors,
-                                  touchedIndex: touchedIndex,
-                                  onTouch: (index) =>
-                                      setState(() => touchedIndex = index),
-                                )
-                              : _buildBarChartOnly(
-                                  dataMap: chartData,
-                                  colors: chartColors,
+                          child: DropdownSearch<String>(
+                            items: _categoryOptions,
+                            selectedItem: _selectedCategory,
+
+                            // 1. Logika Perubahan
+                            onChanged: (newValue) {
+                              if (newValue != null) {
+                                setState(() {
+                                  _selectedCategory = newValue;
+                                  touchedIndex = -1;
+                                });
+                              }
+                            },
+
+                            // 2. (PENTING) Gunakan dropdownBuilder agar tampilan "Selected Item" rapi
+                            // Ini mengubah tampilan input menjadi Teks biasa yang mudah diatur gayanya
+                            dropdownBuilder: (context, selectedItem) {
+                              return Text(
+                                selectedItem ?? "",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize:
+                                      14, // Sesuaikan ukuran font agar pas
+                                  color: Colors.black87,
                                 ),
+                              );
+                            },
+
+                            // 3. Konfigurasi Popup (Menu Pilihan)
+                            popupProps: PopupProps.menu(
+                              fit: FlexFit.tight,
+                              // A. Batasi tinggi agar hanya muat kira-kira 4 item (4 * 50px = 200px)
+                              constraints: const BoxConstraints(maxHeight: 200),
+
+                              // B. Tampilkan Scrollbar (Slider di kanan)
+                              scrollbarProps: const ScrollbarProps(
+                                thumbVisibility:
+                                    true, // Selalu tampilkan scrollbar
+                                thickness: 6,
+                                radius: Radius.circular(10),
+                              ),
+
+                              // Styling menu popup
+                              menuProps: MenuProps(
+                                borderRadius: BorderRadius.circular(12),
+                                elevation: 4,
+                              ),
+                            ),
+
+                            // 4. Styling Dekorasi (Hilangkan border bawaan input)
+                            dropdownDecoratorProps: const DropDownDecoratorProps(
+                              dropdownSearchDecoration: InputDecoration(
+                                border: InputBorder.none,
+                                // Sesuaikan padding agar teks berada di tengah vertikal
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                              ),
+                            ),
+
+                            // 5. Ikon Kustom (Bar Chart Hijau)
+                            dropdownButtonProps: const DropdownButtonProps(
+                              icon: Icon(
+                                Icons.category,
+                                color: Color.fromARGB(255, 0, 148, 68),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 24),
 
-                      // WIDGET INDIKATOR (LEGEND)
-                      const Text(
-                        "Detail Data:",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                children: [
+                                  _buildChartTypeButton("Pie", Icons.pie_chart),
+                                  _buildChartTypeButton("Bar", Icons.bar_chart),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildIndicatorList(chartData, chartColors),
+                        const SizedBox(height: 16),
+                        // Di dalam build method, sebelum "Pilih Statistik:"
+                       // Di dalam build(), letakkan ini DI ATAS widget Container DropdownSearch
 
-                      const SizedBox(height: 50),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton.icon(
-                          onPressed: () async {
-                            // Tampilkan loading indicator kecil jika perlu atau langsung panggil
-                            try {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    "Membuat File PDF...",
+Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: PopupMenuButton<DateFilterType>(
+                                  initialValue: _selectedFilterType,
+                                  onSelected: _handleDateFilter,
+                                  itemBuilder: (BuildContext context) =>
+                                      <PopupMenuEntry<DateFilterType>>[
+                                    const PopupMenuItem<DateFilterType>(
+                                      value: DateFilterType.thisWeek,
+                                      child: Row(children: [
+                                        Icon(Icons.calendar_view_week,
+                                            color: Colors.grey),
+                                        SizedBox(width: 8),
+                                        Text('Minggu Ini')
+                                      ]),
+                                    ),
+                                    const PopupMenuItem<DateFilterType>(
+                                      value: DateFilterType.thisMonth,
+                                      child: Row(children: [
+                                        Icon(Icons.calendar_month,
+                                            color: Colors.grey),
+                                        SizedBox(width: 8),
+                                        Text('Bulan Ini')
+                                      ]),
+                                    ),
+                                    const PopupMenuItem<DateFilterType>(
+                                      value: DateFilterType.thisYear,
+                                      child: Row(children: [
+                                        Icon(Icons.calendar_today,
+                                            color: Colors.grey),
+                                        SizedBox(width: 8),
+                                        Text('Tahun Ini')
+                                      ]),
+                                    ),
+                                    const PopupMenuDivider(),
+                                    const PopupMenuItem<DateFilterType>(
+                                      value: DateFilterType.custom,
+                                      child: Row(children: [
+                                        Icon(Icons.date_range,
+                                            color: Colors.grey),
+                                        SizedBox(width: 8),
+                                        Text('Pilih Tanggal Sendiri (Custom)')
+                                      ]),
+                                    ),
+                                    const PopupMenuDivider(),
+                                    const PopupMenuItem<DateFilterType>(
+                                      value: DateFilterType.all,
+                                      child: Row(children: [
+                                        Icon(Icons.all_inclusive,
+                                            color: Color(0xFF009444)),
+                                        SizedBox(width: 8),
+                                        Text('Semua Waktu (Reset)',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF009444)))
+                                      ]),
+                                    ),
+                                  ],
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                          color: const Color(0xFF009444)),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text("Filter Waktu:",
+                                                style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: Colors.grey)),
+                                            Text(
+                                              _filterLabel,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF009444)),
+                                            ),
+                                          ],
+                                        ),
+                                        const Icon(Icons.arrow_drop_down,
+                                            color: Color(0xFF009444)),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              );
-
-                              final Uint8List? chartImage = await _captureChart();
-                              final dataToSend = rawData.isEmpty ? {"Tidak ada data": 0.0} : rawData;
-
-                              await StatisticsPdfService.generateAndOpenPdf(
-                                chartTitle: chartTitle,
-                                selectedCategory: _selectedCategory,
-                                dataMap: dataToSend,
-                                totalPasien: totalPasien,
-                                chartImageBytes: chartImage,
-                              );
-                            } catch (e) {
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text("Gagal membuka PDF: $e")),
-                              );
-                            }
-                          },
-                          icon: const Icon(
-                            Icons.download,
-                            color: Colors.white,
-                          ),
-                          label: const Text(
-                            "Download Laporan PDF",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(
-                              255,
-                              0,
-                              148,
-                              68,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 4,
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(height: 50),
+
+                        Text(
+                          chartTitle,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // WIDGET DIAGRAM LINGKARAN
+                        RepaintBoundary(
+                          // <--- TAMBAHKAN INI
+                          key: _chartKey, // <--- PASANG KEY DISINI
+                          child: Container(
+                            height: 300,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors
+                                  .white, // Pastikan background putih agar terlihat di PDF
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withValues(alpha: 0.1),
+                                  blurRadius: 10,
+                                ),
+                              ],
+                            ),
+                            child: _chartType == 'Pie'
+                                ? _buildPieChartOnly(
+                                    dataMap: chartData,
+                                    colors: chartColors,
+                                    touchedIndex: touchedIndex,
+                                    onTouch: (index) =>
+                                        setState(() => touchedIndex = index),
+                                  )
+                                : _buildBarChartOnly(
+                                    dataMap: chartData,
+                                    colors: chartColors,
+                                  ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // WIDGET INDIKATOR (LEGEND)
+                        const Text(
+                          "Detail Data:",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _buildIndicatorList(chartData, chartColors),
+
+                        const SizedBox(height: 50),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              // Tampilkan loading indicator kecil jika perlu atau langsung panggil
+                              try {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Membuat File PDF..."),
+                                  ),
+                                );
+
+                                final Uint8List? chartImage =
+                                    await _captureChart();
+                                final dataToSend = rawData.isEmpty
+                                    ? {"Tidak ada data": 0.0}
+                                    : rawData;
+
+                                await StatisticsPdfService.generateAndOpenPdf(
+                                  chartTitle: chartTitle,
+                                  selectedCategory: _selectedCategory,
+                                  dataMap: dataToSend,
+                                  totalPasien: totalPasien,
+                                  chartImageBytes: chartImage,
+                                  dateRange: _selectedDateRange,
+                                );
+                              } catch (e) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Gagal membuka PDF: $e"),
+                                  ),
+                                );
+                              }
+                            },
+                            icon: const Icon(
+                              Icons.download,
+                              color: Colors.white,
+                            ),
+                            label: const Text(
+                              "Download Laporan PDF",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(
+                                255,
+                                0,
+                                148,
+                                68,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -734,7 +1032,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
               showTitles: true,
               getTitlesWidget: (double value, TitleMeta meta) {
                 int index = value.toInt();
-                if (index < 0 || index >= dataMap.length) return const SizedBox();
+                if (index < 0 || index >= dataMap.length) {
+                  return const SizedBox();
+                }
 
                 // Tampilkan teks singkatan atau indeks jika label terlalu panjang
                 // Logic: Ambil 3 huruf pertama atau tampilkan inisial
@@ -861,7 +1161,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   // --- WIDGET HELPER: LIST INDIKATOR ---
   Widget _buildIndicatorList(Map<String, double> dataMap, List<Color> colors) {
-    
     double total = dataMap.values.fold(0, (prev, item) => prev + item);
 
     return Column(
@@ -873,14 +1172,14 @@ class _StatisticsPageState extends State<StatisticsPage> {
         bool isDummyData = key == "Tidak ada data";
 
         // Jika dummy, paksa tampilkan "0%". Jika tidak, hitung normal.
-        final percentageStr = isDummyData 
-            ? "0%" 
-            : (total > 0 ? "${((value / total) * 100).toStringAsFixed(1)}%" : "0%");
+        final percentageStr = isDummyData
+            ? "0%"
+            : (total > 0
+                  ? "${((value / total) * 100).toStringAsFixed(1)}%"
+                  : "0%");
 
         // Jika dummy, paksa tampilkan "0". Jika tidak, ambil value aslinya.
-        final countStr = isDummyData 
-            ? "0" 
-            : "${value.toInt()}";
+        final countStr = isDummyData ? "0" : "${value.toInt()}";
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -955,47 +1254,43 @@ class _StatisticsPageState extends State<StatisticsPage> {
     );
   }
 
-  Widget _buildSummaryCard(int total) {
+  Widget _buildSummaryCard(String title, int count, List<Color> colors) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color.fromARGB(255, 0, 148, 68),
-            Color.fromARGB(255, 85, 201, 137),
-          ],
+        gradient: LinearGradient(
+          colors: colors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            color: colors[0].withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Total Pasien Terdaftar",
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          const SizedBox(height: 8),
           Text(
-            "$total",
+            title,
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "$count",
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 36,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
           const Text(
-            "Pasien",
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+            "Orang",
+            style: TextStyle(color: Colors.white70, fontSize: 10),
           ),
         ],
       ),

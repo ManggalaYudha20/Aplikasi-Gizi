@@ -278,32 +278,46 @@ class _DataFormPageState extends State<DataFormPage> {
         if (diag.code == 'NC-2.2') {
           // Kumpulkan semua data lab yang tidak null ke dalam list
           List<String> labFindings = [];
-          if (gds != null) labFindings.add("GDS: ${gds.round()}");
-          if (gdp != null) labFindings.add("GDP: ${gdp.round()}");
-          if (hba1c != null) labFindings.add("HbA1c: $hba1c");
-          if (ureum != null) labFindings.add("Ureum: ${ureum.round()}");
-          if (kreatinin != null) labFindings.add("Kreatinin: $kreatinin");
-          if (kolesterol != null) labFindings.add("Kolesterol: ${kolesterol.round()}");
-          if (kalium != null) labFindings.add("Kalium: $kalium");
+          if (gds != null) {
+            labFindings.add("GDS: ${gds.round()}");
+          }
+          if (gdp != null) {
+            labFindings.add("GDP: ${gdp.round()}");
+          }
+          if (hba1c != null) {
+            labFindings.add("HbA1c: $hba1c");
+          }
+          if (ureum != null) {
+            labFindings.add("Ureum: ${ureum.round()}");
+          }
+          if (kreatinin != null) {
+            labFindings.add("Kreatinin: $kreatinin");
+          }
+          if (kolesterol != null) {
+            labFindings.add("Kolesterol: ${kolesterol.round()}");
+          }
+          if (kalium != null) {
+            labFindings.add("Kalium: $kalium");
+          }
 
           if (labFindings.isNotEmpty) {
             signs = "Hasil Lab: ${labFindings.join(', ')}";
           } else {
-             // Fallback jika lab kosong tapi diagnosa ini muncul (misal dari diagnosa medis)
-            signs = "Perubahan nilai lab terkait"; 
+            // Fallback jika lab kosong tapi diagnosa ini muncul (misal dari diagnosa medis)
+            signs = "Perubahan nilai lab terkait";
           }
-        } 
+        }
         // --- Logika Signs Lainnya ---
         else if (diag.code == 'NI-5.8.3') {
-           signs = "Riwayat: Suka makanan manis";
+          signs = "Riwayat: Suka makanan manis";
         } else if (diag.code == 'NI-5.10.1') {
-           if (kalium != null) signs = "Kalium: $kalium";
+          if (kalium != null) signs = "Kalium: $kalium";
         } else if (diag.code == 'NI-5.10.2') {
-           signs = "Riwayat suka asin, TD: ${_klinikTDController.text}";
+          signs = "Riwayat suka asin, TD: ${_klinikTDController.text}";
         } else if (diag.code == 'NC-3.3' || diag.code == 'NC-3.1') {
-           signs = "IMT: ${imt.toStringAsFixed(1)}";
+          signs = "IMT: ${imt.toStringAsFixed(1)}";
         } else if (diag.code == 'NB-2.1') {
-           signs = "Riwayat: Jarang berolahraga";
+          signs = "Riwayat: Jarang berolahraga";
         }
         _addDiagnosisItem(p: problem, e: etiology, s: signs);
       }
@@ -1266,8 +1280,9 @@ class _DataFormPageState extends State<DataFormPage> {
                     ],
                   ),
 
-                  
-                  _buildSectionHeader('Kebiasaan Makan & Aktivitas (Centang yang sesuai):'),
+                  _buildSectionHeader(
+                    'Kebiasaan Makan & Aktivitas (Centang yang sesuai):',
+                  ),
 
                   CheckboxListTile(
                     title: const Text(
@@ -1481,23 +1496,34 @@ class _DataFormPageState extends State<DataFormPage> {
                   ),
                   const SizedBox(height: 16),
 
-                  _buildTextFormField(
+                  _buildCustomDropdown(
                     controller: _klinikKUController,
                     label: 'Keadaan Umum (KU)',
                     prefixIcon: const Icon(Icons.accessibility_new),
+                    items: const [
+                      'Cukup',
+                      'Sedang',
+                      'Berat',
+                    ], // Opsi yang diminta
                     focusNode: _focusNodes[22],
-                    validator: (value) => null,
-                    maxLength: 20,
+                    validator: (value) => (value == null || value.isEmpty)
+                        ? 'Keadaan Umum harus dipilih'
+                        : null,
                   ),
                   const SizedBox(height: 16),
 
-                  _buildTextFormField(
+                  _buildCustomDropdown(
                     controller: _klinikKESController,
                     label: 'Kesadaran (KES)',
                     prefixIcon: const Icon(Icons.psychology),
+                    items: const [
+                      'CM',
+                      'Apatis',
+                      'Somnolens',
+                    ], // Opsi yang Anda minta
                     focusNode: _focusNodes[23],
+                    // Validator opsional: sesuaikan jika field ini wajib diisi atau tidak
                     validator: (value) => null,
-                    maxLength: 20,
                   ),
 
                   _buildSectionHeader('Riwayat Personal/CH'),
@@ -1812,12 +1838,19 @@ class _DataFormPageState extends State<DataFormPage> {
                   ),
                   const SizedBox(height: 16),
 
-                  _buildTextFormField(
+                  _buildCustomDropdown(
                     controller: _intervensiBentukMakananController,
                     label: 'Bentuk Makanan',
                     prefixIcon: const Icon(Icons.fastfood),
+                    items: const [
+                      'Biasa',
+                      'Tim',
+                      'Lunak',
+                      'Cair',
+                      'Saring',
+                    ], // Opsi yang Anda minta
                     focusNode: _focusNodes[28],
-                    maxLength: 200,
+                    // Validator disetel null karena bagian ini berada di bawah header "Opsional"
                     validator: (value) => null,
                   ),
                   const SizedBox(height: 16),
