@@ -294,7 +294,9 @@ class PdfGeneratorAsuhan {
                   ' ${patient.monevAsupan ?? '-'} ',
                 ),
                 _buildInfoRowSatu('Status gizi :', ' ${patient.monevStatusGizi ?? '-'} '),
-                _buildInfoRowSatu('Hasil Lab :', ' ${patient.monevHasilLab ?? '-'} '),
+                _buildInfoRowSatu( 
+                  patient.monevHasilLab ?? '-',''
+                ),
               ],
             ),
           ),

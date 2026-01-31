@@ -396,6 +396,9 @@ class PdfGeneratorAsuhanAnak {
                   'Status gizi : BB/U : ',
                   ' ${patient.statusGiziBBU ?? '-'}',
                 ),
+                _buildInfoRowSatu( 
+                  patient.monevHasilLab ?? '-',''
+                ),
               ],
             ),
           ),
