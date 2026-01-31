@@ -25,6 +25,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   final _formKey = GlobalKey<FormState>();
   final _calculatorService = DiabetesCalculatorService();
   final GlobalKey<PatientPickerWidgetState> _patientPickerKey = GlobalKey();
+  final _notesController = TextEditingController();
 
   // Form controllers
   final _ageController = TextEditingController();
@@ -71,6 +72,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     //_bloodSugarController.dispose();
     //_bloodPressureController.dispose();
     _hospitalizedStatusController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -801,6 +803,28 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                 );
               }),
 
+              const SizedBox(height: 16),
+              const Divider(),
+              const Text(
+                "Catatan Tambahan (Opsional)",
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _notesController,
+                maxLines: 3, // Agar bisa input panjang
+                decoration: InputDecoration(
+                  hintText: "Tulis anjuran khusus atau catatan untuk pasien disini...",
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.blue.shade200),
+                  ),
+                  contentPadding: const EdgeInsets.all(10),
+                ),
+              ),
+
               // Tombol Download PDF (Warna Tetap Biru)
               const SizedBox(height: 16),
               ElevatedButton.icon(
@@ -872,7 +896,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     try {
       // PANGGIL FUNGSI YANG BARU KITA BUAT DI SERVICE
       // Ganti "Pasien" dengan variabel nama pasien yang sesuai di kode Anda (misal: _selectedPatient?.name ?? "Pasien")
-      await saveAndOpenDmPdf(_dailyMenu!, "Pasien");
+      await saveAndOpenDmPdf(_dailyMenu!, "Pasien",_notesController.text,);
 
       // Tutup loading dialog jika sukses
       if (mounted && Navigator.canPop(context)) {

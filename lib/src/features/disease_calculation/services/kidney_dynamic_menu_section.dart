@@ -27,6 +27,7 @@ class KidneyDynamicMenuSection extends StatefulWidget {
 class _KidneyDynamicMenuSectionState extends State<KidneyDynamicMenuSection> {
   // State lokal untuk loading saat download PDF
   bool _isDownloadingPdf = false;
+  final TextEditingController _notesController = TextEditingController();
 
   // Fungsi handle download
   Future<void> _handleDownloadPdf() async {
@@ -36,7 +37,7 @@ class _KidneyDynamicMenuSectionState extends State<KidneyDynamicMenuSection> {
 
     try {
       // Panggil fungsi dari file pdf_generator_kidney.dart
-      await saveAndOpenKidneyPdf(widget.generatedMenu!, widget.patientName);
+      await saveAndOpenKidneyPdf(widget.generatedMenu!, widget.patientName,_notesController.text,);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -155,6 +156,28 @@ class _KidneyDynamicMenuSectionState extends State<KidneyDynamicMenuSection> {
             ),
           );
         }),
+
+         const SizedBox(height: 16),
+              const Divider(),
+              const Text(
+                "Catatan Tambahan (Opsional)",
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _notesController,
+                maxLines: 3, // Agar bisa input panjang
+                decoration: InputDecoration(
+                  hintText: "Tulis anjuran khusus atau catatan untuk pasien disini...",
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.blue.shade200),
+                  ),
+                  contentPadding: const EdgeInsets.all(10),
+                ),
+              ),
 
          // --- TOMBOL DOWNLOAD PDF ---
         Padding(

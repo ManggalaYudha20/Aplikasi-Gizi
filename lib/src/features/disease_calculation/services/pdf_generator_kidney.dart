@@ -13,6 +13,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services
 Future<Uint8List> generateKidneyPdfBytes(
   List<KidneyMealSession> menu,
   String namaPasien,
+  String? catatan,
 ) async {
   final pdf = pw.Document();
 
@@ -106,6 +107,13 @@ Future<Uint8List> generateKidneyPdfBytes(
             ],
           );
         }),
+        if (catatan != null && catatan.isNotEmpty) ...[
+          pw.Divider(),
+          pw.SizedBox(height: 10),
+          pw.Text("Catatan Tambahan:", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 5),
+          pw.Text(catatan),
+        ],
       ],
     ),
   );
@@ -114,9 +122,9 @@ Future<Uint8List> generateKidneyPdfBytes(
 }
 
 // Fungsi Utama dipanggil UI
-Future<void> saveAndOpenKidneyPdf(List<KidneyMealSession> menu, String namaPasien) async {
+Future<void> saveAndOpenKidneyPdf(List<KidneyMealSession> menu, String namaPasien, String? catatan) async {
   try {
-    final bytes = await generateKidneyPdfBytes(menu, namaPasien);
+    final bytes = await generateKidneyPdfBytes(menu, namaPasien,catatan);
     final output = await getApplicationDocumentsDirectory();
     // Nama file unik
     final fileName = 'Menu_Ginjal_${namaPasien.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';

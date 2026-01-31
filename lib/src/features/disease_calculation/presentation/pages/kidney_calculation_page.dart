@@ -36,6 +36,7 @@ class KidneyCalculationPage extends StatefulWidget {
 class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
   final _formKey = GlobalKey<FormState>();
   final _calculatorService = KidneyCalculatorService();
+  final _notesController = TextEditingController();
 
   // Menggunakan 'planner.FoodItem' untuk data rencana statis
   List<planner.FoodItem>? _mealPlan;
@@ -167,6 +168,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     _genderController.dispose();
     _proteinFactorController.dispose();
     _currentWeightController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 

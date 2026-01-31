@@ -14,6 +14,7 @@ import 'package:intl/date_symbol_data_local.dart';
 Future<Uint8List> generateDmPdfBytes(
   List<DmMealSession> menu,
   String namaPasien,
+  String? catatan
 ) async {
   final pdf = pw.Document();
 
@@ -111,6 +112,32 @@ Future<Uint8List> generateDmPdfBytes(
             ],
           );
         }),
+        if (catatan != null && catatan.isNotEmpty) ...[
+          pw.SizedBox(height: 20),
+          pw.Container(
+            width: double.infinity,
+            padding: const pw.EdgeInsets.all(10),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColors.grey400),
+              borderRadius: pw.BorderRadius.circular(4),
+              color: PdfColors.grey100,
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  "Catatan Tambahan:",
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+                ),
+                pw.SizedBox(height: 5),
+                pw.Text(
+                  catatan,
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     ),
   );
@@ -122,10 +149,11 @@ Future<Uint8List> generateDmPdfBytes(
 Future<void> saveAndOpenDmPdf(
   List<DmMealSession> menu,
   String namaPasien,
+  String? catatan,
 ) async {
   try {
     // 1. Generate Bytes
-    final bytes = await generateDmPdfBytes(menu, namaPasien);
+    final bytes = await generateDmPdfBytes(menu, namaPasien,catatan);
 
     // 2. Dapatkan path directory
     final output = await getApplicationDocumentsDirectory();
