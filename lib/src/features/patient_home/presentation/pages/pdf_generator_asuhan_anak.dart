@@ -77,6 +77,8 @@ class PdfGeneratorAsuhanAnak {
     // 'd-MM-yyyy' = Format Tanggal standar
     final dateFormatIndonesia = DateFormat('d-MM-yyyy / HH:mm', 'id_ID');
 
+    final rdaResult = patient.hitungKebutuhanGizi();
+
     // Helper untuk formatting angka agar tidak error jika null
     String formatNum(num? value, [String unit = '']) {
       if (value == null) return '-';
@@ -319,7 +321,7 @@ class PdfGeneratorAsuhanAnak {
                   ),
                 ]),
                 _buildAssessmentCategorysatu('Total Asupan', [
-                  _buildTotalIntakeTable(),
+                  _buildTotalIntakeTable(rdaResult),
                 ]),
                 _buildAssessmentCategorysatu(
                   'Riwayat Personal /CH (Client History)',
@@ -528,7 +530,7 @@ class PdfGeneratorAsuhanAnak {
     );
   }
 
-  static pw.Widget _buildTotalIntakeTable() {
+static pw.Widget _buildTotalIntakeTable(Map<String, double> rda) {
     const headers = ['Zat Gizi', 'Nilai', 'Kebutuhan', '%'];
     const rowLabels = [
       'Energi (kkal)',
@@ -537,8 +539,51 @@ class PdfGeneratorAsuhanAnak {
       'KH (gram)',
     ];
 
-    // Item untuk tabel kanan
-    const rightTableItems = ['Energi', 'Protein', 'Cairan'];
+    // Ambil nilai numerik untuk perhitungan
+    double energiTotal = rda['energi'] ?? 0;
+    double proteinGram = rda['protein'] ?? 0;
+    double lemakGram = rda['lemak'] ?? 0;
+    double karboGram = rda['karbo'] ?? 0;
+
+    // Hitung Persentase
+    // Cegah pembagian dengan nol
+    String pctEnergi = '-';
+    String pctProtein = '-';
+    String pctLemak = '-';
+    String pctKarbo = '-';
+
+    if (energiTotal > 0) {
+      pctEnergi = '100 %';
+      // Protein: 1g = 4 kkal
+      pctProtein = '${((proteinGram * 4 / energiTotal) * 100).toStringAsFixed(0)} %';
+      // Lemak: 1g = 9 kkal
+      pctLemak = '${((lemakGram * 9 / energiTotal) * 100).toStringAsFixed(0)} %';
+      // Karbo: 1g = 4 kkal
+      pctKarbo = '${((karboGram * 4 / energiTotal) * 100).toStringAsFixed(0)} %';
+    }
+
+    // List data untuk kolom "Kebutuhan"
+    final needs = [
+      energiTotal.toStringAsFixed(0),
+      proteinGram.toStringAsFixed(1),
+      lemakGram.toStringAsFixed(1),
+      karboGram.toStringAsFixed(1),
+    ];
+
+    // List data untuk kolom "%"
+    final percentages = [
+      pctEnergi,
+      pctProtein,
+      pctLemak,
+      pctKarbo,
+    ];
+
+    // Data untuk tabel Ringkasan (Kanan)
+    final rightTableItems = [
+      {'label': 'Energi', 'value': '${energiTotal.toStringAsFixed(0)} kkal'},
+      {'label': 'Protein', 'value': '${proteinGram.toStringAsFixed(1)} gram'},
+      {'label': 'Cairan', 'value': '${(rda['cairan'] ?? 0).toStringAsFixed(0)} ml'},
+    ];
 
     return pw.Padding(
       padding: const pw.EdgeInsets.only(top: 4, bottom: 4),
@@ -552,9 +597,9 @@ class PdfGeneratorAsuhanAnak {
               border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
               columnWidths: {
                 0: const pw.FlexColumnWidth(1.5),
-                1: const pw.FlexColumnWidth(1.5),
-                2: const pw.FlexColumnWidth(1.5),
-                3: const pw.FlexColumnWidth(1.0),
+                1: const pw.FlexColumnWidth(1.5), // Kolom Nilai (Kosong/Input Manual)
+                2: const pw.FlexColumnWidth(1.5), // Kolom Kebutuhan (Calculated)
+                3: const pw.FlexColumnWidth(1.2), // Kolom %
               },
               children: [
                 // Header
@@ -564,53 +609,60 @@ class PdfGeneratorAsuhanAnak {
                       .map((h) => _buildTableCell(h, isHeader: true))
                       .toList(),
                 ),
-                // Rows
-                ...rowLabels.map(
-                  (label) => pw.TableRow(
+                // Rows (Looping data)
+                for (int i = 0; i < rowLabels.length; i++)
+                  pw.TableRow(
                     children: [
-                      _buildTableCell(label),
-                      _buildTableCell(''), // Kosong
-                      _buildTableCell(''), // Kosong
-                      _buildTableCell(''), // Kosong
+                      _buildTableCell(rowLabels[i]),
+                      _buildTableCell(''), // Nilai (Kosong)
+                      // Tampilkan Kebutuhan (Rata Tengah)
+                      _buildTableCell(needs[i], align: pw.TextAlign.center),
+                      // Tampilkan Persentase (Rata Tengah)
+                      _buildTableCell(percentages[i], align: pw.TextAlign.center),
                     ],
                   ),
-                ),
               ],
             ),
           ),
 
-          pw.SizedBox(width: 8), // Jarak antar tabel
-          // --- TABEL KANAN (Ringkasan Kebutuhan) ---
+          pw.SizedBox(width: 8), // Spacer
+
+          // --- TABEL KANAN (Ringkasan) ---
           pw.Expanded(
             flex: 3,
             child: pw.Table(
               border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
-              // PERBAIKAN: Tambahkan columnWidths agar Expanded di dalam sel bekerja
               columnWidths: {0: const pw.FlexColumnWidth(1)},
               children: [
                 // Header Kanan
                 pw.TableRow(
                   decoration: const pw.BoxDecoration(color: PdfColors.grey200),
                   children: [
-                    _buildTableCell('Protein Kebutuhan', isHeader: true),
+                    _buildTableCell('Ringkasan Kebutuhan', isHeader: true),
                   ],
                 ),
-                // Data Rows Kanan (Energi, Protein, Cairan)
+                // Data Rows Kanan
                 ...rightTableItems.map(
                   (item) => pw.TableRow(
                     children: [
                       pw.Padding(
                         padding: const pw.EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 5,
-                        ),
+                            horizontal: 4, vertical: 5),
                         child: pw.Row(
-                          // Align bottom agar titik-titik lurus dengan teks
                           crossAxisAlignment: pw.CrossAxisAlignment.end,
                           children: [
                             pw.Text(
-                              '$item : ',
+                              '${item['label']} : ',
                               style: const pw.TextStyle(fontSize: 9),
+                            ),
+                            pw.Expanded(
+                              child: pw.Text(
+                                item['value']!,
+                                style: pw.TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: pw.FontWeight.bold),
+                                textAlign: pw.TextAlign.right,
+                              ),
                             ),
                           ],
                         ),
@@ -651,12 +703,14 @@ class PdfGeneratorAsuhanAnak {
     );
   }
 
-  static pw.Widget _buildTableCell(String text, {bool isHeader = false}) {
+  // Tambahkan parameter 'align'
+  static pw.Widget _buildTableCell(String text, {bool isHeader = false, pw.TextAlign? align}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(4),
       child: pw.Text(
         text,
-        textAlign: isHeader ? pw.TextAlign.center : pw.TextAlign.left,
+        // Gunakan align jika ada, jika tidak gunakan logika default (Header=Center, Body=Left)
+        textAlign: align ?? (isHeader ? pw.TextAlign.center : pw.TextAlign.left),
         style: pw.TextStyle(
           fontSize: 9,
           fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,

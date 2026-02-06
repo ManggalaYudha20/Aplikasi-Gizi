@@ -314,4 +314,71 @@ class PatientAnak {
     if (score == 1) return "Resiko rendah";
     return "Tanpa resiko";
   }
+
+  Map<String, double> hitungKebutuhanGizi() {
+    // 1. Tentukan Berat Badan (Prioritas: BBI -> Berat Aktual)
+    // RDA biasanya menargetkan berat badan ideal untuk tumbuh kejar (catch-up growth).
+    double weightToUse = (bbi != null && bbi! > 0) ? bbi! : beratBadan.toDouble();
+    
+    // 2. Hitung Umur dalam Tahun
+    double ageInYears = usiaInDays / 365.0;
+
+    double kaloriPerKg = 0;
+    double proteinPerKg = 0;
+
+    // Referensi Tabel RDA / AKG (Angka Kecukupan Gizi)
+    if (ageInYears < 0.5) {
+      kaloriPerKg = 108; proteinPerKg = 2.2;
+    } else if (ageInYears < 1) {
+      kaloriPerKg = 98; proteinPerKg = 1.5;
+    } else if (ageInYears <= 3) {
+      kaloriPerKg = 102; proteinPerKg = 1.23;
+    } else if (ageInYears <= 6) {
+      kaloriPerKg = 90; proteinPerKg = 1.2;
+    } else if (ageInYears <= 10) {
+      kaloriPerKg = 70; proteinPerKg = 1.0;
+    } else {
+      // Usia > 10 Tahun (Dibedakan Laki/Perempuan)
+      bool isMale = jenisKelamin.toLowerCase().contains('laki');
+      if (ageInYears <= 14) {
+        kaloriPerKg = isMale ? 55 : 47;
+        proteinPerKg = 1.0;
+      } else {
+        kaloriPerKg = isMale ? 45 : 40;
+        proteinPerKg = 0.8;
+      }
+    }
+
+    // Hitung Total Energi & Protein
+    double totalEnergi = kaloriPerKg * weightToUse;
+    double totalProtein = proteinPerKg * weightToUse;
+
+    // Hitung Lemak & Karbohidrat (Persentase standar anak)
+    // Lemak: Anak 1-3 th (30-40%), 4-18 th (25-35%). Kita ambil rata-rata 35%.
+    double totalLemak = (0.35 * totalEnergi) / 9; // 1 gram lemak = 9 kkal
+    
+    // Karbohidrat: Sisa energi
+    // Karbo = (Total Energi - (Protein*4 + Lemak*9)) / 4
+    double totalKarbo = (totalEnergi - (totalProtein * 4) - (totalLemak * 9)) / 4;
+    
+    if(totalKarbo < 0) totalKarbo = 0;
+
+    // Hitung Cairan (Rumus Holliday-Segar)
+    double totalCairan = 0;
+    if (weightToUse <= 10) {
+      totalCairan = weightToUse * 100;
+    } else if (weightToUse <= 20) {
+      totalCairan = 1000 + ((weightToUse - 10) * 50);
+    } else {
+      totalCairan = 1500 + ((weightToUse - 20) * 20);
+    }
+
+    return {
+      'energi': totalEnergi,
+      'protein': totalProtein,
+      'lemak': totalLemak,
+      'karbo': totalKarbo,
+      'cairan': totalCairan,
+    };
+  }
 }
