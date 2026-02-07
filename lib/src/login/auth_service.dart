@@ -33,8 +33,9 @@ class AuthService {
         idToken: googleAuth.idToken,
       );
 
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
       final User? user = userCredential.user;
 
       if (user != null) {
@@ -46,8 +47,13 @@ class AuthService {
             'displayName': user.displayName,
             'email': user.email,
             'photoURL': user.photoURL,
-            'role': 'tamu',
+            'role': 'tamu', // Default role
+            'createdAt': FieldValue.serverTimestamp(),
+            'lastLogin': FieldValue.serverTimestamp(),
           });
+        } else {
+          // Update last login
+          await userRef.update({'lastLogin': FieldValue.serverTimestamp()});
         }
       }
 
