@@ -36,19 +36,21 @@ class AccountPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(150, 255, 255, 255),
-      appBar: CustomAppBar(title: 'Profil Akun', subtitle: 'Halo, ${user?.displayName}!',),
+      appBar: CustomAppBar(
+        title: 'Profil Akun',
+        subtitle: 'Halo, ${user?.displayName}!',
+      ),
       body: FadeInTransition(
         child: Column(
           children: [
             const SizedBox(height: 20),
-            
+
             // SECTION: User Profile
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    if (user != null) 
-                      _buildUserProfile(context, user),
+                    if (user != null) _buildUserProfile(context, user),
                   ],
                 ),
               ),
@@ -61,6 +63,7 @@ class AccountPage extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   AccountMenuButton(
+                    testId: 'btn_logout',
                     label: 'Keluar',
                     icon: Icons.logout,
                     textColor: Colors.red,
@@ -116,14 +119,15 @@ class AccountPage extends StatelessWidget {
         return Column(
           children: [
             GestureDetector(
+              key: const Key('avatar_profile_click'),
               onTap: () => AccountDialogs.showProfileImage(context, photoUrl),
               child: Hero(
                 tag: 'profile-avatar',
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.grey.shade200,
-                  backgroundImage: photoUrl != null 
-                      ? NetworkImage(photoUrl) 
+                  backgroundImage: photoUrl != null
+                      ? NetworkImage(photoUrl)
                       : null,
                   child: photoUrl == null
                       ? const Icon(Icons.person, size: 50, color: Colors.grey)
@@ -132,24 +136,37 @@ class AccountPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              displayName,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+            Semantics(
+              label: 'user_display_name', // Label tetap untuk QA
+              child: Text(
+                displayName,
+                key: const Key(
+                  'text_display_name',
+                ), // Key untuk verifikasi teks
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
             ),
             const SizedBox(height: 8),
-            
+
             // Menggunakan Widget Badge yang reusable
-            RoleBadge(roleName: formattedRole),
-            
+            RoleBadge(
+              key: const Key('badge_role'), 
+              roleName: formattedRole
+            ),
+
             const SizedBox(height: 8),
-            Text(
+           Semantics(
+            label: 'user_email',
+            child: Text(
               user.email ?? '',
+              key: const Key('text_user_email'),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.grey,
                   ),
             ),
+           ),
           ],
         );
       },

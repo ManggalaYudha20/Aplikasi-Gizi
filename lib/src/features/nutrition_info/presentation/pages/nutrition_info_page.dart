@@ -1,6 +1,6 @@
 //lib\src\features\nutrition_info\presentation\pages\nutrition_info_page.dart
 
-import 'package:aplikasi_diagnosa_gizi/src/features/admin/user_management_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/admin/pages/user_management_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/presentation/pages/disease_calculation_page.dart';
