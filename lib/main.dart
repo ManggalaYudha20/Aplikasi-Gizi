@@ -9,7 +9,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:aplikasi_diagnosa_gizi/src/login/login_screen.dart';
 import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/account/account_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/account/pages/account_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/statistics/statistics_page.dart';
@@ -129,12 +129,17 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
   void _setupNavigationMenu() {
+    final authService = AuthService();
+    final userService = UserService();
     // 1. Definisi SEMUA halaman (Urutan Wajib Sama dengan Nav Items)
     final allPages = [
       NutritionInfoPage(userRole: _userRole), // Index 0: Beranda
       const PatientHomePage(), // Index 1: Daftar Pasien
       const StatisticsPage(), // Index 2: Statistik
-      const AccountPage(), // Index 3: Akun
+      AccountPage(
+        authService: authService,
+        userService: userService,
+      ), // Index 3: Akun
     ];
 
     // 2. Definisi SEMUA item navbar (Urutan Wajib Sama dengan Pages)

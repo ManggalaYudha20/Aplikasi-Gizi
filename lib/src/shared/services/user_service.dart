@@ -40,6 +40,19 @@ class UserService {
     }
   }
 
+  Future<DocumentSnapshot> getUserDocument() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception('Tidak ada user yang login');
+    }
+    
+    // Pastikan nama collection sesuai database Anda (biasanya 'users')
+    return FirebaseFirestore.instance
+        .collection('users') 
+        .doc(user.uid)
+        .get();
+  }
+
   // Anda bisa menambahkan fungsi lain di sini di masa depan,
   // misalnya: Future<void> updateDisplayName(String newName) { ... }
 }
