@@ -1,11 +1,17 @@
-//lib\src\login\login_screen.dart
+// lib/src/login/login_screen.dart
+
 import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/version_info_app.dart';
 import 'package:aplikasi_diagnosa_gizi/main.dart';
 
-// 1. Ubah menjadi StatefulWidget
+// Tips: Kumpulkan path asset di satu tempat agar jika file dipindah, cukup ubah di sini
+class _Assets {
+  static const logoRsud = 'assets/images/logo.png';
+  static const googleLogo = 'assets/images/google_logo.png';
+}
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -13,73 +19,129 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-// 2. Tambahkan SingleTickerProviderStateMixin untuk animasi
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
-  // 3. Deklarasikan AnimationController dan Animation
+  
+  // Services
+  final AuthService _authService = AuthService(); // Idealnya di-inject via Provider/GetIt
+
+  // Controllers
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
-  final AuthService _authService = AuthService();
 
+  // State
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // 4. Inisialisasi controller dan animasi
+    _setupAnimation();
+  }
+
+  void _setupAnimation() {
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800), // Atur durasi fade in
+      duration: const Duration(milliseconds: 800),
     );
-
     _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-
-    // 5. Mulai animasi saat halaman dimuat
     _controller.forward();
   }
 
   @override
   void dispose() {
-    // 6. Hapus controller untuk mencegah memory leak
     _controller.dispose();
     super.dispose();
   }
 
+  Future<void> _handleGoogleSignIn() async {
+    // Prevent double tap
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final userCredential = await _authService.signInWithGoogle();
+
+      if (!mounted) return;
+
+      if (userCredential?.user != null) {
+        // Navigasi sukses
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
+      } else {
+        // User cancel (biasanya null)
+        if (mounted) setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      
+      _showErrorSnackBar("Gagal Masuk: ${e.toString()}");
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        key: const Key('login_error_snackbar'),
+        content: Text(message),
+        backgroundColor: Colors.red.shade700, // Warna lebih solid untuk error
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Mendapatkan ukuran layar untuk penyesuaian responsif
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final size = MediaQuery.sizeOf(context); // Lebih efisien daripada MediaQuery.of(context).size di Flutter terbaru
 
     return Scaffold(
-      // Menggunakan warna abu-abu muda untuk background utama
       backgroundColor: const Color(0xFFF5F5F5),
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: Stack(
           children: [
-            _buildGreenBackground(screenHeight, screenWidth),
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Spacer(flex: 2),
-                    // Kartu putih yang berisi logo dan teks selamat datang
-                    _buildLoginCard(context),
-                    const SizedBox(height: 40),
-                    // Tombol untuk login dengan Google
-                    const SizedBox(height: 50),
-                    _buildGoogleLoginButton(context),
-                    const Spacer(flex: 2),
-                    // Teks copyright di bagian bawah
-                    _buildCopyrightText(),
-                    const SizedBox(height: 8),
-                    const VersionInfoWidget(),
-                  ],
-                ),
-              ),
+            _buildGreenBackground(size),
+            
+            // LayoutBuilder + SingleScrollView + IntrinsicHeight
+            // Pattern terbaik untuk form center dengan sticky footer yang aman keyboard
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Spacer(flex: 2),
+                              _buildLoginCard(context),
+                              
+                              const SizedBox(height: 90), // Digabung agar widget tree lebih dangkal
+                              
+                              _buildGoogleLoginButton(),
+                              
+                              const Spacer(flex: 2),
+                              _buildCopyrightText(),
+                              const SizedBox(height: 8),
+                              const VersionInfoWidget(),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -87,15 +149,15 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  // Method untuk membangun background hijau
-  Widget _buildGreenBackground(double screenHeight, double screenWidth) {
+  Widget _buildGreenBackground(Size size) {
     return Positioned(
       top: 0,
+      left: 0,
+      right: 0,
       child: Container(
-        height: screenHeight * 0.4, // Tinggi background 40% dari layar
-        width: screenWidth,
+        height: size.height * 0.4,
         decoration: const BoxDecoration(
-          color: Color(0xFF008C45), // Warna hijau sesuai gambar
+          color: Color(0xFF008C45),
           borderRadius: BorderRadius.only(
             bottomLeft: Radius.elliptical(30, 30),
             bottomRight: Radius.elliptical(30, 30),
@@ -105,46 +167,52 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  // Method untuk membangun kartu login
   Widget _buildLoginCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(15.0),
+      padding: const EdgeInsets.all(24.0), // Padding sedikit diperbesar agar lebih lega
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15.0),
+        borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.1), // Kompatibilitas aman
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Pastikan path 'assets/logo_rsud.png' sesuai
-          Image.asset('assets/images/logo.png', height: 150),
+          Semantics(
+            label: "Logo Rumah Sakit",
+            image: true,
+            child: Image.asset(
+              _Assets.logoRsud, // Menggunakan konstanta asset
+              key: const Key('login_logo_rsud'),
+              height: 150,
+              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 50), // Fallback aman
+            ),
+          ),
+          const SizedBox(height: 16),
           Text(
             'Selamat Datang!',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
           ),
-          const SizedBox(height: 5),
-          // Menggunakan RichText untuk membuat 'Log In' menjadi tebal
+          const SizedBox(height: 8),
           RichText(
             text: TextSpan(
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
               children: const [
                 TextSpan(text: 'Silahkan '),
                 TextSpan(
                   text: 'Masuk',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.bold), 
                 ),
                 TextSpan(text: ' untuk melanjutkan'),
               ],
@@ -155,90 +223,61 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  // Method untuk membangun tombol login Google
-  Widget _buildGoogleLoginButton(BuildContext context) {
+  Widget _buildGoogleLoginButton() {
     return SizedBox(
       width: double.infinity,
       height: 50,
       child: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ElevatedButton(
-              onPressed: () async {
-                setState(() {
-                  _isLoading = true;
-                });
-
-                try {
-                  // 1. Panggil fungsi sign-in
-                  final userCredential = await _authService.signInWithGoogle();
-
-                  // 2. Cek apakah widget masih ada di tree (best practice)
-                  if (!context.mounted) return;
-
-                  // 3. Jika berhasil (userCredential tidak null), navigasi ke halaman utama
-                  if (userCredential != null && userCredential.user != null) {
-                    // Ganti '/home' dengan rute halaman utama Anda (misal: HomeScreen())
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                          builder: (context) => const MainScreen()),
-                    );
-                  } else {
-                    // Kasus ini seharusnya tidak terjadi jika pengguna tidak membatalkan,
-                    // tapi sebagai pengaman jika proses dibatalkan oleh pengguna.
-                    if (!mounted) return;
-                    setState(() {
-                      _isLoading = false;
-                    });
-                  }
-                } catch (e) {
-                  // 4. Jika terjadi error (dari 'throw Exception' di AuthService)
-                  if (!context.mounted) return;
-
-                  // Tampilkan pesan error kepada pengguna
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(e.toString()),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                // Hentikan loading HANYA jika terjadi kegagalan, agar tombol muncul kembali.
-                setState(() {
-                  _isLoading = false;
-                });
-                }
-
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black87,
-                elevation: 2,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                  side: BorderSide(color: Colors.grey[300]!),
-                ),
+          ? const Center(
+              child: CircularProgressIndicator(
+                key: Key('login_loading_indicator'),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF008C45)),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset('assets/images/google_logo.png', height: 30.0),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Masuk dengan Google',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            )
+          : Semantics(
+              label: "Tombol Masuk dengan Google",
+              button: true,
+              enabled: true,
+              child: ElevatedButton(
+                key: const Key('login_button_google'),
+                onPressed: _handleGoogleSignIn,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black87,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                    side: BorderSide(color: Colors.grey.shade300),
                   ),
-                ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      _Assets.googleLogo,
+                      height: 24.0, // Ukuran logo google standar biasanya 24dp
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Masuk dengan Google',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600, // Sedikit lebih tebal agar terbaca
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
     );
   }
 
-  // Method untuk membangun teks copyright
   Widget _buildCopyrightText() {
     final String currentYear = DateFormat('y').format(DateTime.now());
     return Text(
       '©RSUD Tipe B Prov. SULUT $currentYear',
-      style: TextStyle(color: Colors.grey, fontSize: 12),
+      key: const Key('login_copyright_text'),
+      style: const TextStyle(color: Colors.grey, fontSize: 12),
     );
   }
 }
