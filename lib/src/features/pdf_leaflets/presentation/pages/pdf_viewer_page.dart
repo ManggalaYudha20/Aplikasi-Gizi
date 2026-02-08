@@ -1,6 +1,7 @@
-//lib\src\features\pdf_leaflets\presentation\pages\pdf_viewer_page.dart
+// lib\src\features\pdf_leaflets\presentation\pages\pdf_viewer_page.dart
 
 import 'package:flutter/material.dart';
+// Menggunakan alias untuk menghindari konflik dengan widget atau class lain yang bernama 'Share'
 import 'package:share_plus/share_plus.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_model.dart';
@@ -26,6 +27,7 @@ class PdfViewerPage extends StatefulWidget {
 
 class _PdfViewerPageState extends State<PdfViewerPage> {
   late final PdfViewerController _pdfViewerController;
+  final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
 
   @override
   void initState() {
@@ -34,98 +36,87 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   }
 
   @override
-  void dispose() {
-    _pdfViewerController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar: AppBar(
-        iconTheme: const IconThemeData(color: Color.fromARGB(255, 0, 148, 68)),
-        title: Text(
-          widget.title,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 2,
-      ),
-      body: SfPdfViewer.network(
-        widget.url,
-        controller: _pdfViewerController,
-        canShowScrollHead: true,
-        canShowPaginationDialog: true,
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            IconButton(
-              tooltip: 'Halaman Sebelumnya',
-              icon: const Icon(Icons.arrow_back_ios),
-              onPressed: () => _pdfViewerController.previousPage(),
-            ),
-            IconButton(
-              tooltip: 'Perkecil',
-              icon: const Icon(Icons.zoom_out),
-              onPressed: () => _pdfViewerController.zoomLevel -= 0.25,
-            ),
-            IconButton(
-              tooltip: 'Perbesar',
-              icon: const Icon(Icons.zoom_in),
-              onPressed: () => _pdfViewerController.zoomLevel += 0.25,
-            ),
-            IconButton(
-              tooltip: 'Halaman Berikutnya',
-              icon: const Icon(Icons.arrow_forward_ios),
-              onPressed: () => _pdfViewerController.nextPage(),
+    // Memastikan layout aman dari notch/system bars
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        appBar: AppBar(
+          title: Text(widget.title),
+          backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+          foregroundColor: Colors.white,
+          actions: [
+            Semantics(
+              label: 'Bagikan PDF',
+              button: true,
+              child: IconButton(
+                key: const Key('pdf_share_button'),
+                icon: const Icon(Icons.share),
+                onPressed: () {
+                  SharePlus.instance.share(
+                    ShareParams(
+                      text:
+                          'Lihat leaflet gizi "${widget.title}" di link berikut: ${widget.url}',
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
-      ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          // Tombol Share (Download Dihapus)
-          FloatingActionButton.small(
-            onPressed: () {
-              SharePlus.instance.share(
-                ShareParams(
-                  text:
-                      'Lihat leaflet gizi "${widget.title}" di link berikut: ${widget.url}',
-                ),
-              );
-            },
-            heroTag: 'share',
-            tooltip: 'Bagikan',
-            child: const Icon(Icons.share),
+        body: SfPdfViewer.network(
+          widget.url,
+          controller: _pdfViewerController,
+          key: _pdfViewerKey,
+          canShowScrollHead: true,
+          canShowScrollStatus: true,
+        ),
+        bottomNavigationBar: BottomAppBar(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                tooltip: 'Halaman Sebelumnya',
+                icon: const Icon(Icons.arrow_back_ios),
+                onPressed: () => _pdfViewerController.previousPage(),
+              ),
+              IconButton(
+                tooltip: 'Perkecil',
+                icon: const Icon(Icons.zoom_out),
+                onPressed: () => _pdfViewerController.zoomLevel -= 0.25,
+              ),
+              IconButton(
+                tooltip: 'Perbesar',
+                icon: const Icon(Icons.zoom_in),
+                onPressed: () => _pdfViewerController.zoomLevel += 0.25,
+              ),
+              IconButton(
+                tooltip: 'Halaman Berikutnya',
+                icon: const Icon(Icons.arrow_forward_ios),
+                onPressed: () => _pdfViewerController.nextPage(),
+              ),
+            ],
           ),
+        ),
 
-          RoleBuilder(
-            requiredRole: 'admin',
-            builder: (context) {
-              // Pastikan juga widget.leaflet tidak null
-              if (widget.leaflet == null) {
-                return const SizedBox.shrink();
-              }
+        floatingActionButton: RoleBuilder(
+          requiredRole: 'admin', // Role yang dibutuhkan
+          // Builder dijalankan jika user adalah admin
+          builder: (context) {
+            if (widget.leaflet == null) return const SizedBox.shrink();
 
-              // Jika role adalah 'admin' dan leaflet ada, tampilkan tombol:
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      FloatingActionButton.small(
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Semantics(
+                      label: 'Hapus Leaflet',
+                      button: true,
+                      child: FloatingActionButton.small(
+                        key: const Key('pdf_delete_button'),
                         onPressed: () =>
                             DeleteLeafletService.handleLeafletDelete(
                               context: context,
@@ -136,13 +127,19 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                         backgroundColor: Colors.red,
                         child: const Icon(Icons.delete, color: Colors.white),
                       ),
-                      const SizedBox(width: 8),
-                      FloatingActionButton.small(
+                    ),
+                    const SizedBox(width: 8),
+                    Semantics(
+                      label: 'Edit Leaflet',
+                      button: true,
+                      child: FloatingActionButton.small(
+                        key: const Key('pdf_edit_button'),
                         onPressed: () async {
                           final result = await EditLeafletService.showEditPage(
                             context,
                             widget.leaflet!,
                           );
+                          // Jika ada perubahan, kembali ke halaman list untuk refresh
                           if (result == true && context.mounted) {
                             Navigator.of(context).pop();
                           }
@@ -152,13 +149,16 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                         backgroundColor: const Color.fromARGB(255, 0, 148, 68),
                         child: const Icon(Icons.edit, color: Colors.white),
                       ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+
+          // Builder dijalankan jika user BUKAN admin (atau belum login)
+          nonRoleBuilder: (context) => const SizedBox.shrink(),
+        ),
       ),
     );
   }

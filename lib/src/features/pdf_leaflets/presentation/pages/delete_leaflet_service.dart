@@ -1,17 +1,17 @@
-//lib\src\features\pdf_leaflets\presentation\pages\delete_leaflet_service.dart
+// lib\src\features\pdf_leaflets\presentation\pages\delete_leaflet_service.dart
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_model.dart';
 
 class DeleteLeafletService {
-  /// Shows a confirmation dialog for deleting a leaflet
-  static Future<void> showDeleteConfirmationDialog({
+  /// Menampilkan dialog konfirmasi dan menangani proses penghapusan
+  static Future<void> handleLeafletDelete({
     required BuildContext context,
     required Leaflet leaflet,
-    required VoidCallback onDeleteSuccess,
   }) async {
-    return showDialog(
+    // Tampilkan Dialog
+    final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -19,37 +19,32 @@ class DeleteLeafletService {
           content: Text('Apakah Anda yakin untuk menghapus leaflet "${leaflet.title}"?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              key: const Key('dialog_cancel_button'),
+              onPressed: () => Navigator.of(context).pop(false),
               child: const Text('Batal'),
             ),
             TextButton(
-              onPressed: () async {
-                // Store the dialog context before async operation
-                final navigator = Navigator.of(context);
-                await _deleteLeaflet(
-                  context: context,
-                  leaflet: leaflet,
-                  onDeleteSuccess: onDeleteSuccess,
-                );
-                navigator.pop(); // Close the dialog
-              },
-              child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+              key: const Key('dialog_confirm_delete_button'),
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Hapus'),
             ),
           ],
         );
       },
     );
+
+    if (shouldDelete == true && context.mounted) {
+      await _performDelete(context, leaflet);
+    }
   }
 
-  /// Deletes a leaflet from Firestore
-  static Future<void> _deleteLeaflet({
-    required BuildContext context,
-    required Leaflet leaflet,
-    required VoidCallback onDeleteSuccess,
-  }) async {
+  static Future<void> _performDelete(BuildContext context, Leaflet leaflet) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     try {
-      // Show loading indicator
+      // Loading Indicator
       scaffoldMessenger.showSnackBar(
         const SnackBar(
           content: Text('Menghapus Leaflet...'),
@@ -57,13 +52,13 @@ class DeleteLeafletService {
         ),
       );
 
-      // Delete from Firestore
+      // Firestore Delete
       await FirebaseFirestore.instance
           .collection('leaflets')
           .doc(leaflet.id)
           .delete();
       
-      // Show success message using stored context
+      // Success Feedback
       scaffoldMessenger.showSnackBar(
         const SnackBar(
           content: Text('Berhasil Menghapus Leaflet!'),
@@ -71,10 +66,9 @@ class DeleteLeafletService {
         ),
       );
       
-      // Call success callback
-      onDeleteSuccess();
+      // Navigate Back
+      navigator.pop(); 
     } catch (e) {
-      // Show error message using stored context
       scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text('Gagal Menghapus Leaflet: ${e.toString()}'),
@@ -82,21 +76,5 @@ class DeleteLeafletService {
         ),
       );
     }
-  }
-
-  /// Handles the complete delete process including confirmation and navigation
-  static Future<void> handleLeafletDelete({
-    required BuildContext context,
-    required Leaflet leaflet,
-  }) async {
-    final navigator = Navigator.of(context);
-    await showDeleteConfirmationDialog(
-      context: context,
-      leaflet: leaflet,
-      onDeleteSuccess: () {
-        // Navigate back to leaflet list after successful deletion
-        navigator.pop();
-      },
-    );
   }
 }

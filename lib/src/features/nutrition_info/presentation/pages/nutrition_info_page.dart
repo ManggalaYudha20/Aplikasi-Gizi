@@ -1,8 +1,10 @@
-//lib\src\features\nutrition_info\presentation\pages\nutrition_info_page.dart
+// lib/src/features/nutrition_info/presentation/pages/nutrition_info_page.dart
 
+import 'package:flutter/material.dart';
+
+// Imports (Dipertahankan sesuai file asli)
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/pages/user_management_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
-import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/presentation/pages/disease_calculation_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/formula_calculation_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_page.dart';
@@ -12,90 +14,154 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dar
 import 'package:aplikasi_diagnosa_gizi/src/features/about/presentation/pages/about_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/reference/reference_page.dart';
 
+/// Model privat untuk konfigurasi menu agar lebih terstruktur
+class _MenuConfig {
+  final String id;
+  final String label;
+  final IconData icon;
+  final Widget destinationPage;
+  final String semanticsLabel;
+
+  _MenuConfig({
+    required this.id,
+    required this.label,
+    required this.icon,
+    required this.destinationPage,
+    required this.semanticsLabel,
+  });
+}
+
 class NutritionInfoPage extends StatelessWidget {
   final String userRole;
 
- const NutritionInfoPage({super.key, required this.userRole});
+  const NutritionInfoPage({super.key, required this.userRole});
+
+  /// 1. Clean Code: Memisahkan data menu dari metode build.
+  /// Mengembalikan daftar menu berdasarkan role user.
+  List<_MenuConfig> _getMenuItems(BuildContext context) {
+    final List<_MenuConfig> items = [
+      _MenuConfig(
+        id: 'kalkulator_penyakit',
+        label: 'Hitung Diet Penyakit',
+        icon: Icons.medical_services,
+        destinationPage: DiseaseCalculationPage(userRole: userRole),
+        semanticsLabel: 'Tombol masuk ke halaman kalkulator penyakit',
+      ),
+      _MenuConfig(
+        id: 'kalkulator_gizi',
+        label: 'Kalkulator Gizi',
+        icon: Icons.calculate,
+        destinationPage: FormulaCalculationPage(userRole: userRole),
+        semanticsLabel: 'Tombol masuk ke halaman rumus perhitungan gizi',
+      ),
+      _MenuConfig(
+        id: 'basis_data_makanan',
+        label: 'Daftar Makanan',
+        icon: Icons.food_bank,
+        destinationPage: const FoodListPage(),
+        semanticsLabel: 'Tombol masuk ke daftar basis data makanan',
+      ),
+      _MenuConfig(
+        id: 'leaflet_pdf',
+        label: 'Leaflet Edukasi Gizi',
+        icon: Icons.picture_as_pdf_outlined,
+        destinationPage: const LeafletListPage(),
+        semanticsLabel: 'Tombol unduh dan lihat leaflet PDF',
+      ),
+      _MenuConfig(
+        id: 'referensi',
+        label: 'Referensi',
+        icon: Icons.menu_book,
+        destinationPage: const ReferencePage(),
+        semanticsLabel: 'Tombol masuk ke halaman daftar referensi',
+      ),
+      _MenuConfig(
+        id: 'tentang',
+        label: 'Tentang Kami',
+        icon: Icons.info_outline,
+        destinationPage: const AboutPage(),
+        semanticsLabel: 'Tombol masuk ke halaman informasi aplikasi',
+      ),
+    ];
+
+    // Logika kondisional role (Admin only)
+    if (userRole == 'admin') {
+      items.add(
+        _MenuConfig(
+          id: 'manajemen_pengguna',
+          label: 'Manajemen Pengguna',
+          icon: Icons.manage_accounts_outlined,
+          destinationPage: const UserManagementPage(),
+          semanticsLabel: 'Tombol masuk ke halaman admin manajemen pengguna',
+        ),
+      );
+    }
+
+    return items;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> menuItems = [
-      {
-        'text': 'Hitung Diet\nPenyakit',
-        'icon': Icons.medical_services,
-        'page': DiseaseCalculationPage(userRole: userRole),
-      },
-      {
-        'text': 'Daftar\nMakanan',
-        'icon': Icons.food_bank,
-        'page': const FoodListPage(),
-      },
-      {
-        'text': 'Leaflet\nEdukasi Gizi',
-        'icon': Icons.picture_as_pdf,
-        'page': const LeafletListPage(),
-      },
-      {
-        'text': 'Kalkulator\nGizi',
-        'icon': Icons.calculate,
-        'page': FormulaCalculationPage(userRole: userRole),
-      },
-      {
-        'text': 'Tentang\n Kami',
-        'icon': Icons.info,
-        'page': const AboutPage(),
-      },
-      {
-        'text': 'Referensi',
-        'icon': Icons.menu_book,
-        'page': const ReferencePage(),
-      },
-    ];
-
-    if (userRole == 'admin') {
-      menuItems.add({
-        'text': 'Manajemen\n Pengguna',
-        'icon': Icons.manage_accounts, // Icon yang sesuai
-        'page': const UserManagementPage(),
-      });
-    }
+    final menuItems = _getMenuItems(context);
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(150, 255, 255, 255),
       appBar: const CustomAppBar(title: 'Beranda', subtitle: ''),
       body: SafeArea(
         child: FadeInTransition(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0),
-              child: GridView.builder(
-                // Padding di sekitar grid
-                shrinkWrap: true,
-                padding: const EdgeInsets.all(24.0),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // Menampilkan 2 item per baris
-                  crossAxisSpacing: 20, // Jarak horizontal antar item
-                  mainAxisSpacing: 20, // Jarak vertikal antar item
-                  childAspectRatio: 1.0, // Membuat item berbentuk persegi
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // 2. Responsive Design: Kalkulasi dimensi berdasarkan ukuran layar saat ini
+              final screenWidth = constraints.maxWidth;
+              
+              // Tentukan padding horizontal dinamis (min 16, max 10% lebar layar)
+              final double horizontalPadding = (screenWidth * 0.08).clamp(16.0, 64.0);
+              
+              // Spacing antar grid item
+              final double gridSpacing = (screenWidth * 0.04).clamp(10.0, 30.0);
+
+              return Center(
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const ClampingScrollPhysics(), // Mencegah bounce berlebih pada konten sedikit
+                  padding: EdgeInsets.symmetric(
+                    horizontal: horizontalPadding, 
+                    vertical: 24.0
+                  ),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, // Tetap 2 kolom sesuai instruksi
+                    crossAxisSpacing: gridSpacing,
+                    mainAxisSpacing: gridSpacing,
+                    childAspectRatio: 1.0, // Tetap persegi
+                  ),
+                  itemCount: menuItems.length,
+                  itemBuilder: (context, index) {
+                    final item = menuItems[index];
+
+                    // 3. QA Automation Readiness: Semantics wrapper & ValueKey
+                    return Semantics(
+                      label: item.semanticsLabel,
+                      button: true, // Memberitahu accessibility tools/Katalon bahwa ini tombol
+                      enabled: true,
+                      identifier: 'btn_${item.id}', // Identifikasi tambahan untuk accessibility
+                      child: MenuButton(
+                        // Key unik untuk Object Spy (contoh: 'menu_btn_referensi')
+                        key: ValueKey('menu_btn_${item.id}'),
+                        text: item.label,
+                        icon: item.icon,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => item.destinationPage,
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
                 ),
-                itemCount: menuItems.length,
-                itemBuilder: (context, index) {
-                  final item = menuItems[index];
-                  return MenuButton(
-                    text: item['text'] as String,
-                    icon: item['icon'] as IconData,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => item['page'] as Widget,
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
+              );
+            },
           ),
         ),
       ),

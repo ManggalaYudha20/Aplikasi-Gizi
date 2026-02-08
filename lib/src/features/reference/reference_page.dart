@@ -10,10 +10,9 @@ class ReferencePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
         title: 'Referensi',
         subtitle: 'Sumber Data dan Rumus Perhitungan',
