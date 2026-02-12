@@ -167,6 +167,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                         requiredRole: 'admin',
                         builder: (context) {
                      return GestureDetector(
+                      key: const Key('btn_edit_food'),
                         onTap: () async {
                           // Jadikan async
                           final result = await Navigator.push(
@@ -534,7 +535,9 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     IconData icon,
     Color color,
   ) {
-    return Container(
+    return Semantics(
+      label: '$label: ${value.toStringAsFixed(1)} $unit',
+      child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
@@ -572,6 +575,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

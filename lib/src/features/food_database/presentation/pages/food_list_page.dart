@@ -69,6 +69,9 @@ class _FoodListPageState extends State<FoodListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isTablet = screenWidth > 600;
+    final double horizontalPadding = isTablet ? 24.0 : 16.0;
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: const CustomAppBar(
@@ -77,20 +80,26 @@ class _FoodListPageState extends State<FoodListPage> {
       ),
       body: SafeArea(
         child: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
+          onTap: () =>
+            FocusScope.of(context).unfocus(),
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 5),
+              padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 5),
               child: Row(
                 children: [
                   Expanded(
-                    child: _buildSearchBar(), // Search bar
+                    child: Semantics(
+                        label: 'Input pencarian makanan',
+                        child: _buildSearchBar(),
+                      ),
                   ),
                   const SizedBox(width: 8),
                   // Tombol Filter
+                  Semantics(
+                      label: 'Tombol filter makanan',
+                      button: true,
+                      child:
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -105,6 +114,7 @@ class _FoodListPageState extends State<FoodListPage> {
                       ],
                     ),
                     child: IconButton(
+                      key: const Key('btn_filter'),
                       icon: Icon(
                         Icons.filter_list,
                         color: !_activeFilters.isDefault
@@ -115,7 +125,8 @@ class _FoodListPageState extends State<FoodListPage> {
                         _showFilterModal(context);
                       },
                     ),
-                  )
+                  ),
+                  ),
                 ],
               ),
             ),
@@ -161,15 +172,21 @@ class _FoodListPageState extends State<FoodListPage> {
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(horizontalPadding),
                     itemCount: filteredDocs.length,
                     itemBuilder: (context, index) {
                       final doc = filteredDocs[index];
                       final foodItem = FoodItem.fromFirestore(
                         doc as DocumentSnapshot<Map<String, dynamic>>,
                       );
+                      final String itemKey = 'card_item_${foodItem.id.isNotEmpty ? foodItem.id : index}';
 
-                      return Card(
+                      return Semantics(
+                          label: 'Kartu makanan ${foodItem.name}',
+                          button: true,
+                          child:
+                          Card(
+                          key: Key(itemKey),
                         margin: const EdgeInsets.only(bottom: 12),
                         elevation: 2,
                         shape: RoundedRectangleBorder(
@@ -220,8 +237,8 @@ class _FoodListPageState extends State<FoodListPage> {
                                         children: [
                                           Text(
                                             foodItem.name,
-                                            style: const TextStyle(
-                                              fontSize: 16,
+                                            style: TextStyle(
+                                              fontSize: isTablet ? 18 : 16,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.black87,
                                             ),
@@ -305,6 +322,7 @@ class _FoodListPageState extends State<FoodListPage> {
                             ),
                           ),
                         ),
+                          ),
                       );
                     },
                   );
@@ -321,6 +339,7 @@ class _FoodListPageState extends State<FoodListPage> {
         builder: (context) {
           // Widget ini hanya akan dibuat jika role-nya adalah 'admin'
           return FloatingActionButton(
+            key: const Key('btn_add_food'),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -353,12 +372,14 @@ class _FoodListPageState extends State<FoodListPage> {
         ],
       ),
       child: TextField(
+        key: const Key('field_search'),
         controller: _searchController,
         decoration: InputDecoration(
           hintText: 'Cari makanan...',
           prefixIcon: const Icon(Icons.search, color: Colors.grey),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
+                key: const Key('btn_clear_search'),
                   icon: const Icon(Icons.clear, color: Colors.grey),
                   onPressed: () {
                     _searchController.clear();

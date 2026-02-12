@@ -291,8 +291,9 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-              _buildTextFormField(
+             _buildTextFormField(
                 controller: _namaController,
+                fieldKey: 'field_input_nama', // Key unik untuk Nama
                 label: 'Nama Makanan',
                 icon: Icons.restaurant,
                 focusNode: _focusNodes[0],
@@ -300,6 +301,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _kodeController,
+                fieldKey: 'field_input_kode', // Key unik untuk Kode
                 label: 'Kode Makanan',
                 icon: Icons.qr_code,
                 focusNode: _focusNodes[1],
@@ -307,6 +309,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildSearchableDropdown(
                 controller: _mentahOlahanController,
+                fieldKey: 'dropdown_mentah_olahan',
                 label: 'Tunggal (Mentah) / Olahan',
                 icon: Icons.category,
                 items: ['Tunggal', 'Olahan'],
@@ -314,14 +317,18 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildSearchableDropdown(
                 controller: _kelompokMakananController,
+                fieldKey: 'dropdown_kelompok',
                 label: 'Kelompok Makanan',
                 icon: Icons.group,
-                items: ['Serealia', 'Umbi', 'Kacang', 'Sayur', 'Buah', 'Daging', 'Ikan dsb', 'Telur', 'Susu', 'Lemak', 'Gula', 'Bumbu'],
+                items: [
+                  'Serealia', 'Umbi', 'Kacang', 'Sayur', 'Buah', 'Daging',
+                  'Ikan dsb', 'Telur', 'Susu', 'Lemak', 'Gula', 'Bumbu'
+                ],
                 focusNode: _focusNodes[3],
-                //showSearch: true,
               ),
               _buildTextFormField(
                 controller: _porsiGramController,
+                fieldKey: 'field_input_porsi',
                 label: 'Porsi (gram)',
                 icon: Icons.scale,
                 isNumber: true,
@@ -329,6 +336,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _airController,
+                fieldKey: 'field_input_air',
                 label: 'Air (g)',
                 icon: Icons.water_drop,
                 isNumber: true,
@@ -336,6 +344,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _kaloriController,
+                fieldKey: 'field_input_energi',
                 label: 'Energi (Kal)',
                 icon: Icons.local_fire_department,
                 isNumber: true,
@@ -343,6 +352,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _proteinController,
+                fieldKey: 'field_input_protein',
                 label: 'Protein (g)',
                 icon: Icons.egg,
                 isNumber: true,
@@ -350,6 +360,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _lemakController,
+                fieldKey: 'field_input_lemak',
                 label: 'Lemak (g)',
                 icon: Icons.water,
                 isNumber: true,
@@ -357,6 +368,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _karbohidratController,
+                fieldKey: 'field_input_karbohidrat',
                 label: 'Karbohidrat (g)',
                 icon: Icons.rice_bowl,
                 isNumber: true,
@@ -364,6 +376,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _seratController,
+                fieldKey: 'field_input_serat',
                 label: 'Serat (g)',
                 icon: Icons.grass,
                 isNumber: true,
@@ -371,6 +384,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _abuController,
+                fieldKey: 'field_input_abu',
                 label: 'Abu (g)',
                 icon: Icons.grain,
                 isNumber: true,
@@ -378,6 +392,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _kalsiumController,
+                fieldKey: 'field_input_kalsium',
                 label: 'Kalsium (Ca) (mg)',
                 icon: Icons.monitor_heart,
                 isNumber: true,
@@ -385,6 +400,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _fosforController,
+                fieldKey: 'field_input_fosfor',
                 label: 'Fosfor (P) (mg)',
                 icon: Icons.monitor_heart,
                 isNumber: true,
@@ -392,6 +408,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _besiController,
+                fieldKey: 'field_input_besi',
                 label: 'Besi (Fe) (mg)',
                 icon: Icons.monitor_heart,
                 isNumber: true,
@@ -399,6 +416,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _natriumController,
+                fieldKey: 'field_input_natrium',
                 label: 'Natrium (Na) (mg)',
                 icon: Icons.monitor_heart,
                 isNumber: true,
@@ -406,6 +424,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _kaliumController,
+                fieldKey: 'field_input_kalium',
                 label: 'Kalium (Ka) (mg)',
                 icon: Icons.monitor_heart,
                 isNumber: true,
@@ -413,6 +432,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _tembagaController,
+                fieldKey: 'field_input_tembaga',
                 label: 'Tembaga (Cu) (mg)',
                 icon: Icons.monitor_heart,
                 isNumber: true,
@@ -420,6 +440,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _sengController,
+                fieldKey: 'field_input_seng',
                 label: 'Seng (Zn) (mg)',
                 icon: Icons.monitor_heart,
                 isNumber: true,
@@ -427,6 +448,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _retinolController,
+                fieldKey: 'field_input_retinol',
                 label: 'Retinol (vit. A) (mcg)',
                 icon: Icons.visibility,
                 isNumber: true,
@@ -434,6 +456,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _betaKarotenController,
+                fieldKey: 'field_input_beta_karoten',
                 label: 'β-karoten (mcg)',
                 icon: Icons.visibility,
                 isNumber: true,
@@ -441,6 +464,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _karotenTotalController,
+                fieldKey: 'field_input_karoten_total',
                 label: 'Karoten total (mcg)',
                 icon: Icons.visibility,
                 isNumber: true,
@@ -448,6 +472,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _thiaminController,
+                fieldKey: 'field_input_thiamin',
                 label: 'Thiamin (vit. B1) (mg)',
                 icon: Icons.local_dining,
                 isNumber: true,
@@ -455,6 +480,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _riboflavinController,
+                fieldKey: 'field_input_riboflavin',
                 label: 'Riboflavin (vit. B2) (mg)',
                 icon: Icons.local_dining,
                 isNumber: true,
@@ -462,6 +488,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _niasinController,
+                fieldKey: 'field_input_niasin',
                 label: 'Niasin (mg)',
                 icon: Icons.local_dining,
                 isNumber: true,
@@ -469,6 +496,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _vitaminCController,
+                fieldKey: 'field_input_vitamin_c',
                 label: 'Vitamin C (mg)',
                 icon: Icons.medical_services,
                 isNumber: true,
@@ -476,11 +504,12 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
               ),
               _buildTextFormField(
                 controller: _bddController,
+                fieldKey: 'field_input_bdd',
                 label: 'BDD (%)',
                 icon: Icons.percent,
                 isNumber: true,
                 focusNode: _focusNodes[26],
-                  ),
+              ),
                 ],
               ),
             ),
@@ -494,6 +523,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
 Widget _buildSearchableDropdown({
   required TextEditingController controller,
   required String label,
+  required String fieldKey,
   required IconData icon,
   required List<String> items,
   required FocusNode focusNode,
@@ -502,6 +532,7 @@ Widget _buildSearchableDropdown({
   return Padding(
     padding: const EdgeInsets.only(bottom: 16.0),
     child: DropdownSearch<String>(
+      key: Key(fieldKey),
       // Properti untuk menampilkan menu popup
       popupProps: PopupProps.menu(
         showSearchBox: showSearch, // AKTIFKAN KOTAK PENCARIAN
@@ -552,6 +583,7 @@ Widget _buildSearchableDropdown({
 
 
   Widget _buildTextFormField({
+    required String fieldKey,
     required TextEditingController controller,
     required String label,
     required IconData icon,
@@ -562,6 +594,7 @@ Widget _buildSearchableDropdown({
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextFormField(
+        key: Key(fieldKey),
         controller: controller,
         focusNode: focusNode,
         decoration: InputDecoration(
