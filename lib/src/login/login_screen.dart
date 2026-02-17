@@ -4,7 +4,7 @@ import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/version_info_app.dart';
-import 'package:aplikasi_diagnosa_gizi/main.dart';
+import 'package:aplikasi_diagnosa_gizi/src/app/main_screen.dart';
 
 // Tips: Kumpulkan path asset di satu tempat agar jika file dipindah, cukup ubah di sini
 class _Assets {
