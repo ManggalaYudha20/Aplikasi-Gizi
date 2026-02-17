@@ -1,21 +1,113 @@
-//lib\src\features\nutrition_calculation\presentation\pages\nutrition_status_form_page.dart
+// lib/src/features/nutrition_calculation/presentation/pages/nutrition_status_form_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_status_models.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:flutter/services.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_calculation_helper.dart';
+
+// ============================================================================
+// Helper: Resolver warna kategori gizi
+// Dideklarasikan di atas agar tidak di-rebuild bersama widget tree.
+// ============================================================================
+abstract class _NutritionColorResolver {
+  static const Color _green = Color(0xFF009444);
+
+  // BB/U — string dari helper: 'Berat badan sangat kurang (severely underweight)'
+  //                             'Berat badan kurang (underweight)'
+  //                             'Berat badan normal'
+  //                             'Risiko Berat badan lebih'
+  static Color forWeightForAge(String category) {
+    // Periksa 'sangat kurang' SEBELUM 'kurang' agar tidak salah cocok substring.
+    if (category.contains('sangat kurang') ||
+        category.contains('severely underweight')) {
+      return Colors.red;
+    }
+    if (category.contains('kurang') || category.contains('underweight')) {
+      return Colors.orange;
+    }
+    if (category.contains('Normal')) {
+      return _green;
+    }
+    return Colors.orange; // 'Risiko Berat badan lebih' — peringatan, bukan merah
+  }
+
+  // TB/U — string dari helper: 'Sangat pendek (severely stunted)'
+  //                             'Pendek (stunted)'
+  //                             'Normal'
+  //                             'Tinggi'
+  static Color forHeightForAge(String category) {
+    // Periksa 'Sangat pendek' SEBELUM 'Pendek' agar tidak salah cocok substring.
+    if (category.contains('Sangat pendek') ||
+        category.contains('severely stunted')) {
+      return Colors.red;
+    }
+    if (category.contains('Pendek') || category.contains('stunted')) {
+      return Colors.orange;
+    }
+    if (category.contains('Normal')) {
+      return _green;
+    }
+    return Colors.blue; // 'Tinggi'
+  }
+
+  // BB/TB & IMT/U — string dari helper: 'Gizi buruk (severely wasted)'
+  //                                      'Gizi kurang (wasted)'
+  //                                      'Gizi baik (normal)'
+  //                                      'Berisiko gizi lebih'
+  //                                      'Gizi lebih (overweight)'
+  //                                      'Obesitas (obese)'
+  static Color forWeightForHeight(String category) {
+    if (category.contains('Gizi buruk') ||
+        category.contains('severely wasted')) {
+      return Colors.red;
+    }
+    // 'Gizi kurang' dicek SEBELUM 'wasted' agar tidak konflik dengan 'severely wasted'.
+    if (category.contains('Gizi kurang') ||
+        category.contains('wasted') ||
+        category.contains('Berisiko gizi lebih')) {
+      return Colors.orange;
+    }
+    if (category.contains('Gizi baik') || category.contains('normal')) {
+      return _green;
+    }
+    return Colors.red; // 'Gizi lebih' / 'Obesitas'
+  }
+
+  static Color forBMIForAge(String category) => forWeightForHeight(category);
+
+  /// Dispatch ke resolver yang tepat berdasarkan judul kartu.
+  static Color resolve(String cardTitle, String category) {
+    if (cardTitle.contains('BB/U')) {
+      return forWeightForAge(category);
+    }
+    if (cardTitle.contains('TB/U')) {
+      return forHeightForAge(category);
+    }
+    if (cardTitle.contains('BB/TB')) {
+      return forWeightForHeight(category);
+    }
+    if (cardTitle.contains('IMT/U')) {
+      return forBMIForAge(category);
+    }
+    return _green;
+  }
+}
+
+// ============================================================================
+// StatefulWidget
+// ============================================================================
 class NutritionStatusFormPage extends StatefulWidget {
-  final String userRole; 
+  final String userRole;
 
   const NutritionStatusFormPage({
     super.key,
-    required this.userRole, // Wajib
+    required this.userRole,
   });
 
   @override
@@ -24,34 +116,45 @@ class NutritionStatusFormPage extends StatefulWidget {
 }
 
 class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
+  // --------------------------------------------------------------------------
+  // Keys & Controllers
+  // --------------------------------------------------------------------------
   final _formKey = GlobalKey<FormState>();
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  final GlobalKey _resultCardKey = GlobalKey();
   final _birthDateController = TextEditingController();
   final _measurementDateController = TextEditingController();
   final _genderController = TextEditingController();
+  final _scrollController = ScrollController();
+
+  /// Dipakai untuk scroll ke seksi hasil setelah hitung.
+  final GlobalKey _resultSectionKey = GlobalKey();
+
+  /// Dipakai untuk reset PatientPickerWidget dari luar.
+  final GlobalKey<PatientPickerWidgetState> _patientPickerKey = GlobalKey();
+
+  // --------------------------------------------------------------------------
+  // State
+  // --------------------------------------------------------------------------
   DateTime? _birthDate;
   DateTime? _measurementDate;
   int? _ageInMonths;
-  final GlobalKey<PatientPickerWidgetState> _patientPickerKey = GlobalKey();
-
   Map<String, dynamic>? _calculationResults;
+
+  // --------------------------------------------------------------------------
+  // Lifecycle
+  // --------------------------------------------------------------------------
 
   @override
   void initState() {
     super.initState();
-    // Default tanggal pengukuran ke hari ini
     initializeDateFormatting('id_ID', null).then((_) {
-      if (mounted) {
-        setState(() {
-          _measurementDate = DateTime.now();
-          // Gunakan 'id_ID'
-          _measurementDateController.text = 
-              DateFormat('dd MMMM yyyy', 'id_ID').format(_measurementDate!);
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _measurementDate = DateTime.now();
+        _measurementDateController.text =
+            DateFormat('dd MMMM yyyy', 'id_ID').format(_measurementDate!);
+      });
     });
   }
 
@@ -59,18 +162,64 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   void dispose() {
     _weightController.dispose();
     _heightController.dispose();
-    _scrollController.dispose();
     _birthDateController.dispose();
     _measurementDateController.dispose();
     _genderController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  // --------------------------------------------------------------------------
+  // Logika bisnis
+  // --------------------------------------------------------------------------
+
+  void _calculateAgeInMonths() {
+    if (_birthDate == null || _measurementDate == null) return;
+    final days = _measurementDate!.difference(_birthDate!).inDays;
+    _ageInMonths = (days / 30.44).round();
+
+    if (_ageInMonths! < 0 || _ageInMonths! > 60) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Usia anak harus antara 0-60 bulan'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _calculateNutritionStatus() {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_ageInMonths == null || _ageInMonths! < 0 || _ageInMonths! > 60) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pastikan usia anak antara 0-60 bulan'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // [CLEAN] Delegasi penuh ke NutritionCalculationHelper — tidak ada duplikasi
+    final results = NutritionCalculationHelper.calculateAll(
+      birthDate: _birthDate!,
+      checkDate: _measurementDate!,
+      weight: double.parse(_weightController.text),
+      height: double.parse(_heightController.text),
+      gender: _genderController.text,
+    );
+
+    setState(() => _calculationResults = results);
+    _scrollToResult();
   }
 
   void _scrollToResult() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_resultCardKey.currentContext != null) {
+      final ctx = _resultSectionKey.currentContext;
+      if (ctx != null) {
         Scrollable.ensureVisible(
-          _resultCardKey.currentContext!,
+          ctx,
           duration: const Duration(milliseconds: 600),
           curve: Curves.easeInOut,
         );
@@ -78,367 +227,14 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     });
   }
 
-  Future<void> _selectDate(BuildContext context, bool isBirthDate) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      locale: const Locale('id', 'ID'),
-      initialDate: isBirthDate 
-          ? (_birthDate ?? DateTime.now()) 
-          : (_measurementDate ?? DateTime.now()),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-    );
-
-    if (picked != null) {
-      setState(() {
-        String formattedDate = DateFormat('dd MMMM yyyy', 'id_ID').format(picked);
-        if (isBirthDate) {
-          _birthDate = picked;
-          _birthDateController.text = formattedDate;
-        } else {
-          _measurementDate = picked;
-          _measurementDateController.text = formattedDate;
-        }
-        if (_birthDate != null && _measurementDate != null) {
-          _calculateAgeInMonths();
-        }
-      });
-    }
-  }
-
-  void _calculateAgeInMonths() {
-    if (_birthDate != null && _measurementDate != null) {
-      final difference = _measurementDate!.difference(_birthDate!);
-      final days = difference.inDays;
-      _ageInMonths = (days / 30.44).round(); // Average days per month
-
-      // Validate age range (0-60 months)
-      if (_ageInMonths! < 0 || _ageInMonths! > 60) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Usia anak harus antara 0-60 bulan'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _calculateNutritionStatus() {
-    if (_formKey.currentState!.validate()) {
-      if (_ageInMonths == null || _ageInMonths! < 0 || _ageInMonths! > 60) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pastikan usia anak antara 0-60 bulan'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      final weight = double.parse(_weightController.text);
-      final height = double.parse(_heightController.text);
-
-      // Calculate nutrition status based on WHO standards
-      final results = _calculateWHOStandards(
-        ageInMonths: _ageInMonths!,
-        weight: weight,
-        height: height,
-        gender: _genderController.text,
-      );
-
-      setState(() {
-        _calculationResults = results;
-      });
-      _scrollToResult();
-    }
-  }
-
-  Map<String, dynamic> _calculateWHOStandards({
-    required int ageInMonths,
-    required double weight,
-    required double height,
-    required String gender,
-  }) {
-    // Calculate all nutrition indicators using WHO reference data
-
-    // BB/U (Weight for Age)
-    final bbPerU = _calculateWeightForAge(ageInMonths, weight, gender);
-
-    // PB/U or TB/U (Length/Height for Age)
-    final tbPerU = _calculateHeightForAge(ageInMonths, height, gender);
-
-    // BB/PB or BB/TB (Weight for Length/Height)
-    final bbPerTB = _calculateWeightForHeight(height, weight, gender);
-
-    // IMT/U (BMI for Age)
-    final bmi = weight / ((height / 100) * (height / 100));
-    final imtPerU = _calculateBMIForAge(ageInMonths, bmi, gender);
-
-    return {
-      'bbPerU': bbPerU,
-      'tbPerU': tbPerU,
-      'bbPerTB': bbPerTB,
-      'imtPerU': imtPerU,
-      'bmi': bmi,
-      'ageInMonths': ageInMonths,
-    };
-  }
-
-  Map<String, dynamic> _calculateWeightForAge(
-    int age,
-    double weight,
-    String gender,
-  ) {
-    try {
-      final referenceData = gender == 'Laki-laki'
-          ? NutritionStatusData.bbUBoys
-          : NutritionStatusData.bbUGirls;
-
-      if (!referenceData.containsKey(age)) {
-        return {
-          'zScore': null,
-          'category': 'Data referensi tidak tersedia untuk usia ini',
-          'value': weight,
-        };
-      }
-
-      final percentiles = referenceData[age]!;
-      final median = percentiles[3];
-      final sd = percentiles[4] - median;
-      final zScore = (weight - median) / sd;
-
-      return {
-        'zScore': zScore,
-        'category': _getWeightForAgeCategory(zScore),
-        'value': weight,
-      };
-    } catch (e) {
-      return {
-        'zScore': null,
-        'category': 'Error dalam perhitungan',
-        'value': weight,
-      };
-    }
-  }
-
-  Map<String, dynamic> _calculateHeightForAge(
-    int age,
-    double height,
-    String gender,
-  ) {
-    try {
-      final referenceData = gender == 'Laki-laki'
-          ? NutritionStatusData.pbTbUBoys
-          : NutritionStatusData.pbTbUGirls;
-
-      if (!referenceData.containsKey(age)) {
-        return {
-          'zScore': null,
-          'category': 'Data referensi tidak tersedia untuk usia ini',
-          'value': height,
-        };
-      }
-
-      final percentiles = referenceData[age]!;
-      final median = percentiles[3];
-      final sd = percentiles[4] - median;
-      final zScore = (height - median) / sd;
-
-      return {
-        'zScore': zScore,
-        'category': _getHeightForAgeCategory(zScore),
-        'value': height,
-      };
-    } catch (e) {
-      return {
-        'zScore': null,
-        'category': 'Error dalam perhitungan',
-        'value': height,
-      };
-    }
-  }
-
-  Map<String, dynamic> _calculateWeightForHeight(
-    double height,
-    double weight,
-    String gender,
-  ) {
-    try {
-      final referenceData = gender == 'Laki-laki'
-          ? NutritionStatusData.bbPbTbUBoys
-          : NutritionStatusData.bbPbTbUGirls;
-
-      // Find the closest height in the reference data
-      double closestHeight = referenceData.keys.first;
-      double minDifference = (height - closestHeight).abs();
-
-      for (final h in referenceData.keys) {
-        final difference = (height - h).abs();
-        if (difference < minDifference) {
-          minDifference = difference;
-          closestHeight = h;
-        }
-      }
-
-      // Allow interpolation for heights within 1cm of reference
-      if (minDifference > 1.0) {
-        return {
-          'zScore': null,
-          'category': 'Data referensi tidak tersedia untuk tinggi ini',
-          'value': weight,
-        };
-      }
-
-      final percentiles = referenceData[closestHeight]!;
-      final median = percentiles[3];
-      final sd = percentiles[4] - median;
-      final zScore = (weight - median) / sd;
-
-      return {
-        'zScore': zScore,
-        'category': _getWeightForHeightCategory(zScore),
-        'value': weight,
-      };
-    } catch (e) {
-      return {
-        'zScore': null,
-        'category': 'Error dalam perhitungan',
-        'value': weight,
-      };
-    }
-  }
-
-  Map<String, dynamic> _calculateBMIForAge(int age, double bmi, String gender) {
-    try {
-      final referenceData = gender == 'Laki-laki'
-          ? NutritionStatusData.imtUBoys
-          : NutritionStatusData.imtUGirls;
-
-      if (!referenceData.containsKey(age)) {
-        return {
-          'zScore': null,
-          'category': 'Data referensi tidak tersedia untuk usia ini',
-          'value': bmi,
-        };
-      }
-
-      final percentiles = referenceData[age]!;
-      final median = percentiles[3];
-      final sd = percentiles[4] - median;
-      final zScore = (bmi - median) / sd;
-
-      return {
-        'zScore': zScore,
-        'category': _getBMIForAgeCategory(zScore),
-        'value': bmi,
-      };
-    } catch (e) {
-      return {
-        'zScore': null,
-        'category': 'Error dalam perhitungan',
-        'value': bmi,
-      };
-    }
-  }
-
-  String _getWeightForAgeCategory(double zScore) {
-    if (zScore < -3) return 'Berat badan sangat kurang (severely underweight)';
-    if (zScore < -2) return 'Berat badan kurang (underweight)';
-    if (zScore <= 1) return 'Berat badan normal';
-    return 'Risiko Berat badan lebih';
-  }
-
-  Color _getWeightForAgeColor(String category) {
-    if (category.contains('sangat kurang') ||
-        category.contains('severely underweight')) {
-      return Colors.red;
-    } else if (category.contains('kurang') ||
-        category.contains('underweight')) {
-      return Colors.orange;
-    } else if (category.contains('normal')) {
-      return Color.fromARGB(255, 0, 148, 68);
-    } else {
-      return Colors.red;
-    }
-  }
-
-  String _getHeightForAgeCategory(double zScore) {
-    if (zScore < -3) return 'Sangat pendek (severely stunted)';
-    if (zScore < -2) return 'Pendek (stunted)';
-    if (zScore <= 3) return 'Normal';
-    return 'Tinggi';
-  }
-
-  Color _getHeightForAgeColor(String category) {
-    if (category.contains('Sangat pendek') ||
-        category.contains('severely stunted')) {
-      return Colors.red;
-    } else if (category.contains('Pendek') || category.contains('stunted')) {
-      return Colors.orange;
-    } else if (category.contains('Normal')) {
-      return Color.fromARGB(255, 0, 148, 68);
-    } else {
-      return Colors.red;
-    }
-  }
-
-  String _getBMIForAgeCategory(double zScore) {
-    if (zScore < -3) return 'Gizi buruk (severely wasted)';
-    if (zScore < -2) return 'Gizi kurang (wasted)';
-    if (zScore <= 1) return 'Gizi baik (normal)';
-    if (zScore <= 2) return 'Berisiko gizi lebih';
-    if (zScore <= 3) return 'Gizi lebih (overweight)';
-    return 'Obesitas (obese)';
-  }
-
-  Color _getBMIForAgeColor(String category) {
-    if (category.contains('Gizi buruk') ||
-        category.contains('severely wasted')) {
-      return Colors.red;
-    } else if (category.contains('Gizi kurang') ||
-        category.contains('wasted') ||
-        category.contains('Berisiko gizi lebih')) {
-      return Colors.orange;
-    } else if (category.contains('Gizi baik') || category.contains('normal')) {
-      return Color.fromARGB(255, 0, 148, 68);
-    } else {
-      return Colors.red;
-    }
-  }
-
-  String _getWeightForHeightCategory(double zScore) {
-    if (zScore < -3) return 'Gizi buruk (severely wasted)';
-    if (zScore < -2) return 'Gizi kurang (wasted)';
-    if (zScore <= 1) return 'Gizi baik (normal)';
-    if (zScore <= 2) return 'Berisiko gizi lebih';
-    if (zScore <= 3) return 'Gizi lebih (overweight)';
-    return 'Obesitas (obese)';
-  }
-
-  Color _getWeightForHeightColor(String category) {
-    if (category.contains('Gizi buruk') ||
-        category.contains('severely wasted')) {
-      return Colors.red;
-    } else if (category.contains('Gizi kurang') ||
-        category.contains('wasted') ||
-        category.contains('Berisiko gizi lebih')) {
-      return Colors.orange;
-    } else if (category.contains('Gizi baik') || category.contains('normal')) {
-      return Color.fromARGB(255, 0, 148, 68);
-    } else {
-      return Colors.red;
-    }
-  }
-
   void _resetForm() {
     setState(() {
       _formKey.currentState?.reset();
       _birthDate = null;
       _measurementDate = DateTime.now();
-      // Format ulang tanggal pengukuran saat reset
-      _measurementDateController.text = DateFormat('dd MMMM yyyy', 'id_ID').format(_measurementDate!);
       _birthDateController.clear();
+      _measurementDateController.text =
+          DateFormat('dd MMMM yyyy', 'id_ID').format(_measurementDate!);
       _weightController.clear();
       _heightController.clear();
       _genderController.clear();
@@ -448,264 +244,404 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     });
   }
 
-  void _fillDataFromPatient(double weight, double height, String gender, DateTime dob) {
+  Future<void> _selectDate(BuildContext context, bool isBirthDate) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      locale: const Locale('id', 'ID'),
+      initialDate: isBirthDate
+          ? (_birthDate ?? DateTime.now())
+          : (_measurementDate ?? DateTime.now()),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked == null) return;
+
+    setState(() {
+      final formatted = DateFormat('dd MMMM yyyy', 'id_ID').format(picked);
+      if (isBirthDate) {
+        _birthDate = picked;
+        _birthDateController.text = formatted;
+      } else {
+        _measurementDate = picked;
+        _measurementDateController.text = formatted;
+      }
+      if (_birthDate != null && _measurementDate != null) {
+        _calculateAgeInMonths();
+      }
+    });
+  }
+
+  void _fillDataFromPatient(
+    double weight,
+    double height,
+    String gender,
+    DateTime dob,
+  ) {
     setState(() {
       _weightController.text = weight.toString();
       _heightController.text = height.toString();
-      
-      // 1. Set Tanggal Lahir
-      _birthDate = dob;
-      _birthDateController.text = DateFormat('dd MMMM yyyy','id_ID').format(dob);
-      
-      // 2. Set Tanggal Ukur (Default Hari Ini)
-      _measurementDate = DateTime.now();
-      _measurementDateController.text = DateFormat('dd MMMM yyyy','id_ID').format(_measurementDate!);
 
-      // 3. Hitung Usia Otomatis
+      _birthDate = dob;
+      _birthDateController.text =
+          DateFormat('dd MMMM yyyy', 'id_ID').format(dob);
+
+      _measurementDate = DateTime.now();
+      _measurementDateController.text =
+          DateFormat('dd MMMM yyyy', 'id_ID').format(_measurementDate!);
+
       _calculateAgeInMonths();
 
-      // 4. Normalisasi Gender
-      String incomingGender = gender.toLowerCase();
-      String normalizedGender = '';
-
-      if (incomingGender.contains('laki') || incomingGender.contains('pria') || incomingGender == 'l') {
-        normalizedGender = 'Laki-laki';
-      } else if (incomingGender.contains('perempuan') || incomingGender.contains('wanita') || incomingGender == 'p') {
-        normalizedGender = 'Perempuan';
+      final incomingGender = gender.toLowerCase();
+      if (incomingGender.contains('laki') ||
+          incomingGender.contains('pria') ||
+          incomingGender == 'l') {
+        _genderController.text = 'Laki-laki';
+      } else if (incomingGender.contains('perempuan') ||
+          incomingGender.contains('wanita') ||
+          incomingGender == 'p') {
+        _genderController.text = 'Perempuan';
       } else {
-        normalizedGender = gender;
+        _genderController.text = gender;
       }
-      _genderController.text = normalizedGender;
-      
-      // Reset hasil perhitungan sebelumnya
+
       _calculationResults = null;
     });
   }
 
+  // --------------------------------------------------------------------------
+  // Build utama
+  // [RESPONSIVE] Semua nilai jarak & font dihitung dari MediaQuery
+  // --------------------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
+    // scaleFactor: 1.0 pada HP 360dp lebar, maksimal 2.0 untuk tablet lebar ~720dp+
+    final double sw = MediaQuery.of(context).size.width;
+    final double scaleFactor = (sw / 360.0).clamp(1.0, 2.0);
+
+    final double hPad = 16.0 * scaleFactor;
+    final double vPad = 16.0 * scaleFactor;
+    final double sectionSpacing = 20.0 * scaleFactor;
+    final double itemSpacing = 16.0 * scaleFactor;
+    final double titleFontSize = 20.0 * scaleFactor;
+
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.white,
       appBar: const CustomAppBar(
         title: 'Status Gizi Anak',
         subtitle: 'Usia 0-60 Bulan',
       ),
       body: SafeArea(
         child: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                PatientPickerWidget(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            padding: EdgeInsets.symmetric(
+              horizontal: hPad,
+              vertical: vPad,
+            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ── Patient Picker ──────────────────────────────────────
+                  // [QA] ValueKey untuk Katalon Object Spy
+                  PatientPickerWidget(
                     key: _patientPickerKey,
                     onPatientSelected: _fillDataFromPatient,
                     userRole: widget.userRole,
                   ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Input Data Status Gizi',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
 
-                // Tanggal Lahir
-                _buildDatePickerField(
-                  controller: _birthDateController,
-                  label: 'Tanggal Lahir',
-                  onTap: () => _selectDate(context, true),
-                ),
-                const SizedBox(height: 16),
+                  SizedBox(height: sectionSpacing),
 
-                // Tanggal Pengukuran
-                _buildDatePickerField(
-                  controller: _measurementDateController,
-                  label: 'Tanggal Pengukuran',
-                  onTap: () => _selectDate(context, false),
-                ),
-                const SizedBox(height: 16),
-
-                // Usia dalam bulan
-                if (_ageInMonths != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue),
+                  Text(
+                    'Input Data Status Gizi',
+                    style: TextStyle(
+                      fontSize: titleFontSize,
+                      fontWeight: FontWeight.bold,
                     ),
-                    child: Text(
-                      'Usia: $_ageInMonths bulan',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                  ),
+
+                  SizedBox(height: sectionSpacing),
+
+                  // ── Tanggal Lahir ───────────────────────────────────────
+                  Semantics(
+                    label: 'Field Tanggal Lahir Pasien',
+                    child: _buildDatePickerField(
+                      key: const ValueKey('birthDateField'), // [QA]
+                      controller: _birthDateController,
+                      label: 'Tanggal Lahir',
+                      onTap: () => _selectDate(context, true),
+                    ),
+                  ),
+
+                  SizedBox(height: itemSpacing),
+
+                  // ── Tanggal Pengukuran ──────────────────────────────────
+                  Semantics(
+                    label: 'Field Tanggal Pengukuran',
+                    child: _buildDatePickerField(
+                      key: const ValueKey('checkDateField'), // [QA]
+                      controller: _measurementDateController,
+                      label: 'Tanggal Pengukuran',
+                      onTap: () => _selectDate(context, false),
+                    ),
+                  ),
+
+                  // ── Usia (tampil setelah kedua tanggal terisi) ──────────
+                  if (_ageInMonths != null) ...[
+                    SizedBox(height: itemSpacing),
+                    Semantics(
+                      label: 'Usia Pasien dalam Bulan',
+                      value: '$_ageInMonths bulan',
+                      child: Container(
+                        key: const ValueKey('ageDisplay'), // [QA]
+                        padding: EdgeInsets.all(12.0 * scaleFactor),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue),
+                        ),
+                        child: Text(
+                          'Usia: $_ageInMonths bulan',
+                          style: TextStyle(
+                            fontSize: 16.0 * scaleFactor,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                  ],
 
-                // Jenis Kelamin
-                _buildCustomDropdown(
-                  controller: _genderController,
-                  label: 'Jenis Kelamin',
-                  prefixIcon: const Icon(Icons.wc),
-                  items: ['Laki-laki', 'Perempuan'],
-                ),
-                const SizedBox(height: 16),
+                  SizedBox(height: itemSpacing),
 
-                // Berat Badan
-                _buildTextFormField(
-                  controller: _weightController,
-                  label: 'Berat Badan',
-                  prefixIcon: const Icon(Icons.monitor_weight),
-                  suffixText: 'kg',
-                ),
-                const SizedBox(height: 16),
-
-                // Tinggi Badan
-                _buildTextFormField(
-                  controller: _heightController,
-                  label: 'Tinggi Badan',
-                  prefixIcon: const Icon(Icons.height),
-                  suffixText: 'cm',
-                ),
-                const SizedBox(height: 32),
-
-                // Buttons
-                FormActionButtons(
-                  onReset: _resetForm,
-                  onSubmit: _calculateNutritionStatus,
-                  resetButtonColor: Colors.white, // Background jadi putih
-                  resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
-                  submitIcon: const Icon(Icons.calculate, color: Colors.white),
-                ),
-
-                const SizedBox(height: 32),
-
-                // Results
-                if (_calculationResults != null) ...[
-                  Container(
-                    key: _resultCardKey,
-                    child: const Column(
-                      children: [Divider(), SizedBox(height: 32)],
+                  // ── Jenis Kelamin ───────────────────────────────────────
+                  Semantics(
+                    label: 'Dropdown Jenis Kelamin',
+                    child: _buildCustomDropdown(
+                      key: const ValueKey('genderDropdown'), // [QA]
+                      controller: _genderController,
+                      label: 'Jenis Kelamin',
+                      prefixIcon: const Icon(Icons.wc),
+                      items: const ['Laki-laki', 'Perempuan'],
                     ),
                   ),
 
-                  const Text(
-                    'Hasil Status Gizi',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: itemSpacing),
 
-                  // BB/U
-                  _buildResultCard(
-                    title: 'Berat Badan menurut Umur (BB/U)',
-                    data: _calculationResults!['bbPerU'],
+                  // ── Berat Badan ─────────────────────────────────────────
+                  Semantics(
+                    label: 'Field Berat Badan dalam Kilogram',
+                    child: _buildTextFormField(
+                      key: const ValueKey('weightField'), // [QA]
+                      controller: _weightController,
+                      label: 'Berat Badan',
+                      prefixIcon: const Icon(Icons.monitor_weight),
+                      suffixText: 'kg',
+                    ),
                   ),
-                  const SizedBox(height: 12),
 
-                  // TB/U
-                  _buildResultCard(
-                    title: 'Tinggi Badan menurut Umur (TB/U)',
-                    data: _calculationResults!['tbPerU'],
-                  ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: itemSpacing),
 
-                  // BB/TB
-                  _buildResultCard(
-                    title: 'Berat Badan menurut Tinggi Badan (BB/TB)',
-                    data: _calculationResults!['bbPerTB'],
+                  // ── Tinggi Badan ────────────────────────────────────────
+                  Semantics(
+                    label: 'Field Tinggi Badan dalam Sentimeter',
+                    child: _buildTextFormField(
+                      key: const ValueKey('heightField'), // [QA]
+                      controller: _heightController,
+                      label: 'Tinggi Badan',
+                      prefixIcon: const Icon(Icons.height),
+                      suffixText: 'cm',
+                    ),
                   ),
-                  const SizedBox(height: 12),
 
-                  // IMT/U
-                  _buildResultCard(
-                    title: 'Indeks Massa Tubuh menurut Umur (IMT/U)',
-                    data: _calculationResults!['imtPerU'],
-                    additionalInfo:
-                        'IMT: ${_calculationResults!['bmi']?.toStringAsFixed(2)} kg/m²',
+                  SizedBox(height: 32.0 * scaleFactor),
+
+                  // ── Tombol Aksi ─────────────────────────────────────────
+                  // [QA] key diletakkan pada wrapper agar Katalon dapat
+                  //      mendeteksi area tombol "Hitung" & "Reset" sekaligus.
+                  Semantics(
+                    label: 'Tombol Hitung dan Reset Status Gizi',
+                    child: FormActionButtons(
+                      key: const ValueKey('btnHitung'), // [QA]
+                      onReset: _resetForm,
+                      onSubmit: _calculateNutritionStatus,
+                      resetButtonColor: Colors.white,
+                      resetForegroundColor: const Color(0xFF009444),
+                      submitIcon:
+                          const Icon(Icons.calculate, color: Colors.white),
+                    ),
                   ),
+
+                  SizedBox(height: 32.0 * scaleFactor),
+
+                  // ── Seksi Hasil (diekstrak ke _buildResultList) ─────────
+                  if (_calculationResults != null)
+                    _buildResultList(
+                      scaleFactor: scaleFactor,
+                      itemSpacing: itemSpacing,
+                      titleFontSize: titleFontSize,
+                    ),
                 ],
-              ],
+              ),
             ),
           ),
         ),
       ),
-      ),
     );
   }
 
+  // --------------------------------------------------------------------------
+  // [CLEAN] Daftar hasil diagnosa — diekstrak dari build() agar tetap ramping
+  // --------------------------------------------------------------------------
+  Widget _buildResultList({
+    required double scaleFactor,
+    required double itemSpacing,
+    required double titleFontSize,
+  }) {
+    return Column(
+      key: _resultSectionKey, // Anchor untuk ensureVisible
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Divider(),
+        SizedBox(height: 32.0 * scaleFactor),
+
+        Text(
+          'Hasil Status Gizi',
+          style: TextStyle(
+            fontSize: titleFontSize,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+
+        SizedBox(height: 16.0 * scaleFactor),
+
+        // BB/U
+        _buildResultCard(
+          valueKey: const ValueKey('resultCard_bbPerU'), // [QA]
+          semanticsLabel: 'Hasil Z-Score BB per Umur',
+          title: 'Berat Badan menurut Umur (BB/U)',
+          data: _calculationResults!['bbPerU'] as Map<String, dynamic>,
+          scaleFactor: scaleFactor,
+        ),
+
+        SizedBox(height: 12.0 * scaleFactor),
+
+        // TB/U
+        _buildResultCard(
+          valueKey: const ValueKey('resultCard_tbPerU'), // [QA]
+          semanticsLabel: 'Hasil Z-Score TB per Umur',
+          title: 'Tinggi Badan menurut Umur (TB/U)',
+          data: _calculationResults!['tbPerU'] as Map<String, dynamic>,
+          scaleFactor: scaleFactor,
+        ),
+
+        SizedBox(height: 12.0 * scaleFactor),
+
+        // BB/TB
+        _buildResultCard(
+          valueKey: const ValueKey('resultCard_bbPerTb'), // [QA]
+          semanticsLabel: 'Hasil Z-Score BB per Tinggi Badan',
+          title: 'Berat Badan menurut Tinggi Badan (BB/TB)',
+          data: _calculationResults!['bbPerTB'] as Map<String, dynamic>,
+          scaleFactor: scaleFactor,
+        ),
+
+        SizedBox(height: 12.0 * scaleFactor),
+
+        // IMT/U
+        _buildResultCard(
+          valueKey: const ValueKey('resultCard_imtPerU'), // [QA]
+          semanticsLabel: 'Hasil Z-Score IMT per Umur',
+          title: 'Indeks Massa Tubuh menurut Umur (IMT/U)',
+          data: _calculationResults!['imtPerU'] as Map<String, dynamic>,
+          scaleFactor: scaleFactor,
+          additionalInfo:
+              'IMT: ${(_calculationResults!['bmi'] as double?)?.toStringAsFixed(2) ?? '-'} kg/m²',
+        ),
+      ],
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // Helper Widget: Result Card
+  // --------------------------------------------------------------------------
   Widget _buildResultCard({
+    required ValueKey<String> valueKey,
+    required String semanticsLabel,
     required String title,
     required Map<String, dynamic> data,
+    required double scaleFactor,
     String? additionalInfo,
   }) {
-    // Determine which color function to use based on the title
-    Color resultColor = Color.fromARGB(255, 0, 148, 68); // Default color
-    if (title.contains('BB/U')) {
-      resultColor = _getWeightForAgeColor(data['category'] ?? '');
-    } else if (title.contains('TB/U')) {
-      resultColor = _getHeightForAgeColor(data['category'] ?? '');
-    } else if (title.contains('IMT/U')) {
-      resultColor = _getBMIForAgeColor(data['category'] ?? '');
-    } else if (title.contains('BB/TB')) {
-      resultColor = _getWeightForHeightColor(data['category'] ?? '');
-    }
+    final String category = (data['category'] as String?) ?? '-';
+    final double? zScore = data['zScore'] as double?;
+    final Color resultColor = _NutritionColorResolver.resolve(title, category);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: resultColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: resultColor, width: 2.0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Z-Score: ${data['zScore']?.toStringAsFixed(2) ?? '-'}',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Kategori: ${data['category'] ?? '-'}',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: resultColor,
-            ),
-          ),
-          if (additionalInfo != null) ...[
-            const SizedBox(height: 4),
+    return Semantics(
+      label: semanticsLabel,
+      value: 'Z-Score: ${zScore?.toStringAsFixed(2) ?? '-'}, Kategori: $category',
+      child: Container(
+        key: valueKey,
+        padding: EdgeInsets.all(16.0 * scaleFactor),
+        decoration: BoxDecoration(
+          color: resultColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: resultColor, width: 2.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Text(
-              additionalInfo,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+              title,
+              style: TextStyle(
+                fontSize: 14.0 * scaleFactor,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
+            SizedBox(height: 8.0 * scaleFactor),
+            Text(
+              'Z-Score: ${zScore?.toStringAsFixed(2) ?? '-'}',
+              style: TextStyle(
+                fontSize: 14.0 * scaleFactor,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            SizedBox(height: 4.0 * scaleFactor),
+            Text(
+              'Kategori: $category',
+              style: TextStyle(
+                fontSize: 14.0 * scaleFactor,
+                fontWeight: FontWeight.bold,
+                color: resultColor,
+              ),
+            ),
+            if (additionalInfo != null) ...[
+              SizedBox(height: 4.0 * scaleFactor),
+              Text(
+                additionalInfo,
+                style: TextStyle(
+                  fontSize: 14.0 * scaleFactor,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
 
-  // 1. Widget untuk Input Teks (BB & TB)
+  // --------------------------------------------------------------------------
+  // Helper Widget: Text Form Field (BB & TB)
+  // [PERF] const pada border & inputFormatters yang tidak berubah
+  // --------------------------------------------------------------------------
   Widget _buildTextFormField({
+    required ValueKey<String> key,
     required TextEditingController controller,
     required String label,
     required Icon prefixIcon,
@@ -713,12 +649,11 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     int maxLength = 5,
   }) {
     return TextFormField(
+      key: key,
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
-        // Batasi panjang karakter agar tidak overflow/error database
         LengthLimitingTextInputFormatter(maxLength),
-        // Opsional: Filter agar hanya angka dan titik (untuk desimal) yang bisa diketik
         FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
       ],
       decoration: InputDecoration(
@@ -728,29 +663,30 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
         suffixText: suffixText,
       ),
       validator: (value) {
-        if (value == null || value.isEmpty) {
-          return '$label tidak boleh kosong';
-        }
-        if (double.tryParse(value) == null) {
-          return 'Masukkan angka yang valid';
-        }
+        if (value == null || value.isEmpty) return '$label tidak boleh kosong';
+        if (double.tryParse(value) == null) return 'Masukkan angka yang valid';
         return null;
       },
     );
   }
 
-  // 2. Widget untuk Dropdown (Jenis Kelamin)
+  // --------------------------------------------------------------------------
+  // Helper Widget: Custom Dropdown (Jenis Kelamin)
+  // [PERF] PopupProps diubah ke const
+  // --------------------------------------------------------------------------
   Widget _buildCustomDropdown({
+    required ValueKey<String> key,
     required TextEditingController controller,
     required String label,
     required List<String> items,
     required Icon prefixIcon,
   }) {
     return DropdownSearch<String>(
-      popupProps: PopupProps.menu(
-        showSearchBox: false, // Tidak ada pencarian untuk form ini
+      key: key,
+      popupProps: const PopupProps.menu(
+        showSearchBox: false,
         fit: FlexFit.loose,
-        constraints: const BoxConstraints(maxHeight: 240),
+        constraints: BoxConstraints(maxHeight: 240),
       ),
       items: items,
       dropdownDecoratorProps: DropDownDecoratorProps(
@@ -760,24 +696,26 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
           prefixIcon: prefixIcon,
         ),
       ),
-      onChanged: (String? newValue) {
-        setState(() {
-          controller.text = newValue ?? '';
-        });
-      },
+      onChanged: (String? newValue) =>
+          setState(() => controller.text = newValue ?? ''),
       selectedItem: controller.text.isEmpty ? null : controller.text,
       validator: (value) =>
           (value == null || value.isEmpty) ? '$label harus dipilih' : null,
     );
   }
 
-  // 3. Widget untuk Pemilih Tanggal
+  // --------------------------------------------------------------------------
+  // Helper Widget: Date Picker Field
+  // [PERF] const pada OutlineInputBorder dan Icon
+  // --------------------------------------------------------------------------
   Widget _buildDatePickerField({
+    required ValueKey<String> key,
     required TextEditingController controller,
     required String label,
     required VoidCallback onTap,
   }) {
     return TextFormField(
+      key: key,
       controller: controller,
       readOnly: true,
       decoration: InputDecoration(
@@ -787,9 +725,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
       ),
       onTap: onTap,
       validator: (value) {
-        if (value == null || value.isEmpty) {
-          return '$label tidak boleh kosong';
-        }
+        if (value == null || value.isEmpty) return '$label tidak boleh kosong';
         return null;
       },
     );

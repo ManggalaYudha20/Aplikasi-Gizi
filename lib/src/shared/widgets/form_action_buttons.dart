@@ -40,6 +40,7 @@ class FormActionButtons extends StatelessWidget {
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton(
+          key: const ValueKey('btnHitung'),
           onPressed: isLoading ? null : onSubmit,
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -120,6 +121,7 @@ class FormActionButtons extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: ElevatedButton(
+              key: const ValueKey('btnHitung'),
               onPressed: isLoading ? null : onSubmit,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
