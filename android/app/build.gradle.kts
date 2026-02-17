@@ -22,11 +22,12 @@ android {
     }
     
     tasks.withType<JavaCompile> {
-        options.compilerArgs.add("-Xlint:-options")
+        options.compilerArgs.add("-Xlint:deprecation")
     }
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17.toString()
+        freeCompilerArgs += listOf("-Xlint:deprecation")
     }
 
     defaultConfig {
