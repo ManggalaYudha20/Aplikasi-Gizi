@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_anak_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/admin/widgets/fading_snackbar_content.dart';
 
 class PatientPickerWidget extends StatefulWidget {
   final Function(double weight, double height, String gender, DateTime birthDate) onPatientSelected;
@@ -41,6 +42,35 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
       _searchController.clear();
       _searchQuery = '';
     });
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    
+    // Hapus antrian snackbar sebelumnya agar tidak menumpuk
+    messenger.clearSnackBars(); 
+
+    // Konfigurasi Durasi
+    const totalDuration = Duration(milliseconds: 3000); 
+    const fadeOutDuration = Duration(milliseconds: 1500); 
+    
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        duration: totalDuration, 
+        margin: EdgeInsets.zero,
+        content: FadingSnackBarContent(
+          message: message,
+          color: isError ? Colors.redAccent : Colors.green,
+          totalDuration: totalDuration,
+          fadeDuration: fadeOutDuration,
+        ),
+      ),
+    );
   }
 
   Future<void> _initStream() async {
@@ -326,16 +356,7 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
             dob
           );
           
-      ScaffoldMessenger.of(context).hideCurrentSnackBar(); 
-
-          // 5. Tampilkan Snackbar baru
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Data $name terpilih!'),
-              duration: const Duration(seconds: 1),
-              backgroundColor: Colors.green,
-            ),
-          );
+        _showSnackBar('Data $name terpilih!');
         },
         child: SizedBox( 
           width: 140,
