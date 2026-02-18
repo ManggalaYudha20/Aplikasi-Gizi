@@ -1,17 +1,21 @@
 // lib/src/features/statistics/services/statistics_pdf_service.dart
 
 import 'dart:io';
-import 'package:intl/intl.dart'; // Pastikan import ini ada untuk format tanggal
+import 'package:flutter/material.dart' show DateTimeRange, debugPrint;
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:path_provider/path_provider.dart';
-import 'package:open_file/open_file.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/material.dart';
 
 class StatisticsPdfService {
-  /// Fungsi utama untuk generate dan membuka PDF
+  StatisticsPdfService._(); // prevent instantiation – all methods are static
+
+  // ─── Public API ─────────────────────────────────────────────────────────────
+
+  /// Generates a statistics PDF report and opens it with the device viewer.
   static Future<void> generateAndOpenPdf({
     required String chartTitle,
     required String selectedCategory,
@@ -20,147 +24,108 @@ class StatisticsPdfService {
     Uint8List? chartImageBytes,
     DateTimeRange? dateRange,
   }) async {
-    final pdf = pw.Document();
-
-    // 1. Siapkan Data
+    // 1. Prepare locale & assets in parallel for faster startup.
     await initializeDateFormatting('id_ID', null);
 
-    final sulutLogoData = await rootBundle.load('assets/images/sulut.png');
-    final rsLogoData = await rootBundle.load('assets/images/logo.png');
-    final sulutLogo = pw.MemoryImage(sulutLogoData.buffer.asUint8List());
-    final rsLogo = pw.MemoryImage(rsLogoData.buffer.asUint8List());
+    final results = await Future.wait([
+      rootBundle.load('assets/images/sulut.png'),
+      rootBundle.load('assets/images/logo.png'),
+    ]);
 
-    pw.MemoryImage? chartImage;
-    if (chartImageBytes != null) {
-      chartImage = pw.MemoryImage(chartImageBytes);
-    }
+    final sulutLogo = pw.MemoryImage(results[0].buffer.asUint8List());
+    final rsLogo    = pw.MemoryImage(results[1].buffer.asUint8List());
 
-    final DateTime now = DateTime.now();
-    final DateTime nowWita = now.toUtc().add(const Duration(hours: 8));
+    final pw.MemoryImage? chartImage =
+        chartImageBytes != null ? pw.MemoryImage(chartImageBytes) : null;
 
-    // 3. Gunakan locale 'id_ID' agar nama bulan/hari dalam Bahasa Indonesia
-    // DateTime.now() secara default sudah mengambil jam lokal device pengguna
-    final dateStr =
+    // 2. Timestamps & formatted strings.
+    final DateTime nowWita =
+        DateTime.now().toUtc().add(const Duration(hours: 8));
+    final String printDate =
         "${DateFormat('EEEE, dd MMMM yyyy, HH:mm', 'id_ID').format(nowWita)} WITA";
+    final String periodLabel = _buildPeriodLabel(dateRange);
 
-    // Hitung total nilai data untuk persentase
-    double totalDataValue = dataMap.values.fold(
-      0,
-      (prev, element) => prev + element,
-    );
+    // 3. Build table rows.
+    final List<List<String>> tableRows =
+        _buildTableRows(dataMap: dataMap);
 
-    // Persiapan data tabel (Header + Isi)
-    final List<List<String>> tableData = [
-      ['Kategori', 'Jumlah', 'Persentase'], // Header Tabel
-    ];
+    // 4. Assemble PDF document.
+    final pw.Document pdf = pw.Document();
 
-    dataMap.forEach((key, value) {
-      // Cek apakah ini data dummy (yang disuntikkan UI agar chart tidak crash)
-      bool isDummy = key == "Tidak ada data";
-
-      // 1. Tentukan Persentase
-      // Jika dummy, paksa "0%". Jika tidak, hitung normal.
-      final percentage = (totalDataValue > 0 && !isDummy)
-          ? "${((value / totalDataValue) * 100).toStringAsFixed(1)}%"
-          : "0%";
-
-      // 2. Tentukan Jumlah Orang
-      // Jika dummy, paksa "0 Orang". Jika tidak, ambil value aslinya.
-      final countStr = isDummy ? "0 Orang" : "${value.toInt()} Orang";
-
-      tableData.add([key, countStr, percentage]);
-    });
-
-    // 2. Buat Halaman PDF
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.legal,
         margin: const pw.EdgeInsets.all(40),
-        build: (pw.Context context) {
-          return [
-            _buildHeader(sulutLogo, rsLogo, dateStr),
-
-            pw.SizedBox(height: 20),
-
-            // Judul Laporan Spesifik
-            pw.Center(
-              child: pw.Text(
-                "LAPORAN STATISTIK",
-                style: pw.TextStyle(
-                  fontSize: 16,
-                  fontWeight: pw.FontWeight.bold,
-                  decoration: pw.TextDecoration.underline,
-                ),
-              ),
-            ),
-            pw.SizedBox(height: 5),
-            pw.Center(
-              child: pw.Text(
-                "Kategori: $chartTitle",
-                style: pw.TextStyle(
-                  fontSize: 14,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-            ),
-            pw.SizedBox(height: 5),
-            pw.Center(
-              child: pw.Text(
-                dateRange == null
-                    ? "Periode: Semua Waktu"
-                    : "Periode: ${DateFormat('dd/MM/yyyy').format(dateRange.start)} - ${DateFormat('dd/MM/yyyy').format(dateRange.end)}",
-                style: pw.TextStyle(fontSize: 11, color: PdfColors.grey800),
-              ),
-            ),
-
-            if (chartImage != null)
-              pw.Container(
-                height: 250, // Sesuaikan tinggi gambar di PDF
-                alignment: pw.Alignment.center,
-                child: pw.Image(chartImage, fit: pw.BoxFit.contain),
-              ),
-
-            pw.SizedBox(height: 20),
-            pw.Text(
-              "Rincian Data:",
-              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.SizedBox(height: 5),
-
-            _buildTable(tableData),
-            pw.SizedBox(height: 20),
-            _buildSummary(totalPasien),
-
-            pw.SizedBox(height: 40),
-            _buildFooter(nowWita),
-          ];
-        },
+        build: (pw.Context context) => [
+          _buildHeader(sulutLogo, rsLogo, printDate),
+          pw.SizedBox(height: 20),
+          _buildReportTitle(chartTitle: chartTitle, periodLabel: periodLabel),
+          if (chartImage != null) _buildChartSection(chartImage),
+          pw.SizedBox(height: 20),
+          _buildTableSection(tableRows),
+          pw.SizedBox(height: 20),
+          _buildSummaryBox(totalPasien),
+          pw.SizedBox(height: 40),
+          _buildFooter(nowWita),
+        ],
       ),
     );
 
-    // 3. Simpan File ke Penyimpanan Lokal
+    // 5. Save & open.
+    await _saveAndOpen(pdf);
+  }
+
+  // ─── Data Builders ──────────────────────────────────────────────────────────
+
+  static String _buildPeriodLabel(DateTimeRange? dateRange) {
+    if (dateRange == null) return "Semua Waktu";
+    final String start =
+        DateFormat('dd/MM/yyyy').format(dateRange.start);
+    final String end = DateFormat('dd/MM/yyyy').format(dateRange.end);
+    return "$start – $end";
+  }
+
+  /// Converts [dataMap] into a list of [category, count, percentage] rows.
+  /// Dummy entries (key == "Tidak ada data") are normalised to zero.
+  static List<List<String>> _buildTableRows({
+    required Map<String, double> dataMap,
+  }) {
+    final double total =
+        dataMap.values.fold(0, (prev, v) => prev + v);
+
+    return dataMap.entries.map((entry) {
+      final bool isDummy = entry.key == "Tidak ada data";
+      final String percentage = (!isDummy && total > 0)
+          ? "${((entry.value / total) * 100).toStringAsFixed(1)}%"
+          : "0%";
+      final String count =
+          isDummy ? "0 Orang" : "${entry.value.toInt()} Orang";
+      return [entry.key, count, percentage];
+    }).toList();
+  }
+
+  // ─── File I/O ───────────────────────────────────────────────────────────────
+
+  static Future<void> _saveAndOpen(pw.Document pdf) async {
     try {
-      final output = await getTemporaryDirectory();
-      // Nama file unik berdasarkan waktu
-      final fileName = "Statistik_${DateTime.now().millisecondsSinceEpoch}.pdf";
-      final file = File("${output.path}/$fileName");
-
+      final Directory output = await getTemporaryDirectory();
+      final String fileName =
+          "Statistik_${DateTime.now().millisecondsSinceEpoch}.pdf";
+      final File file = File("${output.path}/$fileName");
       await file.writeAsBytes(await pdf.save());
-
-      // 4. Buka File menggunakan package open_file
       await OpenFile.open(file.path);
     } catch (e) {
-      // Error handling sederhana, biasanya dilempar ke UI
       debugPrint("Gagal membuat PDF: $e");
+      rethrow; // propagate to UI for SnackBar handling
     }
   }
 
-  // --- Widget Helper PDF ---
+  // ─── PDF Section Builders ───────────────────────────────────────────────────
 
   static pw.Widget _buildHeader(
     pw.MemoryImage logoSulut,
     pw.MemoryImage logoRs,
-    String fullDate,
+    String printDate,
   ) {
     return pw.Column(
       children: [
@@ -168,22 +133,19 @@ class StatisticsPdfService {
           mainAxisAlignment: pw.MainAxisAlignment.center,
           crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
-            // Logo Kiri (Sulut)
             pw.Container(
               width: 50,
               height: 50,
               child: pw.Image(logoSulut, fit: pw.BoxFit.contain),
             ),
             pw.SizedBox(width: 10),
-
-            // Teks Tengah
             pw.Column(
               children: [
                 pw.Text(
                   'Rumah Sakit Umum Daerah',
                   style: pw.TextStyle(
                     fontWeight: pw.FontWeight.bold,
-                    fontSize: 12, // Sedikit diperbesar agar jelas
+                    fontSize: 12,
                   ),
                 ),
                 pw.Text(
@@ -199,29 +161,21 @@ class StatisticsPdfService {
                 ),
               ],
             ),
-
             pw.SizedBox(width: 10),
-
-            // Logo Kanan (RS)
             pw.Container(
-              width: 60, // Sedikit disesuaikan
+              width: 60,
               height: 60,
               child: pw.Image(logoRs, fit: pw.BoxFit.contain),
             ),
           ],
         ),
         pw.SizedBox(height: 5),
-        pw.Divider(
-          thickness: 2,
-          height: 2,
-        ), // Garis ganda untuk kesan kop surat
+        pw.Divider(thickness: 2, height: 2),
         pw.SizedBox(height: 5),
-
-        // Menampilkan Tanggal Cetak di kanan atas (di bawah garis)
         pw.Align(
           alignment: pw.Alignment.centerRight,
           child: pw.Text(
-            "Dicetak: $fullDate",
+            "Dicetak: $printDate",
             style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
           ),
         ),
@@ -229,7 +183,87 @@ class StatisticsPdfService {
     );
   }
 
-  static pw.Widget _buildSummary(int total) {
+  static pw.Widget _buildReportTitle({
+    required String chartTitle,
+    required String periodLabel,
+  }) {
+    return pw.Column(
+      children: [
+        pw.Center(
+          child: pw.Text(
+            "LAPORAN STATISTIK",
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+              decoration: pw.TextDecoration.underline,
+            ),
+          ),
+        ),
+        pw.SizedBox(height: 5),
+        pw.Center(
+          child: pw.Text(
+            "Kategori: $chartTitle",
+            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+          ),
+        ),
+        pw.SizedBox(height: 5),
+        pw.Center(
+          child: pw.Text(
+            "Periode: $periodLabel",
+            style: const pw.TextStyle(fontSize: 11, color: PdfColors.grey800),
+          ),
+        ),
+      ],
+    );
+  }
+
+  static pw.Widget _buildChartSection(pw.MemoryImage chartImage) {
+    return pw.Container(
+      height: 250,
+      alignment: pw.Alignment.center,
+      child: pw.Image(chartImage, fit: pw.BoxFit.contain),
+    );
+  }
+
+  static pw.Widget _buildTableSection(List<List<String>> rows) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          "Rincian Data:",
+          style:
+              pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.SizedBox(height: 5),
+        _buildTable(rows),
+      ],
+    );
+  }
+
+  static pw.Widget _buildTable(List<List<String>> rows) {
+    return pw.TableHelper.fromTextArray(
+      headers: const ['Kategori', 'Jumlah', 'Persentase'],
+      data: rows,
+      headerStyle: pw.TextStyle(
+        fontWeight: pw.FontWeight.bold,
+        color: PdfColors.white,
+      ),
+      headerDecoration:
+          const pw.BoxDecoration(color: PdfColors.green700),
+      rowDecoration:
+          const pw.BoxDecoration(color: PdfColors.grey100),
+      cellAlignments: {
+        0: pw.Alignment.centerLeft,
+        1: pw.Alignment.centerRight,
+        2: pw.Alignment.centerRight,
+      },
+      cellPadding: const pw.EdgeInsets.symmetric(
+          horizontal: 10, vertical: 8),
+      border: null,
+    );
+  }
+
+  static pw.Widget _buildSummaryBox(int total) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(15),
       decoration: pw.BoxDecoration(
@@ -242,7 +276,8 @@ class StatisticsPdfService {
         children: [
           pw.Text(
             "Total Pasien Terdaftar:",
-            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+            style: pw.TextStyle(
+                fontSize: 14, fontWeight: pw.FontWeight.bold),
           ),
           pw.Text(
             "$total Pasien",
@@ -257,42 +292,25 @@ class StatisticsPdfService {
     );
   }
 
-  static pw.Widget _buildTable(List<List<String>> data) {
-    return pw.TableHelper.fromTextArray(
-      headers: data[0],
-      data: data.sublist(1),
-      headerStyle: pw.TextStyle(
-        fontWeight: pw.FontWeight.bold,
-        color: PdfColors.white,
-      ),
-      headerDecoration: const pw.BoxDecoration(color: PdfColors.green700),
-      rowDecoration: const pw.BoxDecoration(color: PdfColors.grey100),
-      cellAlignments: {
-        0: pw.Alignment.centerLeft,
-        1: pw.Alignment.centerRight,
-        2: pw.Alignment.centerRight,
-      },
-      cellPadding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      border: null,
-    );
-  }
-
-  static pw.Widget _buildFooter(DateTime date) {
+  static pw.Widget _buildFooter(DateTime nowWita) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.end,
       children: [
-        pw.Text('Mengetahui,', style: const pw.TextStyle(fontSize: 10)),
-        pw.SizedBox(height: 40), // Ruang tanda tangan
+        pw.Text('Mengetahui,',
+            style: const pw.TextStyle(fontSize: 10)),
+        pw.SizedBox(height: 40),
         pw.Text(
           'Administrator / Ahli Gizi',
-          style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          style:
+              pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
         ),
         pw.SizedBox(height: 20),
         pw.Align(
           alignment: pw.Alignment.centerLeft,
           child: pw.Text(
             "* Dokumen ini digenerate secara otomatis oleh Sistem Aplikasi Diagnosa Gizi.",
-            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+            style: const pw.TextStyle(
+                fontSize: 8, color: PdfColors.grey600),
           ),
         ),
       ],

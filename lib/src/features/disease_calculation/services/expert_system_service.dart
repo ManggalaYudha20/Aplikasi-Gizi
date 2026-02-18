@@ -1,10 +1,8 @@
-import '../data/nutrition_reference_data.dart';
+import '../data/terminology_item.dart';
 import '../data/diagnosis_terminology.dart'; // Data Diagnosa
 import '../data/intervensi_data.dart';      // Data Intervensi
 import '../data/monitoring_data.dart';      // Data Monitoring
 import 'package:flutter/widgets.dart';
-// Pastikan path import TerminologyItem ini sesuai dengan struktur folder Anda
-// import '../data/models/terminology_item.dart'; 
 
 class ExpertSystemInput {
   final double imt;
@@ -40,9 +38,10 @@ class ExpertSystemInput {
 }
 
 class ExpertSystemResult {
-  final List<NutritionReferenceItem> suggestedDiagnoses;
-  final List<NutritionReferenceItem> suggestedInterventions;
-  final List<NutritionReferenceItem> suggestedMonitoring;
+  // PERUBAHAN: Menggunakan List<TerminologyItem>
+  final List<TerminologyItem> suggestedDiagnoses;
+  final List<TerminologyItem> suggestedInterventions;
+  final List<TerminologyItem> suggestedMonitoring;
 
   ExpertSystemResult({
     required this.suggestedDiagnoses,
@@ -54,9 +53,10 @@ class ExpertSystemResult {
 class DiseaseExpertService {
   
   ExpertSystemResult generateCarePlan(ExpertSystemInput input) {
-    final List<NutritionReferenceItem> diagnoses = [];
-    final List<NutritionReferenceItem> interventions = [];
-    final List<NutritionReferenceItem> monitoring = [];
+    // PERUBAHAN: List menggunakan TerminologyItem
+    final List<TerminologyItem> diagnoses = [];
+    final List<TerminologyItem> interventions = [];
+    final List<TerminologyItem> monitoring = [];
 
     // --- 1. DETEKSI MASALAH KLINIS (Problem Identification) ---
 
@@ -85,7 +85,6 @@ class DiseaseExpertService {
         input.bloodPressure.toLowerCase().contains('hipertensi');
 
     // --- 2. DIAGNOSIS GIZI (P - Problem) ---
-    // Menggunakan helper _findDiagnosis untuk mengambil data baku
 
     // A. Domain Klinis (NC) - Nilai Lab
     if (isDiabetes) {
@@ -97,20 +96,19 @@ class DiseaseExpertService {
       _addDiagnosis(diagnoses, 'NC-2.2',
           customDef: 'Peningkatan profil ginjal (Ureum/Kreatinin)');
       
-      // Note: Kode NI-5.4 mungkin tidak ada di list standar diagnosis, 
-      // pastikan kode ini ada di DiagnosisTerminology atau gunakan kode yang mendekati.
-      // Jika tidak ada di list, kita buat manual sebagai fallback.
-      diagnoses.add(NutritionReferenceItem(
+      // Manual add untuk kode yang mungkin tidak ada di list standar
+      diagnoses.add(const TerminologyItem(
+        domain: 'NI', // Default domain
+        classCode: 'NI-5', 
         code: 'NI-5.4', 
         label: 'Penurunan kebutuhan zat gizi (Protein)', 
-        definition: 'Berkaitan dengan gangguan fungsi ginjal'
+        category: 'Berkaitan dengan gangguan fungsi ginjal' // Definisi masuk ke category
       ));
     }
 
     // B. Domain Asupan (NI)
     // Kelebihan Karbohidrat
     if (input.dietaryHistory.any((h) => h.toLowerCase().contains('manis'))) {
-       // Kode NI-5.8.3
        _addDiagnosis(diagnoses, 'NI-5.8.3', 
          customDef: 'Sering mengonsumsi gula murni/makanan manis');
     }
@@ -151,7 +149,6 @@ class DiseaseExpertService {
     }
 
     // --- 3. INTERVENSI GIZI (I - Intervention) ---
-    // Menggunakan helper _addIntervention dari data IntervensiData
 
     // Intervensi Diabetes
     if (isDiabetes) {
@@ -164,16 +161,13 @@ class DiseaseExpertService {
       bool isHD = input.medicalDiagnosis?.toLowerCase().contains('hd') ?? false;
 
       if (isHD) {
-        // Diet Tinggi Protein (Dialisis) - Biasanya ND-1.2 Modifikasi Komposisi
         _addIntervention(interventions, 'ND-1.2', 
           note: 'Tinggi Protein (1.2 g/kg BB) untuk pasien Dialisis.');
       } else {
-        // Diet Rendah Protein (Pre-Dialisis)
          _addIntervention(interventions, 'ND-1.2', 
           note: 'Rendah Protein (0.6-0.8 g/kg BB) untuk meringankan ginjal.');
       }
 
-      // Restriksi Cairan (ND-1.3 Makanan/Minuman tertentu - atau ND-1.2)
       _addIntervention(interventions, 'ND-1.2', 
           note: 'Restriksi Cairan: Urin output + 500ml.');
     }
@@ -184,41 +178,29 @@ class DiseaseExpertService {
           note: 'Diet Rendah Garam (RG) / DASH. Batasi Natrium < 2000mg.');
     }
 
-    // Edukasi Gizi (Selalu ada)
-    // Di IntervensiData, domain edukasi kodenya NE-1.1 dst. Kita ambil Edukasi Awal.
+    // Edukasi Gizi
     _addIntervention(interventions, 'NE-1.1'); 
     _addIntervention(interventions, 'NC-1.4'); // Konseling/Motivasi
 
     // --- 4. MONITORING & EVALUASI (ME - Monitoring) ---
-    // Menggunakan helper _addMonitoring dari data MonitoringData
     
-    // Asupan Energi (FI-1.1) - Sebelumnya FH-1.1.1 (kode lama), sekarang pakai FI-1.1 sesuai data baru
+    // Asupan Energi
     _addMonitoring(monitoring, 'FI-1.1'); 
 
     if (isDiabetes) {
-      // Profil Glukosa (S-2.5)
       _addMonitoring(monitoring, 'S-2.5', note: 'GDS/GDP/HbA1c');
     }
 
     if (isKidney) {
-      // Profil Ginjal (S-2.2)
       _addMonitoring(monitoring, 'S-2.2', note: 'Ureum/Kreatinin/Elektrolit');
-      // Balance Cairan (S-3.1 - Fisik atau FI-2.2 Asupan Cairan)
-      // Kita pakai S-3.1 Fisik (Edema) jika ada di data, atau input manual
       _addMonitoring(monitoring, 'S-3.1', note: 'Edema & Balance Cairan'); 
     }
 
     if (isHypertension) {
-      // Tekanan Darah (S-3.1 - Pemeriksaan Fisik)
-      // Note: Di MonitoringData S-3.1 adalah Antropometri.
-      // Kita cari yang fisik umum atau tanda vital. Jika tidak ada di CSV, sistem akan skip/pakai default.
-      // S-3.1 di data baru = Antropometri. 
-      // Kita pakai Fisik Umum (S-1.1) untuk tanda vital jika S-3 spesifik vital sign tidak ada.
       _addMonitoring(monitoring, 'S-1.1', note: 'Tekanan Darah (Tanda Vital)');
     }
 
     if (input.imt >= 25 || input.imt < 18.5) {
-      // Berat Badan / IMT (S-3.1 Antropometri)
       _addMonitoring(monitoring, 'S-3.1', note: 'Berat Badan & IMT');
     }
 
@@ -230,79 +212,83 @@ class DiseaseExpertService {
   }
 
   // ===========================================================================
-  // HELPER FUNCTIONS (PENCARI DATA DARI FILE REFERENSI)
+  // HELPER FUNCTIONS 
   // ===========================================================================
 
-  /// Mencari Diagnosis dari `diagnosis_terminology.dart`
   void _addDiagnosis(
-      List<NutritionReferenceItem> list, String code, {String? customDef}) {
+      List<TerminologyItem> list, String code, {String? customDef}) {
     try {
-      // Cari object asli dari list static
       final found = DiagnosisTerminology.allDiagnoses.firstWhere(
         (item) => item.code == code,
-        orElse: () => NutritionReferenceItem(code: code, label: 'Diagnosa Tidak Ditemukan', definition: ''),
+        orElse: () => const TerminologyItem(
+            domain: 'UNKNOWN', 
+            classCode: 'UNK', 
+            category: 'Error', 
+            code: 'NOT_FOUND', 
+            label: 'Diagnosa Tidak Ditemukan'), 
       );
 
-      // Jika customDef ada, kita replace definition bawaan agar lebih spesifik ke pasien
-      if (found.label != 'Diagnosa Tidak Ditemukan') {
-        list.add(NutritionReferenceItem(
+      if (found.code != 'NOT_FOUND') {
+        // PERBAIKAN: Membuat TerminologyItem baru dengan data yang disesuaikan
+        list.add(TerminologyItem(
+          domain: found.domain,
+          classCode: found.classCode,
           code: found.code,
           label: found.label,
-          definition: customDef ?? found.definition,
+          // Map customDef ke category agar muncul sebagai detail/catatan
+          category: customDef ?? found.category, 
         ));
       }
     } catch (e) {
-      // Handle jika kode salah ketik/tidak ada
-      debugPrint("Warning: Diagnosis code $code not found.");
+      debugPrint("Warning: Diagnosis code $code error: $e");
     }
   }
 
-  /// Mencari Intervensi dari `intervensi_data.dart`
   void _addIntervention(
-      List<NutritionReferenceItem> list, String code, {String? note}) {
+      List<TerminologyItem> list, String code, {String? note}) {
     try {
-      // IntervensiData menggunakan TerminologyItem, kita perlu konversi ke NutritionReferenceItem
       final found = IntervensiData.allInterventions.firstWhere(
         (item) => item.code == code,
       );
 
-      // Gabungkan label asli dengan catatan khusus (jika ada)
-      // Contoh: "Modifikasi Diet" + " (Rendah Garam)"
       String displayLabel = found.label;
-      String displayDef = found.category; // Gunakan kategori sebagai definisi default
+      // Gunakan kategori asli sebagai dasar, tambahkan note jika ada
+      String displayCategory = found.category; 
 
       if (note != null) {
-        displayDef = "$displayDef. Catatan: $note";
+        displayCategory = "$displayCategory. Catatan: $note";
       }
 
-      list.add(NutritionReferenceItem(
+      list.add(TerminologyItem(
+        domain: found.domain,
+        classCode: found.classCode,
         code: found.code,
         label: displayLabel,
-        definition: displayDef,
+        category: displayCategory, // Simpan detail/catatan di sini
       ));
     } catch (e) {
-      // Jika tidak ketemu (misal kode salah), skip saja atau print debug
        debugPrint("Warning: Intervention code $code not found.");
     }
   }
 
-  /// Mencari Monitoring dari `monitoring_data.dart`
   void _addMonitoring(
-      List<NutritionReferenceItem> list, String code, {String? note}) {
+      List<TerminologyItem> list, String code, {String? note}) {
     try {
       final found = MonitoringData.allMonitoringItems.firstWhere(
         (item) => item.code == code,
       );
 
-      String displayDef = found.category;
+      String displayCategory = found.category;
       if (note != null) {
-        displayDef = "$displayDef ($note)";
+        displayCategory = "$displayCategory ($note)";
       }
 
-      list.add(NutritionReferenceItem(
+      list.add(TerminologyItem(
+        domain: found.domain,
+        classCode: found.classCode,
         code: found.code,
         label: found.label,
-        definition: displayDef,
+        category: displayCategory, // Simpan detail/catatan di sini
       ));
     } catch (e) {
        debugPrint("Warning: Monitoring code $code not found.");

@@ -14,10 +14,10 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_validator_utils.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_calculation_helper.dart';
 import 'dart:async';
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/nutrition_reference_data.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/diagnosis_terminology.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/intervensi_data.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/monitoring_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/terminology_item.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/searchable_terminology_field.dart';
 
 class LabInputItem {
@@ -1823,134 +1823,87 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                               // P (AUTOCOMPLETE)
                               LayoutBuilder(
                                 builder: (context, constraints) {
-                                  return Autocomplete<NutritionReferenceItem>(
-                                    optionsBuilder:
-                                        (TextEditingValue textEditingValue) {
-                                          if (textEditingValue.text.isEmpty) {
-                                            return const Iterable<
-                                              NutritionReferenceItem
-                                            >.empty();
-                                          }
-                                          return DiagnosisTerminology
-                                              .allDiagnoses
-                                              .where((
-                                                NutritionReferenceItem option,
-                                              ) {
-                                                final String keyword =
-                                                    textEditingValue.text
-                                                        .toLowerCase();
-                                                return option.label
-                                                        .toLowerCase()
-                                                        .contains(keyword) ||
-                                                    option.code
-                                                        .toLowerCase()
-                                                        .contains(keyword) ||
-                                                    (option.definition
-                                                        .toLowerCase()
-                                                        .contains(keyword));
-                                              });
-                                        },
-                                    displayStringForOption:
-                                        (NutritionReferenceItem option) =>
-                                            '[${option.code}] ${option.label}',
-                                    onSelected: (NutritionReferenceItem selection) {
-                                      _diagnosisItems[index].pController.text =
-                                          '[${selection.code}] ${selection.label}';
-                                    },
-                                    fieldViewBuilder:
-                                        (
-                                          context,
-                                          fieldTextEditingController,
-                                          fieldFocusNode,
-                                          onFieldSubmitted,
-                                        ) {
-                                          if (_diagnosisItems[index]
-                                                  .pController
-                                                  .text
-                                                  .isNotEmpty &&
-                                              fieldTextEditingController
-                                                  .text
-                                                  .isEmpty) {
-                                            WidgetsBinding.instance
-                                                .addPostFrameCallback((_) {
-                                                  if (context.mounted) {
-                                                    fieldTextEditingController
-                                                            .text =
-                                                        _diagnosisItems[index]
-                                                            .pController
-                                                            .text;
-                                                  }
-                                                });
-                                          }
-                                          fieldTextEditingController
-                                              .addListener(() {
-                                                _diagnosisItems[index]
-                                                        .pController
-                                                        .text =
-                                                    fieldTextEditingController
-                                                        .text;
-                                              });
+                                  return Autocomplete<TerminologyItem>(
+  optionsBuilder: (TextEditingValue textEditingValue) {
+    if (textEditingValue.text.isEmpty) {
+      return const Iterable<TerminologyItem>.empty();
+    }
+    // Menggunakan method matches() bawaan TerminologyItem
+    return DiagnosisTerminology.allDiagnoses.where((TerminologyItem option) {
+      return option.matches(textEditingValue.text);
+    });
+  },
+  displayStringForOption: (TerminologyItem option) =>
+      '[${option.code}] ${option.label}',
+  onSelected: (TerminologyItem selection) {
+    _diagnosisItems[index].pController.text =
+        '[${selection.code}] ${selection.label}';
+  },
+  fieldViewBuilder: (
+    context,
+    fieldTextEditingController,
+    fieldFocusNode,
+    onFieldSubmitted,
+  ) {
+    if (_diagnosisItems[index].pController.text.isNotEmpty &&
+        fieldTextEditingController.text.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          fieldTextEditingController.text =
+              _diagnosisItems[index].pController.text;
+        }
+      });
+    }
+    fieldTextEditingController.addListener(() {
+      _diagnosisItems[index].pController.text =
+          fieldTextEditingController.text;
+    });
 
-                                          return TextFormField(
-                                            controller:
-                                                fieldTextEditingController,
-                                            focusNode: fieldFocusNode,
-                                            maxLength: 200,
-                                            textInputAction:
-                                                TextInputAction.done,
-                                            decoration: const InputDecoration(
-                                              labelText: 'Problem (P)',
-                                              isDense: true,
-                                              border: OutlineInputBorder(),
-                                              suffixIcon: Icon(Icons.search),
-                                            ),
-                                            maxLines: null,
-                                          );
-                                        },
-                                    optionsViewBuilder: (context, onSelected, options) {
-                                      return Align(
-                                        alignment: Alignment.topLeft,
-                                        child: Material(
-                                          elevation: 4.0,
-                                          child: SizedBox(
-                                            width: constraints.maxWidth,
-                                            height: 200,
-                                            child: ListView.builder(
-                                              padding: const EdgeInsets.all(
-                                                8.0,
-                                              ),
-                                              itemCount: options.length,
-                                              itemBuilder:
-                                                  (
-                                                    BuildContext context,
-                                                    int i,
-                                                  ) {
-                                                    final NutritionReferenceItem
-                                                    option = options.elementAt(
-                                                      i,
-                                                    );
-                                                    return ListTile(
-                                                      title: Text(
-                                                        '${option.code} - ${option.label}',
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                      subtitle: Text(
-                                                        option.definition,
-                                                      ),
-                                                      onTap: () {
-                                                        onSelected(option);
-                                                      },
-                                                    );
-                                                  },
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
+    return TextFormField(
+      controller: fieldTextEditingController,
+      focusNode: fieldFocusNode,
+      maxLength: 200,
+      textInputAction: TextInputAction.done,
+      decoration: const InputDecoration(
+        labelText: 'Problem (P)',
+        isDense: true,
+        border: OutlineInputBorder(),
+        suffixIcon: Icon(Icons.search),
+      ),
+      maxLines: null,
+    );
+  },
+  optionsViewBuilder: (context, onSelected, options) {
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Material(
+        elevation: 4.0,
+        child: SizedBox(
+          width: constraints.maxWidth,
+          height: 200,
+          child: ListView.builder(
+            padding: const EdgeInsets.all(8.0),
+            itemCount: options.length,
+            itemBuilder: (BuildContext context, int i) {
+              final TerminologyItem option = options.elementAt(i);
+              return ListTile(
+                title: Text(
+                  '${option.code} - ${option.label}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                // Menggunakan category karena definition sudah dihapus
+                subtitle: Text(option.category),
+                onTap: () {
+                  onSelected(option);
+                },
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  },
+);
                                 },
                               ),
                               const SizedBox(height: 8),

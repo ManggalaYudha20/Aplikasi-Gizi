@@ -14,11 +14,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/expert_system_service.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/nutrition_reference_data.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/diagnosis_terminology.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/intervensi_data.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/monitoring_data.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/searchable_terminology_field.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/terminology_item.dart';
 
 class LabInputItem {
   TextEditingController valueController;
@@ -251,7 +251,7 @@ class _DataFormPageState extends State<DataFormPage> {
     });
   }
 
-  void _generateExpertDiagnosis() {
+void _generateExpertDiagnosis() {
     bool isBasicDataEmpty =
         _beratBadanController.text.isEmpty ||
         _tinggiBadanController.text.isEmpty;
@@ -344,8 +344,12 @@ class _DataFormPageState extends State<DataFormPage> {
       for (var diag in result.suggestedDiagnoses) {
         if (_diagnosisItems.length >= 3) break;
         String problem = "[${diag.code}] ${diag.label}";
-        String etiology =
-            diag.definition; // Menggunakan definisi dari Expert System
+        
+        // --- PERBAIKAN DI SINI ---
+        // Menggunakan 'category' karena 'definition' tidak ada di TerminologyItem
+        String etiology = diag.category; 
+        // -------------------------
+
         String signs =
             ""; // Signs bisa ditambahkan logika manual jika perlu (seperti lab value)
 
@@ -1865,156 +1869,100 @@ class _DataFormPageState extends State<DataFormPage> {
                               // P
                               LayoutBuilder(
                                 builder: (context, constraints) {
-                                  return Autocomplete<NutritionReferenceItem>(
-                                    // 1. Data yang akan ditampilkan berdasarkan ketikan user
-                                    optionsBuilder:
-                                        (TextEditingValue textEditingValue) {
-                                          if (textEditingValue.text.isEmpty) {
-                                            return const Iterable<
-                                              NutritionReferenceItem
-                                            >.empty();
-                                          }
-                                          // Logika pencarian: Cocokkan Label, Kode, atau Definisi
-                                          return DiagnosisTerminology
-                                              .allDiagnoses
-                                              .where((
-                                                NutritionReferenceItem option,
-                                              ) {
-                                                final String keyword =
-                                                    textEditingValue.text
-                                                        .toLowerCase();
-                                                return option.label
-                                                        .toLowerCase()
-                                                        .contains(keyword) ||
-                                                    option.code
-                                                        .toLowerCase()
-                                                        .contains(keyword) ||
-                                                    (option.definition
-                                                        .toLowerCase()
-                                                        .contains(keyword));
-                                              });
-                                        },
+                                  return Autocomplete<TerminologyItem>(
+  // 1. Data yang akan ditampilkan berdasarkan ketikan user
+  optionsBuilder: (TextEditingValue textEditingValue) {
+    if (textEditingValue.text.isEmpty) {
+      return const Iterable<TerminologyItem>.empty();
+    }
+    // Menggunakan logic matches() dari TerminologyItem
+    return DiagnosisTerminology.allDiagnoses.where((TerminologyItem option) {
+      return option.matches(textEditingValue.text);
+    });
+  },
 
-                                    // 2. Apa yang ditampilkan di text field saat item dipilih
-                                    displayStringForOption:
-                                        (NutritionReferenceItem option) =>
-                                            '[${option.code}] ${option.label}',
+  // 2. Apa yang ditampilkan di text field saat item dipilih
+  displayStringForOption: (TerminologyItem option) =>
+      '[${option.code}] ${option.label}',
 
-                                    // 3. Aksi saat item dipilih
-                                    onSelected: (NutritionReferenceItem selection) {
-                                      // Update controller manual agar tersimpan di state
-                                      _diagnosisItems[index].pController.text =
-                                          '[${selection.code}] ${selection.label}';
+  // 3. Aksi saat item dipilih
+  onSelected: (TerminologyItem selection) {
+    // Update controller manual agar tersimpan di state
+    _diagnosisItems[index].pController.text =
+        '[${selection.code}] ${selection.label}';
+  },
 
-                                      // (Opsional) Otomatis isi Etiologi atau Signs jika mau
-                                      // _diagnosisItems[index].eController.text = selection.definition ?? '';
-                                    },
+  // 4. Membangun Text Field-nya
+  fieldViewBuilder: (
+    context,
+    fieldTextEditingController,
+    fieldFocusNode,
+    onFieldSubmitted,
+  ) {
+    // Sinkronisasi controller bawaan Autocomplete dengan controller kita
+    if (_diagnosisItems[index].pController.text.isNotEmpty &&
+        fieldTextEditingController.text.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          fieldTextEditingController.text =
+              _diagnosisItems[index].pController.text;
+        }
+      });
+    }
 
-                                    // 4. Membangun Text Field-nya (Agar tetap terlihat sama dengan style aplikasi)
-                                    fieldViewBuilder:
-                                        (
-                                          context,
-                                          fieldTextEditingController,
-                                          fieldFocusNode,
-                                          onFieldSubmitted,
-                                        ) {
-                                          // PENTING: Sinkronisasi controller bawaan Autocomplete dengan controller kita
-                                          // Jika controller kita sudah ada isinya (misal dari edit pasien), pasang ke controller autocomplete
-                                          if (_diagnosisItems[index]
-                                                  .pController
-                                                  .text
-                                                  .isNotEmpty &&
-                                              fieldTextEditingController
-                                                  .text
-                                                  .isEmpty) {
-                                            WidgetsBinding.instance
-                                                .addPostFrameCallback((_) {
-                                                  if (context.mounted) {
-                                                    fieldTextEditingController
-                                                            .text =
-                                                        _diagnosisItems[index]
-                                                            .pController
-                                                            .text;
-                                                  }
-                                                });
-                                          }
+    // Listener: Jika user mengetik manual
+    fieldTextEditingController.addListener(() {
+      _diagnosisItems[index].pController.text =
+          fieldTextEditingController.text;
+    });
 
-                                          // Listener: Jika user mengetik manual (bukan pilih opsi), tetap simpan ke controller utama
-                                          fieldTextEditingController
-                                              .addListener(() {
-                                                _diagnosisItems[index]
-                                                        .pController
-                                                        .text =
-                                                    fieldTextEditingController
-                                                        .text;
-                                              });
+    return TextFormField(
+      controller: fieldTextEditingController,
+      focusNode: fieldFocusNode,
+      maxLength: 200,
+      textInputAction: TextInputAction.done,
+      decoration: const InputDecoration(
+        labelText: 'Problem (P)',
+        isDense: true,
+        border: OutlineInputBorder(),
+        suffixIcon: Icon(Icons.search),
+      ),
+      maxLines: null,
+    );
+  },
 
-                                          return TextFormField(
-                                            controller:
-                                                fieldTextEditingController,
-                                            focusNode: fieldFocusNode,
-                                            maxLength: 200,
-                                            textInputAction:
-                                                TextInputAction.done,
-                                            decoration: const InputDecoration(
-                                              labelText: 'Problem (P)',
-                                              isDense: true,
-                                              border: OutlineInputBorder(),
-                                              suffixIcon: Icon(
-                                                Icons.search,
-                                              ), // Indikator bahwa ini bisa dicari
-                                            ),
-                                            maxLines: null,
-                                          );
-                                        },
-
-                                    // 5. Tampilan List Saran (Dropdown di bawah)
-                                    optionsViewBuilder: (context, onSelected, options) {
-                                      return Align(
-                                        alignment: Alignment.topLeft,
-                                        child: Material(
-                                          elevation: 4.0,
-                                          child: SizedBox(
-                                            width: constraints
-                                                .maxWidth, // Lebar menyesuaikan form
-                                            height:
-                                                100, // Tinggi maksimal dropdown
-                                            child: ListView.builder(
-                                              padding: const EdgeInsets.all(
-                                                8.0,
-                                              ),
-                                              itemCount: options.length,
-                                              itemBuilder:
-                                                  (
-                                                    BuildContext context,
-                                                    int i,
-                                                  ) {
-                                                    final NutritionReferenceItem
-                                                    option = options.elementAt(
-                                                      i,
-                                                    );
-                                                    return ListTile(
-                                                      title: Text(
-                                                        '${option.code} - ${option.label}',
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                      subtitle: Text(
-                                                        option.definition,
-                                                      ),
-                                                      onTap: () {
-                                                        onSelected(option);
-                                                      },
-                                                    );
-                                                  },
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
+  // 5. Tampilan List Saran (Dropdown di bawah)
+  optionsViewBuilder: (context, onSelected, options) {
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Material(
+        elevation: 4.0,
+        child: SizedBox(
+          width: constraints.maxWidth, // Lebar menyesuaikan form
+          height: 200, // Tinggi maksimal dropdown
+          child: ListView.builder(
+            padding: const EdgeInsets.all(8.0),
+            itemCount: options.length,
+            itemBuilder: (BuildContext context, int i) {
+              final TerminologyItem option = options.elementAt(i);
+              return ListTile(
+                title: Text(
+                  '${option.code} - ${option.label}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                // Ganti definition dengan category
+                subtitle: Text(option.category),
+                onTap: () {
+                  onSelected(option);
+                },
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  },
+);
                                 },
                               ),
                               const SizedBox(height: 8),
