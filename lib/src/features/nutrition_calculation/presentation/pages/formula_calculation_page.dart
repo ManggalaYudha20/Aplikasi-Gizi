@@ -9,18 +9,19 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presen
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/tdee_form_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/bbi_form_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/nutrition_status_form_page.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/imtu_form_page.dart'; // Pastikan nama classnya benar (IMTUFormPage vs ImtuFormPage)
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/imtu_form_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/bbi_anak_form_page.dart';
 
-/// Model untuk konfigurasi menu kalkulator
-/// Memudahkan penambahan menu baru tanpa merubah logika UI
+/// Model konfigurasi menu formula — immutable & type-safe.
+/// Menggunakan 'final' untuk properti agar bisa menjadi compile-time constant.
+@immutable
 class _FormulaMenu {
-  final String keyId;      // ID Unik untuk QA Automation
-  final String name;       // Nama singkat (icon label)
-  final String fullName;   // Nama lengkap (bawah icon)
+  final String keyId;      // ID Unik untuk QA Automation (Katalon/Appium)
+  final String name;       // Nama singkat (Label Icon)
+  final String fullName;   // Nama lengkap (Label Bawah)
   final IconData icon;
   final Color color;
-  final Widget Function(String role)? pageBuilder; // Builder halaman tujuan
+  final Widget Function(String role)? pageBuilder;
 
   const _FormulaMenu({
     required this.keyId,
@@ -40,123 +41,218 @@ class FormulaCalculationPage extends StatelessWidget {
     required this.userRole,
   });
 
-  // Data Menu didefinisikan sebagai List Model agar Type-Safe
-  List<_FormulaMenu> get _menuItems => [
-        _FormulaMenu(
-          keyId: 'btn_calc_imt', // Key untuk QA
-          name: 'IMT',
-          fullName: 'Indeks Massa Tubuh',
-          icon: Icons.calculate,
-          color: Colors.blue,
-          pageBuilder: (role) => BmiFormPage(userRole: role),
-        ),
-        _FormulaMenu(
-          keyId: 'btn_calc_bmr',
-          name: 'BMR',
-          fullName: 'Basal Metabolic Rate',
-          icon: Icons.local_fire_department,
-          color: Colors.orange,
-          pageBuilder: (role) => BmrFormPage(userRole: role),
-        ),
-        _FormulaMenu(
-          keyId: 'btn_calc_tdee',
-          name: 'TDEE',
-          fullName: 'Total Daily\nEnergy Expenditure',
-          icon: Icons.battery_charging_full,
-          color: Colors.purple,
-          pageBuilder: (role) => TdeeFormPage(userRole: role),
-        ),
-        _FormulaMenu(
-          keyId: 'btn_calc_bbi',
-          name: 'BBI',
-          fullName: 'Berat Badan Ideal\n (Usia > 12 Tahun)',
-          icon: Icons.monitor_weight,
-          color: Colors.green,
-          pageBuilder: (role) => BbiFormPage(userRole: role),
-        ),
-        _FormulaMenu(
-          keyId: 'btn_calc_bbi_anak',
-          name: 'BBI Anak',
-          fullName: 'Berat Badan Ideal\n (0 - 12 Tahun)',
-          icon: Icons.monitor_weight,
-          color: Colors.pinkAccent,
-          pageBuilder: (role) => BbiAnakFormPage(userRole: role),
-        ),
-        _FormulaMenu(
-          keyId: 'btn_calc_status_gizi',
-          name: 'Status Gizi',
-          fullName: 'Status Gizi\n (Usia 0-60 Bulan)',
-          icon: Icons.child_care,
-          color: Colors.red,
-          pageBuilder: (role) => NutritionStatusFormPage(userRole: role),
-        ),
-        // Catatan: Pastikan nama class IMTUFormPage sesuai dengan import Anda
-        _FormulaMenu(
-          keyId: 'btn_calc_imtu',
-          name: 'IMT/U',
-          fullName: 'Indeks Massa Tubuh\nBerdasarkan Usia (5-18 Tahun)',
-          icon: Icons.calculate,
-          color: Colors.brown,
-          // Jika nama classnya IMTUFormPage gunakan ini, jika ImtuFormPage sesuaikan
-          pageBuilder: (role) => IMTUFormPage(userRole: role), 
-        ),
-      ];
+  // ---------------------------------------------------------------------------
+  // STATIC BUILDERS
+  // Diperlukan agar List _menuItems bisa bersifat 'static const'.
+  // Teknik ini mencegah alokasi memori berulang untuk closure anonim.
+  // ---------------------------------------------------------------------------
+  static Widget _buildBmiPage(String role) => BmiFormPage(userRole: role);
+  static Widget _buildBmrPage(String role) => BmrFormPage(userRole: role);
+  static Widget _buildTdeePage(String role) => TdeeFormPage(userRole: role);
+  static Widget _buildBbiPage(String role) => BbiFormPage(userRole: role);
+  static Widget _buildBbiAnakPage(String role) => BbiAnakFormPage(userRole: role);
+  static Widget _buildStatusGiziPage(String role) => NutritionStatusFormPage(userRole: role);
+  static Widget _buildImtuPage(String role) => IMTUFormPage(userRole: role);
+
+  /// DATA MENU (Single Source of Truth)
+  /// Dideklarasikan sebagai 'static const' untuk optimasi memori maksimal.
+  /// List ini hanya dibuat satu kali saat aplikasi dijalankan.
+  static const List<_FormulaMenu> _menuItems = [
+    _FormulaMenu(
+      keyId: 'btn_calc_imt',
+      name: 'IMT',
+      fullName: 'Indeks Massa Tubuh',
+      icon: Icons.calculate,
+      color: Colors.blue,
+      pageBuilder: _buildBmiPage,
+    ),
+    _FormulaMenu(
+      keyId: 'btn_calc_bmr',
+      name: 'BMR',
+      fullName: 'Basal Metabolic Rate',
+      icon: Icons.local_fire_department,
+      color: Colors.orange,
+      pageBuilder: _buildBmrPage,
+    ),
+    _FormulaMenu(
+      keyId: 'btn_calc_tdee',
+      name: 'TDEE',
+      fullName: 'Total Daily\nEnergy Expenditure',
+      icon: Icons.battery_charging_full,
+      color: Colors.purple,
+      pageBuilder: _buildTdeePage,
+    ),
+    _FormulaMenu(
+      keyId: 'btn_calc_bbi',
+      name: 'BBI',
+      fullName: 'Berat Badan Ideal\n(Usia > 12 Tahun)',
+      icon: Icons.monitor_weight,
+      color: Colors.green,
+      pageBuilder: _buildBbiPage,
+    ),
+    _FormulaMenu(
+      keyId: 'btn_calc_bbi_anak',
+      name: 'BBI Anak',
+      fullName: 'Berat Badan Ideal\n(0 - 12 Tahun)',
+      icon: Icons.monitor_weight,
+      color: Colors.pinkAccent,
+      pageBuilder: _buildBbiAnakPage,
+    ),
+    _FormulaMenu(
+      keyId: 'btn_calc_status_gizi',
+      name: 'Status Gizi',
+      fullName: 'Status Gizi\n(Usia 0-60 Bulan)',
+      icon: Icons.child_care,
+      color: Colors.red,
+      pageBuilder: _buildStatusGiziPage,
+    ),
+    _FormulaMenu(
+      keyId: 'btn_calc_imtu',
+      name: 'IMT/U',
+      fullName: 'IMT Berdasarkan Usia\n (5-18 Tahun)',
+      icon: Icons.calculate,
+      color: Colors.brown,
+      pageBuilder: _buildImtuPage,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
+    // RESPONSIVE CALCULATION
+    // Menghitung dimensi layar sekali saja di sini.
+    final Size screenSize = MediaQuery.sizeOf(context);
+    final double screenWidth = screenSize.width;
+    final double screenHeight = screenSize.height;
+
+    // Konsistensi Visual: Menggunakan logika padding yang sama dengan Disease Page
+    // Padding 8% dari lebar layar agar konsisten di HP kecil maupun Tablet
+    final double gridPadding = screenWidth * 0.08;
+
+    // Menghitung Aspect Ratio agar kartu tetap proporsional
+    // Rumus: (Lebar Layar - Padding Kiri Kanan - Spasi Tengah) / 2 Kolom
+    final double colWidth = (screenWidth - (gridPadding * 2) - 16) / 2;
+    // Tinggi kartu ditargetkan sekitar 22% dari tinggi layar
+    final double cardHeight = screenHeight * 0.22; 
+    
+    // Mencegah division by zero atau nilai negatif pada layar sangat kecil
+    final double childAspectRatio = (cardHeight > 0) ? (colWidth / cardHeight) : 1.0;
+
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.white,
       appBar: const CustomAppBar(
         title: 'Kalkulator Gizi',
         subtitle: 'Pilih Jenis Kalkulator',
       ),
       body: SafeArea(
         child: GridView.builder(
-          padding: const EdgeInsets.all(16.0), // Tambahkan padding agar rapi
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16, // Sedikit diperlebar agar tidak terlalu rapat
+          padding: EdgeInsets.all(gridPadding),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, // Tetap 2 kolom sesuai request
+            crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 1.0,
+            childAspectRatio: childAspectRatio, // Dinamis
           ),
           itemCount: _menuItems.length,
           itemBuilder: (context, index) {
-            final item = _menuItems[index];
-            return _buildMenuCard(context, item);
+            final _FormulaMenu item = _menuItems[index];
+            return _FormulaMenuCard(
+              item: item,
+              onTap: () => _handleNavigation(context, item),
+            );
           },
         ),
       ),
     );
   }
 
-  Widget _buildMenuCard(BuildContext context, _FormulaMenu item) {
-    // 1. Semantics untuk Automation Tool (Katalon/Appium) agar bisa membaca label tombol
+  /// Centralized Navigation Logic
+  void _handleNavigation(BuildContext context, _FormulaMenu item) {
+    if (item.pageBuilder == null) {
+      _showNotImplementedDialog(context, item);
+      return;
+    }
+
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => item.pageBuilder!(userRole),
+        transitionsBuilder: (_, animation, __, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+    );
+  }
+
+  void _showNotImplementedDialog(BuildContext context, _FormulaMenu item) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Formula: ${item.name}'),
+        content: Text(
+          'Navigasi ke halaman ${item.fullName} belum tersedia.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Widget Menu yang Diekstrak untuk Performance & Readability
+/// Membantu Flutter Engine melakukan diffing widget tree lebih cepat.
+class _FormulaMenuCard extends StatelessWidget {
+  final _FormulaMenu item;
+  final VoidCallback onTap;
+
+  const _FormulaMenuCard({
+    required this.item,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // QA & AUTOMATION LAYER
+    // Semantics: Memberikan data ke Accessibility Service (TalkBack/Switch Access)
+    // dan Testing Tools (Katalon/Appium).
     return Semantics(
-      label: item.fullName.replaceAll('\n', ' '), // Baca nama lengkap tanpa baris baru
-      identifier: item.keyId, // Identifier untuk iOS Accessibility
+      label: "Navigasi ke Kalkulator ${item.name}", // Label deskriptif untuk Screen Reader
+      identifier: item.keyId, // ID Stabil untuk Katalon Object Spy
       button: true,
       child: GestureDetector(
-        // 2. Key Unik untuk Automation (Flutter Driver / Integration Test)
+        // Key: Penting untuk Flutter Integration Test (Flutter Driver)
         key: ValueKey(item.keyId), 
-        onTap: () => _handleNavigation(context, item),
+        onTap: onTap,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 10),
-            // Menggunakan Container dekoratif yang sama dengan kode asli
+            // Ikon Lingkaran
             Container(
               width: 100,
               height: 100,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: item.color.withValues(alpha:0.1),
+                // Menggunakan withValues (Flutter 3.27+) sesuai referensi Anda
+                color: item.color.withValues(alpha: 0.1),
                 border: Border.all(
                   color: item.color,
                   width: 2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: item.color.withValues(alpha:0.3),
+                    color: item.color.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -186,7 +282,7 @@ class FormulaCalculationPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            // Text Nama Lengkap
+            // Teks Nama Lengkap
             Expanded(
               child: Text(
                 item.fullName,
@@ -203,51 +299,5 @@ class FormulaCalculationPage extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  // Logic Navigation yang Refactored (DRY - Don't Repeat Yourself)
-  // Menghapus if-else panjang dan menggantinya dengan logika dinamis
-  void _handleNavigation(BuildContext context, _FormulaMenu item) {
-    if (item.pageBuilder != null) {
-      Navigator.push(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              item.pageBuilder!(userRole),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0); // Slide dari kanan
-            const end = Offset.zero;
-            const curve = Curves.easeInOut;
-
-            var tween = Tween(begin: begin, end: end).chain(
-              CurveTween(curve: curve),
-            );
-
-            return SlideTransition(
-              position: animation.drive(tween),
-              child: child,
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 300),
-        ),
-      );
-    } else {
-      // Fallback jika halaman belum diimplementasikan
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Formula: ${item.name}'),
-          content: Text(
-            'Navigasi ke halaman input untuk ${item.fullName} akan diimplementasikan.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    }
   }
 }

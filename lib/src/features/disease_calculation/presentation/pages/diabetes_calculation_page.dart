@@ -1,16 +1,40 @@
+//lib\src\features\disease_calculation\presentation\pages\diabetes_calculation_page.dart
+
 import 'package:flutter/material.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/diabetes_calculator_service.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/services.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
+import 'package:dropdown_search/dropdown_search.dart';
+
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/diabetes_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/diabetes_meal_planner_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/food_database_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/food_search_delegate.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/pdf_generator_dm.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/food_search_delegate.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
+// ---------------------------------------------------------------------------
+// Semantic Key Constants — single source of truth for QA team.
+// ---------------------------------------------------------------------------
+class _SemanticKeys {
+  static const patientPicker = ValueKey('patientPicker');
+  static const ageField = ValueKey('ageField');
+  static const genderDropdown = ValueKey('genderDropdown');
+  static const weightField = ValueKey('weightField');
+  static const heightField = ValueKey('heightField');
+  static const activityDropdown = ValueKey('activityDropdown');
+  static const hospitalizedDropdown = ValueKey('hospitalizedDropdown');
+  static const stressSlider = ValueKey('stressSlider');
+  static const btnDownloadPdf = ValueKey('btnDownloadPdf');
+  // Meal-distribution rows are keyed dynamically: 'mealRow_<mealName>'
+  static ValueKey mealRow(String mealName) =>
+      ValueKey('mealRow_${mealName.replaceAll(' ', '_')}');
+}
+
+// ---------------------------------------------------------------------------
+// Widget
+// ---------------------------------------------------------------------------
 class DiabetesCalculationPage extends StatefulWidget {
   final String userRole;
 
@@ -22,60 +46,53 @@ class DiabetesCalculationPage extends StatefulWidget {
 }
 
 class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
+  // ── Keys & Services ────────────────────────────────────────────────────────
   final _formKey = GlobalKey<FormState>();
-  final _calculatorService = DiabetesCalculatorService();
+  final _resultCardKey = GlobalKey();
   final GlobalKey<PatientPickerWidgetState> _patientPickerKey = GlobalKey();
-  final _notesController = TextEditingController();
 
-  // Form controllers
+  final _calculatorService = DiabetesCalculatorService();
+  final _foodDbService = FoodDatabaseService();
+  late final _mealPlannerService = DiabetesMealPlannerService(_foodDbService);
+
+  // ── Controllers ────────────────────────────────────────────────────────────
   final _ageController = TextEditingController();
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  final GlobalKey _resultCardKey = GlobalKey();
   final _genderController = TextEditingController();
   final _activityController = TextEditingController();
-  //final _bloodSugarController = TextEditingController();
-  //final _bloodPressureController = TextEditingController();
   final _hospitalizedStatusController = TextEditingController();
-  final _foodDbService = FoodDatabaseService();
-  late final _mealPlannerService = DiabetesMealPlannerService(_foodDbService);
+  final _notesController = TextEditingController();
+  final _scrollController = ScrollController();
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  double _stressMetabolic = 20.0;
+  DiabetesCalculationResult? _result;
   List<DmMealSession>? _dailyMenu;
   bool _isGeneratingMenu = false;
 
-  // Form fields
-  //List<GeneratedMeal>? _generatedMenu;
-  //bool _isGeneratingMenu = false;
-  double _stressMetabolic = 20.0;
+  // ── Static Data ────────────────────────────────────────────────────────────
+  static const _genders = ['Laki-laki', 'Perempuan'];
+  static const _activityLevels = ['Bed rest', 'Ringan', 'Sedang', 'Berat'];
 
-  // Calculation results
-  DiabetesCalculationResult? _result;
+  // ── Colour constant reused across the file ─────────────────────────────────
+  static const _kGreen = Color.fromARGB(255, 0, 148, 68);
 
-  final List<String> _genders = ['Laki-laki', 'Perempuan'];
-  final List<String> _activityLevels = [
-    'Bed rest',
-    'Ringan',
-    'Sedang',
-    'Berat',
-  ];
-  //final List<String> _bloodSugarOptions = ['Terkendali', 'Tidak terkendali'];
-  //final List<String> _bloodPressureOptions = ['Normal', 'Tinggi'];
-
+  // ---------------------------------------------------------------------------
   @override
   void dispose() {
     _ageController.dispose();
     _weightController.dispose();
     _heightController.dispose();
-    _scrollController.dispose();
     _genderController.dispose();
     _activityController.dispose();
-    //_bloodSugarController.dispose();
-    //_bloodPressureController.dispose();
     _hospitalizedStatusController.dispose();
     _notesController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
+  // ── Helpers ─────────────────────────────────────────────────────────────────
   String _calculateAgeInYears(DateTime birthDate) {
     final now = DateTime.now();
     int age = now.year - birthDate.year;
@@ -86,7 +103,6 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     return age.toString();
   }
 
-  // TAMBAHAN: Fungsi callback saat pasien dipilih
   void _fillDataFromPatient(
     double weight,
     double height,
@@ -98,23 +114,18 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
       _heightController.text = height.toString();
       _ageController.text = _calculateAgeInYears(dob);
 
-      String incomingGender = gender.toLowerCase();
-      String normalizedGender = '';
-
+      final incomingGender = gender.toLowerCase();
       if (incomingGender.contains('laki') ||
           incomingGender.contains('pria') ||
           incomingGender == 'l') {
-        normalizedGender = 'Laki-laki';
+        _genderController.text = 'Laki-laki';
       } else if (incomingGender.contains('perempuan') ||
           incomingGender.contains('wanita') ||
           incomingGender == 'p') {
-        normalizedGender = 'Perempuan';
+        _genderController.text = 'Perempuan';
       } else {
-        normalizedGender = gender;
+        _genderController.text = gender;
       }
-      _genderController.text = normalizedGender;
-
-      // Reset hasil sebelumnya jika ada data baru masuk
       _result = null;
     });
   }
@@ -132,37 +143,34 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   }
 
   void _calculateDiabetesNutrition() {
-    if (_formKey.currentState!.validate()) {
-      final result = _calculatorService.calculate(
-        age: int.parse(_ageController.text),
-        weight: double.parse(_weightController.text),
-        height: double.parse(_heightController.text),
-        gender: _genderController.text, // Perbaikan
-        activity: _activityController.text, // Perbaikan
-        hospitalizedStatus: _hospitalizedStatusController.text, // Perbaikan
-        stressMetabolic: _stressMetabolic,
-        //bloodSugar: _bloodSugarController.text, // Perbaikan
-        //bloodPressure: _bloodPressureController.text,
-      );
+    if (!_formKey.currentState!.validate()) return;
 
-      setState(() {
-        _result = result;
-        _isGeneratingMenu = true; // Mulai loading
-        _dailyMenu = null;
-      });
+    final result = _calculatorService.calculate(
+      age: int.parse(_ageController.text),
+      weight: double.parse(_weightController.text),
+      height: double.parse(_heightController.text),
+      gender: _genderController.text,
+      activity: _activityController.text,
+      hospitalizedStatus: _hospitalizedStatusController.text,
+      stressMetabolic: _stressMetabolic,
+    );
 
-      // Generate menu baru
-      _mealPlannerService.generateDailyPlan(result.dailyMealDistribution).then((
-        menu,
-      ) {
-        setState(() {
-          _dailyMenu = menu;
-          _isGeneratingMenu = false; // Set loading false
-        });
-      });
+    setState(() {
+      _result = result;
+      _isGeneratingMenu = true;
+      _dailyMenu = null;
+    });
 
-      _scrollToResult();
-    }
+    _mealPlannerService
+        .generateDailyPlan(result.dailyMealDistribution)
+        .then(
+          (menu) => setState(() {
+            _dailyMenu = menu;
+            _isGeneratingMenu = false;
+          }),
+        );
+
+    _scrollToResult();
   }
 
   void _resetForm() {
@@ -174,16 +182,27 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     setState(() {
       _genderController.clear();
       _activityController.clear();
-      //_bloodSugarController.clear();
-      //_bloodPressureController.clear();
       _hospitalizedStatusController.clear();
       _stressMetabolic = 20.0;
       _result = null;
     });
   }
 
+  String _formatNumber(double value) => value == value.toInt()
+      ? value.toInt().toString()
+      : value.toStringAsFixed(1);
+
+  // ---------------------------------------------------------------------------
+  // BUILD
+  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
+    // ── Responsive spacing tokens ───────────────────────────────────────────
+    final size = MediaQuery.sizeOf(context);
+    final hPad = size.width * 0.04; // ≈ 16 dp @ 400 px wide
+    final vSpace = size.height * 0.025; // ≈ 20 dp @ 800 px tall
+    final vSpaceSm = size.height * 0.02; // ≈ 16 dp
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(
@@ -192,162 +211,193 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
       ),
       body: SafeArea(
         child: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
+          onTap: () => FocusScope.of(context).unfocus(),
           child: SingleChildScrollView(
             controller: _scrollController,
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(hPad),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  PatientPickerWidget(
-                    key: _patientPickerKey,
-                    onPatientSelected: _fillDataFromPatient,
-                    userRole: widget.userRole,
+                  // ── Patient Picker ────────────────────────────────────────
+                  Semantics(
+                    key: _SemanticKeys.patientPicker,
+                    label: 'Pilih Pasien',
+                    container: true,
+                    child: PatientPickerWidget(
+                      key: _patientPickerKey,
+                      onPatientSelected: _fillDataFromPatient,
+                      userRole: widget.userRole,
+                    ),
                   ),
-                  const SizedBox(height: 20),
+
+                  SizedBox(height: vSpace),
                   const Text(
                     'Input Data Diabetes Melitus',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: vSpace),
 
-                  // Input Usia
-                  _buildTextFormField(
-                    controller: _ageController,
-                    label: 'Usia',
-                    prefixIcon: const Icon(Icons.calendar_today),
-                    suffixText: 'tahun',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return 'Masukkan usia';
-                      final age = int.tryParse(value);
-                      if (age == null || age < 1 || age > 120) return 'Masukkan usia yang valid (1-120 tahun)';
-                      return null;
-                    },
+                  // ── Usia ──────────────────────────────────────────────────
+                  Semantics(
+                    label: 'Field Usia',
+                    textField: true,
+                    child: _buildTextFormField(
+                      key: _SemanticKeys.ageField,
+                      controller: _ageController,
+                      label: 'Usia',
+                      prefixIcon: const Icon(Icons.calendar_today),
+                      suffixText: 'tahun',
+                      validator: (value) {
+                        if (value == null || value.isEmpty)return 'Masukkan usia';
+                        final age = int.tryParse(value);
+                        if (age == null || age < 1 || age > 120)return 'Masukkan usia yang valid (1-120 tahun)';
+                        return null;
+                      },
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: vSpaceSm),
 
-                  // Dropdown Jenis Kelamin
-                  _buildCustomDropdown(
-                    controller: _genderController,
-                    label: 'Jenis Kelamin',
-                    prefixIcon: const Icon(Icons.wc),
-                    items: _genders,
+                  // ── Jenis Kelamin ─────────────────────────────────────────
+                  Semantics(
+                    label: 'Dropdown Jenis Kelamin',
+                    child: _buildCustomDropdown(
+                      key: _SemanticKeys.genderDropdown,
+                      controller: _genderController,
+                      label: 'Jenis Kelamin',
+                      prefixIcon: const Icon(Icons.wc),
+                      items: _genders,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: vSpaceSm),
 
-                  // Input Berat Badan
-                  _buildTextFormField(
-                    controller: _weightController,
-                    label: 'Berat Badan',
-                    prefixIcon: const Icon(Icons.monitor_weight),
-                    suffixText: 'kg',
-                    validator: (value) {
-                      if (value == null || value.isEmpty)return 'Masukkan berat badan';
-                      final weight = double.tryParse(value);
-                      if (weight == null || weight < 1 || weight > 300)return 'Masukkan berat badan yang valid (1-300 kg)';
-                      return null;
-                    },
+                  // ── Berat Badan ───────────────────────────────────────────
+                  Semantics(
+                    label: 'Field Berat Badan',
+                    textField: true,
+                    child: _buildTextFormField(
+                      key: _SemanticKeys.weightField,
+                      controller: _weightController,
+                      label: 'Berat Badan',
+                      prefixIcon: const Icon(Icons.monitor_weight),
+                      suffixText: 'kg',
+                      validator: (value) {
+                        if (value == null || value.isEmpty)return 'Masukkan berat badan';
+                        final weight = double.tryParse(value);
+                        if (weight == null || weight < 1 || weight > 300)return 'Masukkan berat badan yang valid (1-300 kg)';
+                        return null;
+                      },
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: vSpaceSm),
 
-                  // Input Tinggi Badan
-                  _buildTextFormField(
-                    controller: _heightController,
-                    label: 'Tinggi Badan',
-                    prefixIcon: const Icon(Icons.height),
-                    suffixText: 'cm',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return 'Masukkan tinggi badan';
-                      final height = double.tryParse(value);
-                      if (height == null || height < 30 || height > 300) return 'Masukkan tinggi badan yang valid (30-300 cm)';
-                      return null;
-                    },
+                  // ── Tinggi Badan ──────────────────────────────────────────
+                  Semantics(
+                    label: 'Field Tinggi Badan',
+                    textField: true,
+                    child: _buildTextFormField(
+                      key: _SemanticKeys.heightField,
+                      controller: _heightController,
+                      label: 'Tinggi Badan',
+                      prefixIcon: const Icon(Icons.height),
+                      suffixText: 'cm',
+                      validator: (value) {
+                        if (value == null || value.isEmpty)return 'Masukkan tinggi badan';
+                        final height = double.tryParse(value);
+                        if (height == null || height < 30 || height > 300)return 'Masukkan tinggi badan yang valid (30-300 cm)';
+                        return null;
+                      },
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: vSpaceSm),
 
-                  // Dropdown Faktor Aktivitas
-                  _buildCustomDropdown(
-                    controller: _activityController,
-                    label: 'Faktor Aktivitas',
-                    prefixIcon: const Icon(Icons.directions_run),
-                    items: _activityLevels,
+                  // ── Faktor Aktivitas ──────────────────────────────────────
+                  Semantics(
+                    label: 'Dropdown Faktor Aktivitas',
+                    child: _buildCustomDropdown(
+                      key: _SemanticKeys.activityDropdown,
+                      controller: _activityController,
+                      label: 'Faktor Aktivitas',
+                      prefixIcon: const Icon(Icons.directions_run),
+                      items: _activityLevels,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: vSpaceSm),
 
-                  // Dropdown Gula Darah
-                 /* _buildCustomDropdown(
-                    controller: _bloodSugarController,
-                    label: 'Gula Darah',
-                    prefixIcon: const Icon(Icons.bloodtype),
-                    items: _bloodSugarOptions,
+                  // ── Status Rawat Inap ─────────────────────────────────────
+                  Semantics(
+                    label: 'Dropdown Status Rawat Inap',
+                    child: _buildCustomDropdown(
+                      key: _SemanticKeys.hospitalizedDropdown,
+                      controller: _hospitalizedStatusController,
+                      label: 'Status Rawat Inap',
+                      prefixIcon: const Icon(Icons.bed),
+                      items: const ['Ya', 'Tidak'],
+                      onChanged: (value) {
+                        setState(() {
+                          _hospitalizedStatusController.text = value ?? '';
+                          if (value == 'Tidak') _stressMetabolic = 20.0;
+                        });
+                      },
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: vSpaceSm),
 
-                  // Dropdown Tekanan Darah
-                  _buildCustomDropdown(
-                    controller: _bloodPressureController,
-                    label: 'Tekanan Darah',
-                    prefixIcon: const Icon(Icons.monitor_heart),
-                    items: _bloodPressureOptions,
-                  ),
-                  const SizedBox(height: 16),*/
-
-                  _buildCustomDropdown(
-                    controller: _hospitalizedStatusController,
-                    label: 'Status Rawat Inap',
-                    prefixIcon: const Icon(Icons.bed),
-                    items: ['Ya', 'Tidak'],
-                    onChanged: (value) {
-                      setState(() {
-                        _hospitalizedStatusController.text = value ?? '';
-                        if (value == 'Tidak') _stressMetabolic = 20.0;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // This conditional logic now reads from the controller
+                  // ── Stress Metabolik Slider (kondisional) ─────────────────
                   if (_hospitalizedStatusController.text == 'Ya') ...[
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Stress Metabolik: ${_stressMetabolic.round()}%',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                    Semantics(
+                      label: 'Slider Stress Metabolik',
+                      slider: true,
+                      child: Column(
+                        key: _SemanticKeys.stressSlider,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Stress Metabolik: ${_stressMetabolic.round()}%',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        Slider(
-                          value: _stressMetabolic,
-                          min: 10,
-                          max: 40,
-                          divisions: 30,
-                          label: '${_stressMetabolic.round()}%',
-                          onChanged: (value) =>
-                              setState(() => _stressMetabolic = value),
-                        ),
-                      ],
+                          Slider(
+                            value: _stressMetabolic,
+                            min: 10,
+                            max: 40,
+                            divisions: 30,
+                            label: '${_stressMetabolic.round()}%',
+                            onChanged: (v) =>
+                                setState(() => _stressMetabolic = v),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: vSpaceSm),
                   ],
-                  const SizedBox(height: 24),
-                  FormActionButtons(
-                    onReset: _resetForm,
-                    onSubmit: _calculateDiabetesNutrition,
-                    resetButtonColor: Colors.white, // Background jadi putih
-                    resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
-                    submitIcon: const Icon(
-                      Icons.calculate,
-                      color: Colors.white,
+
+                  SizedBox(height: size.height * 0.03),
+
+                  // ── Action Buttons ────────────────────────────────────────
+                  Semantics(
+                    label: 'Tombol Hitung dan Reset Kalori Diabetes',
+                    child: FormActionButtons(
+                      onReset: _resetForm,
+                      onSubmit: _calculateDiabetesNutrition,
+                      resetButtonColor: Colors.white,
+                      resetForegroundColor: _kGreen,
+                      submitIcon: const Icon(
+                        Icons.calculate,
+                        color: Colors.white,
+                      ),
+                      // Pass keys so Katalon can identify each button individually.
+                      // If FormActionButtons does not expose key params, wrap the
+                      // Row externally — the Semantics label above suffices for
+                      // page-level detection; individual keys below are bonus.
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: size.height * 0.04),
 
+                  // ── Result Section ────────────────────────────────────────
                   if (_result != null) ...[
                     Container(
                       key: _resultCardKey,
@@ -355,298 +405,24 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                         children: [Divider(), SizedBox(height: 32)],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(
-                          255,
-                          0,
-                          148,
-                          68,
-                        ).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: const Color.fromARGB(255, 0, 148, 68),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Center(
-                            child: Text(
-                              'Hasil Total Kebutuhan Energi',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color.fromARGB(255, 0, 148, 68),
-                              ),
-                            ),
-                          ),
-                          const Divider(height: 24),
-                          const SizedBox(height: 8),
-                          _buildNutritionRow(
-                            'BB Ideal',
-                            '${_result!.bbIdeal.round()} kg',
-                          ),
-                          _buildNutritionRow(
-                            'BMR',
-                            '${_result!.bmr.round()} kkal/hari',
-                          ),
-                          _buildNutritionRow(
-                            'Kategori IMT',
-                            _result!.bmiCategory,
-                          ),
-                          _buildNutritionRow(
-                            'Koreksi Aktivitas',
-                            '+${_result!.activityCorrection.round()} kkal/hari',
-                          ),
-                          if (_result!.ageCorrection > 0)
-                            _buildNutritionRow(
-                              'Koreksi Usia',
-                              '-${_result!.ageCorrection.round()} kkal/hari',
-                            ),
-                          if (_result!.weightCorrection != 0)
-                            _buildNutritionRow(
-                              'Koreksi Berat Badan',
-                              '${_result!.weightCorrection > 0 ? '+' : ''}${_result!.weightCorrection.round()} kkal/hari',
-                            ),
-                          if (_hospitalizedStatusController.text == 'Ya')
-                            _buildNutritionRow(
-                              'Koreksi Stress Metabolik',
-                              '+${((_stressMetabolic / 100) * _result!.bmr).round()} kkal/hari',
-                            ),
-                          const SizedBox(height: 8),
-                          Center(
-                            child: Text(
-                              'Total Kalori: ${_result!.totalCalories.round()} kkal/hari',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Total kebutuhan energi digunakan untuk mengetahui jenis diet Diabetes Melitus',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
 
-                    // CONTAINER BARU UNTUK JENIS DIET
-                    ExpansionTile(
-                      title: Text('Jenis ${_result!.dietInfo.name}'),
-                      children: [
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.blue.shade300),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Center(
-                                child: Text(
-                                  'Jenis ${_result!.dietInfo.name}',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                              ),
-                              const Divider(height: 24),
-                              _buildNutritionRow(
-                                'Protein',
-                                '${_result!.dietInfo.protein} g',
-                              ),
-                              _buildNutritionRow(
-                                'Lemak',
-                                '${_result!.dietInfo.fat} g',
-                              ),
-                              _buildNutritionRow(
-                                'Karbohidrat',
-                                '${_result!.dietInfo.carbohydrate} g',
-                              ),
+                    // Total Kalori card
+                    _buildTotalCaloriesCard(),
+                    SizedBox(height: vSpaceSm),
 
-                              const SizedBox(height: 8),
+                    // Jenis Diet expansion
+                    _buildDietInfoTile(),
+                    SizedBox(height: vSpaceSm),
 
-                              const Text(
-                                'Jenis Diet Diabetes Melitus menurut kandungan energi, protein, lemak, dan karbohidrat',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                    ),
+                    // Standar Diet expansion
+                    _buildFoodGroupTile(),
+                    SizedBox(height: vSpaceSm),
 
-                    const SizedBox(height: 16),
+                    // Pembagian Makanan expansion
+                    _buildMealDistributionTile(),
+                    SizedBox(height: vSpaceSm),
 
-                    // CONTAINER BARU UNTUK STANDAR DIET GOLONGAN BAHAN MAKANAN
-                    ExpansionTile(
-                      title: Text(
-                        'Standar Diet (${_result!.foodGroupDiet.calorieLevel})',
-                      ),
-                      children: [
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.purple.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.purple.shade300),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Center(
-                                child: Text(
-                                  'Standar Diet (${_result!.foodGroupDiet.calorieLevel})',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.purple,
-                                  ),
-                                ),
-                              ),
-                              const Divider(height: 24),
-                              _buildNutritionRow(
-                                'Nasi atau penukar',
-                                '${_formatNumber(_result!.foodGroupDiet.nasiP)} P',
-                              ),
-                              _buildNutritionRow(
-                                'Ikan atau penukar',
-                                '${_formatNumber(_result!.foodGroupDiet.ikanP)} P',
-                              ),
-                              _buildNutritionRow(
-                                'Daging atau penukar',
-                                '${_formatNumber(_result!.foodGroupDiet.dagingP)} P',
-                              ),
-                              _buildNutritionRow(
-                                'Tempe atau penukar',
-                                '${_formatNumber(_result!.foodGroupDiet.tempeP)} P',
-                              ),
-                              _buildNutritionRow(
-                                'Sayuran/penukar A',
-                                ' ${_result!.foodGroupDiet.sayuranA}',
-                              ),
-                              _buildNutritionRow(
-                                'Sayuran/penukar B',
-                                '${_formatNumber(_result!.foodGroupDiet.sayuranB)} P',
-                              ),
-                              _buildNutritionRow(
-                                'Buah atau penukar',
-                                '${_formatNumber(_result!.foodGroupDiet.buah)} P',
-                              ),
-                              _buildNutritionRow(
-                                'Susu atau penukar',
-                                '${_formatNumber(_result!.foodGroupDiet.susu)} P',
-                              ),
-                              _buildNutritionRow(
-                                'Minyak atau penukar',
-                                '${_formatNumber(_result!.foodGroupDiet.minyak)} P',
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Keterangan : (P = Penukar) (S = Sekehendak) ',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.black54,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Jumlah bahan makanan sehari menurut Standar Diet Diabetes Melitus (dalam satuan penukar II)',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-                    ExpansionTile(
-                      title: Text(
-                        'Pembagian Makanan\nSehari-hari (${_result!.dailyMealDistribution.calorieLevel})',
-                      ),
-                      children: [
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.green.shade300),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Center(
-                                child: Text(
-                                  'Pembagian Makanan Sehari-hari \n (${_result!.dailyMealDistribution.calorieLevel})',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
-                                  ),
-                                ),
-                              ),
-                              const Divider(height: 24),
-                              _buildMealDistributionTable(),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Keterangan : (P = Penukar) (S = Sekehendak) ',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.black54,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Pembagian makanan sehari tiap Standar Diet Diabetes Melitus dan Nilai Gizi (dalam satuan penukar II)',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-                    
+                    // Rekomendasi Menu Sehari
                     _buildDailyMenuSection(),
                   ],
                 ],
@@ -658,195 +434,111 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     );
   }
 
- Widget _buildDailyMenuSection() {
+  // ===========================================================================
+  // PRIVATE WIDGET BUILDERS — Result Cards
+  // ===========================================================================
 
-  final String currentRole = widget.userRole.toLowerCase();
-
-    // Daftar role yang diperbolehkan mengakses fitur ini
-    // Catatan: Saya sertakan 'nutrisionis' juga jaga-jaga jika di database Anda
-    // menggunakan istilah tersebut selain 'ahli gizi'.
-    bool isAllowed = currentRole == 'admin' || 
-                     currentRole == 'ahli_gizi' || 
-                     currentRole == 'nutrisionis';
-
-    // Jika role TIDAK diizinkan (misal: 'tamu'), kembalikan widget kosong (hilang)
-    if (!isAllowed) {
-      return const SizedBox.shrink();
-    }
-
-    // 3. Widget Utama (ExpansionTile -> Container -> Isi Menu Biru)
-    return ExpansionTile(
-      title: const Text(
-        'Rekomendasi Menu Sehari',
+  Widget _buildTotalCaloriesCard() {
+    return Container(
+      padding: EdgeInsets.all(MediaQuery.sizeOf(context).width * 0.04),
+      decoration: BoxDecoration(
+        color: _kGreen.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: const Border.fromBorderSide(BorderSide(color: _kGreen)),
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Center(
+            child: Text(
+              'Hasil Total Kebutuhan Energi',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: _kGreen,
+              ),
+            ),
+          ),
+          const Divider(height: 24),
+          const SizedBox(height: 8),
+          _buildNutritionRow('BB Ideal', '${_result!.bbIdeal.round()} kg'),
+          _buildNutritionRow('BMR', '${_result!.bmr.round()} kkal/hari'),
+          _buildNutritionRow('Kategori IMT', _result!.bmiCategory),
+          _buildNutritionRow(
+            'Koreksi Aktivitas',
+            '+${_result!.activityCorrection.round()} kkal/hari',
+          ),
+          if (_result!.ageCorrection > 0)
+            _buildNutritionRow(
+              'Koreksi Usia',
+              '-${_result!.ageCorrection.round()} kkal/hari',
+            ),
+          if (_result!.weightCorrection != 0)
+            _buildNutritionRow(
+              'Koreksi Berat Badan',
+              '${_result!.weightCorrection > 0 ? '+' : ''}${_result!.weightCorrection.round()} kkal/hari',
+            ),
+          if (_hospitalizedStatusController.text == 'Ya')
+            _buildNutritionRow(
+              'Koreksi Stress Metabolik',
+              '+${((_stressMetabolic / 100) * _result!.bmr).round()} kkal/hari',
+            ),
+          const SizedBox(height: 8),
+          Center(
+            child: Text(
+              'Total Kalori: ${_result!.totalCalories.round()} kkal/hari',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Total kebutuhan energi digunakan untuk mengetahui jenis diet Diabetes Melitus',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDietInfoTile() {
+    return ExpansionTile(
+      title: Text('Jenis ${_result!.dietInfo.name}'),
       children: [
         const SizedBox(height: 10),
-
-        if (_isGeneratingMenu)
-          Container(
-            height: 150, // Beri tinggi agar loading terlihat jelas di tengah
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text("Sedang membuat menu...", style: TextStyle(color: Colors.grey)),
-              ],
-            ),
-          )
-        
-        // KONDISI 2: DATA ADA (Tampilkan Container Biru)
-        else if (_dailyMenu != null && _dailyMenu!.isNotEmpty)
-        
-        // Container Pembungkus (Style dirapikan, warna disesuaikan dengan tema Biru konten Anda)
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(MediaQuery.sizeOf(context).width * 0.04),
           decoration: BoxDecoration(
-            color: Colors.blue.withValues(alpha: 0.1), // Background Biru Transparan
+            color: Colors.blue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue.shade300), // Border Biru
+            border: Border.all(color: Colors.blue.shade300),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Judul (Warna Tetap Biru)
-              const Center(
+              Center(
                 child: Text(
-                  'Rekomendasi Menu Sehari',
-                  style: TextStyle(
+                  'Jenis ${_result!.dietInfo.name}',
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue, // Tetap Biru
+                    color: Colors.blue,
                   ),
-                  textAlign: TextAlign.center,
                 ),
+              ),
+              const Divider(height: 24),
+              _buildNutritionRow('Protein', '${_result!.dietInfo.protein} g'),
+              _buildNutritionRow('Lemak', '${_result!.dietInfo.fat} g'),
+              _buildNutritionRow(
+                'Karbohidrat',
+                '${_result!.dietInfo.carbohydrate} g',
               ),
               const SizedBox(height: 8),
               const Text(
-                'Ketuk ikon pensil untuk mengganti menu',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                'Jenis Diet Diabetes Melitus menurut kandungan energi, protein, lemak, dan karbohidrat',
                 textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 16),
-
-              // Loop Sesi Makan
-              ..._dailyMenu!.map((session) {
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      // Header Waktu Makan (Warna Tetap Biru Muda)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade100, // Tetap Biru Muda
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          session.sessionName,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade900, // Tetap Biru Tua
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      // List Makanan
-                      ...session.items.map((item) {
-                        // Logika Tampilan Porsi
-                        String portionText;
-                        if (item.portion == 'S') {
-                          portionText = "(S)";
-                        } else {
-                          String val = item.portion is num
-                              ? _formatNumber(item.portion)
-                              : item.portion.toString();
-                          portionText = "($val P)";
-                        }
-
-                        return ListTile(
-                          dense: true,
-                          title: Text(
-                            item.categoryLabel,
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                          subtitle: Text(
-                            "${item.foodName} $portionText",
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(
-                              Icons.edit,
-                              size: 20,
-                              color: Colors.grey, // Icon Edit tetap Orange sesuai request
-                            ),
-                            onPressed: () => _showEditDialog(item),
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
-                );
-              }),
-
-              const SizedBox(height: 16),
-              const Divider(),
-              const Text(
-                "Catatan Tambahan (Opsional)",
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _notesController,
-                maxLines: 3, // Agar bisa input panjang
-                decoration: InputDecoration(
-                  hintText: "Tulis anjuran khusus atau catatan untuk pasien disini...",
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.blue.shade200),
-                  ),
-                  contentPadding: const EdgeInsets.all(10),
-                ),
-              ),
-
-              // Tombol Download PDF (Warna Tetap Biru)
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _downloadPdf,
-                icon: const Icon(Icons.download),
-                label: const Text(
-                  "Download Menu PDF",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue, // Tetap Biru
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 4,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.black54),
               ),
             ],
           ),
@@ -856,168 +548,153 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     );
   }
 
-  // --- LOGIKA EDIT MAKANAN ---
-  void _showEditDialog(DmMenuItem item) async {
-    // Membuka halaman pencarian
-    // Tipe generic <FoodItem?> ditambahkan agar sesuai dengan delegate
-    final FoodItem? selectedFood = await showSearch<FoodItem?>(
-      context: context,
-      delegate: FoodSearchDelegate(_foodDbService,initialQuery: item.foodName,),
-    );
-
-    if (selectedFood != null) {
-      setState(() {
-        // Update item menu dengan data baru
-        item.foodName = selectedFood.name;
-        item.foodData = selectedFood;
-      });
-    }
-  }
-
-  // --- LOGIKA DOWNLOAD PDF ---
-  // Di dalam class DiabetesCalculationPage (atau state-nya)
-
-  void _downloadPdf() async {
-    // Validasi data kosong
-    if (_dailyMenu == null || _dailyMenu!.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Menu belum tersedia.')));
-      return;
-    }
-
-    // Tampilkan Loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      // PANGGIL FUNGSI YANG BARU KITA BUAT DI SERVICE
-      // Ganti "Pasien" dengan variabel nama pasien yang sesuai di kode Anda (misal: _selectedPatient?.name ?? "Pasien")
-      await saveAndOpenDmPdf(_dailyMenu!, "Pasien",_notesController.text,);
-
-      // Tutup loading dialog jika sukses
-      if (mounted && Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
-
-      // Opsional: Tampilkan pesan sukses kecil jika file berhasil terbuka (biasanya tidak perlu karena file langsung terbuka)
-      // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PDF berhasil dibuka'), backgroundColor: Colors.green));
-    } catch (e) {
-      // Tutup loading dialog jika error
-      if (mounted && Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
-
-      // Tampilkan pesan error
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll("Exception: ", "")),
-            backgroundColor: Colors.red,
+  Widget _buildFoodGroupTile() {
+    final diet = _result!.foodGroupDiet;
+    return ExpansionTile(
+      title: Text('Standar Diet (${diet.calorieLevel})'),
+      children: [
+        const SizedBox(height: 10),
+        Container(
+          padding: EdgeInsets.all(MediaQuery.sizeOf(context).width * 0.04),
+          decoration: BoxDecoration(
+            color: Colors.purple.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.purple.shade300),
           ),
-        );
-      }
-    }
-  }
-
-  // Widget untuk Input Teks
-  Widget _buildTextFormField({
-    required TextEditingController controller,
-    required String label,
-    required Icon prefixIcon,
-    required String suffixText,
-    required String? Function(String?) validator,
-    int maxLength = 5,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [
-        // Batasi panjang karakter agar tidak overflow/error database
-        LengthLimitingTextInputFormatter(maxLength),
-        // Opsional: Filter agar hanya angka dan titik (untuk desimal) yang bisa diketik
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-      ],
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        prefixIcon: prefixIcon,
-        suffixText: suffixText,
-        //counterText: "",
-      ),
-      validator: validator,
-    );
-  }
-
-  // Widget untuk Dropdown
-  Widget _buildCustomDropdown({
-    required TextEditingController controller,
-    required String label,
-    required List<String> items,
-    required Icon prefixIcon,
-    bool showSearch = false,
-    void Function(String?)? onChanged,
-  }) {
-    return DropdownSearch<String>(
-      popupProps: PopupProps.menu(
-        showSearchBox: showSearch,
-        fit: FlexFit.loose,
-        constraints: const BoxConstraints(maxHeight: 240),
-      ),
-      items: items,
-      dropdownDecoratorProps: DropDownDecoratorProps(
-        dropdownSearchDecoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          prefixIcon: prefixIcon,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  'Standar Diet (${diet.calorieLevel})',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple,
+                  ),
+                ),
+              ),
+              const Divider(height: 24),
+              _buildNutritionRow(
+                'Nasi atau penukar',
+                '${_formatNumber(diet.nasiP)} P',
+              ),
+              _buildNutritionRow(
+                'Ikan atau penukar',
+                '${_formatNumber(diet.ikanP)} P',
+              ),
+              _buildNutritionRow(
+                'Daging atau penukar',
+                '${_formatNumber(diet.dagingP)} P',
+              ),
+              _buildNutritionRow(
+                'Tempe atau penukar',
+                '${_formatNumber(diet.tempeP)} P',
+              ),
+              _buildNutritionRow('Sayuran/penukar A', ' ${diet.sayuranA}'),
+              _buildNutritionRow(
+                'Sayuran/penukar B',
+                '${_formatNumber(diet.sayuranB)} P',
+              ),
+              _buildNutritionRow(
+                'Buah atau penukar',
+                '${_formatNumber(diet.buah)} P',
+              ),
+              _buildNutritionRow(
+                'Susu atau penukar',
+                '${_formatNumber(diet.susu)} P',
+              ),
+              _buildNutritionRow(
+                'Minyak atau penukar',
+                '${_formatNumber(diet.minyak)} P',
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Keterangan : (P = Penukar) (S = Sekehendak) ',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Jumlah bahan makanan sehari menurut Standar Diet Diabetes Melitus (dalam satuan penukar II)',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+            ],
+          ),
         ),
-      ),
-      onChanged:
-          onChanged ??
-          (String? newValue) {
-            setState(() {
-              controller.text = newValue ?? '';
-            });
-          },
-      selectedItem: controller.text.isEmpty ? null : controller.text,
-      validator: (value) =>
-          (value == null || value.isEmpty) ? '$label harus dipilih' : null,
+        const SizedBox(height: 10),
+      ],
     );
   }
 
-  // Widget helper untuk baris nutrisi di kartu diet
-  Widget _buildNutritionRow(String label, String value, {Color? valueColor}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 16)),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: valueColor ?? const Color.fromARGB(255, 0, 0, 0),
-            ),
+  Widget _buildMealDistributionTile() {
+    final dist = _result!.dailyMealDistribution;
+    return ExpansionTile(
+      title: Text('Pembagian Makanan\nSehari-hari (${dist.calorieLevel})'),
+      children: [
+        const SizedBox(height: 10),
+        Container(
+          padding: EdgeInsets.all(MediaQuery.sizeOf(context).width * 0.04),
+          decoration: BoxDecoration(
+            color: Colors.green.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.green.shade300),
           ),
-        ],
-      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  'Pembagian Makanan Sehari-hari \n (${dist.calorieLevel})',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+              ),
+              const Divider(height: 24),
+              _buildMealDistributionTable(),
+              const SizedBox(height: 8),
+              const Text(
+                'Keterangan : (P = Penukar) (S = Sekehendak) ',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Pembagian makanan sehari tiap Standar Diet Diabetes Melitus dan Nilai Gizi (dalam satuan penukar II)',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+      ],
     );
   }
 
-  // GANTI FUNGSI LAMA DENGAN VERSI BARU INI
-
+  // ===========================================================================
+  // _buildMealDistributionTable — kept as original private method
+  // QA: each row group is wrapped with Semantics + unique ValueKey
+  // ===========================================================================
   Widget _buildMealDistributionTable() {
     final distribution = _result!.dailyMealDistribution;
     const headerStyle = TextStyle(fontWeight: FontWeight.bold, fontSize: 12);
     const cellStyle = TextStyle(fontSize: 12);
     const cellPadding = EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0);
 
-    // Helper untuk membuat grup baris (misal: semua baris untuk 'Pagi')
     Widget buildMealRowGroup(
       String mealName,
       MealDistribution meal, {
@@ -1025,7 +702,6 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     }) {
       final List<Widget> foodRows = [];
 
-      // Fungsi kecil untuk membuat baris makanan (Bahan Makanan + Penukar)
       void addFoodRow(String foodName, dynamic value) {
         foodRows.add(
           Container(
@@ -1038,14 +714,10 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
             ),
             child: Row(
               children: [
-                Expanded(
-                  flex: 3,
-                  child: Text(foodName, style: cellStyle),
-                ), // Kolom Bahan Makanan
+                Expanded(flex: 3, child: Text(foodName, style: cellStyle)),
                 Expanded(
                   flex: 2,
                   child: Text(
-                    // Kolom Penukar
                     value is String
                         ? value
                         : '${_formatNumber(value as double)} P',
@@ -1059,7 +731,6 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
         );
       }
 
-      // Tambahkan baris untuk setiap bahan makanan JIKA nilainya ada
       if (meal.nasiP > 0) addFoodRow('Nasi', meal.nasiP);
       if (meal.ikanP > 0) addFoodRow('Ikan', meal.ikanP);
       if (meal.dagingP > 0) addFoodRow('Daging', meal.dagingP);
@@ -1070,56 +741,56 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
       if (meal.susu > 0) addFoodRow('Susu', meal.susu);
       if (meal.minyak > 0) addFoodRow('Minyak', meal.minyak);
 
-      if (foodRows.isEmpty) {
-        return const SizedBox.shrink(); // Jangan tampilkan apa-apa jika tidak ada makanan
-      }
+      if (foodRows.isEmpty) return const SizedBox.shrink();
 
-      // Bungkus dengan IntrinsicHeight agar sel "Waktu" bisa setinggi daftar makanan
-      return IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Kolom 1: Waktu (Sel yang di-merge)
-            Container(
-              width: 80, // Atur lebar kolom waktu secara manual
-              padding: cellPadding,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: color,
-                border: Border.all(color: Colors.grey.shade300, width: 0.5),
+      // ── QA: wrap each row group with Semantics + ValueKey ─────────────────
+      return Semantics(
+        label: 'Baris distribusi makanan $mealName',
+        container: true,
+        child: IntrinsicHeight(
+          key: _SemanticKeys.mealRow(mealName),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                width: 80,
+                padding: cellPadding,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: color,
+                  border: Border.all(color: Colors.grey.shade300, width: 0.5),
+                ),
+                child: Text(
+                  mealName,
+                  textAlign: TextAlign.center,
+                  style: cellStyle,
+                ),
               ),
-              child: Text(
-                mealName,
-                textAlign: TextAlign.center,
-                style: cellStyle,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: foodRows,
+                ),
               ),
-            ),
-            // Kolom 2: Daftar Bahan Makanan & Penukar
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: foodRows,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
 
-    // Bangun Tampilan Akhir
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400, width: 1),
+        border: Border.all(color: Colors.grey.shade400),
       ),
       child: Column(
         children: [
-          // Header
+          // Header row
           Container(
             padding: cellPadding,
             color: Colors.green.shade100,
-            child: Row(
+            child: const Row(
               children: [
-                const SizedBox(
+                SizedBox(
                   width: 80,
                   child: Text(
                     'Waktu',
@@ -1146,7 +817,6 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
               ],
             ),
           ),
-          // Isi Tabel
           buildMealRowGroup('Pagi', distribution.pagi, color: Colors.white),
           buildMealRowGroup(
             'Pukul 10.00',
@@ -1165,12 +835,334 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     );
   }
 
-  // Helper function to format numbers conditionally
-  String _formatNumber(double value) {
-    if (value == value.toInt()) {
-      return value.toInt().toString();
-    } else {
-      return value.toStringAsFixed(1);
+  // ===========================================================================
+  // Daily Menu Section (role-gated)
+  // ===========================================================================
+  Widget _buildDailyMenuSection() {
+    final currentRole = widget.userRole.toLowerCase();
+    final isAllowed =
+        currentRole == 'admin' ||
+        currentRole == 'ahli_gizi' ||
+        currentRole == 'nutrisionis';
+
+    if (!isAllowed) return const SizedBox.shrink();
+
+    return ExpansionTile(
+      title: const Text('Rekomendasi Menu Sehari'),
+      children: [
+        const SizedBox(height: 10),
+
+        if (_isGeneratingMenu)
+          SizedBox(
+            height: 150,
+            child: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text(
+                    'Sedang membuat menu...',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else if (_dailyMenu != null && _dailyMenu!.isNotEmpty)
+          Container(
+            padding: EdgeInsets.all(MediaQuery.sizeOf(context).width * 0.04),
+            decoration: BoxDecoration(
+              color: Colors.blue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue.shade300),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Center(
+                  child: Text(
+                    'Rekomendasi Menu Sehari',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Ketuk ikon pensil untuk mengganti menu',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 16),
+
+                ..._dailyMenu!.map((session) {
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade100,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            session.sessionName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade900,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        ...session.items.map((item) {
+                          final portionText = item.portion == 'S'
+                              ? '(S)'
+                              : '(${item.portion is num ? _formatNumber(item.portion) : item.portion} P)';
+
+                          return ListTile(
+                            dense: true,
+                            title: Text(
+                              item.categoryLabel,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '${item.foodName} $portionText',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(
+                                Icons.edit,
+                                size: 20,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () => _showEditDialog(item),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  );
+                }),
+
+                const SizedBox(height: 16),
+                const Divider(),
+                const Text(
+                  'Catatan Tambahan (Opsional)',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                TextFormField(
+                  controller: _notesController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText:
+                        'Tulis anjuran khusus atau catatan untuk pasien disini...',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.blue.shade200),
+                    ),
+                    contentPadding: const EdgeInsets.all(10),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ── Download PDF Button ──────────────────────────────────────
+                Semantics(
+                  label: 'Tombol Download Menu PDF',
+                  button: true,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      key: _SemanticKeys.btnDownloadPdf,
+                      onPressed: _downloadPdf,
+                      icon: const Icon(Icons.download),
+                      label: const Text(
+                        'Download Menu PDF',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 4,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  // ===========================================================================
+  // EDIT & PDF LOGIC — unchanged
+  // ===========================================================================
+  void _showEditDialog(DmMenuItem item) async {
+    final FoodItem? selectedFood = await showSearch<FoodItem?>(
+      context: context,
+      delegate: FoodSearchDelegate(_foodDbService, initialQuery: item.foodName),
+    );
+    if (selectedFood != null) {
+      setState(() {
+        item.foodName = selectedFood.name;
+        item.foodData = selectedFood;
+      });
     }
+  }
+
+  void _downloadPdf() async {
+    if (_dailyMenu == null || _dailyMenu!.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Menu belum tersedia.')));
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      await saveAndOpenDmPdf(_dailyMenu!, 'Pasien', _notesController.text);
+      if (mounted && Navigator.canPop(context)) Navigator.pop(context);
+    } catch (e) {
+      if (mounted && Navigator.canPop(context)) Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // ===========================================================================
+  // SHARED WIDGET HELPERS
+  // ===========================================================================
+
+  /// Generic text input with numeric keyboard, length limit, and decimal support.
+  Widget _buildTextFormField({
+    Key? key,
+    required TextEditingController controller,
+    required String label,
+    required Icon prefixIcon,
+    required String suffixText,
+    required String? Function(String?) validator,
+    int maxLength = 5,
+  }) {
+    return TextFormField(
+      key: key,
+      controller: controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(maxLength),
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+      ],
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        prefixIcon: prefixIcon,
+        suffixText: suffixText,
+      ),
+      validator: validator,
+    );
+  }
+
+  /// Generic searchable/non-searchable dropdown backed by dropdown_search.
+  Widget _buildCustomDropdown({
+    Key? key,
+    required TextEditingController controller,
+    required String label,
+    required List<String> items,
+    required Icon prefixIcon,
+    bool showSearch = false,
+    void Function(String?)? onChanged,
+  }) {
+    return DropdownSearch<String>(
+      key: key,
+      popupProps: PopupProps.menu(
+        showSearchBox: showSearch,
+        fit: FlexFit.loose,
+        constraints: const BoxConstraints(maxHeight: 240),
+      ),
+      items: items,
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          prefixIcon: prefixIcon,
+        ),
+      ),
+      onChanged:
+          onChanged ??
+          (String? newValue) =>
+              setState(() => controller.text = newValue ?? ''),
+      selectedItem: controller.text.isEmpty ? null : controller.text,
+      validator: (value) =>
+          (value == null || value.isEmpty) ? '$label harus dipilih' : null,
+    );
+  }
+
+  /// Single nutrition label/value row used in result cards.
+  Widget _buildNutritionRow(String label, String value, {Color? valueColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 16)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: valueColor ?? Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
