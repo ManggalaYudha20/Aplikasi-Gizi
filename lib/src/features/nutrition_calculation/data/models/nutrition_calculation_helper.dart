@@ -10,6 +10,59 @@ class NutritionCalculationHelper {
     return (days / 30.44).round(); // Rata-rata hari per bulan
   }
 
+   static Map<String, dynamic> calculateIMTU5To18({
+    required int ageYears,
+    required int ageMonthsRemainder, // Sisa bulan setelah dikurangi tahun penuh (0–11)
+    required double bmi,
+    required String gender,
+  }) {
+    final String ageKey = '$ageYears-$ageMonthsRemainder';
+    final bool isMale = gender.toLowerCase().contains('laki') ||
+        gender.toLowerCase().contains('pria') ||
+        gender.toLowerCase() == 'l';
+
+    final List<double>? ref = isMale
+        ? NutritionStatusData.imtUBoys5To18[ageKey]
+        : NutritionStatusData.imtUGirls5To18[ageKey];
+
+    if (ref == null) {
+      return {
+        'zScore': null,
+        'category': 'Data referensi tidak tersedia',
+        'bmi': bmi,
+      };
+    }
+
+    try {
+      final double median = ref[3];
+      final double sdPos = ref[4] - median; // Selisih median ke +1 SD
+      final double sdNeg = median - ref[2]; // Selisih -1 SD ke median
+      final double sd = bmi >= median ? sdPos : sdNeg;
+      final double zScore = (bmi - median) / sd;
+
+      return {
+        'zScore': zScore,
+        'category': _getIMTU5To18Category(zScore),
+        'bmi': bmi,
+      };
+    } catch (_) {
+      return {
+        'zScore': null,
+        'category': 'Error perhitungan',
+        'bmi': bmi,
+      };
+    }
+  }
+
+  // Kategori IMT/U khusus anak 5–18 tahun (WHO 2007)
+  static String _getIMTU5To18Category(double zScore) {
+    if (zScore < -3) return 'Gizi buruk';
+    if (zScore < -2) return 'Gizi kurang';
+    if (zScore <= 1) return 'Gizi baik';
+    if (zScore <= 2) return 'Gizi lebih';
+    return 'Obesitas (obese)';
+  }
+
   static Map<String, dynamic> calculateAll(
       {required DateTime birthDate,
       required DateTime checkDate,

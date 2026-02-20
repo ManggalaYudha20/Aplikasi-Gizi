@@ -814,7 +814,31 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
         final resultBBU = calculationResult['bbPerU'];
         final resultTBU = calculationResult['tbPerU'];
         final resultBBTB = calculationResult['bbPerTB'];
-        final resultIMTU = calculationResult['imtPerU'];
+        
+        Map<String, dynamic> resultIMTU;
+
+        final int totalBulanUsia = NutritionCalculationHelper.calculateAgeInMonths(
+          _selectedDate!,
+          DateTime.now(),
+        );
+        final bool isAnak5Tahunkeatas = totalBulanUsia >= 60;
+
+        if (isAnak5Tahunkeatas && tinggiBadan > 0) {
+          final int ageYears           = totalBulanUsia ~/ 12;
+          final int ageMonthsRemainder = totalBulanUsia % 12;
+          final double bmi = beratBadan / ((tinggiBadan / 100) * (tinggiBadan / 100));
+
+          // Panggil helper baru yang menggunakan tabel 5-18 tahun
+          resultIMTU = NutritionCalculationHelper.calculateIMTU5To18(
+            ageYears            : ageYears,
+            ageMonthsRemainder  : ageMonthsRemainder,
+            bmi                 : bmi,
+            gender              : _jenisKelaminController.text,
+          );
+        } else {
+          // Balita < 5 tahun: gunakan hasil dari calculateAll() seperti semula
+          resultIMTU = calculationResult['imtPerU'];
+        }
 
         Map<String, String> labResultsMap = {};
         for (var item in _labItems) {
@@ -1456,6 +1480,7 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                       label: 'Alergi Lainnya (jika ada)',
                       focusNode: FocusNode(),
                       prefixIcon: const Icon(Icons.edit_note),
+                      validator: (v) => null,
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -1649,9 +1674,7 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                               vertical: 16,
                             ),
                           ),
-                          validator: (value) => (value == null || value.isEmpty)
-                              ? 'Wajib isi'
-                              : null,
+                          validator: (v) => null,
                         ),
                       ),
 
@@ -1686,9 +1709,7 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                               vertical: 16,
                             ),
                           ),
-                          validator: (value) => (value == null || value.isEmpty)
-                              ? 'Wajib isi'
-                              : null,
+                          validator: (v) => null,
                         ),
                       ),
                     ],

@@ -1,4 +1,5 @@
-//lib\src\features\patient_home\presentation\pages\pdf_generator_asuhan_anak.dart
+// lib/src/features/patient_home/presentation/pages/pdf_generator_asuhan_anak.dart
+
 import 'dart:io';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -7,100 +8,185 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_anak_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_status_models.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 class PdfGeneratorAsuhanAnak {
-  static Future<File> generate(PatientAnak patient) async {
-    final pdf = pw.Document();
+  // ─── Keyword alergi yang ditampilkan sebagai checkbox di formulir ───────────
+  static const _checkboxAllergyKeywords = [
+    'telur', 'susu', 'kacang', 'gluten', 'gandum', 'udang', 'ikan',
+    'hazelnut', 'almond',
+  ];
 
+  // ─── Format angka: tanpa desimal jika bulat, 2 desimal jika pecahan ─────────
+  static String _formatNum(num? value, [String unit = '']) {
+    if (value == null) return '-';
+    final formatted =
+        value % 1 == 0 ? value.toInt().toString() : value.toStringAsFixed(2);
+    return unit.isEmpty ? formatted : '$formatted $unit';
+  }
+
+  // ─── Format string: kembalikan '-' jika null atau kosong ────────────────────
+  static String _formatString(String? value) =>
+      (value == null || value.trim().isEmpty) ? '-' : value;
+
+  // ─── Konversi waktu database ke WITA (UTC+8) ─────────────────────────────────
+  // Database menyimpan waktu dalam UTC; kita shift +8 jam secara manual
+  // agar angkanya sesuai jam dinding WITA tanpa bergantung timezone device.
+  static DateTime _toWita(DateTime raw) {
+    final utc = raw.isUtc ? raw : raw.toUtc();
+    return utc.add(const Duration(hours: 8));
+  }
+
+  // ─── Pisahkan alergi "lain-lain" (di luar item checkbox) ────────────────────
+  static List<String> _extractOtherAllergies(String rawAlergi) {
+    if (rawAlergi.isEmpty || rawAlergi == 'Tidak') return [];
+    return rawAlergi.split(', ').where((item) {
+      final lower = item.toLowerCase();
+      return item.trim().isNotEmpty &&
+          !_checkboxAllergyKeywords.any((kw) => lower.contains(kw));
+    }).toList();
+  }
+
+  // ─── Hitung total bulan antara dua tanggal (tanggalLahir → tanggalUkur) ─────
+  static int _totalBulan(DateTime lahir, DateTime ukur) {
+    int years  = ukur.year  - lahir.year;
+    int months = ukur.month - lahir.month;
+    if (ukur.day < lahir.day) months--;
+    if (months < 0) { years--; months += 12; }
+    return (years * 12) + months;
+  }
+
+  // ─── Kategori z-score IMT/U (berlaku untuk 5-18 tahun) ───────────────────
+  static String _imtuCategory(double zScore) {
+    if (zScore < -3) return 'Gizi buruk';
+    if (zScore < -2) return 'Gizi kurang';
+    if (zScore <= 1) return 'Gizi baik';
+    if (zScore <= 2) return 'Gizi lebih';
+    return 'Obesitas (obese)';
+  }
+
+  // ─── Hitung Z-score & kategori IMT/U 5-18 tahun ──────────────────────────
+  /// Mengembalikan map dengan kunci 'zScore' (double?) dan 'category' (String).
+  static Map<String, dynamic> _computeIMTU5To18({
+    required int    ageYears,
+    required int    ageMonths,
+    required double bmi,
+    required String gender,
+  }) {
+    final String ageKey    = '$ageYears-$ageMonths';
+    final bool   isMale    = gender.toLowerCase().contains('laki') ||
+                              gender.toLowerCase().contains('pria') ||
+                              gender.toLowerCase() == 'l';
+    final List<double>? ref = isMale
+        ? NutritionStatusData.imtUBoys5To18[ageKey]
+        : NutritionStatusData.imtUGirls5To18[ageKey];
+
+    if (ref == null) {
+      return {
+        'zScore'  : null,
+        'category': 'Data referensi tidak tersedia',
+        'bmi'     : bmi,
+      };
+    }
+
+    try {
+      final double median = ref[3];
+      // SD positif = selisih median ke +1SD; SD negatif = median ke -1SD
+      final double sdPos  = ref[4] - median;
+      final double sdNeg  = median - ref[2];
+      final double sd     = bmi >= median ? sdPos : sdNeg;
+      final double zScore = (bmi - median) / sd;
+      return {
+        'zScore'  : zScore,
+        'category': _imtuCategory(zScore),
+        'bmi'     : bmi,
+      };
+    } catch (_) {
+      return {
+        'zScore'  : null,
+        'category': 'Error perhitungan',
+        'bmi'     : bmi,
+      };
+    }
+  }
+
+  // ────────────────────────────────────────────────────────────────────────────
+  static Future<File> generate(PatientAnak patient) async {
     await initializeDateFormatting('id_ID', null);
 
-    // 1. Muat gambar logo dari assets
-    final sulutLogoData = await rootBundle.load('assets/images/sulut.png');
-    final rsLogoData = await rootBundle.load('assets/images/logo.png');
-    final sulutLogo = pw.MemoryImage(sulutLogoData.buffer.asUint8List());
-    final rsLogo = pw.MemoryImage(rsLogoData.buffer.asUint8List());
+    final sulutLogo = pw.MemoryImage(
+      (await rootBundle.load('assets/images/sulut.png')).buffer.asUint8List(),
+    );
+    final rsLogo = pw.MemoryImage(
+      (await rootBundle.load('assets/images/logo.png')).buffer.asUint8List(),
+    );
 
-   String rawAlergi = patient.alergiMakanan ?? '';
-    String dataAlergiLower = rawAlergi.toLowerCase();
+    final rawAlergi = patient.alergiMakanan ?? '';
+    final dataAlergiLower = rawAlergi.toLowerCase();
+    final statusAlergiDisplay =
+        (rawAlergi.isEmpty || rawAlergi == 'Tidak') ? 'Tidak' : 'Ya';
+    final otherAllergies = _extractOtherAllergies(rawAlergi);
+    final detailLainnyaDisplay =
+        otherAllergies.isEmpty ? '-' : otherAllergies.join(', ');
 
-    // A. Tentukan Status (Hanya Ya / Tidak)
-    String statusAlergiDisplay = (rawAlergi.isEmpty || rawAlergi == 'Tidak') ? 'Tidak' : 'Ya';
-
-    // B. Tentukan Lain-lain (Filter out item checkbox)
-    // Daftar kata kunci yang ada di checkbox
-    final checkboxKeywords = [
-      'telur', 'susu', 'kacang', 'gluten', 'gandum', 'udang', 'ikan', 'hazelnut', 'almond'
-    ];
-
-    List<String> otherAllergies = [];
-    if (statusAlergiDisplay == 'Ya') {
-      // Pecah string database (contoh: "Telur, Udang, Stroberi")
-      List<String> items = rawAlergi.split(', ');
-      
-      for (var item in items) {
-        String itemLower = item.toLowerCase();
-        bool isCheckboxItem = false;
-
-        // Cek apakah item ini termasuk dalam keyword checkbox
-        for (var keyword in checkboxKeywords) {
-          if (itemLower.contains(keyword)) {
-            isCheckboxItem = true;
-            break;
-          }
-        }
-
-        // Jika BUKAN checkbox item, masukkan ke list 'Lain-lain'
-        if (!isCheckboxItem && item.trim().isNotEmpty) {
-          otherAllergies.add(item);
-        }
-      }
-    }
-    // Gabungkan sisa alergi, jika kosong beri tanda strip
-    String detailLainnyaDisplay = otherAllergies.isEmpty ? '-' : otherAllergies.join(', ');
-    // -------------------------------------
-
-    // 2. Atur Waktu (WITA) - LOGIKA DIPERBAIKI
-    // Langkah 1: Ambil waktu dari database
-    final DateTime rawTime = patient.tanggalPemeriksaan;
-
-    // Langkah 2: Pastikan kita mulai dari UTC murni untuk menghindari bias zona waktu HP/Server
-    final DateTime utcTime = rawTime.isUtc ? rawTime : rawTime.toUtc();
-
-    // Langkah 3: Tambahkan 8 jam manual untuk menjadi WITA
-    // Hasil 'pemeriksaanWita' ini secara teknis masih 'isUtc=true',
-    // tapi angkanya sudah digeser agar sesuai jam dinding di WITA.
-    final DateTime pemeriksaanWita = utcTime.add(const Duration(hours: 8));
-
-    // 3. Formatter Khusus Indonesia
-    // 'HH' (H besar) = Format 24 Jam (00-23) -> Menghasilkan "23:39"
-    // 'd-MM-yyyy' = Format Tanggal standar
-    final dateFormatIndonesia = DateFormat('d-MM-yyyy / HH:mm', 'id_ID');
+    final pemeriksaanWita = _toWita(patient.tanggalPemeriksaan);
+    final dateTimeFormatter = DateFormat('d-MM-yyyy / HH:mm', 'id_ID');
+    final dateOnlyFormatter = DateFormat('d-M-y');
 
     final rdaResult = patient.hitungKebutuhanGizi();
 
-    // Helper untuk formatting angka agar tidak error jika null
-    String formatNum(num? value, [String unit = '']) {
-      if (value == null) return '-';
-      // Jika bilangan bulat, tampilkan tanpa desimal, jika desimal tampilkan 2 angka belakang koma
-      if (value % 1 == 0) {
-        return '${value.toInt()} $unit';
+    // ── Deteksi kelompok usia ────────────────────────────────────────────────
+    // Gunakan tanggal pemeriksaan sebagai titik ukur (sudah dikonversi ke WITA).
+    final int    totalBulanUsia = _totalBulan(patient.tanggalLahir, pemeriksaanWita);
+    final bool   isOlderThan5  = totalBulanUsia > 60;
+
+    // Untuk pasien > 5 tahun, hitung IMT/U dengan tabel 5-18 tahun.
+    Map<String, dynamic>? imtu5to18Result;
+    if (isOlderThan5) {
+      final int ageYears  = totalBulanUsia ~/ 12;
+      final int ageMonths = totalBulanUsia  % 12;
+      final num bb    = patient.beratBadan;
+      final num tb    = patient.tinggiBadan;
+      // Karena bb dan tb tidak mungkin null, kita cukup cek tb > 0 untuk mencegah error division by zero
+      if (tb > 0) {
+        final double bmi = bb / ((tb / 100) * (tb / 100));
+        imtu5to18Result  = _computeIMTU5To18(
+          ageYears : ageYears,
+          ageMonths: ageMonths,
+          bmi      : bmi,
+          // FIX Baris 157: Hapus '?? \'\'' karena jenisKelamin sudah pasti tidak null
+          gender   : patient.jenisKelamin, 
+        );
       }
-      return '${value.toStringAsFixed(2)} $unit';
     }
 
-    // Helper untuk string null
-    String formatString(String? value) {
-      if (value == null || value.trim().isEmpty) return '-';
-      return value;
-    }
+    // Ambil teks status gizi yang akan dipakai di bagian Monev.
+    // Pasien ≤ 5 th → BB/U; Pasien > 5 th → IMT/U 5-18 tahun.
+    final String monevStatusLabel = isOlderThan5
+        ? 'Status gizi : IMT/U (5-18 th) : '
+        : 'Status gizi : BB/U : ';
+    final String monevStatusValue = isOlderThan5
+        ? _formatString(imtu5to18Result?['category'] as String?)
+        : _formatString(patient.statusGiziBBU);
+
+    // ── Build IMT/U display text untuk bagian Antropometri ───────────────────
+    final String imtuDisplayText = isOlderThan5
+        ? () {
+            final z = imtu5to18Result?['zScore'] as double?;
+            final c = imtu5to18Result?['category'] as String? ?? '-';
+            return z != null ? '${z.toStringAsFixed(2)} SD ($c)' : c;
+          }()
+        : '${patient.zScoreIMTU?.toStringAsFixed(2) ?? '-'} SD (${_formatString(patient.statusGiziIMTU)})';
+
+    final pdf = pw.Document();
 
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.legal,
+        pageFormat: PdfPageFormat.legal.copyWith(height: 1200),
         margin: const pw.EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         build: (pw.Context context) => [
-          // --- HEADER ---
+          // ── HEADER ──────────────────────────────────────────────────────────
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.center,
             crossAxisAlignment: pw.CrossAxisAlignment.center,
@@ -153,7 +239,7 @@ class PdfGeneratorAsuhanAnak {
           ),
           pw.SizedBox(height: 10),
 
-          // --- A. DATA PASIEN ---
+          // ── A. DATA PASIEN ───────────────────────────────────────────────────
           _buildSectionHeader('A. DATA PASIEN'),
           pw.Container(
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
@@ -163,7 +249,7 @@ class PdfGeneratorAsuhanAnak {
                   'Nomor RM',
                   ': ${patient.noRM}',
                   'Tanggal/Jam',
-                  ': ${dateFormatIndonesia.format(pemeriksaanWita)} WITA',
+                  ': ${dateTimeFormatter.format(pemeriksaanWita)} WITA',
                 ),
                 _buildInfoRow(
                   'Nama Lengkap',
@@ -180,159 +266,204 @@ class PdfGeneratorAsuhanAnak {
                 _buildInfoRow(
                   'Diagnosa Medis',
                   ': ${patient.diagnosisMedis}',
-                  '', // Placeholder kosong
+                  '',
                   '',
                 ),
               ],
             ),
           ),
 
-          // --- B. ASESMEN GIZI ---
+          // ── B. ASESMEN GIZI ──────────────────────────────────────────────────
           _buildSectionHeader('B. ASESMEN GIZI'),
           pw.Container(
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: pw.Column(
               children: [
-                _buildAssessmentCategorysatu('Antropometri /AD (Anthropometric Data)', [
-                  _buildSymmetricalRow(
-                    'BB :',
-                    formatNum(patient.beratBadan, 'kg'),
-                    'Status (BB/U) :',
-                    '${patient.zScoreBBU?.toStringAsFixed(2) ?? '-'} SD (${formatString(patient.statusGiziBBU)})',
-                  ),
-                  _buildSymmetricalRow(
-                    'TB :',
-                    formatNum(patient.tinggiBadan, 'cm'),
-                    'Status (TB/U) :',
-                    '${patient.zScoreTBU?.toStringAsFixed(2) ?? '-'} SD (${formatString(patient.statusGiziTBU)})',
-                  ),
-                  _buildSymmetricalRow(
-                    'LILA :',
-                    formatNum(patient.lila, 'cm'), // Mengambil data LILA
-                    'Status (BB/TB) :',
-                    '${patient.zScoreBBTB?.toStringAsFixed(2) ?? '-'} SD (${formatString(patient.statusGiziBBTB)})',
-                  ),
-                  _buildSymmetricalRow(
-                    'LK :',
-                    formatNum(
-                      patient.lingkarKepala,
-                      'cm',
-                    ), // Mengambil data Lingkar Kepala
-                    'Status (IMT/U) :',
-                    '${patient.zScoreIMTU?.toStringAsFixed(2) ?? '-'} SD (${formatString(patient.statusGiziIMTU)})',
-                  ),
-                  _buildSymmetricalRow(
-                    'BBI :',
-                    formatNum(
-                      patient.bbi,
-                      'kg',
-                    ), // Mengambil data Berat Badan Ideal
-                    '', // Kosongkan jika tidak ada status LILA/U spesifik
-                    '',
-                  ),
-                ]),
-                _buildAssessmentCategorysatu('Biokimia /BD (Biochemical Data)', [
-                 if (patient.labResults.isEmpty)
+                _buildAssessmentCategory(
+                  'Antropometri /AD (Anthropometric Data)',
+                  [
+                    // ── Baris BB — selalu tampil ──────────────────────────
+                    _buildSymmetricalRow(
+                      'BB :',
+                      _formatNum(patient.beratBadan, 'kg'),
+                      // Pasien > 5 th: BB/U tidak relevan, tampilkan IMT/U
+                      isOlderThan5 ? 'Status (IMT/U) :' : 'Status (BB/U) :',
+                      isOlderThan5
+                          ? imtuDisplayText
+                          : '${patient.zScoreBBU?.toStringAsFixed(2) ?? '-'} SD (${_formatString(patient.statusGiziBBU)})',
+                    ),
+
+                    // ── Baris PB — hanya untuk ≤ 5 tahun ─────────────────
+                    if (!isOlderThan5)
+                      _buildSymmetricalRow(
+                        'PB :',
+                        _formatNum(patient.tinggiBadan, 'cm'),
+                        'Status (PB/U) :',
+                        '${patient.zScoreTBU?.toStringAsFixed(2) ?? '-'} SD (${_formatString(patient.statusGiziTBU)})',
+                      ),
+
+                    // ── Baris LILA — selalu tampil; Status BB/PB hanya ≤ 5 th
+                    _buildSymmetricalRow(
+                      isOlderThan5 ? 'TB :' : 'LILA :',
+                      isOlderThan5
+                          ? _formatNum(patient.tinggiBadan, 'cm')
+                          : _formatNum(patient.lila, 'cm'),
+                      isOlderThan5 ? '' : 'Status (BB/PB) :',
+                      isOlderThan5
+                          ? ''
+                          : '${patient.zScoreBBTB?.toStringAsFixed(2) ?? '-'} SD (${_formatString(patient.statusGiziBBTB)})',
+                    ),
+
+                    // ── Baris LILA (hanya > 5 th, diletakkan di baris ke-3)
+                    if (isOlderThan5)
+                      _buildSymmetricalRow(
+                        'LILA :',
+                        _formatNum(patient.lila, 'cm'),
+                        '',
+                        '',
+                      ),
+
+                    // ── Baris LK — selalu tampil; IMT/U (0-60) hanya ≤ 5 th
+                    _buildSymmetricalRow(
+                      'LK :',
+                      _formatNum(patient.lingkarKepala, 'cm'),
+                      isOlderThan5 ? '' : 'Status (IMT/U) :',
+                      isOlderThan5
+                          ? ''
+                          : '${patient.zScoreIMTU?.toStringAsFixed(2) ?? '-'} SD (${_formatString(patient.statusGiziIMTU)})',
+                    ),
+
+                    // ── Baris BBI — selalu tampil ─────────────────────────
+                    _buildSymmetricalRow(
+                      'BBI :',
+                      _formatNum(patient.bbi, 'kg'),
+                      '',
+                      '',
+                    ),
+                  ],
+                ),
+
+                _buildAssessmentCategory(
+                  'Biokimia /BD (Biochemical Data)',
+                  [
+                    if (patient.labResults.isEmpty)
                       pw.Text('-', style: const pw.TextStyle(fontSize: 9))
                     else
-                      // Menampilkan 2 item per baris
-                      for (var i = 0; i < patient.labResults.length; i += 4) ...[
+                      for (var i = 0; i < patient.labResults.length; i += 4)
                         pw.Padding(
                           padding: const pw.EdgeInsets.symmetric(vertical: 2),
                           child: pw.Row(
                             crossAxisAlignment: pw.CrossAxisAlignment.start,
                             children: [
-                              // KOLOM 1
                               _buildCompactLabItem(patient.labResults, i),
-                              // KOLOM 2
                               _buildCompactLabItem(patient.labResults, i + 1),
-                              // KOLOM 3
                               _buildCompactLabItem(patient.labResults, i + 2),
-                              // KOLOM 4
                               _buildCompactLabItem(patient.labResults, i + 3),
                             ],
                           ),
                         ),
                   ],
-                ],),
-                
-                _buildAssessmentCategorysatu(
+                ),
+
+                _buildAssessmentCategory(
                   'Klinik /Fisik /PD (Physical Data)',
                   [
                     _buildAssessmentItemRow(
-                      'KU : ${formatString(patient.klinikKU)}',
-                      'TD : ${formatString(patient.klinikTD)} mmHg',
-                      'R : ${formatString(patient.klinikRR)} x/mnt',
-                      'SpO2 : ${formatString(patient.klinikSPO2)} %',
+                      'KU : ${_formatString(patient.klinikKU)}',
+                      'TD : ${_formatString(patient.klinikTD)} mmHg',
+                      'R : ${_formatString(patient.klinikRR)} x/mnt',
+                      'SpO2 : ${_formatString(patient.klinikSPO2)} %',
                     ),
                     _buildAssessmentItemRow(
-                      'KES : ${formatString(patient.klinikKES)}',
-                      'N : ${formatString(patient.klinikNadi)} x/mnt',
-                      'SB : ${formatString(patient.klinikSuhu)} °C',
+                      'KES : ${_formatString(patient.klinikKES)}',
+                      'N : ${_formatString(patient.klinikNadi)} x/mnt',
+                      'SB : ${_formatString(patient.klinikSuhu)} °C',
                       '',
                     ),
                   ],
                 ),
-                _buildAssessmentCategorysatu('Riwayat Gizi /FH (Food History)', [
-                  pw.Row(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      // Kiri: Alergi Makanan
-                      pw.Expanded(
-                        child: pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.Text(
-                              'Alergi Makanan :',
-                              style: pw.TextStyle(
-                                fontSize: 9,
-                                fontWeight: pw.FontWeight.bold,
-                              ),
-                            ),
-                            pw.Text('Status: $statusAlergiDisplay', style: const pw.TextStyle(fontSize: 9)),
-                            pw.SizedBox(height: 4),
-                            _buildCheckboxRow('Telur', dataAlergiLower.contains('telur')),
-                            _buildCheckboxRow('Susu Sapi / Produk turunannya', dataAlergiLower.contains('susu')),
-                            _buildCheckboxRow('Kacang Kedelai/Tanah', dataAlergiLower.contains('kacang')),
-                            _buildCheckboxRow('Gluten/Gandum', dataAlergiLower.contains('gluten') || dataAlergiLower.contains('gandum')),
-                          ],
-                        ),
-                      ),
-                      // Kanan: Pola Makan
-                      pw.Expanded(
-                        child: pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.SizedBox(height: 11),
-                            _buildCheckboxRow('Udang', dataAlergiLower.contains('udang')),
-                            _buildCheckboxRow('Ikan', dataAlergiLower.contains('ikan')),
-                            _buildCheckboxRow('Hazelnuts/Almond', dataAlergiLower.contains('hazelnut') || dataAlergiLower.contains('almond')),
 
-                            _buildInfoRowSatu('Lain-lain / Detail : ', detailLainnyaDisplay),
-                          ],
+                _buildAssessmentCategory(
+                  'Riwayat Gizi /FH (Food History)',
+                  [
+                    pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Expanded(
+                          child: pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Text(
+                                'Alergi Makanan :',
+                                style: pw.TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
+                              ),
+                              pw.Text(
+                                'Status: $statusAlergiDisplay',
+                                style: const pw.TextStyle(fontSize: 9),
+                              ),
+                              pw.SizedBox(height: 4),
+                              _buildCheckboxRow(
+                                  'Telur', dataAlergiLower.contains('telur')),
+                              _buildCheckboxRow(
+                                  'Susu Sapi / Produk turunannya',
+                                  dataAlergiLower.contains('susu')),
+                              _buildCheckboxRow(
+                                  'Kacang Kedelai/Tanah',
+                                  dataAlergiLower.contains('kacang')),
+                              _buildCheckboxRow(
+                                  'Gluten/Gandum',
+                                  dataAlergiLower.contains('gluten') ||
+                                      dataAlergiLower.contains('gandum')),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  pw.SizedBox(height: 3),
-                  _buildInfoRowSatu(
-                    'Pola Makan / Asupan (%) : ',
-                    formatString(patient.polaMakan),
-                  ),
-                ]),
-                _buildAssessmentCategorysatu('Total Asupan', [
-                  _buildTotalIntakeTable(rdaResult),
-                ]),
-                _buildAssessmentCategorysatu(
+                        pw.Expanded(
+                          child: pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.SizedBox(height: 11),
+                              _buildCheckboxRow(
+                                  'Udang', dataAlergiLower.contains('udang')),
+                              _buildCheckboxRow(
+                                  'Ikan', dataAlergiLower.contains('ikan')),
+                              _buildCheckboxRow(
+                                  'Hazelnuts/Almond',
+                                  dataAlergiLower.contains('hazelnut') ||
+                                      dataAlergiLower.contains('almond')),
+                              _buildSingleLabelRow(
+                                  'Lain-lain / Detail : ',
+                                  detailLainnyaDisplay),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    pw.SizedBox(height: 3),
+                    _buildSingleLabelRow(
+                      'Pola Makan / Asupan (%) : ',
+                      _formatString(patient.polaMakan),
+                    ),
+                  ],
+                ),
+
+                _buildAssessmentCategory(
+                  'Total Asupan',
+                  [_buildTotalIntakeTable(rdaResult)],
+                ),
+
+                _buildAssessmentCategory(
                   'Riwayat Personal /CH (Client History)',
                   [
-                    _buildInfoRowSatu(
+                    _buildSingleLabelRow(
                       'RPS :',
-                      ' ${formatString(patient.riwayatPenyakitSekarang)}',
+                      ' ${_formatString(patient.riwayatPenyakitSekarang)}',
                     ),
-                    _buildInfoRowSatu(
+                    _buildSingleLabelRow(
                       'RPD :',
-                      ' ${formatString(patient.riwayatPenyakitDahulu)}',
+                      ' ${_formatString(patient.riwayatPenyakitDahulu)}',
                     ),
                   ],
                 ),
@@ -340,19 +471,19 @@ class PdfGeneratorAsuhanAnak {
             ),
           ),
 
-          // --- C. DIAGNOSA GIZI ---
+          // ── C. DIAGNOSA GIZI ─────────────────────────────────────────────────
           _buildSectionHeader('C. DIAGNOSA GIZI'),
           pw.Container(
             width: double.infinity,
             padding: const pw.EdgeInsets.all(4),
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
-            child: _buildInfoRowSatu(
+            child: _buildSingleLabelRow(
               '',
-              ' ${formatString(patient.diagnosaGizi)}',
+              ' ${_formatString(patient.diagnosaGizi)}',
             ),
           ),
 
-          // --- D. INTERVENSI GIZI ---
+          // ── D. INTERVENSI GIZI ───────────────────────────────────────────────
           _buildSectionHeader('D. INTERVENSI GIZI'),
           pw.Container(
             width: double.infinity,
@@ -361,24 +492,24 @@ class PdfGeneratorAsuhanAnak {
             child: pw.Column(
               children: [
                 _buildAssessmentItemRow(
-                  'BM : ${formatString(patient.intervensiBentukMakanan)}',
-                  'Via : ${formatString(patient.intervensiVia)}',
+                  'BM : ${_formatString(patient.intervensiBentukMakanan)}',
+                  'Via : ${_formatString(patient.intervensiVia)}',
                   '',
                 ),
                 pw.SizedBox(height: 4),
-                _buildInfoRowSatu(
+                _buildSingleLabelRow(
                   'Jenis Diet :',
-                  ' ${formatString(patient.intervensiDiet)}',
+                  ' ${_formatString(patient.intervensiDiet)}',
                 ),
-                _buildInfoRowSatu(
+                _buildSingleLabelRow(
                   'Tujuan Diet :',
-                  ' ${formatString(patient.intervensiTujuan)}',
+                  ' ${_formatString(patient.intervensiTujuan)}',
                 ),
               ],
             ),
           ),
 
-          // --- E. MONITORING DAN EVALUASI ---
+          // ── E. MONITORING DAN EVALUASI ───────────────────────────────────────
           _buildSectionHeader('E. MONITORING DAN EVALUASI'),
           pw.Container(
             width: double.infinity,
@@ -386,26 +517,28 @@ class PdfGeneratorAsuhanAnak {
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: pw.Column(
               children: [
-                _buildInfoRowSatu(
+                _buildSingleLabelRow(
                   'Indikator Monitoring :',
-                  ' ${formatString(patient.monevIndikator)}',
+                  ' ${_formatString(patient.monevIndikator)}',
                 ),
-                _buildInfoRowSatu(
+                _buildSingleLabelRow(
                   'Asupan Makanan :',
-                  ' ${formatString(patient.monevAsupan)}',
+                  ' ${_formatString(patient.monevAsupan)}',
                 ),
-                _buildInfoRowSatu(
-                  'Status gizi : BB/U : ',
-                  ' ${patient.statusGiziBBU ?? '-'}',
+                // Status gizi: BB/U untuk ≤ 5 th, IMT/U 5-18 th untuk > 5 th
+                _buildSingleLabelRow(
+                  monevStatusLabel,
+                  ' $monevStatusValue',
                 ),
-                _buildInfoRowSatu( 
-                  patient.monevHasilLab ?? '-',''
+                _buildSingleLabelRow(
+                  _formatString(patient.monevHasilLab),
+                  '',
                 ),
               ],
             ),
           ),
 
-          // --- FOOTER ---
+          // ── FOOTER / TANDA TANGAN ────────────────────────────────────────────
           pw.SizedBox(height: 10),
           pw.Padding(
             padding: const pw.EdgeInsets.only(right: 20),
@@ -415,7 +548,7 @@ class PdfGeneratorAsuhanAnak {
                 crossAxisAlignment: pw.CrossAxisAlignment.center,
                 children: [
                   pw.Text(
-                    'Tanggal : ${DateFormat('d-M-y').format(pemeriksaanWita)}',
+                    'Tanggal : ${dateOnlyFormatter.format(pemeriksaanWita)}',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                   ),
                   pw.SizedBox(height: 8),
@@ -442,274 +575,35 @@ class PdfGeneratorAsuhanAnak {
     );
   }
 
-  static pw.Widget _buildCheckboxRow(String label, bool isChecked) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 3),
-      child: pw.Row(
-        mainAxisSize: pw.MainAxisSize.min,
-        children: [
-          pw.Container(
-            width: 8,
-            height: 8,
-            decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
-            child: isChecked
-                ? pw.Center(
-                    child: pw.Text(
-                      'V', // Karakter centang manual
-                      style: pw.TextStyle(
-                        fontSize: 8,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
-                  )
-                : null, // Jika false, kotak kosong
-          ),
-          pw.SizedBox(width: 4),
-          pw.Text(label, style: const pw.TextStyle(fontSize: 9)),
-        ],
-      ),
-    );
-  }
-
-  static pw.Widget _buildSymmetricalRow(
-    String labelLeft,
-    String valueLeft,
-    String labelRight,
-    String valueRight,
-  ) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      child: pw.Row(
-        crossAxisAlignment:
-            pw.CrossAxisAlignment.start, // Agar rata atas jika teks panjang
-        children: [
-          // --- BAGIAN KIRI (50% Layar) ---
-          pw.Expanded(
-            flex: 1,
-            child: pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                // Label Kiri
-                pw.Text(labelLeft, style: const pw.TextStyle(fontSize: 9)),
-                pw.SizedBox(width: 2),
-                // Value Kiri (Mengisi sisa ruang di blok kiri)
-                pw.Expanded(
-                  child: pw.Text(
-                    valueLeft,
-                    style: const pw.TextStyle(fontSize: 9),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Jarak antar blok Kiri dan Kanan
-          pw.SizedBox(width: 10),
-
-          // --- BAGIAN KANAN (50% Layar) ---
-          pw.Expanded(
-            flex: 1,
-            child: pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                // Label Kanan
-                pw.Text(labelRight, style: const pw.TextStyle(fontSize: 9)),
-                pw.SizedBox(width: 2),
-                // Value Kanan (Mengisi sisa ruang di blok kanan)
-                pw.Expanded(
-                  child: pw.Text(
-                    valueRight,
-                    style: const pw.TextStyle(fontSize: 9),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-static pw.Widget _buildTotalIntakeTable(Map<String, double> rda) {
-    const headers = ['Zat Gizi', 'Nilai', 'Kebutuhan', '%'];
-    const rowLabels = [
-      'Energi (kkal)',
-      'Protein (gram)',
-      'Lemak (gram)',
-      'KH (gram)',
-    ];
-
-    // Ambil nilai numerik untuk perhitungan
-    double energiTotal = rda['energi'] ?? 0;
-    double proteinGram = rda['protein'] ?? 0;
-    double lemakGram = rda['lemak'] ?? 0;
-    double karboGram = rda['karbo'] ?? 0;
-
-    // Hitung Persentase
-    // Cegah pembagian dengan nol
-    String pctEnergi = '-';
-    String pctProtein = '-';
-    String pctLemak = '-';
-    String pctKarbo = '-';
-
-    if (energiTotal > 0) {
-      pctEnergi = '100 %';
-      // Protein: 1g = 4 kkal
-      pctProtein = '${((proteinGram * 4 / energiTotal) * 100).toStringAsFixed(0)} %';
-      // Lemak: 1g = 9 kkal
-      pctLemak = '${((lemakGram * 9 / energiTotal) * 100).toStringAsFixed(0)} %';
-      // Karbo: 1g = 4 kkal
-      pctKarbo = '${((karboGram * 4 / energiTotal) * 100).toStringAsFixed(0)} %';
-    }
-
-    // List data untuk kolom "Kebutuhan"
-    final needs = [
-      energiTotal.toStringAsFixed(0),
-      proteinGram.toStringAsFixed(1),
-      lemakGram.toStringAsFixed(1),
-      karboGram.toStringAsFixed(1),
-    ];
-
-    // List data untuk kolom "%"
-    final percentages = [
-      pctEnergi,
-      pctProtein,
-      pctLemak,
-      pctKarbo,
-    ];
-
-    // Data untuk tabel Ringkasan (Kanan)
-    final rightTableItems = [
-      {'label': 'Energi', 'value': '${energiTotal.toStringAsFixed(0)} kkal'},
-      {'label': 'Protein', 'value': '${proteinGram.toStringAsFixed(1)} gram'},
-      {'label': 'Cairan', 'value': '${(rda['cairan'] ?? 0).toStringAsFixed(0)} ml'},
-    ];
-
-    return pw.Padding(
-      padding: const pw.EdgeInsets.only(top: 4, bottom: 4),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          // --- TABEL KIRI (Detail Zat Gizi) ---
-          pw.Expanded(
-            flex: 5,
-            child: pw.Table(
-              border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
-              columnWidths: {
-                0: const pw.FlexColumnWidth(1.5),
-                1: const pw.FlexColumnWidth(1.5), // Kolom Nilai (Kosong/Input Manual)
-                2: const pw.FlexColumnWidth(1.5), // Kolom Kebutuhan (Calculated)
-                3: const pw.FlexColumnWidth(1.2), // Kolom %
-              },
-              children: [
-                // Header
-                pw.TableRow(
-                  decoration: const pw.BoxDecoration(color: PdfColors.grey200),
-                  children: headers
-                      .map((h) => _buildTableCell(h, isHeader: true))
-                      .toList(),
-                ),
-                // Rows (Looping data)
-                for (int i = 0; i < rowLabels.length; i++)
-                  pw.TableRow(
-                    children: [
-                      _buildTableCell(rowLabels[i]),
-                      _buildTableCell(''), // Nilai (Kosong)
-                      // Tampilkan Kebutuhan (Rata Tengah)
-                      _buildTableCell(needs[i], align: pw.TextAlign.center),
-                      // Tampilkan Persentase (Rata Tengah)
-                      _buildTableCell(percentages[i], align: pw.TextAlign.center),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-
-          pw.SizedBox(width: 8), // Spacer
-
-          // --- TABEL KANAN (Ringkasan) ---
-          pw.Expanded(
-            flex: 3,
-            child: pw.Table(
-              border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
-              columnWidths: {0: const pw.FlexColumnWidth(1)},
-              children: [
-                // Header Kanan
-                pw.TableRow(
-                  decoration: const pw.BoxDecoration(color: PdfColors.grey200),
-                  children: [
-                    _buildTableCell('Ringkasan Kebutuhan', isHeader: true),
-                  ],
-                ),
-                // Data Rows Kanan
-                ...rightTableItems.map(
-                  (item) => pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.symmetric(
-                            horizontal: 4, vertical: 5),
-                        child: pw.Row(
-                          crossAxisAlignment: pw.CrossAxisAlignment.end,
-                          children: [
-                            pw.Text(
-                              '${item['label']} : ',
-                              style: const pw.TextStyle(fontSize: 9),
-                            ),
-                            pw.Expanded(
-                              child: pw.Text(
-                                item['value']!,
-                                style: pw.TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: pw.FontWeight.bold),
-                                textAlign: pw.TextAlign.right,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // ── WIDGET HELPERS ──────────────────────────────────────────────────────────
 
   static pw.Widget _buildCompactLabItem(Map<String, dynamic> data, int index) {
-    // Jika index melebihi jumlah data, kembalikan Container kosong (spacer)
-    // agar alignment kolom tetap terjaga
     if (index >= data.length) {
-      return pw.Expanded(
-        flex: 1,
-        child: pw.Container(),
-      );
+      return pw.Expanded(flex: 1, child: pw.Container());
     }
-
     final key = data.keys.elementAt(index);
     final value = data.values.elementAt(index);
-
     return pw.Expanded(
       flex: 1,
       child: pw.Padding(
         padding: const pw.EdgeInsets.only(right: 4),
         child: pw.Text(
-          '$key : $value', 
-          style: const pw.TextStyle(fontSize: 8), // Font kecil agar muat
+          '$key : $value',
+          style: const pw.TextStyle(fontSize: 8),
         ),
       ),
     );
   }
 
-  // Tambahkan parameter 'align'
-  static pw.Widget _buildTableCell(String text, {bool isHeader = false, pw.TextAlign? align}) {
+  static pw.Widget _buildTableCell(
+    String text, {
+    bool isHeader = false,
+    pw.TextAlign? align,
+  }) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(4),
       child: pw.Text(
         text,
-        // Gunakan align jika ada, jika tidak gunakan logika default (Header=Center, Body=Left)
         textAlign: align ?? (isHeader ? pw.TextAlign.center : pw.TextAlign.left),
         style: pw.TextStyle(
           fontSize: 9,
@@ -719,6 +613,7 @@ static pw.Widget _buildTotalIntakeTable(Map<String, double> rda) {
     );
   }
 
+  /// Baris dua kolom info: [label | value | label | value]
   static pw.Widget _buildInfoRow(
     String label1,
     String value1, [
@@ -752,6 +647,7 @@ static pw.Widget _buildTotalIntakeTable(Map<String, double> rda) {
     );
   }
 
+  /// Baris empat kolom seimbang untuk data klinis/asesmen
   static pw.Widget _buildAssessmentItemRow(
     String label1,
     String value1, [
@@ -779,23 +675,23 @@ static pw.Widget _buildTotalIntakeTable(Map<String, double> rda) {
               flex: 1,
               child: pw.Text(value2, style: const pw.TextStyle(fontSize: 9)),
             ),
-          ] else ...[
+          ] else
             pw.Expanded(flex: 2, child: pw.Container()),
-          ],
         ],
       ),
     );
   }
 
-  static pw.Widget _buildInfoRowSatu(String label1, String value1) {
+  /// Baris label + nilai yang mengisi sisa lebar (untuk teks panjang / multiline)
+  static pw.Widget _buildSingleLabelRow(String label, String value) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(label1, style: const pw.TextStyle(fontSize: 9)),
+          pw.Text(label, style: const pw.TextStyle(fontSize: 9)),
           pw.Expanded(
-            child: pw.Text(value1, style: const pw.TextStyle(fontSize: 9)),
+            child: pw.Text(value, style: const pw.TextStyle(fontSize: 9)),
           ),
         ],
       ),
@@ -817,7 +713,8 @@ static pw.Widget _buildTotalIntakeTable(Map<String, double> rda) {
     );
   }
 
-  static pw.Widget _buildAssessmentCategorysatu(
+  /// Sub-header kategori di dalam container asesmen beserta daftar widget-nya
+  static pw.Widget _buildAssessmentCategory(
     String title,
     List<pw.Widget> items,
   ) {
@@ -846,6 +743,230 @@ static pw.Widget _buildTotalIntakeTable(Map<String, double> rda) {
     );
   }
 
+  /// Baris dua kolom seimbang: kiri [label + value] / kanan [label + value]
+  static pw.Widget _buildSymmetricalRow(
+    String labelLeft,
+    String valueLeft,
+    String labelRight,
+    String valueRight,
+  ) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Expanded(
+            flex: 1,
+            child: pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(labelLeft, style: const pw.TextStyle(fontSize: 9)),
+                pw.SizedBox(width: 2),
+                pw.Expanded(
+                  child: pw.Text(
+                    valueLeft,
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          pw.SizedBox(width: 10),
+          pw.Expanded(
+            flex: 1,
+            child: pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(labelRight, style: const pw.TextStyle(fontSize: 9)),
+                pw.SizedBox(width: 2),
+                pw.Expanded(
+                  child: pw.Text(
+                    valueRight,
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static pw.Widget _buildCheckboxRow(String label, bool isChecked) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 3),
+      child: pw.Row(
+        mainAxisSize: pw.MainAxisSize.min,
+        children: [
+          pw.Container(
+            width: 8,
+            height: 8,
+            decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
+            child: isChecked
+                ? pw.Center(
+                    child: pw.Text(
+                      'V',
+                      style: pw.TextStyle(
+                        fontSize: 8,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                  )
+                : null,
+          ),
+          pw.SizedBox(width: 4),
+          pw.Text(label, style: const pw.TextStyle(fontSize: 9)),
+        ],
+      ),
+    );
+  }
+
+  static pw.Widget _buildTotalIntakeTable(Map<String, double> rda) {
+    const headers = ['Zat Gizi', 'Nilai', 'Kebutuhan', '%'];
+    const rowLabels = [
+      'Energi (kkal)',
+      'Protein (gram)',
+      'Lemak (gram)',
+      'KH (gram)',
+    ];
+
+    final energiTotal = rda['energi'] ?? 0;
+    final proteinGram = rda['protein'] ?? 0;
+    final lemakGram = rda['lemak'] ?? 0;
+    final karboGram = rda['karbo'] ?? 0;
+
+    // Hitung persentase kontribusi makronutrien terhadap total energi.
+    // Energi: protein & karbo = 4 kkal/g, lemak = 9 kkal/g.
+    final String pctEnergi;
+    final String pctProtein;
+    final String pctLemak;
+    final String pctKarbo;
+
+    if (energiTotal > 0) {
+      pctEnergi = '100 %';
+      pctProtein =
+          '${((proteinGram * 4 / energiTotal) * 100).toStringAsFixed(0)} %';
+      pctLemak =
+          '${((lemakGram * 9 / energiTotal) * 100).toStringAsFixed(0)} %';
+      pctKarbo =
+          '${((karboGram * 4 / energiTotal) * 100).toStringAsFixed(0)} %';
+    } else {
+      pctEnergi = pctProtein = pctLemak = pctKarbo = '-';
+    }
+
+    final needs = [
+      energiTotal.toStringAsFixed(0),
+      proteinGram.toStringAsFixed(1),
+      lemakGram.toStringAsFixed(1),
+      karboGram.toStringAsFixed(1),
+    ];
+
+    final percentages = [pctEnergi, pctProtein, pctLemak, pctKarbo];
+
+    final rightTableItems = [
+      {'label': 'Energi', 'value': '${energiTotal.toStringAsFixed(0)} kkal'},
+      {'label': 'Protein', 'value': '${proteinGram.toStringAsFixed(1)} gram'},
+      {
+        'label': 'Cairan',
+        'value': '${(rda['cairan'] ?? 0).toStringAsFixed(0)} ml'
+      },
+    ];
+
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(top: 4, bottom: 4),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          // Tabel kiri: detail zat gizi
+          pw.Expanded(
+            flex: 5,
+            child: pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
+              columnWidths: const {
+                0: pw.FlexColumnWidth(1.5),
+                1: pw.FlexColumnWidth(1.5),
+                2: pw.FlexColumnWidth(1.5),
+                3: pw.FlexColumnWidth(1.2),
+              },
+              children: [
+                pw.TableRow(
+                  decoration:
+                      const pw.BoxDecoration(color: PdfColors.grey200),
+                  children: headers
+                      .map((h) => _buildTableCell(h, isHeader: true))
+                      .toList(),
+                ),
+                for (int i = 0; i < rowLabels.length; i++)
+                  pw.TableRow(
+                    children: [
+                      _buildTableCell(rowLabels[i]),
+                      _buildTableCell(''),
+                      _buildTableCell(needs[i],
+                          align: pw.TextAlign.center),
+                      _buildTableCell(percentages[i],
+                          align: pw.TextAlign.center),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+
+          pw.SizedBox(width: 8),
+
+          // Tabel kanan: ringkasan kebutuhan
+          pw.Expanded(
+            flex: 3,
+            child: pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
+              columnWidths: const {0: pw.FlexColumnWidth(1)},
+              children: [
+                pw.TableRow(
+                  decoration:
+                      const pw.BoxDecoration(color: PdfColors.grey200),
+                  children: [
+                    _buildTableCell('Ringkasan Kebutuhan', isHeader: true),
+                  ],
+                ),
+                ...rightTableItems.map(
+                  (item) => pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 5),
+                        child: pw.Row(
+                          crossAxisAlignment: pw.CrossAxisAlignment.end,
+                          children: [
+                            pw.Text(
+                              '${item['label']} : ',
+                              style: const pw.TextStyle(fontSize: 9),
+                            ),
+                            pw.Expanded(
+                              child: pw.Text(
+                                item['value']!,
+                                style: pw.TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
+                                textAlign: pw.TextAlign.right,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── FILE I/O ────────────────────────────────────────────────────────────────
+
   static Future<File> saveDocument({
     required String name,
     required pw.Document pdf,
@@ -857,8 +978,7 @@ static pw.Widget _buildTotalIntakeTable(Map<String, double> rda) {
     return file;
   }
 
-  static Future openFile(File file) async {
-    final url = file.path;
-    await OpenFile.open(url);
+  static Future<void> openFile(File file) async {
+    await OpenFile.open(file.path);
   }
 }

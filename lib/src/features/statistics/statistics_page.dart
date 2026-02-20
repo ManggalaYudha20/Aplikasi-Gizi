@@ -849,7 +849,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                             key: _chartKey,
                             child: Container(
                               key: StatisticsKeys.chartContainer,
-                              height: sw < 400 ? 260 : 300,
+                              height: sw < 200 ? 260 : 300,
                               padding: EdgeInsets.all(sp),
                               decoration: BoxDecoration(
                                 color: Colors.white,

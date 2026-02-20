@@ -273,16 +273,50 @@ class PatientAnak {
   int get usiaInDays {
     return DateTime.now().difference(tanggalLahir).inDays;
   }
-  
+
+  // ---------------------------------------------------------------------------
+  // Getter usia berbasis kalender (lebih akurat dari pembagian 365 hari).
+  //
+  // Algoritma:
+  //   - Hitung selisih tahun kalender antara hari ini dan tanggalLahir.
+  //   - Koreksi mundur 1 tahun jika bulan+hari ulang tahun belum tercapai
+  //     di tahun berjalan (mencegah over-count).
+  //   - usiaBulan = sisa bulan setelah usiaTahun dikurangi.
+  //
+  // Contoh:
+  //   Lahir: 15 Maret 2020, Hari ini: 10 Feb 2026
+  //   → usiaTahun = 5  (ulang tahun ke-6 belum tiba)
+  //   → usiaBulan = 10
+  //   → totalBulan = 70  → _isAnak5Tahunkeatas = true ✓
+  // ---------------------------------------------------------------------------
+
+  /// Komponen tahun usia (kalender).
+  int get usiaTahun {
+    final now = DateTime.now();
+    int years = now.year - tanggalLahir.year;
+    // Mundurkan 1 jika bulan/hari ulang tahun belum lewat tahun ini.
+    if (now.month < tanggalLahir.month ||
+        (now.month == tanggalLahir.month && now.day < tanggalLahir.day)) {
+      years -= 1;
+    }
+    return years.clamp(0, 999);
+  }
+
+  /// Komponen bulan sisa setelah dikurangi [usiaTahun] (0–11).
+  int get usiaBulan {
+    final now = DateTime.now();
+    int months = now.month - tanggalLahir.month;
+    if (now.day < tanggalLahir.day) {
+      months -= 1; // Hari ulang bulan belum tercapai
+    }
+    return ((months % 12) + 12) % 12; // Selalu positif, rentang 0–11
+  }
+
   String get usiaFormatted {
-    final days = usiaInDays;
-    final years = days ~/ 365;
-    final months = (days % 365) ~/ 30;
-    
-    if (years > 0) {
-      return '$years tahun $months bulan';
+    if (usiaTahun > 0) {
+      return '$usiaTahun tahun $usiaBulan bulan';
     } else {
-      return '$months bulan';
+      return '$usiaBulan bulan';
     }
   }
 

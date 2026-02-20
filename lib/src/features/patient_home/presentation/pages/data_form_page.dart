@@ -1664,9 +1664,7 @@ void _generateExpertDiagnosis() {
                               vertical: 16,
                             ),
                           ),
-                          validator: (value) => (value == null || value.isEmpty)
-                              ? 'Wajib isi'
-                              : null,
+                          validator: (value) => null,
                         ),
                       ),
 
@@ -1701,9 +1699,7 @@ void _generateExpertDiagnosis() {
                               vertical: 16,
                             ),
                           ),
-                          validator: (value) => (value == null || value.isEmpty)
-                              ? 'Wajib isi'
-                              : null,
+                          validator: (value) => null,
                         ),
                       ),
                     ],
@@ -1764,9 +1760,7 @@ void _generateExpertDiagnosis() {
                       'Berat',
                     ], // Opsi yang diminta
                     focusNode: _focusNodes[22],
-                    validator: (value) => (value == null || value.isEmpty)
-                        ? 'Keadaan Umum harus dipilih'
-                        : null,
+                    validator: (value) => null,
                   ),
                   const SizedBox(height: 16),
 

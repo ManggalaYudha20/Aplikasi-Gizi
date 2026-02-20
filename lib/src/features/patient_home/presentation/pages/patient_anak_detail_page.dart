@@ -22,6 +22,26 @@ class PatientAnakDetailPage extends StatefulWidget {
 class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
   late PatientAnak _currentPatient;
 
+  // ---------------------------------------------------------------------------
+  // [AGE GATE] Menentukan apakah pasien masuk kategori anak ≥ 5 tahun.
+  //
+  // Menggunakan getter `usiaTahun` dan `usiaBulan` dari PatientAnak yang
+  // dihitung secara kalender (bukan pembagian 365 hari) sehingga akurat
+  // pada kasus ulang tahun yang belum/sudah terlewati di bulan berjalan.
+  //
+  // JANGAN ganti dengan parsing `usiaFormatted` — format string bisa berubah
+  // dan tidak robust untuk perbandingan numerik.
+  // ---------------------------------------------------------------------------
+
+  /// `true`  → usia ≥ 5 tahun: tampilkan IMT/U saja.
+  /// `false` → usia < 5 tahun (balita): tampilkan semua indikator (BB/U, TB/U, BB/PB, IMT/U).
+  bool get _isAnak5Tahunkeatas {
+    // Total bulan kalender dari model; ambang batas: 60 bulan = tepat 5 tahun.
+    final int totalBulan =
+        (_currentPatient.usiaTahun * 12) + _currentPatient.usiaBulan;
+    return totalBulan >= 60;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +50,9 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Evaluasi sekali per-build agar tidak dipanggil berkali-kali di dalam tree.
+    final bool isAnak5Keatas = _isAnak5Tahunkeatas;
+
     return ScaffoldWithAnimatedFab(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: CustomAppBar(
@@ -45,16 +68,13 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
         resetButtonColor: Colors.red,
         submitButtonColor: const Color.fromARGB(255, 0, 148, 68),
         onReset: () {
-          // Panggilan ini sekarang sudah benar karena PatientDeleteLogic
-          // sudah di-refactor untuk menerima ID dan Nama
           PatientDeleteLogic.handlePatientDelete(
             context: context,
-            patientId: _currentPatient.id, // Berikan ID
+            patientId: _currentPatient.id,
             patientName: _currentPatient.namaLengkap,
           );
         },
         onSubmit: () async {
-          // Navigasi ke form EDIT anak
           final updatedPatient = await Navigator.push<PatientAnak>(
             context,
             MaterialPageRoute(
@@ -74,6 +94,7 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Bagian 1: Data Dasar ─────────────────────────────────────────
             _buildSectionTitle('Data Pasien Anak'),
             _buildInfoRow('No. RM', _currentPatient.noRM),
             _buildInfoRow(
@@ -100,41 +121,50 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
               ),
             _buildInfoRow(
               'Berat Badan Ideal',
-              '${_currentPatient.bbi?.toString() ?? ""} kg', // Mengambil langsung dari database
+              '${_currentPatient.bbi?.toString() ?? ""} kg',
             ),
             const Divider(height: 20, thickness: 2, color: Colors.green),
 
+            // ── Bagian 2: Hasil Status Gizi ──────────────────────────────────
+            // [KONDISIONAL] Tampilan indikator disesuaikan berdasarkan usia.
+            //   • Usia < 5 tahun (balita) : tampil BB/U, TB/U, BB/PB, IMT/U
+            //   • Usia ≥ 5 tahun          : hanya tampil IMT/U
             _buildSectionTitle('Hasil Status Gizi Anak'),
-            // --- 1. BB/U ---
-            _buildStatusGiziItem(
-              title: 'Berat Badan menurut Umur (BB/U)',
-              zScore: _currentPatient.zScoreBBU,
-              // Gunakan statusGiziAnak jika itu untuk BB/U, atau sesuaikan
-              category: _currentPatient.statusGiziBBU,
-            ),
 
-            // --- 2. TB/U ---
-            _buildStatusGiziItem(
-              title: 'Tinggi Badan menurut Umur (TB/U)',
-              zScore: _currentPatient.zScoreTBU,
-              category: _currentPatient.statusGiziTBU,
-            ),
+            // --- BB/U — hanya untuk balita (< 5 tahun) ---
+            if (!isAnak5Keatas)
+              _buildStatusGiziItem(
+                title: 'Berat Badan menurut Umur (BB/U)',
+                zScore: _currentPatient.zScoreBBU,
+                category: _currentPatient.statusGiziBBU,
+              ),
 
-            // --- 3. BB/TB ---
-            _buildStatusGiziItem(
-              title: 'Berat Badan menurut Tinggi Badan (BB/TB)',
-              zScore: _currentPatient.zScoreBBTB,
-              category: _currentPatient.statusGiziBBTB,
-            ),
+            // --- TB/U — hanya untuk balita (< 5 tahun) ---
+            if (!isAnak5Keatas)
+              _buildStatusGiziItem(
+                title: 'Tinggi Badan menurut Umur (PB/U)',
+                zScore: _currentPatient.zScoreTBU,
+                category: _currentPatient.statusGiziTBU,
+              ),
 
-            // --- 4. IMT/U ---
+            // --- BB/PB — hanya untuk balita (< 5 tahun) ---
+            if (!isAnak5Keatas)
+              _buildStatusGiziItem(
+                title: 'Berat Badan menurut Tinggi Badan (BB/PB)',
+                zScore: _currentPatient.zScoreBBTB,
+                category: _currentPatient.statusGiziBBTB,
+              ),
+
+            // --- IMT/U — tampil untuk SEMUA usia (balita & anak ≥ 5 tahun) ---
             _buildStatusGiziItem(
               title: 'Indeks Massa Tubuh menurut Umur (IMT/U)',
               zScore: _currentPatient.zScoreIMTU,
               category: _currentPatient.statusGiziIMTU,
             ),
+
             const Divider(height: 20, thickness: 2, color: Colors.green),
 
+            // ── Bagian 3: Skrining Gizi Lanjut ──────────────────────────────
             _buildSectionTitle('Skrining Gizi Lanjut'),
             _buildInfoRow(
               'Skor Status Antropometri',
@@ -234,8 +264,10 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
 
             const Divider(height: 20, thickness: 2, color: Colors.green),
 
+            // ── Bagian 4: Asesmen & Rencana Asuhan Gizi ─────────────────────
             _buildSectionTitle('Asesmen & Rencana Asuhan Gizi'),
-            // Kategori 1: Riwayat Gizi & Personal
+
+            // Kategori 1: Riwayat Gizi
             ExpansionTile(
               leading: const Icon(Icons.history_edu_outlined),
               title: const Text(
@@ -254,6 +286,7 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                 ),
               ],
             ),
+
             // 2. Biokimia
             ExpansionTile(
               leading: const Icon(Icons.science_outlined),
@@ -263,17 +296,14 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
               ),
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
-               if (_currentPatient.labResults.isEmpty)
+                if (_currentPatient.labResults.isEmpty)
                   const Padding(
                     padding: EdgeInsets.all(8.0),
                     child: Text('Tidak ada data laboratorium.'),
                   )
                 else
                   ..._currentPatient.labResults.entries.map((entry) {
-                    return _buildInfoRow(
-                      entry.key, 
-                      entry.value, 
-                    );
+                    return _buildInfoRow(entry.key, entry.value);
                   }),
               ],
             ),
@@ -400,6 +430,9 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             ),
 
             // 6. Monev
+            // [KONDISIONAL] Label status gizi di Monev disesuaikan dengan usia:
+            //   • Usia ≥ 5 tahun : tampilkan "Status Gizi IMT/U" (dari zScoreIMTU)
+            //   • Usia < 5 tahun : tampilkan "Status Gizi BB/U"  (dari statusGiziBBU)
             ExpansionTile(
               leading: const Icon(Icons.analytics_outlined),
               title: const Text(
@@ -408,10 +441,20 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
               ),
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
-                _buildInfoDisplay(
-                  label: 'Status Gizi BB/U :',
-                  value: _currentPatient.statusGiziBBU,
-                ),
+                // ── Status Gizi (kondisional berdasarkan usia) ───────────────
+                if (isAnak5Keatas)
+                  // Anak ≥ 5 tahun: pakai IMT/U sebagai acuan status gizi
+                  _buildInfoDisplay(
+                    label: 'Status Gizi IMT/U :',
+                    value: _currentPatient.statusGiziIMTU,
+                  )
+                else
+                  // Balita < 5 tahun: tetap pakai BB/U
+                  _buildInfoDisplay(
+                    label: 'Status Gizi BB/U :',
+                    value: _currentPatient.statusGiziBBU,
+                  ),
+                // ── Field Monev lainnya (tidak berubah) ─────────────────────
                 _buildInfoDisplay(
                   label: 'Indikator Monitoring :',
                   value: _currentPatient.monevIndikator,
@@ -492,28 +535,26 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
     );
   }
 
+  // ── Helper Widgets ─────────────────────────────────────────────────────────
+
   Widget _buildInfoDisplay({
     required String label,
     required String? value,
     String emptyValueMessage = 'Tidak ada data.',
   }) {
-    // Tampilkan pesan default jika nilai null atau kosong
-    final displayText = (value == null || value.isEmpty)
-        ? emptyValueMessage
-        : value;
+    final displayText =
+        (value == null || value.isEmpty) ? emptyValueMessage : value;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Label
           Text(
             label,
             style: const TextStyle(fontSize: 16, color: Colors.black54),
           ),
-          const SizedBox(height: 6), // Jarak antara label dan nilai
-          // 2. Nilai (Value)
+          const SizedBox(height: 6),
           SizedBox(
             width: double.infinity,
             child: Text(
@@ -531,7 +572,6 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
     required double? zScore,
     required String? category,
   }) {
-    // Logika Warna Sederhana
     Color statusColor = Colors.red;
     if (category != null) {
       if (category.toLowerCase().contains('baik') ||
@@ -567,7 +607,6 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Keterangan / Judul
           Text(
             title,
             style: const TextStyle(
@@ -577,11 +616,9 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             ),
           ),
           const SizedBox(height: 8),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // 2. Z-Score
               Row(
                 children: [
                   const Text(
@@ -594,8 +631,6 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                   ),
                 ],
               ),
-
-              // 3. Kategori (Badge Berwarna)
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -622,7 +657,6 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
     );
   }
 
-  // (Copy/paste _buildSectionTitle dan _buildInfoRow dari patient_detail_page.dart)
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
