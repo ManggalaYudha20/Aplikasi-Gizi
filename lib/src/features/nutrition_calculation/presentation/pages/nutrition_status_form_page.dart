@@ -327,7 +327,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     final double titleFontSize = 20.0 * scaleFactor;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
         title: 'Status Gizi Anak',
         subtitle: 'Usia 0-60 Bulan',

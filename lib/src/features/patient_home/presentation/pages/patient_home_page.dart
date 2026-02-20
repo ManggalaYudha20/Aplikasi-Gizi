@@ -153,7 +153,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(150, 255, 255, 255),
+      backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(title: 'Daftar Pasien', subtitle: ''),
       body: SafeArea(
         child: FutureBuilder<String?>(

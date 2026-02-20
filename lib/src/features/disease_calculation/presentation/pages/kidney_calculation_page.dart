@@ -241,7 +241,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
         .contains(widget.userRole.toLowerCase());
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
         title: 'Diet Ginjal Kronis',
         subtitle: 'Kalkulator Kebutuhan Protein',

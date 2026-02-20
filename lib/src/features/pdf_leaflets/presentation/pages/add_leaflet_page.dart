@@ -111,6 +111,7 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
     final spacerMedium = SizedBox(height: screenWidth * 0.08);
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: CustomAppBar(title: _isEditing ? 'Edit Leaflet' : 'Tambah Leaflet', subtitle:'Lengkapi Data Leaflet dibawah'),
       body: SafeArea(
         child: SingleChildScrollView(

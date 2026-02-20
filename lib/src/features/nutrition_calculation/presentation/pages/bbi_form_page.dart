@@ -161,7 +161,7 @@ class _BbiFormPageState extends State<BbiFormPage> {
     final double hPad = sw * 0.04; // ≈ 16 dp pada layar 400 dp
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
         title: _Str.appBarTitle,
         subtitle: _Str.appBarSubtitle,

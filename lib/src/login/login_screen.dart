@@ -99,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen>
     final size = MediaQuery.sizeOf(context); // Lebih efisien daripada MediaQuery.of(context).size di Flutter terbaru
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: Colors.grey[50],
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: Stack(

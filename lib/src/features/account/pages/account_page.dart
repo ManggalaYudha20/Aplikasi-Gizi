@@ -35,7 +35,7 @@ class AccountPage extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(150, 255, 255, 255),
+      backgroundColor: Colors.grey[50],
       appBar: CustomAppBar(
         title: 'Profil Akun',
         subtitle: 'Halo, ${user?.displayName}!',

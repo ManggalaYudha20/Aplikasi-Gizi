@@ -105,6 +105,7 @@ class NutritionInfoPage extends StatelessWidget {
     final menuItems = _getMenuItems(context);
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(title: 'Beranda', subtitle: ''),
       body: SafeArea(
         child: FadeInTransition(

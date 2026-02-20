@@ -73,7 +73,7 @@ class _FoodListPageState extends State<FoodListPage> {
     final bool isTablet = screenWidth > 600;
     final double horizontalPadding = isTablet ? 24.0 : 16.0;
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
         title: 'Daftar Makanan',
         subtitle: 'Temukan informasi gizi makanan',

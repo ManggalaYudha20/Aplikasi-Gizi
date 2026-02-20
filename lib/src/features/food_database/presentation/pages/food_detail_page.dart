@@ -113,7 +113,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.grey[50],
       appBar: CustomAppBar(title: widget.foodItem.name, subtitle: '100 gram'),
       body:  SafeArea(
         child: GestureDetector(

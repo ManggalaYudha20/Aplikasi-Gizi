@@ -276,7 +276,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     final double cardRadius = sw < 400 ? 12.0 : 16.0;
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(150, 255, 255, 255),
+      backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(title: 'Statistik Data', subtitle: ''),
       body: _patientsStream == null
           ? const Center(

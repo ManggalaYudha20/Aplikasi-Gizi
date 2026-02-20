@@ -31,7 +31,7 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
   @override
   Widget build(BuildContext context) {
     return ScaffoldWithAnimatedFab(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.grey[50],
       appBar: CustomAppBar(
         title: _currentPatient.namaLengkap,
         subtitle: 'Data Lengkap Pasien',

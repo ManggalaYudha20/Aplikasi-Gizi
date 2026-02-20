@@ -204,7 +204,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     final vSpaceSm = size.height * 0.02; // ≈ 16 dp
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
         title: 'Diet Diabetes Melitus',
         subtitle: 'Kalkulator Kebutuhan Energi',

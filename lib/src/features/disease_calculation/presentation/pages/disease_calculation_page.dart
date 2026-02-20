@@ -88,7 +88,7 @@ class DiseaseCalculationPage extends StatelessWidget {
     final double childAspectRatio = colWidth / cardHeight;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
         title: 'Hitung Diet Penyakit',
         subtitle: 'Pilih Jenis Diet Penyakit',

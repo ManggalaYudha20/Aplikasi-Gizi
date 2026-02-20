@@ -54,7 +54,7 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
     final bool isAnak5Keatas = _isAnak5Tahunkeatas;
 
     return ScaffoldWithAnimatedFab(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.grey[50],
       appBar: CustomAppBar(
         title: _currentPatient.namaLengkap,
         subtitle: 'Data Lengkap Pasien Anak',

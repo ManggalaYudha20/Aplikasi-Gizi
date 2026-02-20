@@ -1207,7 +1207,7 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
   @override
   Widget build(BuildContext context) {
     return ScaffoldWithAnimatedFab(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.grey[50],
       appBar: CustomAppBar(
         title: widget.patient != null ? 'Edit Data Anak' : 'Tambah Pasien Anak',
         subtitle: 'Isi data dengan lengkap',

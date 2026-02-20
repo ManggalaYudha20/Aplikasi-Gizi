@@ -138,7 +138,7 @@ class FormulaCalculationPage extends StatelessWidget {
     final double childAspectRatio = (cardHeight > 0) ? (colWidth / cardHeight) : 1.0;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
         title: 'Kalkulator Gizi',
         subtitle: 'Pilih Jenis Kalkulator',

@@ -160,7 +160,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
     final double hPad = sw * 0.04; // ≈ 16 dp pada layar 400 dp
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(title: 'IMT', subtitle: 'Indeks Massa Tubuh'),
       body: SafeArea(
         child: GestureDetector(
