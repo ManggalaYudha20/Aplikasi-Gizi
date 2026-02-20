@@ -28,25 +28,29 @@ class UserRepository {
   // Hapus User Tunggal
   Future<void> deleteUser(String userId) async {
     try {
-      await _firestore.collection('users').doc(userId).delete();
-    } catch (e) {
-      throw Exception('Gagal menghapus user: $e');
-    }
-  }
+      WriteBatch batch = _firestore.batch();
 
-  // Penghapusan Massal (Batch Write)
-  Future<void> batchDeleteUsers(List<String> userIds) async {
-    if (userIds.isEmpty) return;
+      // 1. Siapkan referensi dokumen user yang akan dihapus
+      DocumentReference userRef = _firestore.collection('users').doc(userId);
+      batch.delete(userRef);
 
-    WriteBatch batch = _firestore.batch();
-    for (String id in userIds) {
-      batch.delete(_firestore.collection('users').doc(id));
-    }
+      // 2. Cari semua data pasien yang dimiliki oleh ahli gizi ini
+      // CATATAN: Sesuaikan nama koleksi 'patients' dan field 'userId' dengan struktur database Anda.
+      // Jika pasien berada di sub-koleksi user, gunakan: await userRef.collection('patients').get();
+      QuerySnapshot patientSnapshot = await _firestore
+          .collection('patients') 
+          .where('createdBy', isEqualTo: userId) 
+          .get();
 
-    try {
+      // Tambahkan instruksi hapus pasien ke dalam batch
+      for (var doc in patientSnapshot.docs) {
+        batch.delete(doc.reference);
+      }
+
+      // 3. Eksekusi penghapusan secara bersamaan
       await batch.commit();
     } catch (e) {
-      throw Exception('Gagal melakukan penghapusan massal: $e');
+      throw Exception('Gagal menghapus user dan data pasien: $e');
     }
   }
 }

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/login/login_screen.dart';
 import 'package:aplikasi_diagnosa_gizi/src/app/main_screen.dart';
+import 'package:aplikasi_diagnosa_gizi/src/app/session_wrapper.dart';
 
 /// Mendengarkan stream autentikasi Firebase dan mengarahkan pengguna
 /// ke [MainScreen] (sudah login) atau [LoginScreen] (belum login).
@@ -30,7 +31,10 @@ class AuthWrapper extends StatelessWidget {
 
         // User sudah login → MainScreen
         if (snapshot.hasData) {
-          return const MainScreen();
+          // Bungkus MainScreen dengan SessionWrapper
+          return const SessionWrapper(
+            child: MainScreen(),
+          );
         }
 
         // Belum login → LoginScreen

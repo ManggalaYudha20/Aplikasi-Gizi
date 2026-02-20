@@ -43,11 +43,24 @@ class AuthService {
         final doc = await userRef.get();
 
         if (!doc.exists) {
+          String defaultRole = 'tamu'; // Role bawaan jika gagal mengambil pengaturan
+          
+          try {
+            // Cek dokumen pengaturan global di koleksi 'settings'
+            final settingsDoc = await _firestore.collection('settings').doc('app_settings').get();
+            if (settingsDoc.exists && settingsDoc.data() != null) {
+              // Jika pengaturan ada, gunakan nilai dari database
+              defaultRole = settingsDoc.data()!['default_role'] ?? 'tamu';
+            }
+          } catch (e) {
+            debugPrint('Gagal membaca pengaturan default_role: $e');
+          }
+
           await userRef.set({
             'displayName': user.displayName,
             'email': user.email,
             'photoURL': user.photoURL,
-            'role': 'tamu', // Default role
+            'role': defaultRole, // Default role
             'createdAt': FieldValue.serverTimestamp(),
             'lastLogin': FieldValue.serverTimestamp(),
           });
