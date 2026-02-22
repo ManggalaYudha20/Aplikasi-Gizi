@@ -1786,6 +1786,7 @@ void _generateExpertDiagnosis() {
                     prefixIcon: const Icon(Icons.history_edu),
                     focusNode: _focusNodes[24],
                     maxLength: 500,
+                    maxLines: 2,
                     validator: (value) => null,
                   ),
                   const SizedBox(height: 16),
@@ -1796,6 +1797,7 @@ void _generateExpertDiagnosis() {
                     prefixIcon: const Icon(Icons.history),
                     focusNode: _focusNodes[25],
                     maxLength: 500,
+                    maxLines: 2,
                     validator: (value) => null,
                   ),
                   const SizedBox(height: 24),
@@ -2089,6 +2091,7 @@ void _generateExpertDiagnosis() {
                     prefixIcon: const Icon(Icons.monitor),
                     focusNode: _focusNodes[32],
                     maxLength: 500,
+                    maxLines: 2,
                     validator: (value) => null,
                   ),
                   const SizedBox(height: 16),
@@ -2193,6 +2196,7 @@ _buildTextFormField(
   prefixIcon: const Icon(Icons.note_alt_outlined), // Ganti Icon biar beda
   focusNode: _focusNodes[33],
   maxLength: 500,
+  maxLines: 2,
   validator: (value) => null,
 ),
                 ],
@@ -2230,9 +2234,11 @@ _buildTextFormField(
     // DIUBAH: Tambahkan parameter validator
     String? Function(String?)? validator,
     int? maxLength,
+    int maxLines = 1,
   }) {
     return TextFormField(
       controller: controller,
+      maxLines: maxLines,
       focusNode: focusNode,
       readOnly: readOnly,
       onTap: onTap,

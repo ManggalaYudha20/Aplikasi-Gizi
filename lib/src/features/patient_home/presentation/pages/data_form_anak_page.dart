@@ -1526,6 +1526,7 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                     focusNode: _focusNodes[16],
                     validator: (v) => null,
                     maxLength: 500,
+                    maxLines: 2,
                   ),
                   const SizedBox(height: 16),
                   _buildTextFormField(
@@ -1535,6 +1536,7 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                     focusNode: _focusNodes[17],
                     validator: (v) => null,
                     maxLength: 500,
+                    maxLines: 2,
                   ),
 
                   // 2. Biokimia
@@ -1989,19 +1991,25 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                   _buildSectionHeader('Intervensi Gizi'),
 
                   SearchableTerminologyField(
-                    label: 'Jenis Diet / Intervensi (Cari ND/NE/NC/RC)',
+                    label: 'Jenis Diet / Intervensi',
                     controller: _intervensiDietController,
                     dataList: IntervensiData.allInterventions,
                     prefixIcon: const Icon(Icons.food_bank),
                     maxLength: 200,
                   ),
                   const SizedBox(height: 16),
-                  _buildTextFormField(
+                  _buildCustomDropdown(
                     controller: _intervensiBentukMakananController,
-                    label: 'Bentuk Makanan (BM)',
+                    label: 'Bentuk Makanan',
                     prefixIcon: const Icon(Icons.fastfood),
+                    items: const [
+                      'Biasa',
+                      'Tim',
+                      'Lunak',
+                      'Cair',
+                      'Saring',
+                    ], 
                     focusNode: _focusNodes[30],
-                    maxLength: 200,
                     validator: (v) => null,
                   ),
                   const SizedBox(height: 16),
@@ -2027,7 +2035,7 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                   _buildSectionHeader('Monitoring & Evaluasi'),
 
                   SearchableTerminologyField(
-                    label: 'Indikator Monitoring (Cari BE/FI/S)',
+                    label: 'Indikator Monitoring',
                     controller: _monevIndikatorController, // Controller Baru
                     dataList: MonitoringData.allMonitoringItems,
                     prefixIcon: const Icon(Icons.monitor_heart),
@@ -2041,6 +2049,7 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                     prefixIcon: const Icon(Icons.analytics),
                     focusNode: _focusNodes[33],
                     maxLength: 500,
+                    maxLines: 2,
                     validator: (v) => null,
                   ),
                   const SizedBox(height: 16),
@@ -2135,6 +2144,7 @@ _buildTextFormField(
   prefixIcon: const Icon(Icons.note_alt_outlined),
   focusNode: _focusNodes[34], // Sesuaikan index focusNode
   maxLength: 500,
+  maxLines: 2,
   validator: (value) => null,
 ),
                   const SizedBox(height: 32),
@@ -2173,9 +2183,11 @@ _buildTextFormField(
     // DIUBAH: Tambahkan parameter validator
     String? Function(String?)? validator,
     int? maxLength,
+    int maxLines = 1,
   }) {
     return TextFormField(
       controller: controller,
+      maxLines: maxLines,
       focusNode: focusNode,
       readOnly: readOnly,
       onTap: onTap,

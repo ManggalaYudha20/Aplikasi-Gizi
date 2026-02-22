@@ -126,6 +126,7 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
                   controller: _titleController,
                   label: 'Judul Leaflet',
                   icon: Icons.title,
+                  maxLines: 3,
                 ),
                 spacerSmall,
                 _buildTextField(
@@ -143,6 +144,7 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
                   hint: 'Link Google Drive akan otomatis diubah ke format preview',
                   icon: Icons.link,
                   isUrl: true,
+                  maxLines: 3,
                 ),
                 spacerMedium,
                 Semantics(
