@@ -172,14 +172,6 @@ class DiabetesCalculatorService {
       totalCalories += stressMetabolicCorrection;
     }
 
-    /*if (bloodSugar == 'Tidak terkendali') {
-      totalCalories *= 0.9;
-    }
-
-    if (bloodPressure == 'Tinggi') {
-      totalCalories *= 0.95;
-    }*/
-
     final dietInfo = _getDietType(totalCalories);
     final foodGroupDiet = _getFoodGroupDiet(totalCalories);
     final dailyMealDistribution = _getDailyMealDistribution(totalCalories);
