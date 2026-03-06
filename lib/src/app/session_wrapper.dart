@@ -1,10 +1,11 @@
-//lib\src\app\session_wrapper.dart
+// lib/src/app/session_wrapper.dart
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
-import 'package:aplikasi_diagnosa_gizi/src/app/auth_wrapper.dart'; // Tambahkan ini untuk navigasi ulang
+import 'package:aplikasi_diagnosa_gizi/src/app/auth_wrapper.dart';
 
 class SessionWrapper extends StatefulWidget {
   final Widget child;
@@ -16,62 +17,70 @@ class SessionWrapper extends StatefulWidget {
 
 class _SessionWrapperState extends State<SessionWrapper> {
   String? _currentRole;
+  bool _isDialogShowing = false;
   bool _isInitialLoad = true;
-  bool _isDialogShowing = false; // Mencegah dialog muncul tumpang tindih
+
+  StreamSubscription<DocumentSnapshot>? _userDocSubscription;
   final AuthService _authService = AuthService();
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
+    _startListening();
+  }
+
+  @override
+  void dispose() {
+    _userDocSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _startListening() {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return widget.child;
+    if (user == null) return;
 
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && _isInitialLoad) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    _userDocSubscription = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .snapshots()
+        .listen((doc) async {
+      if (!mounted) return;
+
+      // KONDISI 1: Dokumen tidak ada — kemungkinan akun dihapus
+      if (!doc.exists) {
+        // Toleransi race condition saat akun baru dibuat
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
+
+        final verify = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (!verify.exists && mounted && !_isDialogShowing) {
+          _showDeletedAccountDialog();
         }
+        return;
+      }
 
-        if (snapshot.hasData) {
-          final doc = snapshot.data!;
+      // KONDISI 2: Deteksi perubahan role
+      final data = doc.data();
+      final role = data?['role'] as String?;
 
-          // KONDISI 1: Akun Pengguna Dihapus (atau sedang proses dibuat)
-          if (!doc.exists) {
-            // Mencegah Race Condition saat akun baru saja dibuat:
-            // Berikan jeda toleransi 2 detik, lalu verifikasi ulang.
-            Future.delayed(const Duration(seconds: 2), () async {
-              if (!mounted || _isDialogShowing) return;
-              
-              // Verifikasi ulang apakah dokumennya memang benar-benar tidak ada
-              final verifyDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-              if (!verifyDoc.exists && mounted && !_isDialogShowing) {
-                _showDeletedAccountDialog();
-              }
-            });
-            // Tahan layar di status loading selagi menunggu verifikasi
-            return const Scaffold(body: Center(child: CircularProgressIndicator()));
-          }
-
-          // KONDISI 2: Role Pengguna Berubah
-          final data = doc.data() as Map<String, dynamic>?;
-          final role = data?['role'] as String?;
-
-          if (_isInitialLoad) {
-            _currentRole = role;
-            _isInitialLoad = false;
-          } else if (_currentRole != role && role != null) {
-            _currentRole = role; // Update lokal segera agar tidak ter-trigger berulang
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!_isDialogShowing) {
-                _showRoleChangedDialog();
-              }
-            });
-          }
+      if (_isInitialLoad) {
+        // Simpan role awal, jangan tampilkan dialog
+        _currentRole = role;
+        _isInitialLoad = false;
+      } else if (role != null && role != _currentRole) {
+        // Role berubah — update dulu lalu tampilkan dialog
+        _currentRole = role;
+        if (!_isDialogShowing) {
+          _showRoleChangedDialog();
         }
-
-        return widget.child;
-      },
-    );
+      }
+    }, onError: (e) {
+      debugPrint('SessionWrapper stream error: $e');
+    });
   }
 
   void _showDeletedAccountDialog() {
@@ -79,21 +88,24 @@ class _SessionWrapperState extends State<SessionWrapper> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Sesi Berakhir'),
-        content: const Text('Akun Anda telah dihapus oleh Admin. Anda akan dikeluarkan dari aplikasi.'),
+        content: const Text(
+          'Akun Anda telah dihapus oleh Admin. '
+          'Anda akan dikeluarkan dari aplikasi.',
+        ),
         actions: [
           ElevatedButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              Navigator.of(ctx).pop();
               _isDialogShowing = false;
-              await _authService.signOut(); // Akan memicu AuthWrapper melempar user ke LoginScreen
+              await _authService.signOut();
             },
             child: const Text('OK'),
           ),
         ],
       ),
-    );
+    ).then((_) => _isDialogShowing = false);
   }
 
   void _showRoleChangedDialog() {
@@ -101,26 +113,43 @@ class _SessionWrapperState extends State<SessionWrapper> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Perubahan Hak Akses'),
-        content: const Text('Role/Hak akses Anda telah diubah oleh Admin. Aplikasi perlu dimuat ulang untuk menerapkan perubahan.'),
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.admin_panel_settings, color: Color(0xFF009444)),
+            SizedBox(width: 8),
+            Text('Perubahan Hak Akses'),
+          ],
+        ),
+        content: const Text(
+          'Role/Hak akses Anda telah diubah oleh Admin.\n\n'
+          'Aplikasi perlu dimuat ulang untuk menerapkan perubahan.',
+        ),
         actions: [
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(ctx).pop();
               _isDialogShowing = false;
-              
-              // PERBAIKAN: Hapus seluruh tumpukan layar yang ada, dan paksa jalankan 
-              // AuthWrapper dari nol agar MainScreen & Bottom Navbar membaca ulang role.
+
+              // Hapus seluruh stack dan jalankan AuthWrapper ulang
               Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const AuthWrapper()),
+                MaterialPageRoute(builder: (_) => const AuthWrapper()),
                 (route) => false,
               );
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF009444),
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Muat Ulang'),
           ),
         ],
       ),
-    );
+    ).then((_) => _isDialogShowing = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

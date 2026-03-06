@@ -17,6 +17,8 @@ import 'package:aplikasi_diagnosa_gizi/src/features/account/widgets/account_dial
 import 'package:aplikasi_diagnosa_gizi/src/features/account/widgets/role_badge.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/account/widgets/account_menu_button.dart';
 
+import 'package:aplikasi_diagnosa_gizi/src/login/login_screen.dart'; // Tambahkan ini
+
 class AccountPage extends StatelessWidget {
   // DEPENDENCY INJECTION:
   // Service di-pass via constructor, bukan di-instansiasi di dalam build.
@@ -71,8 +73,25 @@ class AccountPage extends StatelessWidget {
                     onPressed: () => AccountDialogs.showSignOutConfirmation(
                       context,
                       onConfirm: () async {
-                        await authService.signOut();
-                        // Handle navigasi setelah logout jika perlu
+                        try {
+                          // 1. Jalankan proses logout
+                          await authService.signOut();
+                          
+                          // 2. Arahkan kembali ke LoginScreen dan hapus semua tumpukan halaman sebelumnya
+                          if (context.mounted) {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(builder: (context) => const LoginScreen()),
+                              (Route<dynamic> route) => false,
+                            );
+                          }
+                        } catch (e) {
+                          // 3. Tampilkan pesan jika terjadi gagal logout
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Gagal keluar akun: $e')),
+                            );
+                          }
+                        }
                       },
                     ),
                   ),

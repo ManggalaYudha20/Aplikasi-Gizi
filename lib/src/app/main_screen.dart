@@ -8,6 +8,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/account/pages/account_page.d
 import 'package:aplikasi_diagnosa_gizi/src/features/statistics/statistics_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/services/user_service.dart';
 import 'package:firebase_performance/firebase_performance.dart';
+import 'package:flutter/foundation.dart';
 
 /// Breakpoint sederhana — layar ≥ 600 dp dianggap tablet / landscape.
 const double _kTabletBreakpoint = 600;
@@ -38,25 +39,31 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _fetchUserRoleAndSetupMenu() async {
-    // Firebase Performance Trace — logika tidak diubah
-    final Trace trace =
-        FirebasePerformance.instance.newTrace('fetch_user_role');
+  // Hanya gunakan Firebase Performance di Android/iOS
+  final bool usePerformance =
+      defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS;
+
+  Trace? trace;
+  if (usePerformance) {
+    trace = FirebasePerformance.instance.newTrace('fetch_user_role');
     await trace.start();
-
-    try {
-      final role = await _userService.getUserRole();
-
-      if (mounted) {
-        setState(() {
-          _userRole = role ?? 'tamu';
-          _setupNavigationMenu();
-          _isLoading = false;
-        });
-      }
-    } finally {
-      await trace.stop();
-    }
   }
+
+  try {
+    final role = await _userService.getUserRole();
+
+    if (mounted) {
+      setState(() {
+        _userRole = role ?? 'tamu';
+        _setupNavigationMenu();
+        _isLoading = false;
+      });
+    }
+  } finally {
+    await trace?.stop(); // ← pakai ?. agar aman saat trace null
+  }
+}
 
   void _setupNavigationMenu() {
     // Halaman & item didefinisikan di sini (tidak berubah dari semula)

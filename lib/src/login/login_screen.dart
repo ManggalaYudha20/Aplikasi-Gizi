@@ -5,8 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/version_info_app.dart';
 import 'package:aplikasi_diagnosa_gizi/src/app/main_screen.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:aplikasi_diagnosa_gizi/src/login/register_screen.dart';
+import 'package:aplikasi_diagnosa_gizi/src/login/email_verification_screen.dart';
 
-// Tips: Kumpulkan path asset di satu tempat agar jika file dipindah, cukup ubah di sini
 class _Assets {
   static const logoRsud = 'assets/images/logo.png';
   static const googleLogo = 'assets/images/google_logo.png';
@@ -21,16 +24,19 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
-  
-  // Services
-  final AuthService _authService = AuthService(); // Idealnya di-inject via Provider/GetIt
+  final AuthService _authService = AuthService();
 
-  // Controllers
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
 
-  // State
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  bool get _isGoogleSignInSupported =>
+      kIsWeb || Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
 
   @override
   void initState() {
@@ -43,20 +49,109 @@ class _LoginScreenState extends State<LoginScreen>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+    _fadeAnimation =
+        CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleGoogleSignIn() async {
-    // Prevent double tap
-    if (_isLoading) return;
+  Future<void> _handleEmailSignIn() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showErrorSnackBar("Email dan Password tidak boleh kosong");
+      return;
+    }
 
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+
+    try {
+      final userCredential = await _authService.signInWithEmailPassword(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      if (userCredential?.user != null) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
+      } else {
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      final message = e.toString().replaceAll('Exception: ', '');
+
+      // Jika error karena email belum diverifikasi, tawarkan opsi kirim ulang
+      if (message.contains('belum diverifikasi')) {
+        _showUnverifiedEmailDialog();
+      } else {
+        _showErrorSnackBar(message);
+      }
+
+      setState(() => _isLoading = false);
+    }
+  }
+
+  // Dialog khusus jika email belum diverifikasi
+  void _showUnverifiedEmailDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.mark_email_unread_outlined, color: Color(0xFF008C45)),
+            SizedBox(width: 8),
+            Text('Email Belum Diverifikasi'),
+          ],
+        ),
+        content: Text(
+          'Akun dengan email ${_emailController.text.trim()} belum diverifikasi.\n\n'
+          'Cek inbox kamu atau kirim ulang email verifikasi.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Tutup', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              // Arahkan ke halaman verifikasi
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => EmailVerificationScreen(
+                    email: _emailController.text.trim(),
+                  ),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF008C45),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Verifikasi Sekarang'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    if (_isLoading) return;
     setState(() => _isLoading = true);
 
     try {
@@ -65,17 +160,14 @@ class _LoginScreenState extends State<LoginScreen>
       if (!mounted) return;
 
       if (userCredential?.user != null) {
-        // Navigasi sukses
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       } else {
-        // User cancel (biasanya null)
         if (mounted) setState(() => _isLoading = false);
       }
     } catch (e) {
       if (!mounted) return;
-      
       _showErrorSnackBar("Gagal Masuk: ${e.toString()}");
       setState(() => _isLoading = false);
     }
@@ -87,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen>
       SnackBar(
         key: const Key('login_error_snackbar'),
         content: Text(message),
-        backgroundColor: Colors.red.shade700, // Warna lebih solid untuk error
+        backgroundColor: Colors.red.shade700,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -96,39 +188,45 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context); // Lebih efisien daripada MediaQuery.of(context).size di Flutter terbaru
+    final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: FadeTransition(
         opacity: _fadeAnimation,
-        child: Stack(
-          children: [
-            _buildGreenBackground(size),
-            
-            // LayoutBuilder + SingleScrollView + IntrinsicHeight
-            // Pattern terbaik untuk form center dengan sticky footer yang aman keyboard
-            LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: IntrinsicHeight(
-                      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Stack(
+                    children: [
+                      _buildGreenBackground(size),
+                      SafeArea(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 32.0),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Spacer(flex: 2),
                               _buildLoginCard(context),
-                              
-                              const SizedBox(height: 90), // Digabung agar widget tree lebih dangkal
-                              
-                              _buildGoogleLoginButton(),
-                              
+                              const SizedBox(height: 30),
+                              _buildEmailField(),
+                              const SizedBox(height: 16),
+                              _buildPasswordField(),
+                              const SizedBox(height: 24),
+                              _buildLoginButton(),
+                              const SizedBox(height: 8),
+                              _buildRegisterLink(),
+                              const SizedBox(height: 24),
+                              if (_isGoogleSignInSupported) ...[
+                                _buildOrDivider(),
+                                const SizedBox(height: 24),
+                                _buildGoogleLoginButton(),
+                              ],
+                              const SizedBox(height: 24),
                               const Spacer(flex: 2),
                               _buildCopyrightText(),
                               const SizedBox(height: 8),
@@ -138,12 +236,12 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                );
-              },
-            ),
-          ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -155,7 +253,7 @@ class _LoginScreenState extends State<LoginScreen>
       left: 0,
       right: 0,
       child: Container(
-        height: size.height * 0.4,
+        height: size.height * 0.3,
         decoration: const BoxDecoration(
           color: Color(0xFF008C45),
           borderRadius: BorderRadius.only(
@@ -169,13 +267,13 @@ class _LoginScreenState extends State<LoginScreen>
 
   Widget _buildLoginCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24.0), // Padding sedikit diperbesar agar lebih lega
+      padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.1), // Kompatibilitas aman
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -188,31 +286,33 @@ class _LoginScreenState extends State<LoginScreen>
             label: "Logo Rumah Sakit",
             image: true,
             child: Image.asset(
-              _Assets.logoRsud, // Menggunakan konstanta asset
+              _Assets.logoRsud,
               key: const Key('login_logo_rsud'),
               height: 150,
-              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 50), // Fallback aman
+              errorBuilder: (_, __, ___) =>
+                  const Icon(Icons.broken_image, size: 50),
             ),
           ),
           const SizedBox(height: 16),
           Text(
             'Selamat Datang!',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
           const SizedBox(height: 8),
           RichText(
             text: TextSpan(
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: Colors.grey[600]),
               children: const [
                 TextSpan(text: 'Silahkan '),
                 TextSpan(
                   text: 'Masuk',
-                  style: TextStyle(fontWeight: FontWeight.bold), 
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 TextSpan(text: ' untuk melanjutkan'),
               ],
@@ -220,6 +320,90 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildEmailField() {
+    return TextField(
+      controller: _emailController,
+      keyboardType: TextInputType.emailAddress,
+      decoration: InputDecoration(
+        labelText: 'Email',
+        prefixIcon: const Icon(Icons.email),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return TextField(
+      controller: _passwordController,
+      obscureText: !_isPasswordVisible,
+      decoration: InputDecoration(
+        labelText: 'Password',
+        prefixIcon: const Icon(Icons.lock),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+          ),
+          onPressed: () =>
+              setState(() => _isPasswordVisible = !_isPasswordVisible),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _handleEmailSignIn,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF008C45),
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30.0),
+          ),
+        ),
+        child: _isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text(
+                'Masuk',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildRegisterLink() {
+    return TextButton(
+      onPressed: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const RegisterScreen()),
+        );
+      },
+      child: const Text(
+        'Belum punya akun? Daftar di sini',
+        style: TextStyle(
+          color: Color(0xFF008C45),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrDivider() {
+    return Row(
+      children: [
+        Expanded(child: Divider(color: Colors.grey.shade400)),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Text('ATAU', style: TextStyle(color: Colors.grey)),
+        ),
+        Expanded(child: Divider(color: Colors.grey.shade400)),
+      ],
     );
   }
 
@@ -231,13 +415,13 @@ class _LoginScreenState extends State<LoginScreen>
           ? const Center(
               child: CircularProgressIndicator(
                 key: Key('login_loading_indicator'),
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF008C45)),
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(Color(0xFF008C45)),
               ),
             )
           : Semantics(
               label: "Tombol Masuk dengan Google",
               button: true,
-              enabled: true,
               child: ElevatedButton(
                 key: const Key('login_button_google'),
                 onPressed: _handleGoogleSignIn,
@@ -253,16 +437,13 @@ class _LoginScreenState extends State<LoginScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset(
-                      _Assets.googleLogo,
-                      height: 24.0, // Ukuran logo google standar biasanya 24dp
-                    ),
+                    Image.asset(_Assets.googleLogo, height: 24.0),
                     const SizedBox(width: 12),
                     const Text(
                       'Masuk dengan Google',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w600, // Sedikit lebih tebal agar terbaca
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],

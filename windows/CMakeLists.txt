@@ -1,6 +1,15 @@
+# Suppress Firebase SDK CMake deprecation warnings
+cmake_policy(SET CMP0048 NEW)
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
+
 # Project-level configuration.
 cmake_minimum_required(VERSION 3.14)
 project(aplikasi_diagnosa_gizi LANGUAGES CXX)
+
+# Force C++17 globally for all targets including plugins (e.g. Firebase)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
