@@ -38,6 +38,8 @@ class _LoginScreenState extends State<LoginScreen>
   bool get _isGoogleSignInSupported =>
       kIsWeb || Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
 
+  bool get _isAndroid => !kIsWeb && Platform.isAndroid;
+
   @override
   void initState() {
     super.initState();
@@ -49,8 +51,7 @@ class _LoginScreenState extends State<LoginScreen>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _fadeAnimation =
-        CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
   }
 
@@ -205,24 +206,25 @@ class _LoginScreenState extends State<LoginScreen>
                       _buildGreenBackground(size),
                       SafeArea(
                         child: Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 32.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 32.0),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Spacer(flex: 2),
                               _buildLoginCard(context),
                               const SizedBox(height: 30),
-                              _buildEmailField(),
-                              const SizedBox(height: 16),
-                              _buildPasswordField(),
-                              const SizedBox(height: 24),
-                              _buildLoginButton(),
-                              const SizedBox(height: 8),
-                              _buildRegisterLink(),
-                              const SizedBox(height: 24),
+                              if (!_isAndroid) ...[
+                                _buildEmailField(),
+                                const SizedBox(height: 16),
+                                _buildPasswordField(),
+                                const SizedBox(height: 24),
+                                _buildLoginButton(),
+                                const SizedBox(height: 8),
+                                _buildRegisterLink(),
+                                const SizedBox(height: 24),
+                              ],
                               if (_isGoogleSignInSupported) ...[
-                                _buildOrDivider(),
+                               if (!_isAndroid) _buildOrDivider(),
                                 const SizedBox(height: 24),
                                 _buildGoogleLoginButton(),
                               ],
@@ -304,10 +306,9 @@ class _LoginScreenState extends State<LoginScreen>
           const SizedBox(height: 8),
           RichText(
             text: TextSpan(
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: Colors.grey[600]),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
               children: const [
                 TextSpan(text: 'Silahkan '),
                 TextSpan(
@@ -380,16 +381,13 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildRegisterLink() {
     return TextButton(
       onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const RegisterScreen()),
-        );
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (context) => const RegisterScreen()));
       },
       child: const Text(
         'Belum punya akun? Daftar di sini',
-        style: TextStyle(
-          color: Color(0xFF008C45),
-          fontWeight: FontWeight.w600,
-        ),
+        style: TextStyle(color: Color(0xFF008C45), fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -415,8 +413,7 @@ class _LoginScreenState extends State<LoginScreen>
           ? const Center(
               child: CircularProgressIndicator(
                 key: Key('login_loading_indicator'),
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(Color(0xFF008C45)),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF008C45)),
               ),
             )
           : Semantics(

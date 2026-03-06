@@ -18,7 +18,10 @@ class SessionWrapper extends StatefulWidget {
 class _SessionWrapperState extends State<SessionWrapper> {
   String? _currentRole;
   bool _isDialogShowing = false;
-  bool _isInitialLoad = true;
+
+  // Gunakan flag stabil: role dianggap sudah "siap" setelah snapshot
+  // pertama + jeda 2 detik (menunggu auth/token Firebase settled)
+  bool _roleReady = false;
 
   StreamSubscription<DocumentSnapshot>? _userDocSubscription;
   final AuthService _authService = AuthService();
@@ -46,9 +49,9 @@ class _SessionWrapperState extends State<SessionWrapper> {
         .listen((doc) async {
       if (!mounted) return;
 
-      // KONDISI 1: Dokumen tidak ada — kemungkinan akun dihapus
+      // ── KONDISI 1: Dokumen tidak ada ───────────────────────────────────
       if (!doc.exists) {
-        // Toleransi race condition saat akun baru dibuat
+        // Toleransi race condition saat akun baru saja dibuat
         await Future.delayed(const Duration(seconds: 2));
         if (!mounted) return;
 
@@ -63,17 +66,38 @@ class _SessionWrapperState extends State<SessionWrapper> {
         return;
       }
 
-      // KONDISI 2: Deteksi perubahan role
+      // ── KONDISI 2: Ambil role dari dokumen ─────────────────────────────
       final data = doc.data();
       final role = data?['role'] as String?;
+      if (role == null) return;
 
-      if (_isInitialLoad) {
-        // Simpan role awal, jangan tampilkan dialog
+      if (!_roleReady) {
+        // Snapshot pertama: simpan role awal
         _currentRole = role;
-        _isInitialLoad = false;
-      } else if (role != null && role != _currentRole) {
-        // Role berubah — update dulu lalu tampilkan dialog
-        _currentRole = role;
+
+        // Tunggu 2 detik agar semua auth-event Firebase settled
+        // (email/password login bisa emit beberapa authStateChanges
+        // yang menyebabkan SessionWrapper di-recreate)
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
+
+        // Re-ambil role terbaru setelah jeda
+        final freshDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        final freshRole = freshDoc.data()?['role'] as String?;
+        _currentRole = freshRole ?? role;
+        _roleReady = true;
+
+        debugPrint('SessionWrapper: role awal = $_currentRole');
+        return;
+      }
+
+      // ── KONDISI 3: Role berubah setelah initial load selesai ──────────
+      if (role != _currentRole) {
+        debugPrint('SessionWrapper: role berubah $_currentRole → $role');
+        _currentRole = role; // update segera agar tidak trigger dua kali
         if (!_isDialogShowing) {
           _showRoleChangedDialog();
         }
@@ -118,7 +142,7 @@ class _SessionWrapperState extends State<SessionWrapper> {
           children: [
             Icon(Icons.admin_panel_settings, color: Color(0xFF009444)),
             SizedBox(width: 8),
-            Text('Perubahan Hak Akses'),
+            Flexible(child: Text('Perubahan Hak Akses')),
           ],
         ),
         content: const Text(
