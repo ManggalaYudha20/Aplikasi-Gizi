@@ -268,18 +268,18 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 if (_currentPatient.labResults.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('Tidak ada data laboratorium.'),
-                )
-              else
-                // Loop Map untuk menampilkan semua data lab yang tersimpan
-                ..._currentPatient.labResults.entries.map((entry) {
-                  return _buildInfoRow(
-                    entry.key, // Key (misal: "GDS")
-                    '${entry.value} mg/dL', // Value (misal: "120"), default unit mg/dL
-                  );
-                }),
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text('Tidak ada data laboratorium.'),
+                  )
+                else
+                  // Loop Map untuk menampilkan semua data lab yang tersimpan
+                  ..._currentPatient.labResults.entries.map((entry) {
+                    return _buildInfoRow(
+                      entry.key, // Key (misal: "GDS")
+                      '${entry.value} mg/dL', // Value (misal: "120"), default unit mg/dL
+                    );
+                  }),
               ],
             ),
             // Kategori 3: Data Klinis/Fisik
@@ -358,7 +358,6 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                   emptyValueMessage: '-',
                 ),
                 const Divider(), // Pemisah visual antara riwayat penyakit dan kebiasaan
-                
                 // Implementasi Data Kebiasaan Baru
                 _buildInfoRow(
                   'Suka Manis',
@@ -408,8 +407,9 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 _buildInfoDisplay(
-                 label :'Intervensi Jenis Diet',
-                 value: (_currentPatient.intervensiDiet != null &&
+                  label: 'Intervensi Jenis Diet',
+                  value:
+                      (_currentPatient.intervensiDiet != null &&
                           _currentPatient.intervensiDiet!.isNotEmpty)
                       ? '${_currentPatient.intervensiDiet}'
                       : '-',
@@ -526,7 +526,6 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
                 ),
               ],
             ),
-
           ],
         ),
       ),
@@ -592,11 +591,11 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
     } else if (text.contains('tinggi')) {
       return Colors.orange;
     } else if (text.contains('menengah')) {
-      return Colors.amber; 
+      return Colors.amber;
     } else if (text.contains('rendah')) {
       return const Color.fromARGB(255, 0, 148, 68); // Hijau
     }
-    
+
     return Colors.black87;
   }
 
@@ -610,17 +609,27 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment:
+            CrossAxisAlignment.start, // Tambahkan ini agar teks rata atas
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 16, color: Colors.black54),
+          Expanded(
+            flex: 2, // Mengambil porsi ruang untuk label
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 16, color: Colors.black54),
+            ),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: valueColor ?? Colors.black87,
+          const SizedBox(width: 16), // Jarak antara label dan value
+          Expanded(
+            flex: 3, // Mengambil porsi ruang lebih besar untuk value
+            child: Text(
+              value,
+              textAlign: TextAlign.right, // Teks rata kanan
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                color: valueColor ?? Colors.black87,
+              ),
             ),
           ),
         ],

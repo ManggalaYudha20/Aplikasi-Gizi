@@ -13,16 +13,16 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.
 // ---------------------------------------------------------------------------
 class _Keys {
   const _Keys._();
-  static const patientPicker    = ValueKey('patientPickerWidget');
-  static const weightField      = ValueKey('weightField');
-  static const heightField      = ValueKey('heightField');
-  static const genderDropdown   = ValueKey('genderDropdown');
-  static const ageField         = ValueKey('ageField');
+  static const patientPicker = ValueKey('patientPickerWidget');
+  static const weightField = ValueKey('weightField');
+  static const heightField = ValueKey('heightField');
+  static const genderDropdown = ValueKey('genderDropdown');
+  static const ageField = ValueKey('ageField');
   static const activityDropdown = ValueKey('activityDropdown');
-  static const stressDropdown   = ValueKey('stressDropdown');
-  static const tempField        = ValueKey('tempField');
-  static const btnReset         = ValueKey('btnReset');
-  static const tdeeResultCard   = ValueKey('tdeeResultCard');
+  static const stressDropdown = ValueKey('stressDropdown');
+  static const tempField = ValueKey('tempField');
+  static const btnReset = ValueKey('btnReset');
+  static const tdeeResultCard = ValueKey('tdeeResultCard');
 }
 
 // ---------------------------------------------------------------------------
@@ -31,28 +31,35 @@ class _Keys {
 // ---------------------------------------------------------------------------
 class _Str {
   const _Str._();
-  static const appBarTitle    = 'TDEE';
+  static const appBarTitle = 'TDEE';
   static const appBarSubtitle = 'Total Daily Energy Expenditure';
-  static const sectionTitle   = 'Input Data TDEE';
-  static const weightLabel    = 'Berat Badan';
-  static const weightUnit     = 'kg';
-  static const heightLabel    = 'Tinggi Badan';
-  static const heightUnit     = 'cm';
-  static const genderLabel    = 'Jenis Kelamin';
-  static const ageLabel       = 'Usia';
-  static const ageUnit        = 'tahun';
-  static const activityLabel  = 'Faktor Aktivitas';
-  static const stressLabel    = 'Faktor Stress';
-  static const tempLabel      = 'Suhu Tubuh';
-  static const tempUnit       = '°C';
-  static const male           = 'Laki-laki';
-  static const female         = 'Perempuan';
-  static const feverKey       = 'Demam (per 1°C)';
-  static const resultUnit     = 'kkal/hari';
-  static const resultTitle    = 'Hasil Perhitungan TDEE';
-  static const resultDesc     =
+  static const sectionTitle = 'Input Data TDEE';
+  static const weightLabel = 'Berat Badan';
+  static const weightUnit = 'kg';
+  static const heightLabel = 'Tinggi Badan';
+  static const heightUnit = 'cm';
+  static const genderLabel = 'Jenis Kelamin';
+  static const ageLabel = 'Usia';
+  static const ageUnit = 'tahun';
+  static const activityLabel = 'Faktor Aktivitas';
+  static const stressLabel = 'Faktor Stress';
+  static const tempLabel = 'Suhu Tubuh';
+  static const tempUnit = '°C';
+  static const male = 'Laki-laki';
+  static const female = 'Perempuan';
+  static const feverKey = 'Demam (per 1°C)';
+  static const resultUnit = 'kkal/hari';
+  static const resultTitle = 'Hasil Perhitungan TDEE';
+  static const resultDesc =
       'TDEE adalah perkiraan jumlah total kalori yang dibakar oleh tubuh '
       'dalam satu hari (24 jam).';
+  // --- TAMBAHAN BARU ---
+  static const macroUnit = 'gram/hari';
+  static const macroTitle = 'Kebutuhan Makronutrien';
+  static const macroDesc =
+      'Kebutuhan zat gizi dihitung berdasarkan pedoman gizi seimbang: '
+      '60% energi dari Karbohidrat, 25% dari Lemak, dan 15% dari Protein.';
+  // ---------------------
 
   static const List<String> genderOptions = [male, female];
 }
@@ -63,30 +70,30 @@ class _Str {
 // widget dibuat. Kini hanya ada SATU instance di memori selama app berjalan.
 // ---------------------------------------------------------------------------
 const Map<String, double> _kActivityFactors = {
-  'Sangat Jarang'      : 1.200,
-  'Aktivitas Ringan'   : 1.375,
-  'Aktivitas Sedang'   : 1.550,
-  'Aktivitas Berat'    : 1.725,
-  'Sangat Aktif'       : 1.900,
+  'Sangat Jarang': 1.200,
+  'Aktivitas Ringan': 1.375,
+  'Aktivitas Sedang': 1.550,
+  'Aktivitas Berat': 1.725,
+  'Sangat Aktif': 1.900,
 };
 
 const Map<String, double> _kStressFactors = {
-  'Normal'                         : 1.00,
-  _Str.feverKey                    : 0.13, // dipakai sebagai multiplier delta suhu
-  'Peritonitis'                    : 1.35,
-  'Cedera Jaringan Lunak Ringan'   : 1.14,
-  'Cedera Jaringan Lunak Berat'    : 1.37,
-  'Patah Tulang Multiple Ringan'   : 1.20,
-  'Patah Tulang Multiple Berat'    : 1.35,
-  'Sepsis Ringan'                  : 1.40,
-  'Sepsis Berat'                   : 1.80,
-  'Luka Bakar 0-20%'               : 1.25,
-  'Luka Bakar 20-40%'              : 1.675,
-  'Luka Bakar 40-100%'             : 1.95,
-  'Puasa'                          : 0.70,
-  'Payah Gagal Jantung Ringan'     : 1.30,
-  'Payah Gagal Jantung Berat'      : 1.50,
-  'Kanker'                         : 1.30,
+  'Normal': 1.00,
+  _Str.feverKey: 0.13, // dipakai sebagai multiplier delta suhu
+  'Peritonitis': 1.35,
+  'Cedera Jaringan Lunak Ringan': 1.14,
+  'Cedera Jaringan Lunak Berat': 1.37,
+  'Patah Tulang Multiple Ringan': 1.20,
+  'Patah Tulang Multiple Berat': 1.35,
+  'Sepsis Ringan': 1.40,
+  'Sepsis Berat': 1.80,
+  'Luka Bakar 0-20%': 1.25,
+  'Luka Bakar 20-40%': 1.675,
+  'Luka Bakar 40-100%': 1.95,
+  'Puasa': 0.70,
+  'Payah Gagal Jantung Ringan': 1.30,
+  'Payah Gagal Jantung Berat': 1.50,
+  'Kanker': 1.30,
 };
 
 // Warna brand sebagai konstanta top-level — tidak realokasi Color object per-build.
@@ -107,25 +114,30 @@ class TdeeFormPage extends StatefulWidget {
 
 class _TdeeFormPageState extends State<TdeeFormPage> {
   // ── Controllers & Keys ────────────────────────────────────────────────────
-  final _formKey                  = GlobalKey<FormState>();
-  final _weightController         = TextEditingController();
-  final _heightController         = TextEditingController();
-  final _ageController            = TextEditingController();
-  final _temperatureController    = TextEditingController();
-  final _genderController         = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _weightController = TextEditingController();
+  final _heightController = TextEditingController();
+  final _ageController = TextEditingController();
+  final _temperatureController = TextEditingController();
+  final _genderController = TextEditingController();
   final _activityFactorController = TextEditingController();
-  final _stressFactorController   = TextEditingController();
-  final _scrollController         = ScrollController();
-  final _resultCardKey            = GlobalKey();
-  final _patientPickerKey         = GlobalKey<PatientPickerWidgetState>();
+  final _stressFactorController = TextEditingController();
+  final _scrollController = ScrollController();
+  final _resultCardKey = GlobalKey();
+  final _patientPickerKey = GlobalKey<PatientPickerWidgetState>();
 
   // ── State ─────────────────────────────────────────────────────────────────
   double? _calculatedBmr;
   double? _calculatedTdee;
 
+  // --- TAMBAHAN BARU ---
+  double? _calculatedCarbs;
+  double? _calculatedFat;
+  double? _calculatedProtein;
+  // ---------------------
+
   // Shorthand untuk membaca teks stress factor saat ini.
-  bool get _isFeverSelected =>
-      _stressFactorController.text == _Str.feverKey;
+  bool get _isFeverSelected => _stressFactorController.text == _Str.feverKey;
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   @override
@@ -146,14 +158,26 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
   void _calculateTDEE() {
     if (!_formKey.currentState!.validate()) return;
 
-    final double bmr            = _computeBMR();
-    final double activityFactor = _kActivityFactors[_activityFactorController.text] ?? 1.0;
-    final double stressFactor   = _computeStressFactor();
-    final double tdee           = bmr * activityFactor * stressFactor;
+    final double bmr = _computeBMR();
+    final double activityFactor =
+        _kActivityFactors[_activityFactorController.text] ?? 1.0;
+    final double stressFactor = _computeStressFactor();
+    final double tdee = bmr * activityFactor * stressFactor;
+
+    // Karbohidrat 60% (dibagi 4 kkal/g)
+    final double carbs = (tdee * 0.60) / 4;
+    // Lemak 25% (dibagi 9 kkal/g)
+    final double fat = (tdee * 0.25) / 9;
+    // Protein 15% (dibagi 4 kkal/g)
+    final double protein = (tdee * 0.15) / 4;
+    // -----------------------------------------------
 
     setState(() {
-      _calculatedBmr  = bmr;
+      _calculatedBmr = bmr;
       _calculatedTdee = tdee;
+      _calculatedCarbs = carbs; // Baru
+      _calculatedFat = fat; // Baru
+      _calculatedProtein = protein; // Baru
     });
     _scrollToResult();
   }
@@ -167,15 +191,18 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
   double _computeBMR() {
     final double weight = double.tryParse(_weightController.text) ?? 0;
     final double height = double.tryParse(_heightController.text) ?? 0;
-    final int    age    = int.tryParse(_ageController.text) ?? 0;
+    final int age = int.tryParse(_ageController.text) ?? 0;
 
-    if (_genderController.text.isEmpty || weight <= 0 || height <= 0 || age <= 0) {
+    if (_genderController.text.isEmpty ||
+        weight <= 0 ||
+        height <= 0 ||
+        age <= 0) {
       return 0;
     }
 
     return _genderController.text == _Str.male
         ? 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
-        : 447.593 + (9.247 * weight)  + (3.098 * height) - (4.330 * age);
+        : 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
   }
 
   /// Menghitung stress factor.
@@ -184,7 +211,8 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
   /// [CLEAN CODE] Logika khusus demam dipisah agar _calculateTDEE tetap ramping.
   double _computeStressFactor() {
     if (_isFeverSelected) {
-      final double temperature = double.tryParse(_temperatureController.text) ?? 0;
+      final double temperature =
+          double.tryParse(_temperatureController.text) ?? 0;
       return temperature > 37 ? 1.0 + (0.13 * (temperature - 37)) : 1.0;
     }
     return _kStressFactors[_stressFactorController.text] ?? 1.0;
@@ -200,8 +228,11 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
       _genderController.clear();
       _activityFactorController.clear();
       _stressFactorController.clear();
-      _calculatedBmr  = null;
+      _calculatedBmr = null;
       _calculatedTdee = null;
+      _calculatedCarbs = null; // Baru
+      _calculatedFat = null; // Baru
+      _calculatedProtein = null; // Baru
     });
     _patientPickerKey.currentState?.resetSelection();
   }
@@ -215,10 +246,13 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
     setState(() {
       _weightController.text = weight.toString();
       _heightController.text = height.toString();
-      _ageController.text    = _calculateAgeFromDob(dob).toString();
+      _ageController.text = _calculateAgeFromDob(dob).toString();
       _genderController.text = _normalizeGender(gender);
-      _calculatedBmr  = null;
+      _calculatedBmr = null;
       _calculatedTdee = null;
+      _calculatedCarbs = null; // Baru
+      _calculatedFat = null; // Baru
+      _calculatedProtein = null; // Baru
     });
   }
 
@@ -239,7 +273,9 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
     if (lower.contains('laki') || lower.contains('pria') || lower == 'l') {
       return _Str.male;
     }
-    if (lower.contains('perempuan') || lower.contains('wanita') || lower == 'p') {
+    if (lower.contains('perempuan') ||
+        lower.contains('wanita') ||
+        lower == 'p') {
       return _Str.female;
     }
     return raw;
@@ -263,13 +299,13 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
   Widget build(BuildContext context) {
     // [RESPONSIVE] MediaQuery.sizeOf hanya subscribe perubahan Size —
     // lebih efisien dari MediaQuery.of yang subscribe seluruh MediaQueryData.
-    final double sw   = MediaQuery.sizeOf(context).width;
+    final double sw = MediaQuery.sizeOf(context).width;
     final double hPad = sw * 0.04; // ≈ 16 dp pada layar 400 dp
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
-        title:    _Str.appBarTitle,
+        title: _Str.appBarTitle,
         subtitle: _Str.appBarSubtitle,
       ),
       body: SafeArea(
@@ -283,13 +319,13 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-
                   // ── Patient Picker ─────────────────────────────────────
                   Semantics(
-                    key: _Keys.patientPicker, 
+                    key: _Keys.patientPicker,
                     label: 'Pemilih Pasien',
-                    hint:  'Pilih pasien untuk mengisi data berat badan, '
-                           'tinggi badan, jenis kelamin, dan usia secara otomatis',
+                    hint:
+                        'Pilih pasien untuk mengisi data berat badan, '
+                        'tinggi badan, jenis kelamin, dan usia secara otomatis',
                     child: PatientPickerWidget(
                       key: _patientPickerKey,
                       onPatientSelected: _fillDataFromPatient,
@@ -312,26 +348,26 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
 
                   // ── Weight Field ───────────────────────────────────────
                   _buildInputField(
-                    widgetKey:     _Keys.weightField,
-                    controller:    _weightController,
-                    label:         _Str.weightLabel,
-                    prefixIcon:    const Icon(Icons.monitor_weight),
-                    suffixText:    _Str.weightUnit,
+                    widgetKey: _Keys.weightField,
+                    controller: _weightController,
+                    label: _Str.weightLabel,
+                    prefixIcon: const Icon(Icons.monitor_weight),
+                    suffixText: _Str.weightUnit,
                     semanticLabel: 'Input Berat Badan TDEE',
-                    semanticHint:  'Masukkan berat badan dalam kilogram',
+                    semanticHint: 'Masukkan berat badan dalam kilogram',
                   ),
 
                   SizedBox(height: sw * 0.04),
 
                   // ── Height Field ───────────────────────────────────────
                   _buildInputField(
-                    widgetKey:     _Keys.heightField,
-                    controller:    _heightController,
-                    label:         _Str.heightLabel,
-                    prefixIcon:    const Icon(Icons.height),
-                    suffixText:    _Str.heightUnit,
+                    widgetKey: _Keys.heightField,
+                    controller: _heightController,
+                    label: _Str.heightLabel,
+                    prefixIcon: const Icon(Icons.height),
+                    suffixText: _Str.heightUnit,
                     semanticLabel: 'Input Tinggi Badan TDEE',
-                    semanticHint:  'Masukkan tinggi badan dalam sentimeter',
+                    semanticHint: 'Masukkan tinggi badan dalam sentimeter',
                   ),
 
                   SizedBox(height: sw * 0.04),
@@ -339,13 +375,13 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                   // ── Gender Dropdown ────────────────────────────────────
                   Semantics(
                     label: 'Dropdown Jenis Kelamin TDEE',
-                    hint:  'Pilih jenis kelamin: Laki-laki atau Perempuan',
+                    hint: 'Pilih jenis kelamin: Laki-laki atau Perempuan',
                     child: _buildDropdown(
-                      widgetKey:  _Keys.genderDropdown,
+                      widgetKey: _Keys.genderDropdown,
                       controller: _genderController,
-                      label:      _Str.genderLabel,
+                      label: _Str.genderLabel,
                       prefixIcon: const Icon(Icons.wc),
-                      items:      _Str.genderOptions,
+                      items: _Str.genderOptions,
                       menuHeight: 120,
                     ),
                   ),
@@ -354,15 +390,15 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
 
                   // ── Age Field ──────────────────────────────────────────
                   _buildInputField(
-                    widgetKey:     _Keys.ageField,
-                    controller:    _ageController,
-                    label:         _Str.ageLabel,
-                    prefixIcon:    const Icon(Icons.calendar_today),
-                    suffixText:    _Str.ageUnit,
+                    widgetKey: _Keys.ageField,
+                    controller: _ageController,
+                    label: _Str.ageLabel,
+                    prefixIcon: const Icon(Icons.calendar_today),
+                    suffixText: _Str.ageUnit,
                     semanticLabel: 'Input Usia TDEE',
-                    semanticHint:  'Masukkan usia dalam tahun',
-                    isInteger:     true,
-                    maxLength:     3,
+                    semanticHint: 'Masukkan usia dalam tahun',
+                    isInteger: true,
+                    maxLength: 3,
                   ),
 
                   SizedBox(height: sw * 0.04),
@@ -370,14 +406,15 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                   // ── Activity Factor Dropdown ───────────────────────────
                   Semantics(
                     label: 'Dropdown Faktor Aktivitas TDEE',
-                    hint:  'Pilih tingkat aktivitas fisik harian untuk '
-                           'kalkulasi kebutuhan energi',
+                    hint:
+                        'Pilih tingkat aktivitas fisik harian untuk '
+                        'kalkulasi kebutuhan energi',
                     child: _buildDropdown(
-                      widgetKey:  _Keys.activityDropdown,
+                      widgetKey: _Keys.activityDropdown,
                       controller: _activityFactorController,
-                      label:      _Str.activityLabel,
+                      label: _Str.activityLabel,
                       prefixIcon: const Icon(Icons.directions_run),
-                      items:      _kActivityFactors.keys.toList(),
+                      items: _kActivityFactors.keys.toList(),
                     ),
                   ),
 
@@ -386,14 +423,15 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                   // ── Stress Factor Dropdown ─────────────────────────────
                   Semantics(
                     label: 'Dropdown Faktor Stress TDEE',
-                    hint:  'Pilih kondisi klinis atau faktor stress metabolik '
-                           'yang sesuai dengan kondisi pasien',
+                    hint:
+                        'Pilih kondisi klinis atau faktor stress metabolik '
+                        'yang sesuai dengan kondisi pasien',
                     child: _buildDropdown(
-                      widgetKey:  _Keys.stressDropdown,
+                      widgetKey: _Keys.stressDropdown,
                       controller: _stressFactorController,
-                      label:      _Str.stressLabel,
+                      label: _Str.stressLabel,
                       prefixIcon: const Icon(Icons.healing),
-                      items:      _kStressFactors.keys.toList(),
+                      items: _kStressFactors.keys.toList(),
                       // Custom onChanged: tampilkan/sembunyikan field suhu
                       onChanged: (String? value) {
                         final FocusScopeNode scope = FocusScope.of(context);
@@ -404,10 +442,9 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                           }
                         });
                         // Tutup keyboard setelah dropdown dipilih
-                        Future.delayed(
-                          const Duration(milliseconds: 10),
-                          () { if (mounted) scope.unfocus(); },
-                        );
+                        Future.delayed(const Duration(milliseconds: 10), () {
+                          if (mounted) scope.unfocus();
+                        });
                       },
                     ),
                   ),
@@ -416,14 +453,15 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                   if (_isFeverSelected) ...[
                     SizedBox(height: sw * 0.04),
                     _buildInputField(
-                      widgetKey:     _Keys.tempField,
-                      controller:    _temperatureController,
-                      label:         _Str.tempLabel,
-                      prefixIcon:    const Icon(Icons.thermostat),
-                      suffixText:    _Str.tempUnit,
+                      widgetKey: _Keys.tempField,
+                      controller: _temperatureController,
+                      label: _Str.tempLabel,
+                      prefixIcon: const Icon(Icons.thermostat),
+                      suffixText: _Str.tempUnit,
                       semanticLabel: 'Input Suhu Tubuh TDEE',
-                      semanticHint:  'Masukkan suhu tubuh dalam derajat Celsius '
-                                     'untuk menghitung faktor demam',
+                      semanticHint:
+                          'Masukkan suhu tubuh dalam derajat Celsius '
+                          'untuk menghitung faktor demam',
                       // Validator khusus suhu — berbeda dari field lainnya
                       customValidator: (value) {
                         if (value == null || value.isEmpty) {
@@ -442,15 +480,19 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                   // ── Action Buttons ─────────────────────────────────────
                   Semantics(
                     label: 'Tombol Aksi Form TDEE',
-                    hint:  'Tombol Reset menghapus semua input; '
-                           'Tombol Hitung menghitung nilai TDEE',
+                    hint:
+                        'Tombol Reset menghapus semua input; '
+                        'Tombol Hitung menghitung nilai TDEE',
                     child: FormActionButtons(
                       key: _Keys.btnReset,
                       onReset: _resetForm,
                       onSubmit: _calculateTDEE,
-                      resetButtonColor:     Colors.white,
+                      resetButtonColor: Colors.white,
                       resetForegroundColor: _kBrandGreen,
-                      submitIcon: const Icon(Icons.calculate, color: Colors.white),
+                      submitIcon: const Icon(
+                        Icons.calculate,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
 
@@ -478,10 +520,11 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
   /// Menampilkan BMR sebagai nilai antara dan TDEE sebagai hasil akhir.
   Widget _buildTdeeResultCard(double sw) {
     return Semantics(
-      label: 'Hasil Perhitungan TDEE: '
-             'BMR ${_calculatedBmr?.toStringAsFixed(2) ?? "0"} kkal per hari, '
-             'TDEE ${_calculatedTdee?.toStringAsFixed(2) ?? "0"} kkal per hari',
-      hint:       'Nilai Basal Metabolic Rate dan Total Daily Energy Expenditure',
+      label:
+          'Hasil Perhitungan TDEE: '
+          'BMR ${_calculatedBmr?.toStringAsFixed(2) ?? "0"} kkal per hari, '
+          'TDEE ${_calculatedTdee?.toStringAsFixed(2) ?? "0"} kkal per hari',
+      hint: 'Nilai Basal Metabolic Rate dan Total Daily Energy Expenditure',
       liveRegion: true, // Screen-reader membacakan otomatis saat nilai berubah
       child: Container(
         key: _Keys.tdeeResultCard,
@@ -530,6 +573,62 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                 color: Colors.black54,
               ),
             ),
+            SizedBox(height: sw * 0.04),
+            const Divider(color: Colors.black26),
+            SizedBox(height: sw * 0.04),
+
+            // --- BAGIAN MAKRONUTRIEN ---
+            Text(
+              _Str.macroTitle,
+              style: TextStyle(
+                fontSize: _responsiveFont(sw, base: 14),
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            SizedBox(height: sw * 0.02),
+
+            // Karbohidrat (60%)
+            Text(
+              'Karbohidrat (60%): ${_calculatedCarbs?.toStringAsFixed(2) ?? "0"} ${_Str.macroUnit}',
+              style: TextStyle(
+                fontSize: _responsiveFont(sw, base: 16),
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[700],
+              ),
+            ),
+            SizedBox(height: sw * 0.01),
+
+            // Lemak (25%)
+            Text(
+              'Lemak (25%): ${_calculatedFat?.toStringAsFixed(2) ?? "0"} ${_Str.macroUnit}',
+              style: TextStyle(
+                fontSize: _responsiveFont(sw, base: 16),
+                fontWeight: FontWeight.bold,
+                color: Colors.orange[700],
+              ),
+            ),
+            SizedBox(height: sw * 0.01),
+
+            // Protein (15%)
+            Text(
+              'Protein (15%): ${_calculatedProtein?.toStringAsFixed(2) ?? "0"} ${_Str.macroUnit}',
+              style: TextStyle(
+                fontSize: _responsiveFont(sw, base: 16),
+                fontWeight: FontWeight.bold,
+                color: Colors.red[700],
+              ),
+            ),
+
+            SizedBox(height: sw * 0.02),
+            Text(
+              _Str.macroDesc,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: _responsiveFont(sw, base: 12),
+                color: Colors.black54,
+              ),
+            ),
           ],
         ),
       ),
@@ -545,13 +644,13 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
     required String suffixText,
     required String semanticLabel,
     required String semanticHint,
-    bool isInteger                       = false,
-    int maxLength                        = 5,
+    bool isInteger = false,
+    int maxLength = 5,
     String? Function(String?)? customValidator,
   }) {
     return Semantics(
-      label:     semanticLabel,
-      hint:      semanticHint,
+      label: semanticLabel,
+      hint: semanticHint,
       textField: true,
       child: TextFormField(
         key: widgetKey,
@@ -566,13 +665,14 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
               : FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
         ],
         decoration: InputDecoration(
-          labelText:  label,
-          border:     const OutlineInputBorder(),
+          labelText: label,
+          border: const OutlineInputBorder(),
           prefixIcon: prefixIcon,
           suffixText: suffixText,
         ),
         // customValidator dipakai untuk field Suhu; lainnya pakai validator default
-        validator: customValidator ??
+        validator:
+            customValidator ??
             (value) {
               if (value == null || value.isEmpty) return '$label tidak boleh kosong';
               if (double.tryParse(value) == null) return 'Masukkan angka yang valid';
@@ -603,25 +703,25 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
         constraints: BoxConstraints(maxHeight: menuHeight ?? 180),
         scrollbarProps: const ScrollbarProps(
           thumbVisibility: true,
-          thickness:       6,
-          radius:          Radius.circular(10),
+          thickness: 6,
+          radius: Radius.circular(10),
         ),
       ),
       items: items,
       dropdownDecoratorProps: DropDownDecoratorProps(
         dropdownSearchDecoration: InputDecoration(
-          labelText:  label,
-          border:     const OutlineInputBorder(),
+          labelText: label,
+          border: const OutlineInputBorder(),
           prefixIcon: prefixIcon,
         ),
       ),
-      onChanged: onChanged ??
+      onChanged:
+          onChanged ??
           (String? newValue) {
             setState(() => controller.text = newValue ?? '');
-            Future.delayed(
-              const Duration(milliseconds: 10),
-              () { if (mounted) FocusScope.of(context).unfocus(); },
-            );
+            Future.delayed(const Duration(milliseconds: 10), () {
+              if (mounted) FocusScope.of(context).unfocus();
+            });
           },
       selectedItem: controller.text.isEmpty ? null : controller.text,
       validator: (value) {

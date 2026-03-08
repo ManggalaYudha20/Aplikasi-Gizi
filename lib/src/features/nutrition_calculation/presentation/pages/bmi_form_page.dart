@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/reference_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/reference_widgets.dart';
+
 
 // ---------------------------------------------------------------------------
 // [OPTIMIZATION] ValueKey literal di-hoist ke class konstanta file-level.
@@ -35,20 +38,6 @@ class _Str {
   static const resultDesc   =
       'Indeks Massa Tubuh (IMT) adalah ukuran untuk mengevaluasi berat badan '
       'ideal berdasarkan tinggi badan.';
-  static const whoTitle   = 'Kategori Indeks Massa Tubuh\nMenurut WHO';
-  static const whoSource  = 'sumber menurut WHO';
-  static const whoContent =
-      'Berat Badan Kurang (Underweight): < 18,5\n'
-      'Kurus Parah (Severe thinness): < 16,0\n'
-      'Kurus Sedang (Moderate thinness): 16,0 - 16,9\n'
-      'Kurus Ringan (Mild thinness): 17,0 - 18,4\n\n'
-      'Berat Badan Normal (Normal range): 18,5 - 24,9\n\n'
-      'Berat Badan Berlebih (Overweight): \u2265 25,0\n\n'
-      'Pre-obesitas (Pre-obese): 25,0 - 29,9\n'
-      'Obesitas (Obese): \u2265 30,0\n'
-      'Obesitas Kelas I: 30,0 - 34,9\n'
-      'Obesitas Kelas II: 35,0 - 39,9\n'
-      'Obesitas Kelas III (Ekstrem): \u2265 40,0';
 }
 
 // ===========================================================================
@@ -109,7 +98,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
   (String, Color) _classifyBMI(double bmi) {
     if (bmi < 18.5) return ('Kurus', Colors.red);
     if (bmi < 25.0) return ('Normal', const Color(0xFF009444));
-    if (bmi < 30.0) return ('Gemuk', Colors.orange);
+    if (bmi < 27.0) return ('Gemuk', Colors.orange);
     return ('Obesitas', Colors.red);
   }
 
@@ -248,7 +237,8 @@ class _BmiFormPageState extends State<BmiFormPage> {
                     SizedBox(height: sw * 0.08),
                     _buildResultCard(sw),
                     SizedBox(height: sw * 0.08),
-                    _buildWhoTable(sw),
+                    
+                    _buildReferenceTables(sw),
                   ],
                 ],
               ),
@@ -322,42 +312,34 @@ class _BmiFormPageState extends State<BmiFormPage> {
     );
   }
 
-  Widget _buildWhoTable(double sw) {
-    return Container(
-      padding: EdgeInsets.all(sw * 0.04),
-      decoration: BoxDecoration(
-        color: const Color(0xFFAEAEAE).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.black),
-      ),
-      child: Column(
-        children: [
-          Text(
-            _Str.whoTitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: _responsiveFont(sw, base: 18),
-              fontWeight: FontWeight.bold,
-            ),
+  Widget _buildReferenceTables(double sw) {
+    // Ambil hanya 3 tabel IMT dari reference_data.dart
+    final imtTables = ReferenceData.referenceTables.where((table) =>
+        ['table_imt_indo', 'table_imt_asia', 'table_imt_eropa'].contains(table.id)
+    ).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Tabel Referensi IMT',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: _responsiveFont(sw, base: 18),
+            fontWeight: FontWeight.bold,
           ),
-          const Divider(height: 16),
-          SizedBox(height: sw * 0.03),
-          Text(
-            _Str.whoContent,
-            textAlign: TextAlign.left,
-            style: TextStyle(fontSize: _responsiveFont(sw, base: 14)),
-          ),
-          SizedBox(height: sw * 0.02),
-          Text(
-            _Str.whoSource,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: _responsiveFont(sw, base: 12),
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
+        ),
+        SizedBox(height: sw * 0.04),
+        // Looping untuk merender widget ExpansionTile tabel
+        ...imtTables.map((table) => ReferenceTableWidget(
+              key: ValueKey(table.id),
+              semanticId: table.id,
+              title: table.title,
+              subtitle: table.subtitle,
+              headers: table.headers,
+              data: table.data,
+            )),
+      ],
     );
   }
 

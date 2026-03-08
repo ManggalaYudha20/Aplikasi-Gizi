@@ -392,7 +392,7 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
                     Text(
                       name,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     

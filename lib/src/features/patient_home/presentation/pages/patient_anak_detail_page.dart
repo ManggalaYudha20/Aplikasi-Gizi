@@ -542,8 +542,9 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
     required String? value,
     String emptyValueMessage = 'Tidak ada data.',
   }) {
-    final displayText =
-        (value == null || value.isEmpty) ? emptyValueMessage : value;
+    final displayText = (value == null || value.isEmpty)
+        ? emptyValueMessage
+        : value;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -681,17 +682,27 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment:
+            CrossAxisAlignment.start, // Tambahkan ini agar teks rata atas
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 16, color: Colors.black54),
+          Expanded(
+            flex: 2, // Mengambil porsi ruang untuk label
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 16, color: Colors.black54),
+            ),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: valueColor ?? Colors.black87,
+          const SizedBox(width: 16), // Jarak antara label dan value
+          Expanded(
+            flex: 3, // Mengambil porsi ruang lebih besar untuk value
+            child: Text(
+              value,
+              textAlign: TextAlign.right, // Teks rata kanan
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                color: valueColor ?? Colors.black87,
+              ),
             ),
           ),
         ],
