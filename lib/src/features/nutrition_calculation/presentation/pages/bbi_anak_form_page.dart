@@ -428,8 +428,31 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
         ),
         validator: (value) {
           if (value == null || value.isEmpty) return 'Usia tidak boleh kosong';
-          if (double.tryParse(value) == null) return 'Masukkan angka valid';
-          return null;
+          
+          final age = double.tryParse(value);
+          if (age == null) return 'Masukkan angka valid';
+
+          // Memastikan kategori sudah dipilih sebelum memvalidasi batas angka
+          if (_categoryController.text.isEmpty) {
+            return 'Pilih kategori usia terlebih dahulu';
+          }
+
+          // Validasi batas angka sesuai dengan kategori usia yang dipilih
+          if (_isMonthCategory) {
+            if (age < 0 || age > 11) {
+              return 'Usia untuk kategori ini harus 0 - 11 bulan';
+            }
+          } else if (_is1to6Category) {
+            if (age < 1 || age > 6) {
+              return 'Usia untuk kategori ini harus 1 - 6 tahun';
+            }
+          } else if (_is7to12Category) {
+            if (age < 7 || age > 12) {
+              return 'Usia untuk kategori ini harus 7 - 12 tahun';
+            }
+          }
+
+          return null; // Input valid
         },
       ),
     );
