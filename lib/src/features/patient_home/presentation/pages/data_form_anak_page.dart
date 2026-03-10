@@ -1158,14 +1158,14 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
     // Rumus: 2n + 8
     // n dalam tahun (gunakan desimal untuk presisi, misal 1 tahun 6 bulan = 1.5)
     else if (years >= 1 && years <= 6) {
-      double n = years + (months / 12.0);
+      double n = years + 0;
       bbi = (2 * n) + 8;
     }
     // KATEGORI 3: Usia 7 - 12 Tahun
     // Rumus: (7n - 5) / 2
     // n dalam tahun
     else if (years >= 7 && years <= 12) {
-      double n = years + (months / 12.0);
+      double n = years + 0;
       bbi = ((7 * n) - 5) / 2;
     }
     // KATEGORI 4: Usia > 12 Tahun (Rumus Broca)

@@ -36,6 +36,12 @@ class NutritionInfoPage extends StatelessWidget {
 
   const NutritionInfoPage({super.key, required this.userRole});
 
+  int _getCrossAxisCount(double screenWidth) {
+  if (screenWidth >= 1200) return 4; // Desktop lebar / Windows besar
+  if (screenWidth >= 800) return 3;  // Tablet landscape / Windows kecil
+  return 2;                          // Mobile (default)
+}
+
   /// 1. Clean Code: Memisahkan data menu dari metode build.
   /// Mengembalikan daftar menu berdasarkan role user.
   List<_MenuConfig> _getMenuItems(BuildContext context) {
@@ -129,7 +135,7 @@ class NutritionInfoPage extends StatelessWidget {
                     vertical: 24.0
                   ),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, // Tetap 2 kolom sesuai instruksi
+                    crossAxisCount: _getCrossAxisCount(screenWidth), // 
                     crossAxisSpacing: gridSpacing,
                     mainAxisSpacing: gridSpacing,
                     childAspectRatio: 1.0, // Tetap persegi

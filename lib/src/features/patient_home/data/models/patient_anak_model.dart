@@ -400,11 +400,11 @@ class PatientAnak {
     // Hitung Cairan (Rumus Holliday-Segar)
     double totalCairan = 0;
     if (weightToUse <= 10) {
-      totalCairan = weightToUse * 100;
+      totalCairan = 100;
     } else if (weightToUse <= 20) {
-      totalCairan = 1000 + ((weightToUse - 10) * 50);
+      totalCairan = 1000 +  50;
     } else {
-      totalCairan = 1500 + ((weightToUse - 20) * 20);
+      totalCairan = 1500 + 20;
     }
 
     return {

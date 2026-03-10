@@ -16,9 +16,9 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presen
 /// Menggunakan 'final' untuk properti agar bisa menjadi compile-time constant.
 @immutable
 class _FormulaMenu {
-  final String keyId;      // ID Unik untuk QA Automation (Katalon/Appium)
-  final String name;       // Nama singkat (Label Icon)
-  final String fullName;   // Nama lengkap (Label Bawah)
+  final String keyId; // ID Unik untuk QA Automation (Katalon/Appium)
+  final String name; // Nama singkat (Label Icon)
+  final String fullName; // Nama lengkap (Label Bawah)
   final IconData icon;
   final Color color;
   final Widget Function(String role)? pageBuilder;
@@ -36,10 +36,7 @@ class _FormulaMenu {
 class FormulaCalculationPage extends StatelessWidget {
   final String userRole;
 
-  const FormulaCalculationPage({
-    super.key,
-    required this.userRole,
-  });
+  const FormulaCalculationPage({super.key, required this.userRole});
 
   // ---------------------------------------------------------------------------
   // STATIC BUILDERS
@@ -50,8 +47,10 @@ class FormulaCalculationPage extends StatelessWidget {
   static Widget _buildBmrPage(String role) => BmrFormPage(userRole: role);
   static Widget _buildTdeePage(String role) => TdeeFormPage(userRole: role);
   static Widget _buildBbiPage(String role) => BbiFormPage(userRole: role);
-  static Widget _buildBbiAnakPage(String role) => BbiAnakFormPage(userRole: role);
-  static Widget _buildStatusGiziPage(String role) => NutritionStatusFormPage(userRole: role);
+  static Widget _buildBbiAnakPage(String role) =>
+      BbiAnakFormPage(userRole: role);
+  static Widget _buildStatusGiziPage(String role) =>
+      NutritionStatusFormPage(userRole: role);
   static Widget _buildImtuPage(String role) => IMTUFormPage(userRole: role);
 
   /// DATA MENU (Single Source of Truth)
@@ -116,6 +115,12 @@ class FormulaCalculationPage extends StatelessWidget {
     ),
   ];
 
+  int _getCrossAxisCount(double screenWidth) {
+      if (screenWidth >= 1200) return 4; // Desktop lebar / Windows besar
+      if (screenWidth >= 800) return 3; // Tablet landscape / Windows kecil
+      return 2; // Mobile (default)
+    }
+
   @override
   Widget build(BuildContext context) {
     // RESPONSIVE CALCULATION
@@ -123,17 +128,19 @@ class FormulaCalculationPage extends StatelessWidget {
     final Size screenSize = MediaQuery.sizeOf(context);
     final double screenWidth = screenSize.width;
     final double screenHeight = screenSize.height;
-
+    final int crossAxisCount = _getCrossAxisCount(screenWidth);
+    final double totalSpacing = (crossAxisCount - 1) * 16.0;
+    
     // Konsistensi Visual: Menggunakan logika padding yang sama dengan Disease Page
     // Padding 8% dari lebar layar agar konsisten di HP kecil maupun Tablet
     final double gridPadding = screenWidth * 0.08;
 
     // Menghitung Aspect Ratio agar kartu tetap proporsional
     // Rumus: (Lebar Layar - Padding Kiri Kanan - Spasi Tengah) / 2 Kolom
-    final double colWidth = (screenWidth - (gridPadding * 2) - 16) / 2;
+    final double colWidth = (screenWidth - (gridPadding * 2) - totalSpacing) / crossAxisCount;
     // Tinggi kartu ditargetkan sekitar 22% dari tinggi layar
-    final double cardHeight = screenHeight * 0.22; 
-    
+    final double cardHeight = screenHeight * 0.22;
+
     // Mencegah division by zero atau nilai negatif pada layar sangat kecil
     final double childAspectRatio = (cardHeight > 0) ? (colWidth / cardHeight) : 1.0;
 
@@ -147,7 +154,7 @@ class FormulaCalculationPage extends StatelessWidget {
         child: GridView.builder(
           padding: EdgeInsets.all(gridPadding),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, // Tetap 2 kolom sesuai request
+            crossAxisCount: crossAxisCount, // Tetap 2 kolom sesuai request
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
             childAspectRatio: childAspectRatio, // Dinamis
@@ -180,7 +187,10 @@ class FormulaCalculationPage extends StatelessWidget {
           const begin = Offset(1.0, 0.0);
           const end = Offset.zero;
           const curve = Curves.easeInOut;
-          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
           return SlideTransition(
             position: animation.drive(tween),
             child: child,
@@ -196,9 +206,7 @@ class FormulaCalculationPage extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: Text('Formula: ${item.name}'),
-        content: Text(
-          'Navigasi ke halaman ${item.fullName} belum tersedia.',
-        ),
+        content: Text('Navigasi ke halaman ${item.fullName} belum tersedia.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -216,10 +224,7 @@ class _FormulaMenuCard extends StatelessWidget {
   final _FormulaMenu item;
   final VoidCallback onTap;
 
-  const _FormulaMenuCard({
-    required this.item,
-    required this.onTap,
-  });
+  const _FormulaMenuCard({required this.item, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -227,12 +232,13 @@ class _FormulaMenuCard extends StatelessWidget {
     // Semantics: Memberikan data ke Accessibility Service (TalkBack/Switch Access)
     // dan Testing Tools (Katalon/Appium).
     return Semantics(
-      label: "Navigasi ke Kalkulator ${item.name}", // Label deskriptif untuk Screen Reader
+      label:
+          "Navigasi ke Kalkulator ${item.name}", // Label deskriptif untuk Screen Reader
       identifier: item.keyId, // ID Stabil untuk Katalon Object Spy
       button: true,
       child: GestureDetector(
         // Key: Penting untuk Flutter Integration Test (Flutter Driver)
-        key: ValueKey(item.keyId), 
+        key: ValueKey(item.keyId),
         onTap: onTap,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -246,10 +252,7 @@ class _FormulaMenuCard extends StatelessWidget {
                 shape: BoxShape.circle,
                 // Menggunakan withValues (Flutter 3.27+) sesuai referensi Anda
                 color: item.color.withValues(alpha: 0.1),
-                border: Border.all(
-                  color: item.color,
-                  width: 2,
-                ),
+                border: Border.all(color: item.color, width: 2),
                 boxShadow: [
                   BoxShadow(
                     color: item.color.withValues(alpha: 0.3),
@@ -262,11 +265,7 @@ class _FormulaMenuCard extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      item.icon,
-                      size: 30,
-                      color: item.color,
-                    ),
+                    Icon(item.icon, size: 30, color: item.color),
                     const SizedBox(height: 4),
                     Text(
                       item.name,
@@ -287,10 +286,7 @@ class _FormulaMenuCard extends StatelessWidget {
               child: Text(
                 item.fullName,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.black87,
-                ),
+                style: const TextStyle(fontSize: 12, color: Colors.black87),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),

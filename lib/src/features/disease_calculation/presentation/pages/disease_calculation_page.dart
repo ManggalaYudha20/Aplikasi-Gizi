@@ -62,6 +62,12 @@ class DiseaseCalculationPage extends StatelessWidget {
     // ────────────────────────────────────────────────────────────────────
   ];
 
+  int _getCrossAxisCount(double screenWidth) {
+      if (screenWidth >= 1200) return 4; // Desktop lebar / Windows besar
+      if (screenWidth >= 800) return 3; // Tablet landscape / Windows kecil
+      return 2; // Mobile (default)
+    }
+
   // Top-level tearoff — kompatibel dengan const List di atas.
   static Widget _buildDiabetesPage(String role) =>
       DiabetesCalculationPage(userRole: role);
@@ -76,6 +82,9 @@ class DiseaseCalculationPage extends StatelessWidget {
     final Size screenSize = MediaQuery.sizeOf(context);
     final double screenWidth = screenSize.width;
     final double screenHeight = screenSize.height;
+    final int crossAxisCount = _getCrossAxisCount(screenWidth);
+    final double totalSpacing = (crossAxisCount - 1) * 16.0;
+    
 
     // Padding responsif: 8% dari lebar layar (smartphone ~28px, tablet ~61px)
     final double gridPadding = screenWidth * 0.08;
@@ -83,9 +92,9 @@ class DiseaseCalculationPage extends StatelessWidget {
     // childAspectRatio: menjaga proporsi kartu tetap "kotak" di semua ukuran.
     // Rumus: (lebar kolom tersedia) / (tinggi yang diinginkan per kartu)
     // Lebar kolom ≈ (screenWidth - 2*padding - spacing) / 2
-    final double colWidth = (screenWidth - gridPadding * 2 - 16) / 2;
+    final double colWidth = (screenWidth - (gridPadding * 2) - totalSpacing) / crossAxisCount;
     final double cardHeight = screenHeight * 0.22; // ≈22% tinggi layar
-    final double childAspectRatio = colWidth / cardHeight;
+    final double childAspectRatio = (cardHeight > 0) ? (colWidth / cardHeight) : 1.0;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -97,7 +106,7 @@ class DiseaseCalculationPage extends StatelessWidget {
         child: GridView.builder(
           padding: EdgeInsets.all(gridPadding),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, // ✅ Tetap 2 kolom — tidak diubah
+            crossAxisCount: crossAxisCount, // ✅ Tetap 2 kolom — tidak diubah
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
             childAspectRatio: childAspectRatio, // ✅ Dinamis
