@@ -54,9 +54,12 @@ dependencies:
   firebase_performance: ^0.10.0
   flutter_recaptcha_v2_compat: ^1.0.3+3
   firebase_app_check: ^0.3.2+10
+  
+
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.4
+  firebase_core_platform_interface: ^6.0.2
   flutter_test:
     sdk: flutter
   integration_test:
