@@ -13,6 +13,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/menu_button.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/about/presentation/pages/about_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/reference/reference_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/consultation/consultation_page.dart';
 
 /// Model privat untuk konfigurasi menu agar lebih terstruktur
 class _MenuConfig {
@@ -87,6 +88,13 @@ class NutritionInfoPage extends StatelessWidget {
         icon: Icons.info_outline,
         destinationPage: const AboutPage(),
         semanticsLabel: 'Tombol masuk ke halaman informasi aplikasi',
+      ),
+      _MenuConfig(
+        id: 'konsultasi',
+        label: 'Konsultasi Gizi',
+        icon: Icons.person_2,
+        destinationPage: const ConsultationPage(),
+        semanticsLabel: 'Tombol masuk ke halaman konsultasi gizi',
       ),
     ];
 

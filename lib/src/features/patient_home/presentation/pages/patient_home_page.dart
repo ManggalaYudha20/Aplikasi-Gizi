@@ -16,6 +16,8 @@ import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/pat
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/presentation/pages/data_form_anak_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/presentation/pages/patient_anak_detail_page.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/services/inbox_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/services/share_patient_service.dart';
 
 class PatientHomePage extends StatefulWidget {
   const PatientHomePage({super.key});
@@ -228,6 +230,61 @@ class _PatientHomePageState extends State<PatientHomePage> {
                               },
                             ),
                           ),
+                          const SizedBox(width: 8),
+                          // --- TOMBOL INBOX (BARU) ---
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withValues(alpha: 0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 5,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: StreamBuilder<QuerySnapshot>(
+                              // Gunakan stream dari SharePatientService yang memantau status 'pending'
+                              stream: SharePatientService()
+                                  .getPendingRequests(),
+                              builder: (context, snapshot) {
+                                // Hitung jumlah dokumen yang pending
+                                int pendingCount = 0;
+                                if (snapshot.hasData) {
+                                  pendingCount = snapshot.data!.docs.length;
+                                }
+
+                                return Badge(
+                                  // Label angka hanya muncul jika ada pesan masuk (> 0)
+                                  label: Text(pendingCount.toString()),
+                                  isLabelVisible: pendingCount > 0,
+                                  backgroundColor: Colors.red,
+                                  child: IconButton(
+                                    icon: const Icon(
+                                      Icons.move_to_inbox,
+                                      color: Colors.blue,
+                                    ),
+                                    tooltip: 'Kotak Masuk Rujukan',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const InboxPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 8,
+                          ), // Jarak antara Inbox dan Filter
+                          // --- AKHIR TOMBOL INBOX ---
                         ],
                       ),
                     ),

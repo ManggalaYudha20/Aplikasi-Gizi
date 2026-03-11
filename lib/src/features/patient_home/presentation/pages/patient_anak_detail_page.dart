@@ -9,6 +9,7 @@ import 'data_form_anak_page.dart'; // Import form anak
 import 'patient_delete_logic.dart'; // Import logika hapus
 import 'pdf_generator_anak.dart'; // Import PDF generator anak
 import 'pdf_generator_asuhan_anak.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/services/share_patient_service.dart';
 
 class PatientAnakDetailPage extends StatefulWidget {
   final PatientAnak patient;
@@ -21,6 +22,7 @@ class PatientAnakDetailPage extends StatefulWidget {
 
 class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
   late PatientAnak _currentPatient;
+  final SharePatientService _shareService = SharePatientService();
 
   // ---------------------------------------------------------------------------
   // [AGE GATE] Menentukan apakah pasien masuk kategori anak ≥ 5 tahun.
@@ -40,6 +42,155 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
     final int totalBulan =
         (_currentPatient.usiaTahun * 12) + _currentPatient.usiaBulan;
     return totalBulan >= 60;
+  }
+
+  // Fungsi memunculkan Bottom Sheet untuk berbagi
+  void _showShareDialog(BuildContext context) {
+    List<String> selectedUids = []; // Menyimpan UID penerima yang dicentang
+    bool isSending = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext sheetContext) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              height: MediaQuery.of(context).size.height * 0.6, // 60% tinggi layar
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Bagikan ke Nutrisionis',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('Pilih satu atau lebih rekan untuk membagikan salinan data pasien ini.'),
+                  const Divider(),
+                  
+                  // Daftar Nutrisionis
+                  Expanded(
+                    child: FutureBuilder<List<Map<String, dynamic>>>(
+                      future: _shareService.getAvailableNutritionists(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError) {
+                          return Center(child: Text('Error: ${snapshot.error}'));
+                        }
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return const Center(child: Text('Tidak ada akun Nutrisionis lain yang ditemukan.'));
+                        }
+
+                        final nutritionists = snapshot.data!;
+                        return ListView.builder(
+                          itemCount: nutritionists.length,
+                          itemBuilder: (context, index) {
+                            final user = nutritionists[index];
+                            final isChecked = selectedUids.contains(user['uid']);
+
+                            return CheckboxListTile(
+                              title: Text(user['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Text(user['email']),
+                              value: isChecked,
+                              activeColor: Colors.blue,
+                              onChanged: (bool? value) {
+                                setModalState(() {
+                                  if (value == true) {
+                                    selectedUids.add(user['uid']);
+                                  } else {
+                                    selectedUids.remove(user['uid']);
+                                  }
+                                });
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+
+                  // Tombol Aksi
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: isSending ? null : () => Navigator.pop(context),
+                          child: const Text('Batal'),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: (selectedUids.isEmpty || isSending)
+                              ? null
+                              : () async {
+                                  // Munculkan konfirmasi akhir
+                                  bool? confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Konfirmasi Pengiriman'),
+                                      content: Text('Kirim salinan data "${_currentPatient.namaLengkap}" ke ${selectedUids.length} orang?'),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+                                        ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Kirim')),
+                                      ],
+                                    ),
+                                  );
+
+                                  if (confirm != true) return;
+
+                                  setModalState(() => isSending = true);
+
+                                  try {
+                                    // Ambil raw data dari model menggunakan toMap()
+                                    Map<String, dynamic> rawData = _currentPatient.toMap();
+                                    // Hapus field ID agar saat di-import nanti dapat ID baru
+                                    rawData.remove('id'); 
+                                    
+                                    // Karena toMap() mungkin mengubah tanggal menjadi String, pastikan formatnya aman untuk dikirim
+                                    await _shareService.sendPatientData(
+                                      receiverIds: selectedUids,
+                                      patientData: rawData,
+                                      patientName: _currentPatient.namaLengkap,
+                                      patientType: 'anak',
+                                    );
+
+                                    if (context.mounted) {
+                                      Navigator.pop(context); // Tutup bottom sheet
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Berhasil mengirimkan permintaan berbagi!'), backgroundColor: Colors.green),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Gagal mengirim: $e'), backgroundColor: Colors.red),
+                                      );
+                                    }
+                                  } finally {
+                                    setModalState(() => isSending = false);
+                                  }
+                                },
+                          child: isSending
+                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              : const Text('Kirim'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -122,6 +273,26 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             _buildInfoRow(
               'Berat Badan Ideal',
               '${_currentPatient.bbi?.toString() ?? ""} kg',
+            ),
+             const SizedBox(height: 16), // Spasi atas tombol
+            // --- TOMBOL BERBAGI BARU ---
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _showShareDialog(context),
+                icon: const Icon(Icons.share, color: Colors.blue),
+                label: const Text(
+                  'Bagikan Data Pasien ke Nutrisionis Lain',
+                  style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.blue),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
             ),
             const Divider(height: 20, thickness: 2, color: Colors.green),
 

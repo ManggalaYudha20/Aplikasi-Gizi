@@ -54,6 +54,8 @@ dependencies:
   firebase_performance: ^0.10.0
   flutter_recaptcha_v2_compat: ^1.0.3+3
   firebase_app_check: ^0.3.2+10
+  file_picker: ^8.0.0
+  convert: ^3.1.1
   
 
 

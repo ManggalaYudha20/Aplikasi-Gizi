@@ -70,6 +70,25 @@ class _DataFormPageState extends State<DataFormPage> {
   final List<FocusNode> _focusNodes = [];
   final _jenisKelaminController = TextEditingController();
   final _aktivitasController = TextEditingController();
+  final _faktorStressController = TextEditingController();
+  final List<String> _stressOptions = [
+    'Normal',
+    'Demam (per 1°C)',
+    'Peritonitis',
+    'Cedera Jaringan Lunak Ringan',
+    'Cedera Jaringan Lunak Berat',
+    'Patah Tulang Multiple Ringan',
+    'Patah Tulang Multiple Berat',
+    'Sepsis Ringan',
+    'Sepsis Berat',
+    'Luka Bakar 0-20%',
+    'Luka Bakar 20-40%',
+    'Luka Bakar 40-100%',
+    'Puasa',
+    'Payah Gagal Jantung Ringan',
+    'Payah Gagal Jantung Berat',
+    'Kanker',
+  ];
   final _kehilanganNafsuMakanController = TextEditingController();
   final _alergiMakananController = TextEditingController(text: 'Tidak');
   // BARU: State untuk menyimpan pilihan kehilangan nafsu makan
@@ -435,6 +454,7 @@ void _generateExpertDiagnosis() {
     _tinggiBadanController.text = patient.tinggiBadan.toString();
     _jenisKelaminController.text = patient.jenisKelamin;
     _aktivitasController.text = patient.aktivitas;
+    _faktorStressController.text = patient.faktorStress.isNotEmpty ? patient.faktorStress : 'Normal';
     _kehilanganNafsuMakanController.text = patient.kehilanganNafsuMakan ?? '';
     _alergiMakananController.text = patient.alergiMakanan ?? 'Tidak';
     _selectedDate = patient.tanggalLahir;
@@ -639,6 +659,7 @@ void _generateExpertDiagnosis() {
     _diagnosisMedisController.dispose();
     _beratBadanController.dispose();
     _tinggiBadanController.dispose();
+    _faktorStressController.dispose();
     // BARU: Dispose controller baru
     _beratBadanDuluController.dispose();
     _lilaController.dispose();
@@ -711,6 +732,7 @@ void _generateExpertDiagnosis() {
       _kehilanganNafsuMakanController.clear();
       _jenisKelaminController.clear();
       _aktivitasController.clear();
+      _faktorStressController.clear();
       _alergiMakananController.text = 'Tidak';
       _selectedDate = null;
       _detailAlergiController.clear();
@@ -983,6 +1005,7 @@ void _generateExpertDiagnosis() {
           'beratBadanDulu': double.tryParse(_beratBadanDuluController.text),
           'jenisKelamin': _jenisKelaminController.text,
           'aktivitas': _aktivitasController.text,
+          'faktorStress': _faktorStressController.text.isNotEmpty ? _faktorStressController.text : 'Normal', // -> Tambahkan ini
           'kehilanganNafsuMakan': _kehilanganNafsuMakanController.text,
           'alergiMakanan': _alergiMakananController.text,
 
@@ -1081,6 +1104,7 @@ void _generateExpertDiagnosis() {
             tinggiBadan: tinggiBadan,
             jenisKelamin: _jenisKelaminController.text,
             aktivitas: _aktivitasController.text,
+            faktorStress: _faktorStressController.text.isNotEmpty ? _faktorStressController.text : 'Normal', // -> Tambahkan ini
             kehilanganNafsuMakan: _kehilanganNafsuMakanController.text,
             imt: imt,
             skorIMT: skorIMT,
@@ -1377,6 +1401,50 @@ void _generateExpertDiagnosis() {
                         _focusNodes[11], // Ganti 11 dengan index yang benar
                     showSearch: false, // Aktifkan pencarian
                   ),
+                  const SizedBox(height: 16),
+
+                 _buildCustomDropdown(
+                    controller: _faktorStressController, // Pastikan controller ini sudah dideklarasikan di atas
+                    label: 'Faktor Stres / Kondisi Klinis',
+                    prefixIcon: const Icon(Icons.healing),
+                    items: _stressOptions, // Pastikan list opsi sudah ditambahkan di atas
+                    focusNode: _focusNodes[34], // Gunakan index FocusNode yang kosong
+                    showSearch: true,
+                    // Tambahkan onChanged agar UI langsung bereaksi saat opsi Demam dipilih
+                    onChanged: (String? value) {
+                      setState(() {
+                        _faktorStressController.text = value ?? 'Normal';
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // --- LOGIKA KONDISIONAL MUNCULNYA INFO SUHU ---
+                  if (_faktorStressController.text == 'Demam (per 1°C)')
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.orange[50],
+                          border: Border.all(color: Colors.orange.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.info_outline, color: Colors.orange),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Suhu badan digunakan untuk menghitung penambahan TDEE (13% per 1°C di atas 37°C). Pastikan Anda juga mengisi nilai "Suhu Badan (SB)" di form Klinik/Fisik/PD di bawah.',
+                                style: TextStyle(color: Colors.orange[800], fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    
                   const SizedBox(height: 16),
 
                   _buildTextFormField(

@@ -13,6 +13,7 @@ class Patient {
   final num tinggiBadan;
   final String jenisKelamin; // Tambahkan ini
   final String aktivitas; // Tambahkan ini
+  final String faktorStress;
   final num imt;
   final int skorIMT;
   final int skorKehilanganBB;
@@ -63,6 +64,7 @@ class Patient {
     required this.tinggiBadan,
     required this.jenisKelamin, 
     required this.aktivitas, 
+    this.faktorStress = 'Normal',
     required this.imt,
     required this.skorIMT,
     required this.skorKehilanganBB,
@@ -136,6 +138,7 @@ class Patient {
       tinggiBadan: data['tinggiBadan'] ?? 0,
       jenisKelamin: data['jenisKelamin'] ?? 'Laki-laki', // Tambahkan ini
       aktivitas: data['aktivitas'] ?? 'Sangat Jarang', // Tambahkan ini
+      faktorStress: data['faktorStress'] ?? 'Normal',
       imt: data['imt'] ?? 0,
       skorIMT: data['skorIMT'] ?? 0,
       skorKehilanganBB: data['skorKehilanganBB'] ?? 0,
@@ -190,6 +193,7 @@ class Patient {
       'tinggiBadan': tinggiBadan,
       'jenisKelamin': jenisKelamin,
       'aktivitas': aktivitas,
+      'faktorStress': faktorStress,
       'imt': imt,
       'skorIMT': skorIMT,
       'skorKehilanganBB': skorKehilanganBB,
@@ -277,7 +281,32 @@ class Patient {
         activityFactor = 1.9;
         break;
     }
-    return bmr * activityFactor;
+    double stressFactorValue = 1.0; // Default (Normal)
+    switch (faktorStress) {
+      case 'Normal': stressFactorValue = 1.00; break;
+      case 'Demam (per 1°C)':
+        // Mengambil suhu dari input klinikSuhu, default 37 jika kosong
+        double temp = double.tryParse(klinikSuhu ?? '') ?? 37.0;
+        stressFactorValue = temp > 37 ? 1.0 + (0.13 * (temp - 37)) : 1.0;
+        break;
+      case 'Peritonitis': stressFactorValue = 1.35; break;
+      case 'Cedera Jaringan Lunak Ringan': stressFactorValue = 1.14; break;
+      case 'Cedera Jaringan Lunak Berat': stressFactorValue = 1.37; break;
+      case 'Patah Tulang Multiple Ringan': stressFactorValue = 1.20; break;
+      case 'Patah Tulang Multiple Berat': stressFactorValue = 1.35; break;
+      case 'Sepsis Ringan': stressFactorValue = 1.40; break;
+      case 'Sepsis Berat': stressFactorValue = 1.80; break;
+      case 'Luka Bakar 0-20%': stressFactorValue = 1.25; break;
+      case 'Luka Bakar 20-40%': stressFactorValue = 1.675; break;
+      case 'Luka Bakar 40-100%': stressFactorValue = 1.95; break;
+      case 'Puasa': stressFactorValue = 0.70; break;
+      case 'Payah Gagal Jantung Ringan': stressFactorValue = 1.30; break;
+      case 'Payah Gagal Jantung Berat': stressFactorValue = 1.50; break;
+      case 'Kanker': stressFactorValue = 1.30; break;
+      default: stressFactorValue = 1.0;
+    }
+
+    return bmr * activityFactor * stressFactorValue;
   }
   
   String get interpretasi {
