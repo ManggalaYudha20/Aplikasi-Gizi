@@ -17,8 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:firebase_core/firebase_core.dart';
-
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/presentation/pages/kidney_calculation_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/presentation/pages/kidney_calculation_page.dart';
 
 // ---------------------------------------------------------------------------
 // Durasi standar render & animasi

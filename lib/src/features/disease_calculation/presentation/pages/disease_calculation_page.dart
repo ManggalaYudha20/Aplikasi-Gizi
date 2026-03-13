@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
-import 'diabetes_calculation_page.dart';
-import 'kidney_calculation_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/presentation/pages/diabetes_calculation_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/presentation/pages/kidney_calculation_page.dart';
 
 /// Model konfigurasi menu penyakit — immutable & type-safe.
 /// Seluruh field bersifat final agar aman di-cache sebagai static const List.
