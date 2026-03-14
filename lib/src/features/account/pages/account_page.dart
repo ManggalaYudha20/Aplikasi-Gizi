@@ -147,27 +147,44 @@ class AccountPage extends StatelessWidget {
                           context,
                           onConfirm: () async {
                             try {
+                              final currentUser = FirebaseAuth.instance.currentUser;
+                              if (currentUser == null) return;
+
+                              
+                              final lastSignIn = currentUser.metadata.lastSignInTime;
+                              if (lastSignIn != null && DateTime.now().difference(lastSignIn).inMinutes > 5) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Sesi login terlalu lama. Demi keamanan, silakan LOGOUT dan LOGIN kembali sebelum menghapus akun.'),
+                                    duration: Duration(seconds: 5),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                                return; 
+                              }
+                            
+
                               showDialog(
                                 context: context,
                                 barrierDismissible: false,
                                 builder: (context) => const Center(child: CircularProgressIndicator()),
                               );
 
-                              final currentUser = FirebaseAuth.instance.currentUser;
-                              if (currentUser != null) {
-                                 await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).delete();
-                                await currentUser.delete();
+                              // 1. Hapus data di Firestore terlebih dahulu
+                              await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).delete();
+                              
+                              // 2. Hapus Autentikasi dari Firebase Auth
+                              await currentUser.delete();
 
-                                if (context.mounted) Navigator.pop(context);
-                                if (context.mounted) {
-                                  Navigator.of(context).pushAndRemoveUntil(
-                                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                                    (Route<dynamic> route) => false,
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Akun berhasil dihapus secara permanen.')),
-                                  );
-                                }
+                              if (context.mounted) Navigator.pop(context); // Tutup dialog loading
+                              if (context.mounted) {
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                                  (Route<dynamic> route) => false,
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Akun berhasil dihapus secara permanen.')),
+                                );
                               }
                             } on FirebaseAuthException catch (e) {
                               if (context.mounted) Navigator.pop(context);
@@ -175,7 +192,7 @@ class AccountPage extends StatelessWidget {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Sesi terlalu lama. Silakan logout dan login kembali sebelum menghapus akun demi keamanan.'),
+                                      content: Text('Sesi terlalu lama. Silakan logout dan login kembali.'),
                                       duration: Duration(seconds: 5),
                                     ),
                                   );
@@ -198,6 +215,7 @@ class AccountPage extends StatelessWidget {
                           },
                         ),
                       ),
+
                     ],
                   ),
                 ),
