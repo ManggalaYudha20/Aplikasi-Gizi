@@ -9,7 +9,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/pat
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/scaffold_with_animated_fab.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_validator_utils.dart';
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/login/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';

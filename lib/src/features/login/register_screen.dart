@@ -1,9 +1,9 @@
 // lib/src/login/register_screen.dart
 
-import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/login/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
-import 'package:aplikasi_diagnosa_gizi/src/login/email_verification_screen.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/login/email_verification_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});

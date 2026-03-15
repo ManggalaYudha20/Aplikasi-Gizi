@@ -1,11 +1,11 @@
-// lib\src\features\pdf_leaflets\presentation\pages\delete_leaflet_service.dart
+// lib/src/features/pdf_leaflets/services/delete_leaflet_service.dart
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/data/models/leaflet_model.dart';
 
 class DeleteLeafletService {
-  /// Menampilkan dialog konfirmasi dan menangani proses penghapusan
+  /// Menampilkan dialog konfirmasi dan menangani proses penghapusan.
   static Future<void> handleLeafletDelete({
     required BuildContext context,
     required Leaflet leaflet,
@@ -16,7 +16,9 @@ class DeleteLeafletService {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Konfirmasi Hapus'),
-          content: Text('Apakah Anda yakin untuk menghapus leaflet "${leaflet.title}"?'),
+          content: Text(
+            'Apakah Anda yakin untuk menghapus leaflet "${leaflet.title}"?',
+          ),
           actions: [
             TextButton(
               key: const Key('dialog_cancel_button'),
@@ -39,7 +41,10 @@ class DeleteLeafletService {
     }
   }
 
-  static Future<void> _performDelete(BuildContext context, Leaflet leaflet) async {
+  static Future<void> _performDelete(
+    BuildContext context,
+    Leaflet leaflet,
+  ) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
@@ -57,7 +62,7 @@ class DeleteLeafletService {
           .collection('leaflets')
           .doc(leaflet.id)
           .delete();
-      
+
       // Success Feedback
       scaffoldMessenger.showSnackBar(
         const SnackBar(
@@ -65,9 +70,9 @@ class DeleteLeafletService {
           backgroundColor: Colors.green,
         ),
       );
-      
+
       // Navigate Back
-      navigator.pop(); 
+      navigator.pop();
     } catch (e) {
       scaffoldMessenger.showSnackBar(
         SnackBar(

@@ -1,12 +1,11 @@
-// lib\src\features\pdf_leaflets\presentation\pages\pdf_viewer_page.dart
+// lib/src/features/pdf_leaflets/presentation/pages/pdf_viewer_page.dart
 
 import 'package:flutter/material.dart';
-// Menggunakan alias untuk menghindari konflik dengan widget atau class lain yang bernama 'Share'
 import 'package:share_plus/share_plus.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_model.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/edit_leaflet_service.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/delete_leaflet_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/data/models/leaflet_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/services/delete_leaflet_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/services/edit_leaflet_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/role_builder.dart';
 
 class PdfViewerPage extends StatefulWidget {
@@ -37,7 +36,6 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Memastikan layout aman dari notch/system bars
     return SafeArea(
       child: Scaffold(
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
@@ -98,10 +96,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             ],
           ),
         ),
-
         floatingActionButton: RoleBuilder(
-          requiredRole: 'admin', // Role yang dibutuhkan
-          // Builder dijalankan jika user adalah admin
+          requiredRole: 'admin',
           builder: (context) {
             if (widget.leaflet == null) return const SizedBox.shrink();
 
@@ -119,13 +115,14 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                         key: const Key('pdf_delete_button'),
                         onPressed: () =>
                             DeleteLeafletService.handleLeafletDelete(
-                              context: context,
-                              leaflet: widget.leaflet!,
-                            ),
+                          context: context,
+                          leaflet: widget.leaflet!,
+                        ),
                         heroTag: 'delete',
                         tooltip: 'Hapus',
                         backgroundColor: Colors.red,
-                        child: const Icon(Icons.delete, color: Colors.white),
+                        child:
+                            const Icon(Icons.delete, color: Colors.white),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -135,7 +132,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                       child: FloatingActionButton.small(
                         key: const Key('pdf_edit_button'),
                         onPressed: () async {
-                          final result = await EditLeafletService.showEditPage(
+                          final result =
+                              await EditLeafletService.showEditPage(
                             context,
                             widget.leaflet!,
                           );
@@ -146,7 +144,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                         },
                         heroTag: 'edit',
                         tooltip: 'Edit',
-                        backgroundColor: const Color.fromARGB(255, 0, 148, 68),
+                        backgroundColor:
+                            const Color.fromARGB(255, 0, 148, 68),
                         child: const Icon(Icons.edit, color: Colors.white),
                       ),
                     ),
@@ -155,8 +154,6 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
               ],
             );
           },
-
-          // Builder dijalankan jika user BUKAN admin (atau belum login)
           nonRoleBuilder: (context) => const SizedBox.shrink(),
         ),
       ),

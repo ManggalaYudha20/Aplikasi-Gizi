@@ -1,6 +1,6 @@
 // lib\src\shared\widgets\food_filter_model.dart
 
-import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
 
 class FoodFilterModel {
   final String? kelompokMakanan;

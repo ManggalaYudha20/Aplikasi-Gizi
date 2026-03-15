@@ -1,10 +1,11 @@
-//lib\src\features\food_database\presentation\pages\food_detail_page.dart
+// lib/src/features/food_database/presentation/pages/food_detail_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/services/food_delete_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/add_food_item_page.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/delete_item_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/widgets/food_nutrition_card.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/role_builder.dart';
 
 class FoodDetailPage extends StatefulWidget {
@@ -18,10 +19,11 @@ class FoodDetailPage extends StatefulWidget {
 
 class _FoodDetailPageState extends State<FoodDetailPage> {
   final TextEditingController _portionController = TextEditingController();
-  Map<String, num>? _calculatedNutrition;
-  bool _showResults = false;
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _resultCardKey = GlobalKey();
+
+  Map<String, num>? _calculatedNutrition;
+  bool _showResults = false;
 
   @override
   void dispose() {
@@ -29,6 +31,8 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     _scrollController.dispose();
     super.dispose();
   }
+
+  // ── Calculation logic ─────────────────────────────────────────────────────
 
   void _scrollToResult() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -44,6 +48,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
 
   void _calculateNutrition() {
     final String portionText = _portionController.text;
+
     if (portionText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -61,11 +66,12 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       return;
     }
 
-    // Perbaikan: Tambahkan pengecekan untuk portionGram agar tidak nol
     if (widget.foodItem.portionGram == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Tidak dapat menghitung, porsi asli makanan adalah 0 gram.'),
+          content: Text(
+            'Tidak dapat menghitung, porsi asli makanan adalah 0 gram.',
+          ),
         ),
       );
       return;
@@ -99,6 +105,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       };
       _showResults = true;
     });
+
     _scrollToResult();
   }
 
@@ -110,549 +117,425 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     });
   }
 
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: CustomAppBar(title: widget.foodItem.name, subtitle: '100 gram'),
-      body:  SafeArea(
+      appBar: CustomAppBar(
+        title: widget.foodItem.name,
+        subtitle: '100 gram',
+      ),
+      body: SafeArea(
         child: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-        child: SingleChildScrollView(
-        controller: _scrollController,
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Food Name Header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(
-                  255,
-                  0,
-                  148,
-                  68,
-                ).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color.fromARGB(
-                    255,
-                    0,
-                    148,
-                    68,
-                  ).withValues(alpha: 0.3),
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Food header card ──────────────────────────────────────
+                _buildFoodHeaderCard(),
+                const SizedBox(height: 24),
+
+                // ── Nutrition section title ───────────────────────────────
+                const Text(
+                  'Informasi Gizi',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 0, 148, 68),
+                  ),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          widget.foodItem.name,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 0, 148, 68),
-                          ),
-                        ),
-                      ),
-                      RoleBuilder(
-                        requiredRole: 'admin',
-                        builder: (context) {
-                     return GestureDetector(
-                      key: const Key('btn_edit_food'),
-                        onTap: () async {
-                          // Jadikan async
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  AddFoodItemPage(foodItem: widget.foodItem),
+                const SizedBox(height: 16),
+
+                // ── Highlight cards ───────────────────────────────────────
+                FoodNutritionCard(
+                  label: 'Energi',
+                  value: widget.foodItem.calories,
+                  unit: 'kkal',
+                  icon: Icons.local_fire_department,
+                  color: Colors.orange,
+                ),
+                const SizedBox(height: 12),
+                FoodNutritionCard(
+                  label: 'Protein',
+                  value: widget.foodItem.protein,
+                  unit: 'gram',
+                  icon: Icons.egg,
+                  color: Colors.blue,
+                ),
+                const SizedBox(height: 12),
+                FoodNutritionCard(
+                  label: 'Lemak',
+                  value: widget.foodItem.fat,
+                  unit: 'gram',
+                  icon: Icons.water_drop,
+                  color: Colors.red,
+                ),
+                const SizedBox(height: 12),
+                FoodNutritionCard(
+                  label: 'Serat',
+                  value: widget.foodItem.fiber,
+                  unit: 'gram',
+                  icon: Icons.grass,
+                  color: Colors.green,
+                ),
+                const SizedBox(height: 24),
+
+                // ── Full detail table ─────────────────────────────────────
+                FoodNutritionDetailTable(item: widget.foodItem),
+                const SizedBox(height: 24),
+
+                // ── Portion calculator ────────────────────────────────────
+                _buildPortionCalculator(),
+                const SizedBox(height: 24),
+
+                // ── Delete button (admin only) ────────────────────────────
+                RoleBuilder(
+                  requiredRole: 'admin',
+                  builder: (context) {
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            icon: const Icon(
+                              Icons.delete_forever,
+                              color: Colors.white,
                             ),
-                          );
-                          // Cek mounted setelah await
-                          if (result == true && context.mounted) {
-                            Navigator.of(context).pop(true);
-                          }
-                        },
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.edit,
-                              color: Color.fromARGB(255, 0, 148, 68),
+                            label: const Text(
+                              'Hapus',
+                              style: TextStyle(color: Colors.white),
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Edit',
-                              style: TextStyle(
-                                color: const Color.fromARGB(255, 0, 148, 68),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                            onPressed: () => FoodDeleteService.deleteFoodItem(
+                              context,
+                              widget.foodItem,
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red.shade700,
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                     );
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Kode: ${widget.foodItem.code}',
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                  Text(
-                    'Porsi: ${widget.foodItem.portionGram} gram',
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                  Text(
-                    'Kelompok Makanan: ${widget.foodItem.kelompokMakanan}',
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                  Text(
-                    'Status: ${widget.foodItem.mentahOlahan}',
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                ],
-              ),
+                      ],
+                    );
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
+          ),
+        ),
+      ),
+    );
+  }
 
-            // Nutrition Information
+  // ── Private builder helpers ───────────────────────────────────────────────
+
+  Widget _buildFoodHeaderCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  widget.foodItem.name,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 0, 148, 68),
+                  ),
+                ),
+              ),
+              // Edit button (admin only)
+              RoleBuilder(
+                requiredRole: 'admin',
+                builder: (context) {
+                  return GestureDetector(
+                    key: const Key('btn_edit_food'),
+                    onTap: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              AddFoodItemPage(foodItem: widget.foodItem),
+                        ),
+                      );
+                      if (result == true && context.mounted) {
+                        Navigator.of(context).pop(true);
+                      }
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.edit,
+                          color: Color.fromARGB(255, 0, 148, 68),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Edit',
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 0, 148, 68),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Kode: ${widget.foodItem.code}',
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+          Text(
+            'Porsi: ${widget.foodItem.portionGram} gram',
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+          Text(
+            'Kelompok Makanan: ${widget.foodItem.kelompokMakanan}',
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+          Text(
+            'Status: ${widget.foodItem.mentahOlahan}',
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPortionCalculator() {
+    return Container(
+      key: _resultCardKey,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color.fromARGB(255, 0, 148, 68).withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Kalkulator Takaran Gizi',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color.fromARGB(255, 0, 148, 68),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Input field
+          TextFormField(
+            controller: _portionController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'Takaran makanan (gram)',
+              hintText: 'Masukkan jumlah gram',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              prefixIcon: const Icon(Icons.scale),
+              suffixText: 'gram',
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Masukkan takaran makanan';
+              }
+              if (double.tryParse(value) == null ||
+                  double.parse(value) <= 0) {
+                return 'Masukkan angka yang valid';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+
+          // Action buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _resetCalculation,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor:
+                        const Color.fromARGB(255, 0, 148, 68),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    side: const BorderSide(
+                      color: Color.fromARGB(255, 0, 148, 68),
+                    ),
+                  ),
+                  child: const Text('Reset'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _calculateNutrition,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        const Color.fromARGB(255, 0, 148, 68),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Hitung'),
+                ),
+              ),
+            ],
+          ),
+
+          // Calculated results
+          if (_showResults && _calculatedNutrition != null) ...[
+            const SizedBox(height: 24),
             const Text(
-              'Informasi Gizi',
+              'Hasil Perhitungan Gizi',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Color.fromARGB(255, 0, 148, 68),
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Nutrition Cards
-            _buildNutritionCard(
-              'Energi',
-              widget.foodItem.calories,
-              'kkal',
-              Icons.local_fire_department,
-              Colors.orange,
-            ),
             const SizedBox(height: 12),
-            _buildNutritionCard(
-              'Protein',
-              widget.foodItem.protein,
-              'gram',
-              Icons.egg,
-              Colors.blue,
+            FoodNutritionRow(
+              label: 'Air',
+              value:
+                  '${_calculatedNutrition!['air']?.toStringAsFixed(2) ?? '0'} g',
             ),
-            const SizedBox(height: 12),
-            _buildNutritionCard(
-              'Lemak',
-              widget.foodItem.fat,
-              'gram',
-              Icons.water_drop,
-              Colors.red,
+            FoodNutritionRow(
+              label: 'Energi',
+              value:
+                  '${_calculatedNutrition!['energi']?.toStringAsFixed(1) ?? '0'} kkal',
             ),
-            const SizedBox(height: 12),
-            _buildNutritionCard(
-              'Serat',
-              widget.foodItem.fiber,
-              'gram',
-              Icons.grass,
-              Colors.green,
+            FoodNutritionRow(
+              label: 'Protein',
+              value:
+                  '${_calculatedNutrition!['protein']?.toStringAsFixed(2) ?? '0'} g',
             ),
-            const SizedBox(height: 24),
-
-            // DIPERBARUI: Menampilkan semua detail nutrisi dalam tabel
-            _buildNutritionDetailTable(widget.foodItem),
-
-            const SizedBox(height: 24),
-
-            // Custom Portion Calculator
-            Container(
-              padding: const EdgeInsets.all(16),
-              key: _resultCardKey,
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(
-                  255,
-                  0,
-                  148,
-                  68,
-                ).withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color.fromARGB(
-                    255,
-                    0,
-                    148,
-                    68,
-                  ).withValues(alpha: 0.2),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Kalkulator Takaran Gizi',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 0, 148, 68),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Input field for custom portion
-                  TextFormField(
-                    controller: _portionController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Takaran makanan (gram)',
-                      hintText: 'Masukkan jumlah gram',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      prefixIcon: const Icon(Icons.scale),
-                      suffixText: 'gram',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Masukkan takaran makanan';
-                      }
-                      if (double.tryParse(value) == null ||
-                          double.parse(value) <= 0) {
-                        return 'Masukkan angka yang valid';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Calculate and Reset buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: _resetCalculation,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color.fromARGB(
-                              255,
-                              0,
-                              148,
-                              68,
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            side: const BorderSide(
-                              color: Color.fromARGB(255, 0, 148, 68),
-                            ),
-                          ),
-                          child: const Text('Reset'),
-                        ),
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _calculateNutrition,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(
-                              255,
-                              0,
-                              148,
-                              68,
-                            ),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text('Hitung'),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Calculated results
-                  if (_showResults && _calculatedNutrition != null) ...[
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Hasil Perhitungan Gizi',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 0, 148, 68),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildNutritionRow(
-                      'Air',
-                      '${_calculatedNutrition!['air']?.toStringAsFixed(2) ?? '0'} g',
-                    ),
-                    _buildNutritionRow(
-                      'Energi',
-                      '${_calculatedNutrition!['energi']?.toStringAsFixed(1) ?? '0'} kkal',
-                    ),
-                    _buildNutritionRow(
-                      'Protein',
-                      '${_calculatedNutrition!['protein']?.toStringAsFixed(2) ?? '0'} g',
-                    ),
-                    _buildNutritionRow(
-                      'Lemak',
-                      '${_calculatedNutrition!['lemak']?.toStringAsFixed(2) ?? '0'} g',
-                    ),
-                    _buildNutritionRow(
-                      'Karbohidrat',
-                      '${_calculatedNutrition!['karbohidrat']?.toStringAsFixed(2) ?? '0'} g',
-                    ),
-                    _buildNutritionRow(
-                      'Serat',
-                      '${_calculatedNutrition!['serat']?.toStringAsFixed(2) ?? '0'} g',
-                    ),
-                    _buildNutritionRow(
-                      'Abu',
-                      '${_calculatedNutrition!['abu']?.toStringAsFixed(2) ?? '0'} g',
-                    ),
-                    _buildNutritionRow(
-                      'Kalsium (Ca)',
-                      '${_calculatedNutrition!['kalsium']?.toStringAsFixed(2) ?? '0'} mg',
-                    ),
-                    _buildNutritionRow(
-                      'Fosfor (P)',
-                      '${_calculatedNutrition!['fosfor']?.toStringAsFixed(2) ?? '0'} mg',
-                    ),
-                    _buildNutritionRow(
-                      'Besi (Fe)',
-                      '${_calculatedNutrition!['besi']?.toStringAsFixed(2) ?? '0'} mg',
-                    ),
-                    _buildNutritionRow(
-                      'Natrium (Na)',
-                      '${_calculatedNutrition!['natrium']?.toStringAsFixed(2) ?? '0'} mg',
-                    ),
-                    _buildNutritionRow(
-                      'Kalium (Ka)',
-                      '${_calculatedNutrition!['kalium']?.toStringAsFixed(2) ?? '0'} mg',
-                    ),
-                    _buildNutritionRow(
-                      'Tembaga (Cu)',
-                      '${_calculatedNutrition!['tembaga']?.toStringAsFixed(2) ?? '0'} mg',
-                    ),
-                    _buildNutritionRow(
-                      'Seng (Zn)',
-                      '${_calculatedNutrition!['seng']?.toStringAsFixed(2) ?? '0'} mg',
-                    ),
-                    _buildNutritionRow(
-                      'Retinol (vit. A)',
-                      '${_calculatedNutrition!['retinol']?.toStringAsFixed(2) ?? '0'} mcg',
-                    ),
-                    _buildNutritionRow(
-                      'β-karoten',
-                      '${_calculatedNutrition!['betaKaroten']?.toStringAsFixed(2) ?? '0'} mcg',
-                    ),
-                    _buildNutritionRow(
-                      'Karoten total',
-                      '${_calculatedNutrition!['karotenTotal']?.toStringAsFixed(2) ?? '0'} mcg',
-                    ),
-                    _buildNutritionRow(
-                      'Thiamin (vit. B1)',
-                      '${_calculatedNutrition!['thiamin']?.toStringAsFixed(2) ?? '0'} mg',
-                    ),
-                    _buildNutritionRow(
-                      'Riboflavin (vit. B2)',
-                      '${_calculatedNutrition!['riboflavin']?.toStringAsFixed(2) ?? '0'} mg',
-                    ),
-                    _buildNutritionRow(
-                      'Niasin',
-                      '${_calculatedNutrition!['niasin']?.toStringAsFixed(2) ?? '0'} mg',
-                    ),
-                    _buildNutritionRow(
-                      'Vitamin C',
-                      '${_calculatedNutrition!['vitaminC']?.toStringAsFixed(2) ?? '0'} mg',
-                    ),
-                  ],
-                ],
-              ),
+            FoodNutritionRow(
+              label: 'Lemak',
+              value:
+                  '${_calculatedNutrition!['lemak']?.toStringAsFixed(2) ?? '0'} g',
             ),
-
-            const SizedBox(height: 24),
-
-            // Action Buttons
-             RoleBuilder(
-                  requiredRole: 'admin',
-                  builder: (context) {
-                     return Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.delete_forever, color: Colors.white),
-                    label: const Text(
-                      'Hapus',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    // Memanggil logika hapus dari file terpisah
-                    onPressed: () => FoodItemService.deleteFoodItem(
-                      context,
-                      widget.foodItem,
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.shade700,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-              },
+            FoodNutritionRow(
+              label: 'Karbohidrat',
+              value:
+                  '${_calculatedNutrition!['karbohidrat']?.toStringAsFixed(2) ?? '0'} g',
+            ),
+            FoodNutritionRow(
+              label: 'Serat',
+              value:
+                  '${_calculatedNutrition!['serat']?.toStringAsFixed(2) ?? '0'} g',
+            ),
+            FoodNutritionRow(
+              label: 'Abu',
+              value:
+                  '${_calculatedNutrition!['abu']?.toStringAsFixed(2) ?? '0'} g',
+            ),
+            FoodNutritionRow(
+              label: 'Kalsium (Ca)',
+              value:
+                  '${_calculatedNutrition!['kalsium']?.toStringAsFixed(2) ?? '0'} mg',
+            ),
+            FoodNutritionRow(
+              label: 'Fosfor (P)',
+              value:
+                  '${_calculatedNutrition!['fosfor']?.toStringAsFixed(2) ?? '0'} mg',
+            ),
+            FoodNutritionRow(
+              label: 'Besi (Fe)',
+              value:
+                  '${_calculatedNutrition!['besi']?.toStringAsFixed(2) ?? '0'} mg',
+            ),
+            FoodNutritionRow(
+              label: 'Natrium (Na)',
+              value:
+                  '${_calculatedNutrition!['natrium']?.toStringAsFixed(2) ?? '0'} mg',
+            ),
+            FoodNutritionRow(
+              label: 'Kalium (Ka)',
+              value:
+                  '${_calculatedNutrition!['kalium']?.toStringAsFixed(2) ?? '0'} mg',
+            ),
+            FoodNutritionRow(
+              label: 'Tembaga (Cu)',
+              value:
+                  '${_calculatedNutrition!['tembaga']?.toStringAsFixed(2) ?? '0'} mg',
+            ),
+            FoodNutritionRow(
+              label: 'Seng (Zn)',
+              value:
+                  '${_calculatedNutrition!['seng']?.toStringAsFixed(2) ?? '0'} mg',
+            ),
+            FoodNutritionRow(
+              label: 'Retinol (vit. A)',
+              value:
+                  '${_calculatedNutrition!['retinol']?.toStringAsFixed(2) ?? '0'} mcg',
+            ),
+            FoodNutritionRow(
+              label: 'β-karoten',
+              value:
+                  '${_calculatedNutrition!['betaKaroten']?.toStringAsFixed(2) ?? '0'} mcg',
+            ),
+            FoodNutritionRow(
+              label: 'Karoten total',
+              value:
+                  '${_calculatedNutrition!['karotenTotal']?.toStringAsFixed(2) ?? '0'} mcg',
+            ),
+            FoodNutritionRow(
+              label: 'Thiamin (vit. B1)',
+              value:
+                  '${_calculatedNutrition!['thiamin']?.toStringAsFixed(2) ?? '0'} mg',
+            ),
+            FoodNutritionRow(
+              label: 'Riboflavin (vit. B2)',
+              value:
+                  '${_calculatedNutrition!['riboflavin']?.toStringAsFixed(2) ?? '0'} mg',
+            ),
+            FoodNutritionRow(
+              label: 'Niasin',
+              value:
+                  '${_calculatedNutrition!['niasin']?.toStringAsFixed(2) ?? '0'} mg',
+            ),
+            FoodNutritionRow(
+              label: 'Vitamin C',
+              value:
+                  '${_calculatedNutrition!['vitaminC']?.toStringAsFixed(2) ?? '0'} mg',
             ),
           ],
-        ),
-      ),
-      ),
-      ),
-    );
-  }
-
-  Widget _buildNutritionCard(
-    String label,
-    num value,
-    String unit,
-    IconData icon,
-    Color color,
-  ) {
-    return Semantics(
-      label: '$label: ${value.toStringAsFixed(1)} $unit',
-      child: Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                Text(
-                  '${value.toStringAsFixed(1)} $unit',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      ),
-    );
-  }
-
-  Widget _buildNutritionRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
         ],
       ),
     );
   }
-
-  Widget _buildNutritionDetailTable(FoodItem item) {
-  // Perbaikan: Gunakan getter nutritionPer100g dari model
-  final Map<String, num> nutritionPer100g = item.nutritionPer100g;
-
-  return Container(
-    // Perbaikan: Mengganti Card dengan Container
-    decoration: BoxDecoration(
-                color: const Color.fromARGB(
-                  255,
-                  0,
-                  148,
-                  68,
-                ).withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color.fromARGB(
-                    255,
-                    0,
-                    148,
-                    68,
-                  ).withValues(alpha: 0.2),
-                ),
-              ),
-    child: Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildNutritionRow('Air', '${nutritionPer100g['air']?.toStringAsFixed(1) ?? '0.0'} g'),
-          _buildNutritionRow('Energi', '${nutritionPer100g['energi']?.toStringAsFixed(1) ?? '0.0'} kkal'),
-          _buildNutritionRow('Protein', '${nutritionPer100g['protein']?.toStringAsFixed(1) ?? '0.0'} g'),
-          _buildNutritionRow('Lemak', '${nutritionPer100g['lemak']?.toStringAsFixed(1) ?? '0.0'} g'),
-          _buildNutritionRow('Karbohidrat', '${nutritionPer100g['karbohidrat']?.toStringAsFixed(1) ?? '0.0'} g'),
-          _buildNutritionRow('Serat', '${nutritionPer100g['serat']?.toStringAsFixed(1) ?? '0.0'} g'),
-          _buildNutritionRow('Abu', '${nutritionPer100g['abu']?.toStringAsFixed(1) ?? '0.0'} g'),
-          _buildNutritionRow('Kalsium (Ca)', '${nutritionPer100g['kalsium']?.toStringAsFixed(1) ?? '0.0'} mg'),
-          _buildNutritionRow('Fosfor (P)', '${nutritionPer100g['fosfor']?.toStringAsFixed(1) ?? '0.0'} mg'),
-          _buildNutritionRow('Besi (Fe)', '${nutritionPer100g['besi']?.toStringAsFixed(1) ?? '0.0'} mg'),
-          _buildNutritionRow('Natrium (Na)', '${nutritionPer100g['natrium']?.toStringAsFixed(1) ?? '0.0'} mg'),
-          _buildNutritionRow('Kalium (Ka)', '${nutritionPer100g['kalium']?.toStringAsFixed(1) ?? '0.0'} mg'),
-          _buildNutritionRow('Tembaga (Cu)', '${nutritionPer100g['tembaga']?.toStringAsFixed(1) ?? '0.0'} mg'),
-          _buildNutritionRow('Seng (Zn)', '${nutritionPer100g['seng']?.toStringAsFixed(1) ?? '0.0'} mg'),
-          _buildNutritionRow('Retinol (vit. A)', '${nutritionPer100g['retinol']?.toStringAsFixed(1) ?? '0.0'} mcg'),
-          _buildNutritionRow('β-karoten', '${nutritionPer100g['betaKaroten']?.toStringAsFixed(1) ?? '0.0'} mcg'),
-          _buildNutritionRow('Karoten total', '${nutritionPer100g['karotenTotal']?.toStringAsFixed(1) ?? '0.0'} mcg'),
-          _buildNutritionRow('Thiamin (vit. B1)', '${nutritionPer100g['thiamin']?.toStringAsFixed(1) ?? '0.0'} mg'),
-          _buildNutritionRow('Riboflavin (vit. B2)', '${nutritionPer100g['riboflavin']?.toStringAsFixed(1) ?? '0.0'} mg'),
-          _buildNutritionRow('Niasin', '${nutritionPer100g['niasin']?.toStringAsFixed(1) ?? '0.0'} mg'),
-          _buildNutritionRow('Vitamin C', '${nutritionPer100g['vitaminC']?.toStringAsFixed(1) ?? '0.0'} mg'),
-          _buildNutritionRow('BDD', '${nutritionPer100g['bdd']?.toStringAsFixed(1) ?? '0.0'} %'),
-        ],
-      ),
-    ),
-  );
- }
 }

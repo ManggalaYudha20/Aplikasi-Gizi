@@ -1,4 +1,5 @@
 // lib/src/features/statistics/services/statistics_pdf_service.dart
+// ⚠️  No changes from original – file retained as-is per refactor plan.
 
 import 'dart:io';
 import 'package:flutter/material.dart' show DateTimeRange, debugPrint;

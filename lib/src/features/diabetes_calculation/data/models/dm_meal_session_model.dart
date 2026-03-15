@@ -3,7 +3,7 @@
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/diet_info_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/food_group_diet_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/meal_distribution_model.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
 
 // ---------------------------------------------------------------------------
 // Menu Items & Sessions (dipakai oleh DiabetesMealPlannerService dan UI)

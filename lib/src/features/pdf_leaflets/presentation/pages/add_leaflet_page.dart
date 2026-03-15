@@ -1,10 +1,10 @@
-// lib\src\features\pdf_leaflets\presentation\pages\add_leaflet_page.dart
+// lib/src/features/pdf_leaflets/presentation/pages/add_leaflet_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/data/models/leaflet_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_model.dart';
 
 class AddLeafletPage extends StatefulWidget {
   final Leaflet? leaflet;
@@ -20,12 +20,12 @@ class AddLeafletPage extends StatefulWidget {
 
 class _AddLeafletPageState extends State<AddLeafletPage> {
   final _formKey = GlobalKey<FormState>();
-  
+
   // Controllers
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _urlController;
-  
+
   bool _isLoading = false;
   bool _isEditing = false;
 
@@ -33,10 +33,13 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
   void initState() {
     super.initState();
     _isEditing = widget.leaflet != null;
-    
-    _titleController = TextEditingController(text: widget.leaflet?.title ?? '');
-    _descriptionController = TextEditingController(text: widget.leaflet?.description ?? '');
-    _urlController = TextEditingController(text: widget.leaflet?.url ?? '');
+
+    _titleController =
+        TextEditingController(text: widget.leaflet?.title ?? '');
+    _descriptionController =
+        TextEditingController(text: widget.leaflet?.description ?? '');
+    _urlController =
+        TextEditingController(text: widget.leaflet?.url ?? '');
   }
 
   @override
@@ -53,9 +56,10 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Logic convert Google Drive link (tetap dipertahankan sesuai aslinya)
+      // Logic convert Google Drive link
       String processedUrl = _urlController.text.trim();
-      if (processedUrl.contains('drive.google.com') && processedUrl.contains('/view')) {
+      if (processedUrl.contains('drive.google.com') &&
+          processedUrl.contains('/view')) {
         processedUrl = processedUrl.replaceAll('/view', '/preview');
       }
 
@@ -73,13 +77,19 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
             .update(leafletData);
       } else {
         leafletData['createdAt'] = FieldValue.serverTimestamp();
-        await FirebaseFirestore.instance.collection('leaflets').add(leafletData);
+        await FirebaseFirestore.instance
+            .collection('leaflets')
+            .add(leafletData);
       }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_isEditing ? 'Data berhasil diperbarui!' : 'Leaflet berhasil ditambahkan!'),
+            content: Text(
+              _isEditing
+                  ? 'Data berhasil diperbarui!'
+                  : 'Leaflet berhasil ditambahkan!',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -88,7 +98,10 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -112,7 +125,10 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: CustomAppBar(title: _isEditing ? 'Edit Leaflet' : 'Tambah Leaflet', subtitle:'Lengkapi Data Leaflet dibawah'),
+      appBar: CustomAppBar(
+        title: _isEditing ? 'Edit Leaflet' : 'Tambah Leaflet',
+        subtitle: 'Lengkapi Data Leaflet dibawah',
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(paddingValue),
@@ -148,19 +164,24 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
                 ),
                 spacerMedium,
                 Semantics(
-                  label: _isEditing ? 'Tombol simpan perubahan' : 'Tombol tambah leaflet',
+                  label: _isEditing
+                      ? 'Tombol simpan perubahan'
+                      : 'Tombol tambah leaflet',
                   button: true,
                   child: FormActionButtons(
-                    // Key pada FormActionButtons mungkin perlu diteruskan ke dalam widget jika custom, 
-                    // tapi wrapper semantics sudah membantu.
                     onReset: _resetForm,
                     resetButtonColor: Colors.white,
-                    resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
+                    resetForegroundColor:
+                        const Color.fromARGB(255, 0, 148, 68),
                     onSubmit: _isLoading ? () {} : _submitLeaflet,
                     submitText: _isEditing ? 'Simpan' : 'Tambah',
-                    submitIcon: _isEditing 
-                        ? const Icon(Icons.save, color: Colors.white) 
-                        : const Icon(Icons.add, color: Colors.white, key: Key('submit_icon')),
+                    submitIcon: _isEditing
+                        ? const Icon(Icons.save, color: Colors.white)
+                        : const Icon(
+                            Icons.add,
+                            color: Colors.white,
+                            key: Key('submit_icon'),
+                          ),
                   ),
                 ),
               ],

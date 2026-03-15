@@ -1,14 +1,14 @@
 // lib/src/login/login_screen.dart
 
-import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/login/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/version_info_app.dart';
 import 'package:aplikasi_diagnosa_gizi/src/app/main_screen.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:aplikasi_diagnosa_gizi/src/login/register_screen.dart';
-import 'package:aplikasi_diagnosa_gizi/src/login/email_verification_screen.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/login/register_screen.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/login/email_verification_screen.dart';
 
 class _Assets {
   static const logoRsud = 'assets/images/logo.png';

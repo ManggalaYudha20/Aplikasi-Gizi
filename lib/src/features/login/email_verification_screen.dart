@@ -2,9 +2,9 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/login/auth_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/app/main_screen.dart';
-import 'package:aplikasi_diagnosa_gizi/src/login/login_screen.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/login/login_screen.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
   final String email;

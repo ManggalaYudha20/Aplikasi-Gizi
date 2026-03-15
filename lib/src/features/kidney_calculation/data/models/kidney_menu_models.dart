@@ -1,6 +1,6 @@
 // lib/src/features/kidney_calculation/data/models/kidney_menu_models.dart
 
-import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
 
 /// Satu item makanan di dalam sesi menu rekomendasi harian.
 class KidneyMenuItem {

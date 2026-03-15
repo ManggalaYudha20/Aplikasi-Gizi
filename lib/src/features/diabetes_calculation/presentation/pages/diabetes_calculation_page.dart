@@ -18,7 +18,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
 
 // ── Widgets modul diabetes ────────────────────────────────────────────────────
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/presentation/widgets/dm_result_card.dart';

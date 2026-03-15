@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Tambahkan import Firestore
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart'; 
-import 'nutritionist_card.dart'; 
+import '../widgets/nutritionist_card.dart'; 
 import 'nutritionist_profile_page.dart'; 
 
 class ConsultationPage extends StatelessWidget {
@@ -63,16 +63,12 @@ class ConsultationPage extends StatelessWidget {
                 final String spesialisasi = data['role'] ?? 'Ahli Gizi';
                 final String pengalaman = data['pengalaman'] ?? '0 tahun';
                 final String rating = data['rating'] ?? '0%';
-                final int hargaDiskon = data['harga_diskon'] ?? 25000;
-                final int hargaAsli = data['harga_asli'] ?? 28000;
 
                 return NutritionistCard(
                   name: name,
                   role: spesialisasi,
                   experience: pengalaman,
                   rating: rating,
-                  discountPrice: hargaDiskon,
-                  originalPrice: hargaAsli,
                   imageUrl: photoUrl,
                   onCardTap: () {
                     Navigator.push(

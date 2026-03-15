@@ -2,7 +2,7 @@
 
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
 import 'package:flutter/widgets.dart';
 
 class FoodDatabaseService {

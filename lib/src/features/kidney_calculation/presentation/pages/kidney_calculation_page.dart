@@ -20,7 +20,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/services/
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/services/kidney_meal_planner_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/food_database_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/food_search_delegate.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart'
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart'
     as db;
 
 // ── Widgets modul ginjal ───────────────────────────────────────────────────

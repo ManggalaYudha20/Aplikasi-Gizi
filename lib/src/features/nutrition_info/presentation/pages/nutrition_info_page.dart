@@ -12,8 +12,8 @@ import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pa
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/menu_button.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/about/presentation/pages/about_page.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/reference/reference_page.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/consultation/consultation_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/presentation/pages/reference_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/consultation/presentation/pages/consultation_page.dart';
 
 /// Model privat untuk konfigurasi menu agar lebih terstruktur
 class _MenuConfig {

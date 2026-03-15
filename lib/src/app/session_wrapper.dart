@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/login/auth_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/app/auth_wrapper.dart';
 
 class SessionWrapper extends StatefulWidget {

@@ -1,4 +1,4 @@
-// lib\src\features\pdf_leaflets\presentation\pages\leaflet_list_model.dart
+// lib/src/features/pdf_leaflets/data/models/leaflet_model.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -21,7 +21,7 @@ class Leaflet {
   /// Menangani kemungkinan null value dengan nilai default yang aman.
   factory Leaflet.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
-    
+
     return Leaflet(
       id: doc.id,
       title: data['title'] as String? ?? 'Tanpa Judul',

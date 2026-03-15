@@ -5,8 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/reference/reference_data.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/reference/reference_widgets.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/data/models/reference_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/widgets/reference_widgets.dart';
 
 
 // ---------------------------------------------------------------------------

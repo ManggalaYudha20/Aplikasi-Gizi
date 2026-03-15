@@ -5,11 +5,9 @@ class NutritionistCard extends StatelessWidget {
   final String role;
   final String experience;
   final String rating;
-  final int discountPrice;
-  final int originalPrice;
   final String imageUrl;
   final VoidCallback onChatPressed;
-  final VoidCallback onCardTap; // <--- 1. Tambahkan parameter ini
+  final VoidCallback onCardTap;
 
   const NutritionistCard({
     super.key,
@@ -17,11 +15,9 @@ class NutritionistCard extends StatelessWidget {
     required this.role,
     required this.experience,
     required this.rating,
-    required this.discountPrice,
-    required this.originalPrice,
     required this.imageUrl,
     required this.onChatPressed,
-    required this.onCardTap, // <--- 2. Wajibkan di constructor
+    required this.onCardTap,
   });
 
   @override
@@ -34,13 +30,12 @@ class NutritionistCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8.0),
         side: BorderSide(color: Colors.grey.shade300, width: 1),
       ),
-      child: InkWell( // <--- 3. Bungkus dengan InkWell
+      child: InkWell(
         onTap: onCardTap,
         key: ValueKey('card_nutritionist_${name.replaceAll(' ', '_')}'), // Key untuk Katalon
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Row(
-            // ... (Isi Row tetap sama persis seperti kode Anda sebelumnya)
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Foto Profil
@@ -87,41 +82,10 @@ class NutritionistCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    // Harga dan Tombol
+                    // Tombol Chat (Harga Dihapus)
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.end, // Memastikan tombol tetap di kanan
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'Rp $discountPrice',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.verified,
-                                  color: Colors.tealAccent,
-                                  size: 16,
-                                )
-                              ],
-                            ),
-                            Text(
-                              'Rp $originalPrice',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade500,
-                                decoration: TextDecoration.lineThrough,
-                              ),
-                            ),
-                          ],
-                        ),
                         Semantics(
                           label: 'Tombol mulai chat dengan $name',
                           button: true,
@@ -129,7 +93,7 @@ class NutritionistCard extends StatelessWidget {
                             key: ValueKey('btn_chat_${name.replaceAll(' ', '_')}'),
                             onPressed: onChatPressed,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:  Colors.green,
+                              backgroundColor: Colors.green,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8.0),

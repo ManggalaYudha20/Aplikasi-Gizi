@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Imports internal (sesuaikan path impor Anda)
-import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/login/auth_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/services/user_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
@@ -18,7 +18,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/account/widgets/role_badge.d
 import 'package:aplikasi_diagnosa_gizi/src/features/account/widgets/account_menu_button.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/account/pages/backup_page.dart';
 
-import 'package:aplikasi_diagnosa_gizi/src/login/login_screen.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/login/login_screen.dart';
 
 class AccountPage extends StatelessWidget {
   final AuthService authService;

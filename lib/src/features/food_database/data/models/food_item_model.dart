@@ -1,4 +1,4 @@
-//lib\src\features\food_database\presentation\pages\food_list_models.dart
+// lib/src/features/food_database/data/models/food_item_model.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -63,7 +63,7 @@ class FoodItem {
     required this.bdd,
   });
 
-  // Method untuk mengubah objek menjadi format JSON yang siap diunggah ke Firestore
+  /// Mengubah objek menjadi format Map yang siap diunggah ke Firestore.
   Map<String, dynamic> toFirestore() {
     return {
       'nama': name,
@@ -96,7 +96,7 @@ class FoodItem {
     };
   }
 
-  // Factory constructor untuk membuat instance FoodItem dari dokumen Firestore
+  /// Factory constructor untuk membuat instance [FoodItem] dari dokumen Firestore.
   factory FoodItem.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
     return FoodItem(
@@ -131,35 +131,19 @@ class FoodItem {
     );
   }
 
-   // DIPERBARUI: Metode untuk mendapatkan semua nilai gizi per 100 gram
+  /// Mengembalikan semua nilai gizi yang dinormalisasi per 100 gram.
   Map<String, num> get nutritionPer100g {
     if (portionGram == 0) {
       return {
-        'air': 0,
-        'energi': 0,
-        'protein': 0,
-        'lemak': 0,
-        'karbohidrat': 0,
-        'serat': 0,
-        'abu': 0,
-        'kalsium': 0,
-        'fosfor': 0,
-        'besi': 0,
-        'natrium': 0,
-        'kalium': 0,
-        'tembaga': 0,
-        'seng': 0,
-        'retinol': 0,
-        'betaKaroten': 0,
-        'karotenTotal': 0,
-        'thiamin': 0,
-        'riboflavin': 0,
-        'niasin': 0,
-        'vitaminC': 0,
-        'bdd': 0,
+        'air': 0, 'energi': 0, 'protein': 0, 'lemak': 0,
+        'karbohidrat': 0, 'serat': 0, 'abu': 0, 'kalsium': 0,
+        'fosfor': 0, 'besi': 0, 'natrium': 0, 'kalium': 0,
+        'tembaga': 0, 'seng': 0, 'retinol': 0, 'betaKaroten': 0,
+        'karotenTotal': 0, 'thiamin': 0, 'riboflavin': 0,
+        'niasin': 0, 'vitaminC': 0, 'bdd': 0,
       };
     }
-    num ratio = 100 / portionGram;
+    final num ratio = 100 / portionGram;
     return {
       'air': air * ratio,
       'energi': calories * ratio,
@@ -186,7 +170,7 @@ class FoodItem {
     };
   }
 
-  // DIPERBARUI: Getter untuk mendapatkan semua nilai gizi dalam satu map
+  /// Getter untuk mendapatkan semua nilai gizi sesuai porsi asli dalam satu map.
   Map<String, num> get allNutrition {
     return {
       'air': air,
@@ -214,7 +198,7 @@ class FoodItem {
     };
   }
 
-  // DIPERBARUI: Metode untuk mendapatkan nilai gizi per gram tertentu
+  /// Mengembalikan nilai gizi yang dihitung untuk jumlah [grams] tertentu.
   Map<String, num> getNutritionPerGram(num grams) {
     if (portionGram == 0) {
       return allNutrition.map((key, value) => MapEntry(key, 0));
@@ -246,12 +230,11 @@ class FoodItem {
     };
   }
 
-
-  // Method untuk mendapatkan nilai gizi yang signifikan (>0)
+  /// Mengembalikan hanya nilai gizi yang signifikan (> 0).
   Map<String, num> get significantNutrition {
     final all = allNutrition;
     return Map.fromEntries(
-      all.entries.where((entry) => entry.value > 0)
+      all.entries.where((entry) => entry.value > 0),
     );
   }
 }

@@ -9,7 +9,7 @@
 //   flutter test test/features/food_database/food_nutrition_calculation_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
 
 /// Enum untuk merepresentasikan hasil validasi input takaran.
 enum PortionValidationResult {

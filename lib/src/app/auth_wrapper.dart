@@ -1,8 +1,8 @@
 // lib/src/app/auth_wrapper.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:aplikasi_diagnosa_gizi/src/login/auth_service.dart';
-import 'package:aplikasi_diagnosa_gizi/src/login/login_screen.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/login/auth_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/login/login_screen.dart';
 import 'package:aplikasi_diagnosa_gizi/src/app/main_screen.dart';
 import 'package:aplikasi_diagnosa_gizi/src/app/session_wrapper.dart';
 

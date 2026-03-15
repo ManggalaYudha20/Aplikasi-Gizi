@@ -1,11 +1,11 @@
-// lib\src\features\pdf_leaflets\presentation\pages\leaflet_list_page.dart
+// lib/src/features/pdf_leaflets/presentation/pages/leaflet_list_page.dart
 
-import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/add_leaflet_page.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_model.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/pdf_viewer_page.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/data/models/leaflet_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/add_leaflet_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/widgets/leaflet_card_widget.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/role_builder.dart';
 
 class LeafletListPage extends StatefulWidget {
@@ -44,11 +44,14 @@ class _LeafletListPageState extends State<LeafletListPage> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: const CustomAppBar(title: 'Leaflet Edukasi Gizi', subtitle: 'Pilih Leaflet Untuk dibaca'), // Sesuaikan dengan nama class AppBar Anda
+      appBar: const CustomAppBar(
+        title: 'Leaflet Edukasi Gizi',
+        subtitle: 'Pilih Leaflet Untuk dibaca',
+      ),
       body: Column(
         children: [
           // Area Pencarian
-         Container(
+          Container(
             margin: EdgeInsets.fromLTRB(
               horizontalPadding,
               verticalPadding,
@@ -60,7 +63,7 @@ class _LeafletListPageState extends State<LeafletListPage> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withValues(alpha: 0.1), // Konsisten dengan UserSearchBar
+                  color: Colors.grey.withValues(alpha: 0.1),
                   spreadRadius: 1,
                   blurRadius: 5,
                   offset: const Offset(0, 2),
@@ -74,19 +77,15 @@ class _LeafletListPageState extends State<LeafletListPage> {
                 key: const Key('leaflet_search_field'),
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Cari Leaflet...', // Disesuaikan konteks
+                  hintText: 'Cari Leaflet...',
                   prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                  // Menambahkan tombol Clear jika ada teks (konsisten dengan UserSearchBar)
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear, color: Colors.grey),
-                          onPressed: () {
-                            _searchController.clear();
-                            // SetState dipanggil otomatis oleh listener di initState
-                          },
+                          onPressed: () => _searchController.clear(),
                         )
                       : null,
-                  border: InputBorder.none, // Border dihilangkan karena sudah ada di Container
+                  border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(
                     vertical: verticalPadding,
                     horizontal: horizontalPadding,
@@ -95,10 +94,13 @@ class _LeafletListPageState extends State<LeafletListPage> {
               ),
             ),
           ),
+
           // Daftar Leaflet
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('leaflets').snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('leaflets')
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return const Center(
@@ -112,13 +114,13 @@ class _LeafletListPageState extends State<LeafletListPage> {
                 }
 
                 final data = snapshot.data!.docs;
-                final leaflets = data.map((doc) {
-                  return Leaflet.fromFirestore(
-                    doc as DocumentSnapshot<Map<String, dynamic>>,
-                  );
-                }).where((leaflet) {
-                  return leaflet.title.toLowerCase().contains(_searchQuery);
-                }).toList();
+                final leaflets = data
+                    .map((doc) => Leaflet.fromFirestore(
+                          doc as DocumentSnapshot<Map<String, dynamic>>,
+                        ))
+                    .where((leaflet) =>
+                        leaflet.title.toLowerCase().contains(_searchQuery))
+                    .toList();
 
                 if (leaflets.isEmpty) {
                   return const Center(
@@ -132,8 +134,8 @@ class _LeafletListPageState extends State<LeafletListPage> {
                   padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                   itemCount: leaflets.length,
                   itemBuilder: (context, index) {
-                    return _LeafletListItem(
-                      key: Key('leaflet_item_$index'), // Unique Key per item
+                    return LeafletCardWidget(
+                      key: Key('leaflet_item_$index'),
                       leaflet: leaflets[index],
                       screenWidth: screenWidth,
                     );
@@ -144,10 +146,9 @@ class _LeafletListPageState extends State<LeafletListPage> {
           ),
         ],
       ),
-      // PERBAIKAN DI SINI: Menggunakan parameter yang benar untuk RoleBuilder
       floatingActionButton: RoleBuilder(
-        requiredRole: 'admin', // Role yang dibutuhkan
-        builder: (context) => Semantics( // Widget jika role = admin
+        requiredRole: 'admin',
+        builder: (context) => Semantics(
           label: 'Tombol tambah leaflet baru',
           button: true,
           child: FloatingActionButton(
@@ -155,91 +156,17 @@ class _LeafletListPageState extends State<LeafletListPage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AddLeafletPage()),
+                MaterialPageRoute(
+                  builder: (context) => const AddLeafletPage(),
+                ),
               );
             },
             backgroundColor: const Color.fromARGB(255, 0, 148, 68),
             child: const Icon(Icons.add, color: Colors.white),
           ),
         ),
-        nonRoleBuilder: (context) => const SizedBox.shrink(), // Widget jika bukan admin
+        nonRoleBuilder: (context) => const SizedBox.shrink(),
       ),
     );
-  }
-}
-
-class _LeafletListItem extends StatelessWidget {
-  final Leaflet leaflet;
-  final double screenWidth;
-
-  const _LeafletListItem({
-    super.key,
-    required this.leaflet,
-    required this.screenWidth,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Dynamic sizing based on screen width
-    final iconSize = screenWidth * 0.1; // 10% dari lebar layar
-    final titleSize = screenWidth * 0.045;
-    
-    return Semantics(
-      label: 'Kartu leaflet berjudul ${leaflet.title}',
-      button: true,
-      child: Card(
-        margin: EdgeInsets.only(bottom: screenWidth * 0.03),
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: ListTile(
-          contentPadding: EdgeInsets.symmetric(
-            vertical: screenWidth * 0.02,
-            horizontal: screenWidth * 0.04,
-          ),
-          leading: Icon(
-            Icons.picture_as_pdf,
-            color: Colors.red,
-            size: iconSize.clamp(30.0, 50.0), // Min 30, Max 50
-          ),
-          title: Text(
-            leaflet.title,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: titleSize.clamp(14.0, 18.0),
-            ),
-          ),
-          subtitle: Text(
-            leaflet.description,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: (titleSize - 2).clamp(12.0, 16.0)),
-          ),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _navigateToViewer(context),
-        ),
-      ),
-    );
-  }
-
-  void _navigateToViewer(BuildContext context) {
-    if (leaflet.url.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PdfViewerPage(
-            url: leaflet.url,
-            title: leaflet.title,
-            leaflet: leaflet,
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('URL PDF tidak ditemukan.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 }

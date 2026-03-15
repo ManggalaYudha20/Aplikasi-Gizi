@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 
 // Import file yang telah dipisahkan
-import 'reference_data.dart';
-import 'reference_widgets.dart';
+import '../../data/models/reference_data.dart';
+import '../../widgets/reference_widgets.dart';
 
 class ReferencePage extends StatelessWidget {
   const ReferencePage({super.key});

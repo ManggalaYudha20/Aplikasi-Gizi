@@ -1,14 +1,14 @@
-//lib\src\features\food_database\presentation\pages\add_food_item_page.dart
+// lib/src/features/food_database/presentation/pages/add_food_item_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_models.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/scaffold_with_animated_fab.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_validator_utils.dart';
-import 'package:dropdown_search/dropdown_search.dart';
-import 'package:flutter/services.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/services/food_database_service.dart';
 
 class AddFoodItemPage extends StatefulWidget {
   final FoodItem? foodItem;
@@ -19,7 +19,15 @@ class AddFoodItemPage extends StatefulWidget {
 }
 
 class _AddFoodItemPageState extends State<AddFoodItemPage> {
+  // ── Service ─────────────────────────────────────────────────────────────
+  final FoodDatabaseService _dbService = FoodDatabaseService();
+
+  // ── Form state ───────────────────────────────────────────────────────────
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+  bool get _isEditMode => widget.foodItem != null;
+
+  // ── Controllers ──────────────────────────────────────────────────────────
   final _namaController = TextEditingController();
   final _kodeController = TextEditingController();
   final _mentahOlahanController = TextEditingController();
@@ -47,8 +55,8 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
   final _niasinController = TextEditingController();
   final _vitaminCController = TextEditingController();
   final _bddController = TextEditingController();
-  bool _isLoading = false;
-  bool get _isEditMode => widget.foodItem != null;
+
+  // ── Focus nodes ──────────────────────────────────────────────────────────
   final List<FocusNode> _focusNodes = [];
 
   @override
@@ -56,22 +64,22 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
     super.initState();
 
     final controllers = [
-    _namaController, _kodeController, _mentahOlahanController, 
-    _kelompokMakananController, _porsiGramController, _airController, 
-    _kaloriController, _proteinController, _lemakController, 
-    _karbohidratController, _seratController, _abuController, 
-    _kalsiumController, _fosforController, _besiController, 
-    _natriumController, _kaliumController, _tembagaController, 
-    _sengController, _retinolController, _betaKarotenController, 
-    _karotenTotalController, _thiaminController, _riboflavinController, 
-    _niasinController, _vitaminCController, _bddController,
-  ];
+      _namaController, _kodeController, _mentahOlahanController,
+      _kelompokMakananController, _porsiGramController, _airController,
+      _kaloriController, _proteinController, _lemakController,
+      _karbohidratController, _seratController, _abuController,
+      _kalsiumController, _fosforController, _besiController,
+      _natriumController, _kaliumController, _tembagaController,
+      _sengController, _retinolController, _betaKarotenController,
+      _karotenTotalController, _thiaminController, _riboflavinController,
+      _niasinController, _vitaminCController, _bddController,
+    ];
 
-  // Buat FocusNode untuk setiap controller
-  for (int i = 0; i < controllers.length; i++) {
-    _focusNodes.add(FocusNode());
-  }
-    // Jika ini mode edit, isi semua field dengan data yang ada
+    for (int i = 0; i < controllers.length; i++) {
+      _focusNodes.add(FocusNode());
+    }
+
+    // Pre-fill fields when in edit mode.
     if (_isEditMode) {
       final item = widget.foodItem!;
       _namaController.text = item.name;
@@ -133,96 +141,86 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
     _niasinController.dispose();
     _vitaminCController.dispose();
     _bddController.dispose();
-
     for (final node in _focusNodes) {
-    node.dispose();
-  }
+      node.dispose();
+    }
     super.dispose();
   }
 
+  // ── Submit ────────────────────────────────────────────────────────────────
+
   Future<void> _submitFoodItem() async {
-    if (FormValidatorUtils.validateAndScroll(
-    context: context,
-    formKey: _formKey,
-    focusNodes: _focusNodes,
-  )) {
-    setState(() {
-      _isLoading = true;
-    });
+    if (!FormValidatorUtils.validateAndScroll(
+      context: context,
+      formKey: _formKey,
+      focusNodes: _focusNodes,)) {return;}
 
-      final foodData = {
-        'nama': _namaController.text,
-        'kode': _kodeController.text,
-        'mentah_olahan': _mentahOlahanController.text,
-        'kelompok_makanan': _kelompokMakananController.text,
-        'porsi_gram': num.tryParse(_porsiGramController.text) ?? 0,
-        'air': num.tryParse(_airController.text) ?? 0,
-        'energi': num.tryParse(_kaloriController.text) ?? 0,
-        'protein': num.tryParse(_proteinController.text) ?? 0,
-        'lemak': num.tryParse(_lemakController.text) ?? 0,
-        'karbohidrat': num.tryParse(_karbohidratController.text) ?? 0,
-        'serat': num.tryParse(_seratController.text) ?? 0,
-        'abu': num.tryParse(_abuController.text) ?? 0,
-        'kalsium': num.tryParse(_kalsiumController.text) ?? 0,
-        'fosfor': num.tryParse(_fosforController.text) ?? 0,
-        'besi': num.tryParse(_besiController.text) ?? 0,
-        'natrium': num.tryParse(_natriumController.text) ?? 0,
-        'kalium': num.tryParse(_kaliumController.text) ?? 0,
-        'tembaga': num.tryParse(_tembagaController.text) ?? 0,
-        'seng': num.tryParse(_sengController.text) ?? 0,
-        'retinol': num.tryParse(_retinolController.text) ?? 0,
-        'beta_karoten': num.tryParse(_betaKarotenController.text) ?? 0,
-        'karoten_total': num.tryParse(_karotenTotalController.text) ?? 0,
-        'thiamin': num.tryParse(_thiaminController.text) ?? 0,
-        'riboflavin': num.tryParse(_riboflavinController.text) ?? 0,
-        'niasin': num.tryParse(_niasinController.text) ?? 0,
-        'vitamin_c': num.tryParse(_vitaminCController.text) ?? 0,
-        'bdd': num.tryParse(_bddController.text) ?? 0,
-      };
+    setState(() => _isLoading = true);
 
-      try {
-        if (_isEditMode) {
-          await FirebaseFirestore.instance
-              .collection('food_items')
-              .doc(widget.foodItem!.id)
-              .update(foodData);
-        } else {
-          await FirebaseFirestore.instance
-              .collection('food_items')
-              .add(foodData);
-        }
+    final Map<String, dynamic> foodData = {
+      'nama': _namaController.text,
+      'kode': _kodeController.text,
+      'mentah_olahan': _mentahOlahanController.text,
+      'kelompok_makanan': _kelompokMakananController.text,
+      'porsi_gram': num.tryParse(_porsiGramController.text) ?? 0,
+      'air': num.tryParse(_airController.text) ?? 0,
+      'energi': num.tryParse(_kaloriController.text) ?? 0,
+      'protein': num.tryParse(_proteinController.text) ?? 0,
+      'lemak': num.tryParse(_lemakController.text) ?? 0,
+      'karbohidrat': num.tryParse(_karbohidratController.text) ?? 0,
+      'serat': num.tryParse(_seratController.text) ?? 0,
+      'abu': num.tryParse(_abuController.text) ?? 0,
+      'kalsium': num.tryParse(_kalsiumController.text) ?? 0,
+      'fosfor': num.tryParse(_fosforController.text) ?? 0,
+      'besi': num.tryParse(_besiController.text) ?? 0,
+      'natrium': num.tryParse(_natriumController.text) ?? 0,
+      'kalium': num.tryParse(_kaliumController.text) ?? 0,
+      'tembaga': num.tryParse(_tembagaController.text) ?? 0,
+      'seng': num.tryParse(_sengController.text) ?? 0,
+      'retinol': num.tryParse(_retinolController.text) ?? 0,
+      'beta_karoten': num.tryParse(_betaKarotenController.text) ?? 0,
+      'karoten_total': num.tryParse(_karotenTotalController.text) ?? 0,
+      'thiamin': num.tryParse(_thiaminController.text) ?? 0,
+      'riboflavin': num.tryParse(_riboflavinController.text) ?? 0,
+      'niasin': num.tryParse(_niasinController.text) ?? 0,
+      'vitamin_c': num.tryParse(_vitaminCController.text) ?? 0,
+      'bdd': num.tryParse(_bddController.text) ?? 0,
+    };
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Data makanan berhasil ${_isEditMode ? 'diperbarui' : 'disimpan'}!',
-              ),
-              backgroundColor: Colors.green,
-            ),
-          );
-          if (_isEditMode) {
-            Navigator.pop(context, true);
-          } else {
-            Navigator.pop(context);
-          }
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Gagal menyimpan data: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
+    try {
+      if (_isEditMode) {
+        await _dbService.updateFoodItem(widget.foodItem!.id, foodData);
+      } else {
+        await _dbService.addFoodItem(foodData);
       }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Data makanan berhasil ${_isEditMode ? 'diperbarui' : 'disimpan'}!',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Kembalikan `true` saat edit agar halaman sebelumnya bisa refresh.
+        Navigator.pop(context, _isEditMode ? true : null);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan data: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
+
+  // ── Reset ─────────────────────────────────────────────────────────────────
 
   void _resetForm() {
     _formKey.currentState?.reset();
@@ -255,6 +253,8 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
     _bddController.clear();
   }
 
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return ScaffoldWithAnimatedFab(
@@ -266,250 +266,263 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
       floatingActionButton: FormActionButtons(
         onReset: _resetForm,
         onSubmit: _submitFoodItem,
-        resetButtonColor: Colors.white, // Background jadi putih
+        resetButtonColor: Colors.white,
         resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
         submitText: _isEditMode ? 'Simpan' : 'Tambah',
-        submitIcon: _isEditMode ? const Icon(Icons.save, color: Colors.white) : const Icon(Icons.add, color: Colors.white),
+        submitIcon: _isEditMode
+            ? const Icon(Icons.save, color: Colors.white)
+            : const Icon(Icons.add, color: Colors.white),
         isLoading: _isLoading,
       ),
-      body:  SafeArea(
+      body: SafeArea(
         child: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Input Data Makanan',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
-        child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 20),
-              const Text(
-                'Input Data Makanan',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-             _buildTextFormField(
-                controller: _namaController,
-                fieldKey: 'field_input_nama', // Key unik untuk Nama
-                label: 'Nama Makanan',
-                icon: Icons.restaurant,
-                focusNode: _focusNodes[0],
-                maxLength: 100,
-              ),
-              _buildTextFormField(
-                controller: _kodeController,
-                fieldKey: 'field_input_kode', // Key unik untuk Kode
-                label: 'Kode Makanan',
-                icon: Icons.qr_code,
-                focusNode: _focusNodes[1],
-                maxLength: 20,
-              ),
-              _buildSearchableDropdown(
-                controller: _mentahOlahanController,
-                fieldKey: 'dropdown_mentah_olahan',
-                label: 'Tunggal (Mentah) / Olahan',
-                icon: Icons.category,
-                items: ['Tunggal', 'Olahan'],
-                focusNode: _focusNodes[2],
-              ),
-              _buildSearchableDropdown(
-                controller: _kelompokMakananController,
-                fieldKey: 'dropdown_kelompok',
-                label: 'Kelompok Makanan',
-                icon: Icons.group,
-                items: [
-                  'Serealia', 'Umbi', 'Kacang', 'Sayur', 'Buah', 'Daging',
-                  'Ikan dsb', 'Telur', 'Susu', 'Lemak', 'Gula', 'Bumbu'
-                ],
-                focusNode: _focusNodes[3],
-              ),
-              _buildTextFormField(
-                controller: _porsiGramController,
-                fieldKey: 'field_input_porsi',
-                label: 'Porsi (gram)',
-                icon: Icons.scale,
-                isNumber: true,
-                focusNode: _focusNodes[4],
-              ),
-              _buildTextFormField(
-                controller: _airController,
-                fieldKey: 'field_input_air',
-                label: 'Air (g)',
-                icon: Icons.water_drop,
-                isNumber: true,
-                focusNode: _focusNodes[5],
-              ),
-              _buildTextFormField(
-                controller: _kaloriController,
-                fieldKey: 'field_input_energi',
-                label: 'Energi (Kal)',
-                icon: Icons.local_fire_department,
-                isNumber: true,
-                focusNode: _focusNodes[6],
-              ),
-              _buildTextFormField(
-                controller: _proteinController,
-                fieldKey: 'field_input_protein',
-                label: 'Protein (g)',
-                icon: Icons.egg,
-                isNumber: true,
-                focusNode: _focusNodes[7],
-              ),
-              _buildTextFormField(
-                controller: _lemakController,
-                fieldKey: 'field_input_lemak',
-                label: 'Lemak (g)',
-                icon: Icons.water,
-                isNumber: true,
-                focusNode: _focusNodes[8],
-              ),
-              _buildTextFormField(
-                controller: _karbohidratController,
-                fieldKey: 'field_input_karbohidrat',
-                label: 'Karbohidrat (g)',
-                icon: Icons.rice_bowl,
-                isNumber: true,
-                focusNode: _focusNodes[9],
-              ),
-              _buildTextFormField(
-                controller: _seratController,
-                fieldKey: 'field_input_serat',
-                label: 'Serat (g)',
-                icon: Icons.grass,
-                isNumber: true,
-                focusNode: _focusNodes[10],
-              ),
-              _buildTextFormField(
-                controller: _abuController,
-                fieldKey: 'field_input_abu',
-                label: 'Abu (g)',
-                icon: Icons.grain,
-                isNumber: true,
-                focusNode: _focusNodes[11],
-              ),
-              _buildTextFormField(
-                controller: _kalsiumController,
-                fieldKey: 'field_input_kalsium',
-                label: 'Kalsium (Ca) (mg)',
-                icon: Icons.monitor_heart,
-                isNumber: true,
-                focusNode: _focusNodes[12],
-              ),
-              _buildTextFormField(
-                controller: _fosforController,
-                fieldKey: 'field_input_fosfor',
-                label: 'Fosfor (P) (mg)',
-                icon: Icons.monitor_heart,
-                isNumber: true,
-                focusNode: _focusNodes[13],
-              ),
-              _buildTextFormField(
-                controller: _besiController,
-                fieldKey: 'field_input_besi',
-                label: 'Besi (Fe) (mg)',
-                icon: Icons.monitor_heart,
-                isNumber: true,
-                focusNode: _focusNodes[14],
-              ),
-              _buildTextFormField(
-                controller: _natriumController,
-                fieldKey: 'field_input_natrium',
-                label: 'Natrium (Na) (mg)',
-                icon: Icons.monitor_heart,
-                isNumber: true,
-                focusNode: _focusNodes[15],
-              ),
-              _buildTextFormField(
-                controller: _kaliumController,
-                fieldKey: 'field_input_kalium',
-                label: 'Kalium (Ka) (mg)',
-                icon: Icons.monitor_heart,
-                isNumber: true,
-                focusNode: _focusNodes[16],
-              ),
-              _buildTextFormField(
-                controller: _tembagaController,
-                fieldKey: 'field_input_tembaga',
-                label: 'Tembaga (Cu) (mg)',
-                icon: Icons.monitor_heart,
-                isNumber: true,
-                focusNode: _focusNodes[17],
-              ),
-              _buildTextFormField(
-                controller: _sengController,
-                fieldKey: 'field_input_seng',
-                label: 'Seng (Zn) (mg)',
-                icon: Icons.monitor_heart,
-                isNumber: true,
-                focusNode: _focusNodes[18],
-              ),
-              _buildTextFormField(
-                controller: _retinolController,
-                fieldKey: 'field_input_retinol',
-                label: 'Retinol (vit. A) (mcg)',
-                icon: Icons.visibility,
-                isNumber: true,
-                focusNode: _focusNodes[19],
-              ),
-              _buildTextFormField(
-                controller: _betaKarotenController,
-                fieldKey: 'field_input_beta_karoten',
-                label: 'β-karoten (mcg)',
-                icon: Icons.visibility,
-                isNumber: true,
-                focusNode: _focusNodes[20],
-              ),
-              _buildTextFormField(
-                controller: _karotenTotalController,
-                fieldKey: 'field_input_karoten_total',
-                label: 'Karoten total (mcg)',
-                icon: Icons.visibility,
-                isNumber: true,
-                focusNode: _focusNodes[21],
-              ),
-              _buildTextFormField(
-                controller: _thiaminController,
-                fieldKey: 'field_input_thiamin',
-                label: 'Thiamin (vit. B1) (mg)',
-                icon: Icons.local_dining,
-                isNumber: true,
-                focusNode: _focusNodes[22],
-              ),
-              _buildTextFormField(
-                controller: _riboflavinController,
-                fieldKey: 'field_input_riboflavin',
-                label: 'Riboflavin (vit. B2) (mg)',
-                icon: Icons.local_dining,
-                isNumber: true,
-                focusNode: _focusNodes[23],
-              ),
-              _buildTextFormField(
-                controller: _niasinController,
-                fieldKey: 'field_input_niasin',
-                label: 'Niasin (mg)',
-                icon: Icons.local_dining,
-                isNumber: true,
-                focusNode: _focusNodes[24],
-              ),
-              _buildTextFormField(
-                controller: _vitaminCController,
-                fieldKey: 'field_input_vitamin_c',
-                label: 'Vitamin C (mg)',
-                icon: Icons.medical_services,
-                isNumber: true,
-                focusNode: _focusNodes[25],
-              ),
-              _buildTextFormField(
-                controller: _bddController,
-                fieldKey: 'field_input_bdd',
-                label: 'BDD (%)',
-                icon: Icons.percent,
-                isNumber: true,
-                focusNode: _focusNodes[26],
-              ),
+                  // ── Identity fields ────────────────────────────────────
+                  _buildTextFormField(
+                    controller: _namaController,
+                    fieldKey: 'field_input_nama',
+                    label: 'Nama Makanan',
+                    icon: Icons.restaurant,
+                    focusNode: _focusNodes[0],
+                    maxLength: 100,
+                  ),
+                  _buildTextFormField(
+                    controller: _kodeController,
+                    fieldKey: 'field_input_kode',
+                    label: 'Kode Makanan',
+                    icon: Icons.qr_code,
+                    focusNode: _focusNodes[1],
+                    maxLength: 20,
+                  ),
+                  _buildSearchableDropdown(
+                    controller: _mentahOlahanController,
+                    fieldKey: 'dropdown_mentah_olahan',
+                    label: 'Tunggal (Mentah) / Olahan',
+                    icon: Icons.category,
+                    items: const ['Tunggal', 'Olahan'],
+                    focusNode: _focusNodes[2],
+                  ),
+                  _buildSearchableDropdown(
+                    controller: _kelompokMakananController,
+                    fieldKey: 'dropdown_kelompok',
+                    label: 'Kelompok Makanan',
+                    icon: Icons.group,
+                    items: const [
+                      'Serealia', 'Umbi', 'Kacang', 'Sayur', 'Buah',
+                      'Daging', 'Ikan dsb', 'Telur', 'Susu', 'Lemak',
+                      'Gula', 'Bumbu',
+                    ],
+                    focusNode: _focusNodes[3],
+                  ),
+
+                  // ── Macronutrient fields ───────────────────────────────
+                  _buildTextFormField(
+                    controller: _porsiGramController,
+                    fieldKey: 'field_input_porsi',
+                    label: 'Porsi (gram)',
+                    icon: Icons.scale,
+                    isNumber: true,
+                    focusNode: _focusNodes[4],
+                  ),
+                  _buildTextFormField(
+                    controller: _airController,
+                    fieldKey: 'field_input_air',
+                    label: 'Air (g)',
+                    icon: Icons.water_drop,
+                    isNumber: true,
+                    focusNode: _focusNodes[5],
+                  ),
+                  _buildTextFormField(
+                    controller: _kaloriController,
+                    fieldKey: 'field_input_energi',
+                    label: 'Energi (Kal)',
+                    icon: Icons.local_fire_department,
+                    isNumber: true,
+                    focusNode: _focusNodes[6],
+                  ),
+                  _buildTextFormField(
+                    controller: _proteinController,
+                    fieldKey: 'field_input_protein',
+                    label: 'Protein (g)',
+                    icon: Icons.egg,
+                    isNumber: true,
+                    focusNode: _focusNodes[7],
+                  ),
+                  _buildTextFormField(
+                    controller: _lemakController,
+                    fieldKey: 'field_input_lemak',
+                    label: 'Lemak (g)',
+                    icon: Icons.water,
+                    isNumber: true,
+                    focusNode: _focusNodes[8],
+                  ),
+                  _buildTextFormField(
+                    controller: _karbohidratController,
+                    fieldKey: 'field_input_karbohidrat',
+                    label: 'Karbohidrat (g)',
+                    icon: Icons.rice_bowl,
+                    isNumber: true,
+                    focusNode: _focusNodes[9],
+                  ),
+                  _buildTextFormField(
+                    controller: _seratController,
+                    fieldKey: 'field_input_serat',
+                    label: 'Serat (g)',
+                    icon: Icons.grass,
+                    isNumber: true,
+                    focusNode: _focusNodes[10],
+                  ),
+                  _buildTextFormField(
+                    controller: _abuController,
+                    fieldKey: 'field_input_abu',
+                    label: 'Abu (g)',
+                    icon: Icons.grain,
+                    isNumber: true,
+                    focusNode: _focusNodes[11],
+                  ),
+
+                  // ── Mineral fields ─────────────────────────────────────
+                  _buildTextFormField(
+                    controller: _kalsiumController,
+                    fieldKey: 'field_input_kalsium',
+                    label: 'Kalsium (Ca) (mg)',
+                    icon: Icons.monitor_heart,
+                    isNumber: true,
+                    focusNode: _focusNodes[12],
+                  ),
+                  _buildTextFormField(
+                    controller: _fosforController,
+                    fieldKey: 'field_input_fosfor',
+                    label: 'Fosfor (P) (mg)',
+                    icon: Icons.monitor_heart,
+                    isNumber: true,
+                    focusNode: _focusNodes[13],
+                  ),
+                  _buildTextFormField(
+                    controller: _besiController,
+                    fieldKey: 'field_input_besi',
+                    label: 'Besi (Fe) (mg)',
+                    icon: Icons.monitor_heart,
+                    isNumber: true,
+                    focusNode: _focusNodes[14],
+                  ),
+                  _buildTextFormField(
+                    controller: _natriumController,
+                    fieldKey: 'field_input_natrium',
+                    label: 'Natrium (Na) (mg)',
+                    icon: Icons.monitor_heart,
+                    isNumber: true,
+                    focusNode: _focusNodes[15],
+                  ),
+                  _buildTextFormField(
+                    controller: _kaliumController,
+                    fieldKey: 'field_input_kalium',
+                    label: 'Kalium (Ka) (mg)',
+                    icon: Icons.monitor_heart,
+                    isNumber: true,
+                    focusNode: _focusNodes[16],
+                  ),
+                  _buildTextFormField(
+                    controller: _tembagaController,
+                    fieldKey: 'field_input_tembaga',
+                    label: 'Tembaga (Cu) (mg)',
+                    icon: Icons.monitor_heart,
+                    isNumber: true,
+                    focusNode: _focusNodes[17],
+                  ),
+                  _buildTextFormField(
+                    controller: _sengController,
+                    fieldKey: 'field_input_seng',
+                    label: 'Seng (Zn) (mg)',
+                    icon: Icons.monitor_heart,
+                    isNumber: true,
+                    focusNode: _focusNodes[18],
+                  ),
+
+                  // ── Vitamin fields ─────────────────────────────────────
+                  _buildTextFormField(
+                    controller: _retinolController,
+                    fieldKey: 'field_input_retinol',
+                    label: 'Retinol (vit. A) (mcg)',
+                    icon: Icons.visibility,
+                    isNumber: true,
+                    focusNode: _focusNodes[19],
+                  ),
+                  _buildTextFormField(
+                    controller: _betaKarotenController,
+                    fieldKey: 'field_input_beta_karoten',
+                    label: 'β-karoten (mcg)',
+                    icon: Icons.visibility,
+                    isNumber: true,
+                    focusNode: _focusNodes[20],
+                  ),
+                  _buildTextFormField(
+                    controller: _karotenTotalController,
+                    fieldKey: 'field_input_karoten_total',
+                    label: 'Karoten total (mcg)',
+                    icon: Icons.visibility,
+                    isNumber: true,
+                    focusNode: _focusNodes[21],
+                  ),
+                  _buildTextFormField(
+                    controller: _thiaminController,
+                    fieldKey: 'field_input_thiamin',
+                    label: 'Thiamin (vit. B1) (mg)',
+                    icon: Icons.local_dining,
+                    isNumber: true,
+                    focusNode: _focusNodes[22],
+                  ),
+                  _buildTextFormField(
+                    controller: _riboflavinController,
+                    fieldKey: 'field_input_riboflavin',
+                    label: 'Riboflavin (vit. B2) (mg)',
+                    icon: Icons.local_dining,
+                    isNumber: true,
+                    focusNode: _focusNodes[23],
+                  ),
+                  _buildTextFormField(
+                    controller: _niasinController,
+                    fieldKey: 'field_input_niasin',
+                    label: 'Niasin (mg)',
+                    icon: Icons.local_dining,
+                    isNumber: true,
+                    focusNode: _focusNodes[24],
+                  ),
+                  _buildTextFormField(
+                    controller: _vitaminCController,
+                    fieldKey: 'field_input_vitamin_c',
+                    label: 'Vitamin C (mg)',
+                    icon: Icons.medical_services,
+                    isNumber: true,
+                    focusNode: _focusNodes[25],
+                  ),
+
+                  // ── BDD ────────────────────────────────────────────────
+                  _buildTextFormField(
+                    controller: _bddController,
+                    fieldKey: 'field_input_bdd',
+                    label: 'BDD (%)',
+                    icon: Icons.percent,
+                    isNumber: true,
+                    focusNode: _focusNodes[26],
+                  ),
                 ],
               ),
             ),
@@ -519,68 +532,56 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
     );
   }
 
-  // Letakkan ini di bawah _buildDropdownFormField
-Widget _buildSearchableDropdown({
-  required TextEditingController controller,
-  required String label,
-  required String fieldKey,
-  required IconData icon,
-  required List<String> items,
-  required FocusNode focusNode,
-  bool showSearch = false,
-}) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 16.0),
-    child: DropdownSearch<String>(
-      key: Key(fieldKey),
-      // Properti untuk menampilkan menu popup
-      popupProps: PopupProps.menu(
-        showSearchBox: showSearch, // AKTIFKAN KOTAK PENCARIAN
-        // Atur ketinggian maksimal, kira-kira untuk 3 item
-        constraints: const BoxConstraints(
-          maxHeight: 180, // Ketinggian maksimal untuk sekitar 3 item
+  // ── Form field builders ───────────────────────────────────────────────────
+
+  Widget _buildSearchableDropdown({
+    required TextEditingController controller,
+    required String label,
+    required String fieldKey,
+    required IconData icon,
+    required List<String> items,
+    required FocusNode focusNode,
+    bool showSearch = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: DropdownSearch<String>(
+        key: Key(fieldKey),
+        popupProps: PopupProps.menu(
+          showSearchBox: showSearch,
+          constraints: const BoxConstraints(maxHeight: 180),
+          searchFieldProps: const TextFieldProps(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Cari...',
+            ),
+          ),
+          fit: FlexFit.loose,
         ),
-        // Kustomisasi tampilan kotak pencarian
-        searchFieldProps: const TextFieldProps(
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: "Cari...",
+        items: items,
+        dropdownDecoratorProps: DropDownDecoratorProps(
+          baseStyle: const TextStyle(fontSize: 16),
+          dropdownSearchDecoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+            prefixIcon: Icon(icon),
           ),
         ),
-        // Pastikan dropdown muncul di bawah field
-        fit: FlexFit.loose,
+        onChanged: (String? newValue) {
+          setState(() {
+            controller.text = newValue ?? '';
+          });
+        },
+        selectedItem: controller.text.isEmpty ? null : controller.text,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return '$label tidak boleh kosong';
+          }
+          return null;
+        },
       ),
-      // Data item yang akan ditampilkan
-      items: items,
-      // Kustomisasi tampilan field utama
-      dropdownDecoratorProps: DropDownDecoratorProps(
-        // Kita gunakan FocusNode di sini
-        baseStyle: TextStyle(fontSize: 16), // Sesuaikan agar tidak overflow
-        dropdownSearchDecoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          prefixIcon: Icon(icon),
-        ),
-      ),
-      // Saat item dipilih, perbarui controller
-      onChanged: (String? newValue) {
-        setState(() {
-          controller.text = newValue ?? '';
-        });
-      },
-      // Item yang sedang terpilih (dari controller)
-      selectedItem: controller.text.isEmpty ? null : controller.text,
-      // Validasi
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return '$label tidak boleh kosong';
-        }
-        return null;
-      },
-    ),
-  );
-}
-
+    );
+  }
 
   Widget _buildTextFormField({
     required String fieldKey,
@@ -605,15 +606,12 @@ Widget _buildSearchableDropdown({
         keyboardType: isNumber
             ? const TextInputType.numberWithOptions(decimal: true)
             : TextInputType.text,
-        // [TAMBAHAN] Logika format input
         inputFormatters: [
-          // 1. Jika angka, hanya boleh digit dan titik
           if (isNumber) FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-          // 2. Batasi panjang karakter (Default 6 digit untuk angka jika tidak ada maxLength spesifik)
           if (maxLength != null)
             LengthLimitingTextInputFormatter(maxLength)
           else if (isNumber)
-            LengthLimitingTextInputFormatter(6), 
+            LengthLimitingTextInputFormatter(6),
         ],
         validator: (value) {
           if (value == null || value.isEmpty) {
