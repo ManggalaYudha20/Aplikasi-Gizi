@@ -4,56 +4,56 @@ import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/data/models/leaflet_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/pdf_viewer_page.dart';
 
-/// Widget kartu publik yang merepresentasikan satu item Leaflet dalam daftar.
-/// Diekstrak dari class private _LeafletListItem di leaflet_list_page.dart.
 class LeafletCardWidget extends StatelessWidget {
   final Leaflet leaflet;
-  final double screenWidth;
+  
+  // screenWidth dihapus karena tidak lagi diperlukan
 
   const LeafletCardWidget({
     super.key,
     required this.leaflet,
-    required this.screenWidth,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Dynamic sizing based on screen width
-    final iconSize = screenWidth * 0.1; // 10% dari lebar layar
-    final titleSize = screenWidth * 0.045;
-
     return Semantics(
       label: 'Kartu leaflet berjudul ${leaflet.title}',
       button: true,
       child: Card(
-        margin: EdgeInsets.only(bottom: screenWidth * 0.03),
+        // Margin dinolkan karena GridView.builder sudah memberikan jarak (spacing)
+        margin: EdgeInsets.zero, 
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: ListTile(
-          contentPadding: EdgeInsets.symmetric(
-            vertical: screenWidth * 0.02,
-            horizontal: screenWidth * 0.04,
-          ),
-          leading: Icon(
-            Icons.picture_as_pdf,
-            color: Colors.red,
-            size: iconSize.clamp(30.0, 50.0), // Min 30, Max 50
-          ),
-          title: Text(
-            leaflet.title,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: titleSize.clamp(14.0, 18.0),
+        // Center digunakan agar isi otomatis berada di tengah secara vertikal
+        child: Center(
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 4.0,
+              horizontal: 16.0,
             ),
+            leading: const Icon(
+              Icons.picture_as_pdf,
+              color: Colors.red,
+              size: 40.0, // Ukuran ikon yang pas dan standar
+            ),
+            title: Text(
+              leaflet.title,
+              maxLines: 1, // Mencegah judul panjang merusak tinggi card
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16.0,
+              ),
+            ),
+            subtitle: Text(
+              leaflet.description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13.0),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _navigateToViewer(context),
           ),
-          subtitle: Text(
-            leaflet.description,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: (titleSize - 2).clamp(12.0, 16.0)),
-          ),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _navigateToViewer(context),
         ),
       ),
     );

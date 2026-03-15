@@ -40,6 +40,13 @@ class _FoodListPageState extends State<FoodListPage> {
     super.dispose();
   }
 
+  // --- Fungsi Penentu Jumlah Kolom ---
+  int _getCrossAxisCount(double screenWidth) {
+    if (screenWidth >= 1200) return 3; // Layar Desktop/Web lebar
+    if (screenWidth >= 800) return 2;  // Layar Tablet
+    return 1;                          // Layar Mobile
+  }
+
   void _applyFilters(FoodFilterModel newFilters) {
     setState(() {
       _activeFilters = newFilters;
@@ -71,8 +78,6 @@ class _FoodListPageState extends State<FoodListPage> {
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
-    final bool isTablet = screenWidth > 600;
-    final double horizontalPadding = isTablet ? 24.0 : 16.0;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -85,53 +90,56 @@ class _FoodListPageState extends State<FoodListPage> {
           onTap: () => FocusScope.of(context).unfocus(),
           child: Column(
             children: [
-              // ── Search bar + filter button ──────────────────────────────
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  horizontalPadding, 16, horizontalPadding, 5,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Semantics(
-                        label: 'Input pencarian makanan',
-                        child: _buildSearchBar(),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Semantics(
-                      label: 'Tombol filter makanan',
-                      button: true,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withValues(alpha: 0.1),
-                              spreadRadius: 1,
-                              blurRadius: 5,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          key: const Key('btn_filter'),
-                          icon: Icon(
-                            Icons.filter_list,
-                            color: !_activeFilters.isDefault
-                                ? const Color.fromARGB(255, 0, 148, 68)
-                                : Colors.grey,
+              // ── Search bar + filter button (Dibatasi lebarnya) ────────────
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Semantics(
+                            label: 'Input pencarian makanan',
+                            child: _buildSearchBar(),
                           ),
-                          onPressed: () => _showFilterModal(context),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Semantics(
+                          label: 'Tombol filter makanan',
+                          button: true,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withValues(alpha: 0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 5,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              key: const Key('btn_filter'),
+                              icon: Icon(
+                                Icons.filter_list,
+                                color: !_activeFilters.isDefault
+                                    ? const Color.fromARGB(255, 0, 148, 68)
+                                    : Colors.grey,
+                              ),
+                              onPressed: () => _showFilterModal(context),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
 
-              // ── List ────────────────────────────────────────────────────
+              // ── List (Menggunakan GridView) ──────────────────────────────
               Expanded(
                 child: StreamBuilder<List<FoodItem>>(
                   stream: _dbService.getFoodItemsStream(),
@@ -152,7 +160,6 @@ class _FoodListPageState extends State<FoodListPage> {
                       );
                     }
 
-                    // Filter: search query + active filters
                     final filteredItems = allItems.where((foodItem) {
                       final bool matchesSearch =
                           foodItem.name.toLowerCase().contains(_searchQuery) ||
@@ -164,9 +171,7 @@ class _FoodListPageState extends State<FoodListPage> {
 
                     if (filteredItems.isEmpty && _searchQuery.isNotEmpty) {
                       return Center(
-                        child: Text(
-                          'Tidak ada hasil untuk "$_searchQuery"',
-                        ),
+                        child: Text('Tidak ada hasil untuk "$_searchQuery"'),
                       );
                     }
 
@@ -176,8 +181,19 @@ class _FoodListPageState extends State<FoodListPage> {
                       );
                     }
 
-                    return ListView.builder(
-                      padding: EdgeInsets.all(horizontalPadding),
+                    return GridView.builder(
+                      padding: const EdgeInsets.only(
+                        bottom: 80, // Ruang untuk FAB
+                        left: 16,
+                        right: 16,
+                        top: 8,
+                      ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: _getCrossAxisCount(screenWidth),
+                        crossAxisSpacing: 12.0,
+                        mainAxisSpacing: 12.0,
+                        mainAxisExtent: 200.0, // Tinggi konstan Card disesuaikan agar isi tidak terpotong
+                      ),
                       itemCount: filteredItems.length,
                       itemBuilder: (context, index) {
                         final foodItem = filteredItems[index];
@@ -189,7 +205,7 @@ class _FoodListPageState extends State<FoodListPage> {
                           button: true,
                           child: Card(
                             key: Key(itemKey),
-                            margin: const EdgeInsets.only(bottom: 12),
+                            margin: EdgeInsets.zero, // Margin diatur oleh GridView spacing
                             elevation: 2,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -206,7 +222,7 @@ class _FoodListPageState extends State<FoodListPage> {
                                 );
                               },
                               child: Padding(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(12),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -227,7 +243,7 @@ class _FoodListPageState extends State<FoodListPage> {
                                             color: Color.fromARGB(
                                               255, 0, 148, 68,
                                             ),
-                                            size: 30,
+                                            size: 24,
                                           ),
                                         ),
                                         const SizedBox(width: 12),
@@ -238,14 +254,13 @@ class _FoodListPageState extends State<FoodListPage> {
                                             children: [
                                               Text(
                                                 foodItem.name,
-                                                style: TextStyle(
-                                                  fontSize: isTablet ? 18 : 16,
+                                                style: const TextStyle(
+                                                  fontSize: 15,
                                                   fontWeight: FontWeight.bold,
                                                   color: Colors.black87,
                                                 ),
                                                 maxLines: 2,
-                                                overflow:
-                                                    TextOverflow.ellipsis,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                               Text(
                                                 'Kode: ${foodItem.code}',
@@ -259,7 +274,7 @@ class _FoodListPageState extends State<FoodListPage> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 12),
+                                    const Spacer(), // Mendorong konten gizi ke bawah
 
                                     // ── Nutrition summary row ───────────
                                     Row(
@@ -292,33 +307,36 @@ class _FoodListPageState extends State<FoodListPage> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 12),
 
                                     // ── Meta row ───────────────────────
                                     Row(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          'Porsi: ${foodItem.portionGram} gram',
+                                          'Porsi: ${foodItem.portionGram}g',
                                           style: const TextStyle(
-                                            fontSize: 12,
+                                            fontSize: 11,
                                             color: Colors.grey,
                                           ),
                                         ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Kategori: ${foodItem.kelompokMakanan}',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey,
+                                        Flexible(
+                                          child: Text(
+                                            foodItem.kelompokMakanan,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.grey,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.center,
                                           ),
                                         ),
-                                        const SizedBox(height: 8),
                                         Text(
-                                          'Status: ${foodItem.mentahOlahan}',
+                                          foodItem.mentahOlahan,
                                           style: const TextStyle(
-                                            fontSize: 12,
+                                            fontSize: 11,
                                             color: Colors.grey,
                                           ),
                                         ),
@@ -364,12 +382,13 @@ class _FoodListPageState extends State<FoodListPage> {
 
   // ── Helper widgets ────────────────────────────────────────────────────────
 
-  Widget _buildSearchBar() {
+ Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white, // Memberikan background putih
+        borderRadius: BorderRadius.circular(12), // Membuat sudut membulat
         boxShadow: [
+          // Menambahkan bayangan halus agar sama dengan tombol filter
           BoxShadow(
             color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
@@ -391,10 +410,10 @@ class _FoodListPageState extends State<FoodListPage> {
                   onPressed: () => _searchController.clear(),
                 )
               : null,
-          border: InputBorder.none,
+          border: InputBorder.none, // Menghilangkan garis bawah bawaan TextField
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
-            vertical: 12,
+            vertical: 14, // Padding tetap agar tidak terlalu gemuk
           ),
         ),
         style: const TextStyle(fontSize: 16),
@@ -410,12 +429,12 @@ class _FoodListPageState extends State<FoodListPage> {
   ) {
     return Column(
       children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(height: 4),
+        Icon(icon, color: color, size: 18),
+        const SizedBox(height: 2),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),

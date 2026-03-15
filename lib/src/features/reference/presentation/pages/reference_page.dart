@@ -5,12 +5,33 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import '../../data/models/reference_data.dart';
 import '../../widgets/reference_widgets.dart';
 
-class ReferencePage extends StatelessWidget {
+// 1. Ubah menjadi StatefulWidget
+class ReferencePage extends StatefulWidget {
   const ReferencePage({super.key});
 
   @override
+  State<ReferencePage> createState() => _ReferencePageState();
+}
+
+class _ReferencePageState extends State<ReferencePage> {
+  // 2. Deklarasikan ScrollController
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    // 3. Jangan lupa dispose untuk mencegah memory leak
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
@@ -18,10 +39,12 @@ class ReferencePage extends StatelessWidget {
         subtitle: 'Sumber Data dan Rumus Perhitungan',
       ),
       body: Scrollbar(
+        controller: _scrollController, // 4. Pasang controller di Scrollbar
         thumbVisibility: false,
         thickness: 6.0,
         radius: const Radius.circular(10),
         child: SingleChildScrollView(
+          controller: _scrollController, // 5. Pasang controller yang sama di SingleChildScrollView
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,7 +54,6 @@ class ReferencePage extends StatelessWidget {
               
               // Mapping Data Sources dari reference_data.dart
               ...ReferenceData.dataSources.map((source) => DataSourceCard(
-                // Menggunakan ID dari model sebagai Key
                 key: ValueKey(source.id), 
                 semanticId: source.id,
                 title: source.title,
@@ -42,12 +64,11 @@ class ReferencePage extends StatelessWidget {
               const SizedBox(height: 25),
               _buildSectionTitle(context, 'Rumus Perhitungan'),
               const SizedBox(height: 10),
-
-              // Bagian Rumus (Content UI tetap didefinisikan di sini karena kompleksitas visual)
-              // Namun dibungkus dalam widget FormulaTile yang reusable
               
               _buildProteinFormula(context),
 
+              // ... (Sisa kode FormulaTile dan ReferenceTableWidget biarkan persis seperti aslinya)
+              
               FormulaTile(
                 semanticId: 'formula_perkeni',
                 title: 'Kebutuhan Kalori Diet DM',
@@ -143,7 +164,6 @@ class ReferencePage extends StatelessWidget {
               _buildSectionTitle(context, 'Tabel Referensi'),
               const SizedBox(height: 10),
 
-              // Mapping Tables dari reference_data.dart
               ...ReferenceData.referenceTables.map((table) => ReferenceTableWidget(
                 key: ValueKey(table.id),
                 semanticId: table.id,
@@ -169,7 +189,6 @@ class ReferencePage extends StatelessWidget {
     );
   }
 
-  // Refactor khusus untuk formula Protein Ginjal karena UI-nya custom (colored boxes)
   Widget _buildProteinFormula(BuildContext context) {
     return FormulaTile(
       semanticId: 'formula_ginjal',

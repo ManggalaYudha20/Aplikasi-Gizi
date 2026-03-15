@@ -89,18 +89,11 @@ class NutritionInfoPage extends StatelessWidget {
         destinationPage: const AboutPage(),
         semanticsLabel: 'Tombol masuk ke halaman informasi aplikasi',
       ),
-      _MenuConfig(
-        id: 'konsultasi',
-        label: 'Konsultasi Gizi',
-        icon: Icons.person_2,
-        destinationPage: const ConsultationPage(),
-        semanticsLabel: 'Tombol masuk ke halaman konsultasi gizi',
-      ),
     ];
 
     // Logika kondisional role (Admin only)
     if (userRole == 'admin') {
-      items.add(
+     items.addAll([
         _MenuConfig(
           id: 'manajemen_pengguna',
           label: 'Manajemen Pengguna',
@@ -108,7 +101,14 @@ class NutritionInfoPage extends StatelessWidget {
           destinationPage: const UserManagementPage(),
           semanticsLabel: 'Tombol masuk ke halaman admin manajemen pengguna',
         ),
-      );
+        _MenuConfig(
+          id: 'konsultasi',
+          label: 'Konsultasi Gizi',
+          icon: Icons.person_2,
+          destinationPage: const ConsultationPage(),
+          semanticsLabel: 'Tombol masuk ke halaman konsultasi gizi',
+        ),
+      ]);
     }
 
     return items;

@@ -17,56 +17,65 @@ class UserListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      // 1. Ubah margin menjadi zero karena GridView sudah mengatur spacing
+      margin: EdgeInsets.zero, 
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: user.role.color.withValues(alpha:0.2),
-          // 1. Cek apakah photoUrl ada datanya
-          backgroundImage: (user.photoUrl != null && user.photoUrl!.isNotEmpty)
-              ? NetworkImage(user.photoUrl!)
-              : null,
-          // 2. Jika tidak ada foto, tampilkan Icon sebagai fallback
-          child: (user.photoUrl == null || user.photoUrl!.isEmpty)
-              ? Icon(Icons.person, color: user.role.color)
-              : null,
-        ),
-        title: Text(
-          user.displayName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(user.email),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: user.role.color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: user.role.color.withValues(alpha: 0.5),
+      // 2. Bungkus ListTile dengan Center
+      child: Center(
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: user.role.color.withValues(alpha: 0.2),
+            backgroundImage: (user.photoUrl != null && user.photoUrl!.isNotEmpty)
+                ? NetworkImage(user.photoUrl!)
+                : null,
+            child: (user.photoUrl == null || user.photoUrl!.isEmpty)
+                ? Icon(Icons.person, color: user.role.color)
+                : null,
+          ),
+          title: Text(
+            user.displayName,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+            maxLines: 1, // Opsional: Mencegah nama panjang merusak layout
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min, // Penting agar Column tidak melebar
+            children: [
+              Text(
+                user.email,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: user.role.color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: user.role.color.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Text(
+                  user.role.label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: user.role.color,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              child: Text(
-                user.role.label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: user.role.color,
-                  fontWeight: FontWeight.w600,
+            ],
+          ),
+          trailing: user.role == UserRole.admin
+              ? null
+              : IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.redAccent),
+                  onPressed: onDelete,
                 ),
-              ),
-            ),
-          ],
+          onTap: onTap,
         ),
-        trailing: user.role == UserRole.admin
-            ? null 
-            : IconButton(
-                icon: const Icon(Icons.delete, color: Colors.redAccent),
-                onPressed: onDelete,
-              ),
-        onTap: onTap,
       ),
     );
   }

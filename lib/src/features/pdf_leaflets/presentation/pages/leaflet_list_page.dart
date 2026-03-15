@@ -35,12 +35,16 @@ class _LeafletListPageState extends State<LeafletListPage> {
     super.dispose();
   }
 
+  // --- Fungsi Penentu Jumlah Kolom ---
+  int _getCrossAxisCount(double screenWidth) {
+    if (screenWidth >= 1200) return 3; // Desktop
+    if (screenWidth >= 800) return 2;  // Tablet
+    return 1;                          // Mobile
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Responsive Variables
     final screenWidth = MediaQuery.of(context).size.width;
-    final horizontalPadding = screenWidth * 0.04; // 4% dari lebar layar
-    final verticalPadding = screenWidth * 0.03;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -50,57 +54,56 @@ class _LeafletListPageState extends State<LeafletListPage> {
       ),
       body: Column(
         children: [
-          // Area Pencarian
-          Container(
-            margin: EdgeInsets.fromLTRB(
-              horizontalPadding,
-              verticalPadding,
-              horizontalPadding,
-              verticalPadding / 2,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withValues(alpha: 0.1),
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
+          // Area Pencarian (Dibatasi maksimal lebarnya agar rapi di layar besar)
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withValues(alpha: 0.1),
+                      spreadRadius: 1,
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Semantics(
-              label: 'Input pencarian leaflet',
-              textField: true,
-              child: TextField(
-                key: const Key('leaflet_search_field'),
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Cari Leaflet...',
-                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.grey),
-                          onPressed: () => _searchController.clear(),
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
-                    vertical: verticalPadding,
-                    horizontal: horizontalPadding,
+                child: Semantics(
+                  label: 'Input pencarian leaflet',
+                  textField: true,
+                  child: TextField(
+                    key: const Key('leaflet_search_field'),
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Cari Leaflet...',
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, color: Colors.grey),
+                              onPressed: () => _searchController.clear(),
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      // Padding vertikal dibuat fixed agar tidak terlalu lebar (gemuk)
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 14.0,
+                        horizontal: 16.0,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
 
-          // Daftar Leaflet
+          // Daftar Leaflet (Menggunakan GridView agar responsif)
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('leaflets')
-                  .snapshots(),
+              stream: FirebaseFirestore.instance.collection('leaflets').snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return const Center(
@@ -118,8 +121,7 @@ class _LeafletListPageState extends State<LeafletListPage> {
                     .map((doc) => Leaflet.fromFirestore(
                           doc as DocumentSnapshot<Map<String, dynamic>>,
                         ))
-                    .where((leaflet) =>
-                        leaflet.title.toLowerCase().contains(_searchQuery))
+                    .where((leaflet) => leaflet.title.toLowerCase().contains(_searchQuery))
                     .toList();
 
                 if (leaflets.isEmpty) {
@@ -129,15 +131,25 @@ class _LeafletListPageState extends State<LeafletListPage> {
                   );
                 }
 
-                return ListView.builder(
+                return GridView.builder(
                   key: const Key('leaflet_list_view'),
-                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  padding: const EdgeInsets.only(
+                    bottom: 80, // Ruang untuk FloatingActionButton
+                    left: 16,
+                    right: 16,
+                    top: 8,
+                  ),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: _getCrossAxisCount(screenWidth),
+                    crossAxisSpacing: 12.0,
+                    mainAxisSpacing: 12.0,
+                    mainAxisExtent: 100.0, // Sesuaikan tinggi ideal Card di sini
+                  ),
                   itemCount: leaflets.length,
                   itemBuilder: (context, index) {
                     return LeafletCardWidget(
                       key: Key('leaflet_item_$index'),
                       leaflet: leaflets[index],
-                      screenWidth: screenWidth,
                     );
                   },
                 );

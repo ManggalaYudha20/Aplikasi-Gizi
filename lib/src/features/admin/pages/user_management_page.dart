@@ -5,7 +5,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/admin/logic/user_management_
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/widgets/user_search_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/widgets/user_list_tile.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/widgets/fading_snackbar_content.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart'; // Import App Bar Anda
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserManagementPage extends StatefulWidget {
@@ -29,6 +29,13 @@ class _UserManagementPageState extends State<UserManagementPage> {
     super.dispose();
   }
 
+  // --- 1. Fungsi penentu jumlah kolom responsif ---
+  int _getCrossAxisCount(double screenWidth) {
+    if (screenWidth >= 1200) return 3; // Desktop / Layar sangat lebar (3 kolom)
+    if (screenWidth >= 800) return 2;  // Tablet / Layar sedang (2 kolom)
+    return 1;                          // Mobile (1 kolom)
+  }
+
   // --- Handlers (Interaksi Pengguna) ---
 
   void _onSearchChanged(String value) {
@@ -49,27 +56,18 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
     final messenger = ScaffoldMessenger.of(context);
 
-    // 1. PENTING: Hapus semua SnackBar yang sedang tampil atau mengantre
     messenger.clearSnackBars();
 
-    // Konfigurasi Durasi
-    const totalDuration = Duration(
-      milliseconds: 3000,
-    ); // Total waktu tampil (3 detik)
-    const fadeOutDuration = Duration(
-      milliseconds: 1500,
-    ); // Waktu menghilang pelan-pelan (1.5 detik)
+    const totalDuration = Duration(milliseconds: 3000);
+    const fadeOutDuration = Duration(milliseconds: 1500);
 
-    // 2. Tampilkan SnackBar baru
     messenger.showSnackBar(
       SnackBar(
-        // 1. Buat Shell SnackBar Transparan & Tanpa Bayangan
         backgroundColor: Colors.transparent,
         elevation: 0,
         behavior: SnackBarBehavior.floating,
         duration: totalDuration,
-        margin: EdgeInsets.zero, // Margin diatur di dalam konten custom
-        // 2. Gunakan Widget Custom untuk Konten & Animasi
+        margin: EdgeInsets.zero,
         content: FadingSnackBarContent(
           message: message,
           color: isError ? Colors.redAccent : Colors.green,
@@ -81,7 +79,6 @@ class _UserManagementPageState extends State<UserManagementPage> {
   }
 
   Future<void> _handleRoleUpdate(UserModel user) async {
-    // Cek Guard Clause Admin
     if (user.role == UserRole.admin) {
       _showSnackBar(
         'Data Admin dilindungi dan tidak dapat diubah.',
@@ -94,9 +91,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
       context: context,
       builder: (context) => SimpleDialog(
         title: const Text('Pilih Role Baru'),
-        children: UserRole.values.where((r) => r != UserRole.unknown).map((
-          role,
-        ) {
+        children: UserRole.values.where((r) => r != UserRole.unknown).map((role) {
           return SimpleDialogOption(
             onPressed: () => Navigator.pop(context, role),
             child: Padding(
@@ -111,12 +106,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
     if (selectedRole != null && selectedRole != user.role) {
       try {
         await _repository.updateUserRole(user.id, selectedRole);
-        // GANTI INI:
-        _showSnackBar(
-          'Role ${user.displayName} diubah ke ${selectedRole.label}',
-        );
+        _showSnackBar('Role ${user.displayName} diubah ke ${selectedRole.label}');
       } catch (e) {
-        // GANTI INI:
         _showSnackBar(e.toString(), isError: true);
       }
     }
@@ -157,7 +148,6 @@ class _UserManagementPageState extends State<UserManagementPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      // Menggunakan AppBar custom Anda jika ada, atau default
       appBar: const CustomAppBar(
         title: 'Manajemen Pengguna',
         subtitle: 'Kelola hak akses dan data',
@@ -171,13 +161,11 @@ class _UserManagementPageState extends State<UserManagementPage> {
             isNotEmpty: _searchQuery.isNotEmpty,
           ),
           StreamBuilder<DocumentSnapshot>(
-            // Mendengarkan perubahan pengaturan secara realtime
             stream: FirebaseFirestore.instance
                 .collection('settings')
                 .doc('app_settings')
                 .snapshots(),
             builder: (context, snapshot) {
-              // 1. TAMBAHAN: Tangani state error dari Firestore
               if (snapshot.hasError) {
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -192,7 +180,6 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
               bool isUatMode = false;
 
-              // Cek apakah dokumen ada dan nilainya adalah 'ahli gizi'
               if (snapshot.hasData && snapshot.data!.exists) {
                 final data = snapshot.data!.data() as Map<String, dynamic>?;
                 isUatMode = (data?['default_role'] == 'ahli_gizi');
@@ -218,24 +205,19 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   ),
                   value: isUatMode,
                   onChanged: (bool value) async {
-                    // 2. TAMBAHAN: Gunakan try-catch untuk menangkap error saat menyalakan toggle
                     try {
-                      // Tentukan role berdasarkan posisi saklar
                       final newRole = value ? 'ahli_gizi' : 'tamu';
 
-                      // Simpan pengaturan ke Firestore
                       await FirebaseFirestore.instance
                           .collection('settings')
                           .doc('app_settings')
                           .set({
-                            'default_role': newRole,
-                          }, SetOptions(merge: true));
+                        'default_role': newRole,
+                      }, SetOptions(merge: true));
                           
-                      // Tampilkan notifikasi sukses
                       _showSnackBar('Mode UAT berhasil ${value ? "diaktifkan" : "dimatikan"}');
                       
                     } catch (e) {
-                      // Tampilkan notifikasi error
                       _showSnackBar('Gagal mengubah mode: $e', isError: true);
                     }
                   },
@@ -259,8 +241,6 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
                 final allUsers = snapshot.data ?? [];
 
-                // Menerapkan Logika Filtering & Sorting di sini (Logic Layer)
-                // Ini memisahkan UI rendering dari logika bisnis
                 final displayUsers = UserManagementLogic.processUsers(
                   allUsers: allUsers,
                   searchQuery: _searchQuery,
@@ -288,15 +268,34 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   );
                 }
 
-                return ListView.builder(
-                  itemCount: displayUsers.length,
-                  padding: const EdgeInsets.only(bottom: 80),
-                  itemBuilder: (context, index) {
-                    final user = displayUsers[index];
-                    return UserListTile(
-                      user: user,
-                      onTap: () => _handleRoleUpdate(user),
-                      onDelete: () => _handleDeleteUser(user),
+                // --- 2. Bungkus list dengan LayoutBuilder ---
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final screenWidth = constraints.maxWidth;
+
+                    // --- 3. Gunakan GridView.builder sebagai pengganti ListView.builder ---
+                    return GridView.builder(
+                      padding: const EdgeInsets.only(
+                        bottom: 80, 
+                        left: 16, 
+                        right: 16, 
+                        top: 8
+                      ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: _getCrossAxisCount(screenWidth),
+                        crossAxisSpacing: 12.0, // Jarak antar kolom
+                        mainAxisSpacing: 12.0,  // Jarak antar baris
+                        mainAxisExtent: 90.0,   // Tinggi standar tile (sesuaikan jika terpotong)
+                      ),
+                      itemCount: displayUsers.length,
+                      itemBuilder: (context, index) {
+                        final user = displayUsers[index];
+                        return UserListTile(
+                          user: user,
+                          onTap: () => _handleRoleUpdate(user),
+                          onDelete: () => _handleDeleteUser(user),
+                        );
+                      },
                     );
                   },
                 );
