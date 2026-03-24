@@ -48,13 +48,6 @@ class NutritionInfoPage extends StatelessWidget {
   List<_MenuConfig> _getMenuItems(BuildContext context) {
     final List<_MenuConfig> items = [
       _MenuConfig(
-        id: 'kalkulator_penyakit',
-        label: 'Hitung Diet Penyakit',
-        icon: Icons.medical_services,
-        destinationPage: DiseaseCalculationPage(userRole: userRole),
-        semanticsLabel: 'Tombol masuk ke halaman kalkulator penyakit',
-      ),
-      _MenuConfig(
         id: 'kalkulator_gizi',
         label: 'Kalkulator Gizi',
         icon: Icons.calculate,
@@ -90,6 +83,17 @@ class NutritionInfoPage extends StatelessWidget {
         semanticsLabel: 'Tombol masuk ke halaman informasi aplikasi',
       ),
     ];
+
+    if (userRole == 'admin' || userRole == 'ahli_gizi' || userRole == 'nutrisionis') {
+      // Sisipkan di urutan paling awal (index 0) agar posisinya tetap di atas kiri
+      items.insert(0, _MenuConfig(
+        id: 'kalkulator_penyakit',
+        label: 'Hitung Diet Penyakit',
+        icon: Icons.medical_services,
+        destinationPage: DiseaseCalculationPage(userRole: userRole),
+        semanticsLabel: 'Tombol masuk ke halaman kalkulator penyakit',
+      ));
+    }
 
     // Logika kondisional role (Admin only)
     if (userRole == 'admin') {

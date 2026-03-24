@@ -15,14 +15,29 @@ class PatientDeleteLogic {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Konfirmasi Hapus'),
-          content: Text('Apakah Anda yakin untuk menghapus data pasien "$patientName" ?'),
+          // 1. Menambahkan Row dengan Icon peringatan merah
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red),
+              SizedBox(width: 8),
+              Text('Konfirmasi Hapus'),
+            ],
+          ),
+          // 2. Mempertegas pesan bahwa ini tindakan permanen
+          content: Text(
+            'Apakah Anda yakin ingin menghapus data pasien "$patientName" secara permanen? '
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Batal'),
             ),
-            TextButton(
+            // 3. Mengubah TextButton menjadi ElevatedButton dengan warna merah
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () async {
                 // Store the dialog context before async operation
                 final navigator = Navigator.of(context);
@@ -33,7 +48,7 @@ class PatientDeleteLogic {
                 );
                 navigator.pop(); // Close the dialog
               },
-              child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+              child: const Text('Ya, Hapus'),
             ),
           ],
         );

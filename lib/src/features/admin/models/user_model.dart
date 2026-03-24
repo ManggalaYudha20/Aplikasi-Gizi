@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 // Definisi Role yang terstandarisasi
 enum UserRole {
   admin,
-  ahliGizi,
+  ahliGizi,     // Role lama (Legacy) - dipertahankan agar data lama tidak error
+  nutrisionis,  // Role baru
   tamu,
   unknown,
 }
@@ -14,8 +15,9 @@ extension UserRoleExtension on UserRole {
   String get label {
     switch (this) {
       case UserRole.admin: return 'Admin';
-      case UserRole.ahliGizi: return 'Ahli Gizi';
-      case UserRole.tamu: return 'Tamu'; // Default tamu jika user baru
+      case UserRole.ahliGizi: return 'Nutrisionis'; // Data lama juga ditampilkan sebagai Nutrisionis
+      case UserRole.nutrisionis: return 'Nutrisionis'; 
+      case UserRole.tamu: return 'Tamu';
       default: return 'Tidak Diketahui';
     }
   }
@@ -24,7 +26,8 @@ extension UserRoleExtension on UserRole {
   Color get color {
     switch (this) {
       case UserRole.admin: return Colors.redAccent;
-      case UserRole.ahliGizi: return Colors.green;
+      case UserRole.ahliGizi: 
+      case UserRole.nutrisionis: return Colors.green; // Berlaku untuk keduanya
       case UserRole.tamu: return Colors.grey;
       default: return Colors.black;
     }
@@ -34,7 +37,8 @@ extension UserRoleExtension on UserRole {
   String get toFirestoreValue {
     switch (this) {
       case UserRole.admin: return 'admin';
-      case UserRole.ahliGizi: return 'ahli_gizi'; // Sesuaikan dengan database Anda
+      case UserRole.ahliGizi: return 'ahli_gizi'; // Biarkan data lama tersimpan apa adanya
+      case UserRole.nutrisionis: return 'nutrisionis'; // Format baru
       case UserRole.tamu: return 'tamu';
       default: return 'tamu';
     }
@@ -44,7 +48,8 @@ extension UserRoleExtension on UserRole {
   int get priority {
     switch (this) {
       case UserRole.admin: return 1;
-      case UserRole.ahliGizi: return 2;
+      case UserRole.ahliGizi: 
+      case UserRole.nutrisionis: return 2;
       case UserRole.tamu: return 3;
       default: return 4;
     }
@@ -55,10 +60,14 @@ extension UserRoleExtension on UserRole {
     switch (value?.toLowerCase()) {
       case 'admin': return UserRole.admin;
       case 'ahli_gizi': 
-      case 'ahligizi': return UserRole.ahliGizi;
+      case 'ahligizi': return UserRole.ahliGizi; // Membaca data lama
+      case 'nutrisionis': return UserRole.nutrisionis; // Membaca data baru
       case 'tamu': return UserRole.tamu;
       default: return UserRole.tamu; // Default fallback
     }
+  }
+  bool get isNutrisionis {
+    return this == UserRole.ahliGizi || this == UserRole.nutrisionis;
   }
 }
 
@@ -77,20 +86,17 @@ class UserModel {
     this.photoUrl,
   });
 
-  // Factory method untuk konversi aman dari DocumentSnapshot
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
     return UserModel(
       id: doc.id,
       email: data['email'] ?? '',
-      // Menangani kemungkinan nama field berbeda (nama vs displayName)
       displayName: data['displayName'] ?? data['nama'] ?? 'Tanpa Nama',
       role: UserRoleExtension.fromString(data['role']),
       photoUrl: data['photoURL'],
     );
   }
 
-  // Method untuk pencarian (Case insensitive logic helper)
   bool matchesSearch(String query) {
     final q = query.toLowerCase();
     return email.toLowerCase().contains(q) || displayName.toLowerCase().contains(q);

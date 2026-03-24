@@ -192,16 +192,20 @@ void main() {
   // [D] FULL FLOW
   // ═══════════════════════════════════════════════════════════════════════════
   group('[Integration D] Full Flow', () {
-    testWidgets('mengisi form lengkap → kartu hasil dan expansion tiles muncul', (tester) async {
-      await tester.pumpWidget(_buildPage(userRole: 'ahli_gizi'));
-      await tester.pump(_kRender);
+    final authorizedRoles = ['ahli_gizi', 'nutrisionis'];
 
-      await _fillValidForm(tester);
-      await _tapSubmit(tester);
+    for (final role in authorizedRoles) {
+      testWidgets('Role "$role": mengisi form lengkap → kartu hasil dan expansion tiles muncul', (tester) async {
+        await tester.pumpWidget(_buildPage(userRole: role));
+        await tester.pump(_kRender);
 
-      expect(find.text('Hasil Perhitungan'), findsOneWidget);
-      expect(find.byKey(const ValueKey('expansion_nutrition')), findsOneWidget);
-      expect(find.byKey(const ValueKey('expansion_meal_plan')), findsOneWidget);
-    });
+        await _fillValidForm(tester);
+        await _tapSubmit(tester);
+
+        expect(find.text('Hasil Perhitungan'), findsOneWidget);
+        expect(find.byKey(const ValueKey('expansion_nutrition')), findsOneWidget);
+        expect(find.byKey(const ValueKey('expansion_meal_plan')), findsOneWidget);
+      });
+    }
   });
 }

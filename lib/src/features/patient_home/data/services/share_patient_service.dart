@@ -13,7 +13,7 @@ class SharePatientService {
     try {
       final snapshot = await _firestore
           .collection('users')
-          .where('role', whereIn: ['ahli_gizi', 'admin'])
+          .where('role', whereIn: ['ahli_gizi', 'admin','nutrisionis'])
           .get();
 
       return snapshot.docs

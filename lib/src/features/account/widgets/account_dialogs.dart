@@ -10,22 +10,31 @@ class AccountDialogs {
       barrierDismissible: true,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Konfirmasi Keluar'),
+          // Menggunakan Row untuk menambahkan Ikon di sebelah teks judul
+          title: const Row(
+            children: [
+              Icon(Icons.logout, color: Colors.red), // Ikon logout
+              SizedBox(width: 8),
+              Text('Konfirmasi Keluar'),
+            ],
+          ),
           content: const Text('Apakah Anda yakin ingin keluar dari akun Anda?'),
           actions: <Widget>[
             TextButton(
               child: const Text('Batal'),
               onPressed: () => Navigator.of(dialogContext).pop(),
             ),
-            TextButton(
+            // Mengubah TextButton menjadi ElevatedButton dengan warna solid
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 onConfirm();
               },
-              child: const Text(
-                'Keluar',
-                style: TextStyle(color: Colors.red),
-              ),
+              child: const Text('Ya, Keluar'),
             ),
           ],
         );

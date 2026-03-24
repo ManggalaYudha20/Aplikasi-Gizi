@@ -18,15 +18,15 @@ class NutritionistProfilePage extends StatelessWidget {
     final String photoUrl = (nutritionistData['photoURL'] != null && nutritionistData['photoURL'].toString().isNotEmpty)
         ? nutritionistData['photoURL']
         : 'https://via.placeholder.com/150';
-    final String role = nutritionistData['spesialisasi'] ?? 'Ahli Gizi';
+    final String role = nutritionistData['spesialisasi'] ?? 'Nutrisionis';
     final String alumni = nutritionistData['alumni'] ?? 'Universitas Tidak Diketahui';
     final String strNumber = nutritionistData['nomor_str'] ?? '-';
-    final String description = nutritionistData['deskripsi'] ?? 'Belum ada deskripsi profil untuk ahli gizi ini.';
+    final String description = nutritionistData['deskripsi'] ?? 'Belum ada deskripsi profil untuk Nutrisionis ini.';
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(
-        title: 'Profil Ahli Gizi',
+        title: 'Profil Nutrisionis',
         subtitle: '',
       ),
       body: SingleChildScrollView(

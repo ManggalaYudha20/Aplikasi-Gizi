@@ -91,7 +91,10 @@ class _UserManagementPageState extends State<UserManagementPage> {
       context: context,
       builder: (context) => SimpleDialog(
         title: const Text('Pilih Role Baru'),
-        children: UserRole.values.where((r) => r != UserRole.unknown).map((role) {
+        // Sembunyikan role lama (.ahliGizi) agar tidak muncul ganda di dialog
+        children: UserRole.values
+            .where((r) => r != UserRole.unknown && r != UserRole.ahliGizi)
+            .map((role) {
           return SimpleDialogOption(
             onPressed: () => Navigator.pop(context, role),
             child: Padding(
@@ -117,16 +120,32 @@ class _UserManagementPageState extends State<UserManagementPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Konfirmasi Hapus'),
-        content: Text('Yakin ingin menghapus pengguna ${user.displayName}?'),
+        // Menambahkan Row untuk menempatkan Icon dan Text secara berdampingan
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Konfirmasi Hapus'),
+          ],
+        ),
+        // Menyesuaikan teks agar lebih informatif seperti pada account_dialogs
+        content: Text(
+          'Apakah Anda yakin ingin menghapus pengguna ${user.displayName} secara permanen? '
+          'Tindakan ini tidak dapat dibatalkan.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Batal'),
           ),
-          TextButton(
+          // Mengubah TextButton menjadi ElevatedButton dengan warna merah
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+            child: const Text('Ya, Hapus'),
           ),
         ],
       ),
@@ -160,71 +179,73 @@ class _UserManagementPageState extends State<UserManagementPage> {
             onClear: _onClearSearch,
             isNotEmpty: _searchQuery.isNotEmpty,
           ),
-          StreamBuilder<DocumentSnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('settings')
-                .doc('app_settings')
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
+         StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('settings')
+                  .doc('app_settings')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    color: Colors.red.shade50,
+                    child: ListTile(
+                      leading: const Icon(Icons.error_outline, color: Colors.red),
+                      title: const Text('Gagal memuat pengaturan Mode UAT'),
+                      subtitle: Text(snapshot.error.toString(), style: const TextStyle(fontSize: 12)),
+                    ),
+                  );
+                }
+
+                bool isUatMode = false;
+
+                if (snapshot.hasData && snapshot.data!.exists) {
+                  final data = snapshot.data!.data() as Map<String, dynamic>?;
+                  // Cek apakah database masih menyimpan format lama atau format baru
+                  isUatMode = (data?['default_role'] == 'ahli_gizi' || data?['default_role'] == 'nutrisionis');
+                }
+
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  color: Colors.red.shade50,
-                  child: ListTile(
-                    leading: const Icon(Icons.error_outline, color: Colors.red),
-                    title: const Text('Gagal memuat pengaturan Mode UAT'),
-                    subtitle: Text(snapshot.error.toString(), style: const TextStyle(fontSize: 12)),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  color: isUatMode ? Colors.green.shade50 : null,
+                  child: SwitchListTile(
+                    activeThumbColor: Colors.green,
+                    activeTrackColor: Colors.green.shade300,
+                    title: const Text(
+                      'Mode UAT (Otomatis Nutrisionis)',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      isUatMode
+                          ? 'Aktif: Pendaftar baru otomatis menjadi Nutrisionis.'
+                          : 'Mati: Pendaftar baru otomatis menjadi Tamu.',
+                    ),
+                    value: isUatMode,
+                    onChanged: (bool value) async {
+                      try {
+                        // Simpan dengan format role yang baru ke database
+                        final newRole = value ? 'nutrisionis' : 'tamu';
+
+                        await FirebaseFirestore.instance
+                            .collection('settings')
+                            .doc('app_settings')
+                            .set({
+                          'default_role': newRole,
+                        }, SetOptions(merge: true));
+                            
+                        _showSnackBar('Mode UAT berhasil ${value ? "diaktifkan" : "dimatikan"}');
+                        
+                      } catch (e) {
+                        _showSnackBar('Gagal mengubah mode: $e', isError: true);
+                      }
+                    },
                   ),
                 );
-              }
-
-              bool isUatMode = false;
-
-              if (snapshot.hasData && snapshot.data!.exists) {
-                final data = snapshot.data!.data() as Map<String, dynamic>?;
-                isUatMode = (data?['default_role'] == 'ahli_gizi');
-              }
-
-              return Card(
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
-                ),
-                color: isUatMode ? Colors.green.shade50 : null,
-                child: SwitchListTile(
-                  activeThumbColor: Colors.green,
-                  activeTrackColor: Colors.green.shade300,
-                  title: const Text(
-                    'Mode UAT (Otomatis Ahli Gizi)',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    isUatMode
-                        ? 'Aktif: Pendaftar baru otomatis menjadi Ahli Gizi.'
-                        : 'Mati: Pendaftar baru otomatis menjadi Tamu.',
-                  ),
-                  value: isUatMode,
-                  onChanged: (bool value) async {
-                    try {
-                      final newRole = value ? 'ahli_gizi' : 'tamu';
-
-                      await FirebaseFirestore.instance
-                          .collection('settings')
-                          .doc('app_settings')
-                          .set({
-                        'default_role': newRole,
-                      }, SetOptions(merge: true));
-                          
-                      _showSnackBar('Mode UAT berhasil ${value ? "diaktifkan" : "dimatikan"}');
-                      
-                    } catch (e) {
-                      _showSnackBar('Gagal mengubah mode: $e', isError: true);
-                    }
-                  },
-                ),
-              );
-            },
-          ),
+              },
+            ),
           Expanded(
             child: StreamBuilder<List<UserModel>>(
               stream: _repository.getUsersStream(),

@@ -11,6 +11,7 @@ class RoleBadge extends StatelessWidget {
       case 'admin':
         return Colors.redAccent;
       case 'ahli gizi':
+      case 'nutrisionis':
         return Colors.green;
       case 'tamu':
       default:

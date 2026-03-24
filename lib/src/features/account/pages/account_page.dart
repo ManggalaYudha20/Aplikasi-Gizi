@@ -82,7 +82,7 @@ class AccountPage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // LOGIKA FILTER ROLE: Hanya tampil jika ahli_gizi ATAU admin
-                      if (rawRole == 'ahli_gizi' || rawRole == 'admin') ...[
+                      if (rawRole == 'ahli_gizi' || rawRole == 'admin' || rawRole == 'nutrisionis' ) ...[
                         AccountMenuButton(
                           testId: 'btn_backup_restore',
                           label: 'Backup & Restore Data Pasien',

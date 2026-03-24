@@ -192,7 +192,7 @@ class _FoodListPageState extends State<FoodListPage> {
                         crossAxisCount: _getCrossAxisCount(screenWidth),
                         crossAxisSpacing: 12.0,
                         mainAxisSpacing: 12.0,
-                        mainAxisExtent: 200.0, // Tinggi konstan Card disesuaikan agar isi tidak terpotong
+                        mainAxisExtent: 150.0, // Tinggi konstan Card disesuaikan agar isi tidak terpotong
                       ),
                       itemCount: filteredItems.length,
                       itemBuilder: (context, index) {

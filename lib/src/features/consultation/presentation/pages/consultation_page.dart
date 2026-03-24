@@ -26,7 +26,7 @@ class ConsultationPage extends StatelessWidget {
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('users')
-              .where('role', isEqualTo: 'ahli_gizi')
+              .where('role', whereIn: ['ahli_gizi', 'nutrisionis'] )
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -60,7 +60,7 @@ class ConsultationPage extends StatelessWidget {
                     crossAxisSpacing: 16.0, // Jarak horizontal antar card
                     mainAxisSpacing: 16.0,  // Jarak vertikal antar card
                     // 4. Gunakan mainAxisExtent agar tinggi card tetap proporsional (tidak gepeng)
-                    mainAxisExtent: 180.0,  
+                    mainAxisExtent: 200.0,  
                   ),
                   itemCount: nutritionists.length,
                   itemBuilder: (context, index) {
@@ -72,7 +72,7 @@ class ConsultationPage extends StatelessWidget {
                         ? data['photoURL']
                         : 'https://via.placeholder.com/150';
 
-                    final String spesialisasi = data['role'] ?? 'Ahli Gizi';
+                    final String spesialisasi = data['role'] ?? 'Nutrisionis';
                     final String pengalaman = data['pengalaman'] ?? '0 tahun';
                     final String rating = data['rating'] ?? '0%';
 

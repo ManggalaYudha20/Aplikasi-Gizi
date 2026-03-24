@@ -40,7 +40,7 @@ class StatisticsFetchService {
         final role = (doc.data()['role'] as String?) ?? 'tamu';
         if (role == 'admin') {
           admins++;
-        } else if (role == 'ahli_gizi') {
+        } else if (role == 'ahli_gizi'|| role == 'nutrisionis') {
           nutritionists++;
         } else {
           guests++;

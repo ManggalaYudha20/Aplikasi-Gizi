@@ -7,6 +7,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/p
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/widgets/food_nutrition_card.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/role_builder.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 
 class FoodDetailPage extends StatefulWidget {
   final FoodItem foodItem;
@@ -192,38 +193,36 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                 // ── Portion calculator ────────────────────────────────────
                 _buildPortionCalculator(),
                 const SizedBox(height: 24),
-
-                // ── Delete button (admin only) ────────────────────────────
+                
+                // ── Action Buttons (Edit & Delete untuk Admin) ────────────
                 RoleBuilder(
                   requiredRole: 'admin',
                   builder: (context) {
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            icon: const Icon(
-                              Icons.delete_forever,
-                              color: Colors.white,
-                            ),
-                            label: const Text(
-                              'Hapus',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            onPressed: () => FoodDeleteService.deleteFoodItem(
-                              context,
-                              widget.foodItem,
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red.shade700,
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
+                    return FormActionButtons(
+                      // -- Konfigurasi Tombol Edit (Kanan / Submit) --
+                      submitText: 'Edit',
+                      submitIcon: const Icon(Icons.edit, size: 20, color: Colors.white),
+                      onSubmit: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                AddFoodItemPage(foodItem: widget.foodItem),
                           ),
-                        ),
-                      ],
+                        );
+                        if (result == true && context.mounted) {
+                          Navigator.of(context).pop(true);
+                        }
+                      },
+                      
+                      // -- Konfigurasi Tombol Hapus (Kiri / Reset) --
+                      resetText: 'Hapus',
+                      resetIcon: const Icon(Icons.delete_outline, size: 20),
+                      resetButtonColor: Colors.red, // Membuat background tombol kiri jadi merah
+                      onReset: () => FoodDeleteService.deleteFoodItem(
+                        context,
+                        widget.foodItem,
+                      ),
                     );
                   },
                 ),
@@ -263,45 +262,6 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                     color: Color.fromARGB(255, 0, 148, 68),
                   ),
                 ),
-              ),
-              // Edit button (admin only)
-              RoleBuilder(
-                requiredRole: 'admin',
-                builder: (context) {
-                  return GestureDetector(
-                    key: const Key('btn_edit_food'),
-                    onTap: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              AddFoodItemPage(foodItem: widget.foodItem),
-                        ),
-                      );
-                      if (result == true && context.mounted) {
-                        Navigator.of(context).pop(true);
-                      }
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.edit,
-                          color: Color.fromARGB(255, 0, 148, 68),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Edit',
-                          style: TextStyle(
-                            color: const Color.fromARGB(255, 0, 148, 68),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
               ),
             ],
           ),

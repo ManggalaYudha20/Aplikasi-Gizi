@@ -24,7 +24,7 @@ class NutritionistCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      margin: const EdgeInsets.only(bottom: 16.0),
+      margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias, // Agar efek inkwell tidak keluar batas border
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
@@ -58,6 +58,8 @@ class NutritionistCard extends StatelessWidget {
                   children: [
                     Text(
                       name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis ,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -67,6 +69,8 @@ class NutritionistCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       role,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis ,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade600,

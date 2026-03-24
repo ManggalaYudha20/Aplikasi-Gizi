@@ -25,19 +25,31 @@ class FoodDeleteService {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Konfirmasi Hapus'),
+          // Menambahkan Row untuk menempatkan Icon dan Text secara berdampingan
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red),
+              SizedBox(width: 8),
+              Text('Konfirmasi Hapus'),
+            ],
+          ),
+          // Menyesuaikan teks agar lebih informatif
           content: Text(
-            'Apakah Anda yakin ingin menghapus "${foodItem.name}"?',
+            'Apakah Anda yakin ingin menghapus "${foodItem.name}" secara permanen? '           
           ),
           actions: [
             TextButton(
               child: const Text('Batal'),
               onPressed: () => Navigator.of(dialogContext).pop(false),
             ),
-            TextButton(
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Hapus'),
+            // Mengubah TextButton menjadi ElevatedButton dengan warna merah
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Ya, Hapus'),
             ),
           ],
         );
