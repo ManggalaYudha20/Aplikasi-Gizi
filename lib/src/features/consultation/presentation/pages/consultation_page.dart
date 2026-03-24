@@ -72,7 +72,7 @@ class ConsultationPage extends StatelessWidget {
                         ? data['photoURL']
                         : 'https://via.placeholder.com/150';
 
-                    final String spesialisasi = data['role'] ?? 'Nutrisionis';
+                    final String spesialisasi = 'Nutrisionis';
                     final String pengalaman = data['pengalaman'] ?? '0 tahun';
                     final String rating = data['rating'] ?? '0%';
 
