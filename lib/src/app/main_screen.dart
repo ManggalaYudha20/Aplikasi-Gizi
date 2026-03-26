@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/bottom_navbar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/presentation/pages/patient_home_page.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_info/presentation/pages/nutrition_info_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/menu_beranda/presentation/pages/nutrition_info_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/login/auth_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/account/pages/account_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/statistics/presentation/pages/statistics_page.dart';

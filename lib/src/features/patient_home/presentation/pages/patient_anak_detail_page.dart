@@ -6,9 +6,9 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/scaffold_with_animated_fab.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'data_form_anak_page.dart'; // Import form anak
-import 'patient_delete_logic.dart'; // Import logika hapus
-import 'pdf_generator_anak.dart'; // Import PDF generator anak
-import 'pdf_generator_asuhan_anak.dart';
+import '../../data/services/patient_delete_service.dart'; // Import logika hapus
+import '../../data/services/pdf_generator_anak.dart'; // Import PDF generator anak
+import '../../data/services/pdf_generator_asuhan_anak.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/services/share_patient_service.dart';
 
 class PatientAnakDetailPage extends StatefulWidget {
