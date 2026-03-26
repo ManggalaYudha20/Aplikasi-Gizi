@@ -1,15 +1,18 @@
 // lib/src/features/nutrition_calculation/presentation/pages/bbi_form_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.dart';
 
+// [REFACTOR] Import Service & Widgets baru
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/bbi_calculator_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/calculation_result_card.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/responsive_number_field.dart';
+
 // ---------------------------------------------------------------------------
-// [OPTIMIZATION] ValueKey literal di-hoist ke class konstanta file-level.
-// Tidak realokasi per-build; single source of truth untuk tim QA.
+// [QA] ValueKey TIDAK diubah.
 // ---------------------------------------------------------------------------
 class _Keys {
   const _Keys._();
@@ -20,29 +23,25 @@ class _Keys {
   static const bbiResultCard  = ValueKey('bbiResultCard');
 }
 
-// ---------------------------------------------------------------------------
-// [OPTIMIZATION] String literal di-hoist agar widget Text dapat memakai
-// const constructor — tidak diinstansiasi ulang setiap siklus rebuild.
-// ---------------------------------------------------------------------------
 class _Str {
   const _Str._();
-  static const appBarTitle      = 'BBI';
-  static const appBarSubtitle   = 'Berat Badan Ideal';
-  static const sectionTitle     = 'Input Data BBI';
-  static const heightLabel      = 'Tinggi Badan';
-  static const heightUnit       = 'cm';
-  static const genderLabel      = 'Jenis Kelamin';
-  static const male             = 'Laki-laki';
-  static const female           = 'Perempuan';
-  static const resultTitle      = 'Hasil Perhitungan BBI';
-  static const resultUnit       = 'kg';
-  static const resultDesc       =
+  static const appBarTitle    = 'BBI';
+  static const appBarSubtitle = 'Berat Badan Ideal';
+  static const sectionTitle   = 'Input Data BBI';
+  static const heightLabel    = 'Tinggi Badan';
+  static const heightUnit     = 'cm';
+  static const genderLabel    = 'Jenis Kelamin';
+  static const resultTitle    = 'Hasil Perhitungan BBI';
+  static const resultUnit     = 'kg';
+  static const resultDesc     =
       'Berat Badan Ideal (BBI) adalah berat badan yang dianggap optimal '
       'untuk tinggi badan dan jenis kelamin.';
-  static const List<String> genderOptions = [male, female];
+  static const List<String> genderOptions = [
+    BbiCalculatorService.genderMale,
+    BbiCalculatorService.genderFemale,
+  ];
 }
 
-// Warna brand sebagai konstanta agar tidak alokasi Color object per-build.
 const _kBrandGreen = Color(0xFF009444);
 
 // ===========================================================================
@@ -59,7 +58,6 @@ class BbiFormPage extends StatefulWidget {
 }
 
 class _BbiFormPageState extends State<BbiFormPage> {
-  // ── Controllers & Keys ────────────────────────────────────────────────────
   final _formKey          = GlobalKey<FormState>();
   final _heightController = TextEditingController();
   final _genderController = TextEditingController();
@@ -67,10 +65,8 @@ class _BbiFormPageState extends State<BbiFormPage> {
   final _resultCardKey    = GlobalKey();
   final _patientPickerKey = GlobalKey<PatientPickerWidgetState>();
 
-  // ── State ─────────────────────────────────────────────────────────────────
   double? _bbiResult;
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
   @override
   void dispose() {
     _heightController.dispose();
@@ -85,21 +81,17 @@ class _BbiFormPageState extends State<BbiFormPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final double height = double.parse(_heightController.text);
+    final bool   isMale =
+        BbiCalculatorService.isMaleFromString(_genderController.text);
 
-    // [CLEAN CODE] Pure function diekstrak agar mudah di-unit-test.
-    final double bbi = _computeBBI(height, _genderController.text);
-
-    setState(() => _bbiResult = bbi);
+    // [REFACTOR] Logika Broca ada di Service.
+    setState(() {
+      _bbiResult = BbiCalculatorService.calculateAdult(
+        heightCm: height,
+        isMale:   isMale,
+      );
+    });
     _scrollToResult();
-  }
-
-  /// Pure function — tidak bergantung pada widget, bebas side-effect.
-  /// Formula BBI Broca yang dimodifikasi:
-  ///   Laki-laki   : (TB - 100) × 90%
-  ///   Perempuan   : (TB - 100) × 85%
-  double _computeBBI(double heightCm, String gender) {
-    final double base = heightCm - 100;
-    return gender == _Str.male ? base * 0.90 : base * 0.85;
   }
 
   void _resetForm() {
@@ -113,30 +105,13 @@ class _BbiFormPageState extends State<BbiFormPage> {
   }
 
   void _fillDataFromPatient(
-    double weight,
-    double height,
-    String gender,
-    DateTime dob,
+    double weight, double height, String gender, DateTime dob,
   ) {
     setState(() {
       _heightController.text = height.toString();
-      _genderController.text = _normalizeGender(gender);
-      // Reset hasil agar user menghitung ulang setelah data pasien diisi
+      _genderController.text = BbiCalculatorService.normalizeGender(gender);
       _bbiResult = null;
     });
-  }
-
-  /// Normalisasi string gender dari berbagai variasi penulisan.
-  /// [CLEAN CODE] Dipisah agar _fillDataFromPatient tetap ramping.
-  String _normalizeGender(String raw) {
-    final String lower = raw.toLowerCase();
-    if (lower.contains('laki') || lower.contains('pria') || lower == 'l') {
-      return _Str.male;
-    }
-    if (lower.contains('perempuan') || lower.contains('wanita') || lower == 'p') {
-      return _Str.female;
-    }
-    return raw; // Kembalikan asli jika tidak dikenali
   }
 
   void _scrollToResult() {
@@ -145,7 +120,7 @@ class _BbiFormPageState extends State<BbiFormPage> {
         Scrollable.ensureVisible(
           _resultCardKey.currentContext!,
           duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
+          curve:    Curves.easeInOut,
         );
       }
     });
@@ -155,15 +130,13 @@ class _BbiFormPageState extends State<BbiFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    // [RESPONSIVE] MediaQuery.sizeOf lebih efisien — hanya subscribe Size,
-    // bukan seluruh MediaQueryData seperti MediaQuery.of.
     final double sw   = MediaQuery.sizeOf(context).width;
-    final double hPad = sw * 0.04; // ≈ 16 dp pada layar 400 dp
+    final double hPad = sw * 0.04;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
-        title: _Str.appBarTitle,
+        title:    _Str.appBarTitle,
         subtitle: _Str.appBarSubtitle,
       ),
       body: SafeArea(
@@ -178,34 +151,31 @@ class _BbiFormPageState extends State<BbiFormPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
 
-                  // ── Patient Picker ─────────────────────────────────────
                   Semantics(
-                    key: _Keys.patientPicker,
+                    key:   _Keys.patientPicker,
                     label: 'Pemilih Pasien',
                     hint:  'Pilih pasien untuk mengisi data tinggi badan dan '
                            'jenis kelamin secara otomatis',
                     child: PatientPickerWidget(
-                      key: _patientPickerKey,
+                      key:               _patientPickerKey,
                       onPatientSelected: _fillDataFromPatient,
-                      userRole: widget.userRole,
+                      userRole:          widget.userRole,
                     ),
                   ),
 
                   SizedBox(height: sw * 0.05),
 
-                  // ── Section Title ──────────────────────────────────────
                   Text(
                     _Str.sectionTitle,
                     style: TextStyle(
-                      fontSize: _responsiveFont(sw, base: 20),
+                      fontSize:   _responsiveFont(sw, base: 20),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
 
                   SizedBox(height: sw * 0.05),
 
-                  // ── Height Field ───────────────────────────────────────
-                  _buildInputField(
+                  ResponsiveNumberField(
                     widgetKey:     _Keys.heightField,
                     controller:    _heightController,
                     label:         _Str.heightLabel,
@@ -217,24 +187,42 @@ class _BbiFormPageState extends State<BbiFormPage> {
 
                   SizedBox(height: sw * 0.04),
 
-                  // ── Gender Dropdown ────────────────────────────────────
                   Semantics(
-                    label:    'Dropdown Jenis Kelamin',
-                    hint:     'Pilih jenis kelamin: Laki-laki atau Perempuan',
-                    child: _buildGenderDropdown(sw),
+                    label: 'Dropdown Jenis Kelamin',
+                    hint:  'Pilih jenis kelamin: Laki-laki atau Perempuan',
+                    child: DropdownSearch<String>(
+                      key: _Keys.genderDropdown,
+                      popupProps: const PopupProps.menu(
+                        showSearchBox: false,
+                        fit:           FlexFit.loose,
+                      ),
+                      items: _Str.genderOptions,
+                      dropdownDecoratorProps: const DropDownDecoratorProps(
+                        dropdownSearchDecoration: InputDecoration(
+                          labelText:  _Str.genderLabel,
+                          border:     OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.wc),
+                        ),
+                      ),
+                      onChanged: (val) =>
+                          setState(() => _genderController.text = val ?? ''),
+                      selectedItem: _genderController.text.isEmpty
+                          ? null : _genderController.text,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? '${_Str.genderLabel} harus dipilih' : null,
+                    ),
                   ),
 
                   SizedBox(height: sw * 0.08),
 
-                  // ── Action Buttons ─────────────────────────────────────
                   Semantics(
                     label: 'Tombol Aksi Form BBI',
                     hint:  'Tombol Reset menghapus semua input; '
                            'Tombol Hitung menghitung nilai BBI',
                     child: FormActionButtons(
-                      key: _Keys.btnReset,
-                      onReset: _resetForm,
-                      onSubmit: _calculateBBI,
+                      key:                  _Keys.btnReset,
+                      onReset:              _resetForm,
+                      onSubmit:             _calculateBBI,
                       resetButtonColor:     Colors.white,
                       resetForegroundColor: _kBrandGreen,
                       submitIcon: const Icon(Icons.calculate, color: Colors.white),
@@ -243,12 +231,19 @@ class _BbiFormPageState extends State<BbiFormPage> {
 
                   SizedBox(height: sw * 0.08),
 
-                  // ── Result Section ─────────────────────────────────────
                   if (_bbiResult != null) ...[
-                    SizedBox(key: _resultCardKey, height: 0), // anchor scroll
+                    SizedBox(key: _resultCardKey, height: 0),
                     const Divider(),
                     SizedBox(height: sw * 0.08),
-                    _buildResultCard(sw),
+                    CalculationResultCard(
+                      containerKey:   _Keys.bbiResultCard,
+                      title:          _Str.resultTitle,
+                      value:          '${_bbiResult!.toStringAsFixed(2)} ${_Str.resultUnit}',
+                      color:          _kBrandGreen,
+                      subtitle:       _Str.resultDesc,
+                      semanticsLabel: 'Hasil Perhitungan BBI: '
+                                      '${_bbiResult!.toStringAsFixed(2)} kilogram',
+                    ),
                   ],
                 ],
               ),
@@ -259,130 +254,6 @@ class _BbiFormPageState extends State<BbiFormPage> {
     );
   }
 
-  // ── Private Widget Builders ───────────────────────────────────────────────
-
-  /// [CLEAN CODE] Result card diekstrak agar build() tetap ringkas.
-  Widget _buildResultCard(double sw) {
-    return Semantics(
-      label: 'Hasil Perhitungan BBI: '
-             '${_bbiResult!.toStringAsFixed(2)} kilogram',
-      hint:       'Nilai Berat Badan Ideal berdasarkan tinggi badan dan jenis kelamin',
-      liveRegion: true, // Screen-reader otomatis membacakan saat nilai berubah
-      child: Container(
-        key: _Keys.bbiResultCard,
-        padding: EdgeInsets.all(sw * 0.04),
-        decoration: BoxDecoration(
-          color: _kBrandGreen.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: _kBrandGreen),
-        ),
-        child: Column(
-          children: [
-            Text(
-              _Str.resultTitle,
-              style: TextStyle(
-                fontSize: _responsiveFont(sw, base: 18),
-                fontWeight: FontWeight.bold,
-                color: _kBrandGreen,
-              ),
-            ),
-            SizedBox(height: sw * 0.02),
-            Text(
-              '${_bbiResult!.toStringAsFixed(2)} ${_Str.resultUnit}',
-              style: TextStyle(
-                fontSize: _responsiveFont(sw, base: 24),
-                fontWeight: FontWeight.bold,
-                color: _kBrandGreen,
-              ),
-            ),
-            SizedBox(height: sw * 0.02),
-            Text(
-              _Str.resultDesc,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: _responsiveFont(sw, base: 12),
-                color: Colors.black54,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Input field numerik umum dengan Semantics & validasi angka.
-  Widget _buildInputField({
-    required ValueKey<String> widgetKey,
-    required TextEditingController controller,
-    required String label,
-    required Icon prefixIcon,
-    required String suffixText,
-    required String semanticLabel,
-    required String semanticHint,
-    int maxLength = 5,
-  }) {
-    return Semantics(
-      label:     semanticLabel,
-      hint:      semanticHint,
-      textField: true,
-      child: TextFormField(
-        key: widgetKey,
-        controller: controller,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [
-          // [RETAINED] Batasi 5 karakter untuk mencegah overflow & error DB
-          LengthLimitingTextInputFormatter(maxLength),
-          FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-        ],
-        decoration: InputDecoration(
-          labelText:  label,
-          border:     const OutlineInputBorder(),
-          prefixIcon: prefixIcon,
-          suffixText: suffixText,
-        ),
-        validator: (value) {
-          if (value == null || value.isEmpty) return '$label tidak boleh kosong';
-          if (double.tryParse(value) == null) return 'Masukkan angka yang valid';
-          return null;
-        },
-      ),
-    );
-  }
-
-  /// Dropdown jenis kelamin menggunakan package dropdown_search.
-  Widget _buildGenderDropdown(double sw) {
-    return DropdownSearch<String>(
-      key: _Keys.genderDropdown,
-      popupProps: const PopupProps.menu(
-        showSearchBox: false,
-        fit: FlexFit.loose,
-      ),
-      items: _Str.genderOptions,
-      dropdownDecoratorProps: const DropDownDecoratorProps(
-        dropdownSearchDecoration: InputDecoration(
-          labelText: _Str.genderLabel,
-          border: OutlineInputBorder(),
-          prefixIcon: Icon(Icons.wc),
-        ),
-      ),
-      onChanged: (String? newValue) {
-        setState(() => _genderController.text = newValue ?? '');
-      },
-      selectedItem: _genderController.text.isEmpty
-          ? null
-          : _genderController.text,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return '${_Str.genderLabel} harus dipilih';
-        }
-        return null;
-      },
-    );
-  }
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
-
-  /// Font responsif: -10% layar kecil (≤360 dp), +20% tablet (≥600 dp).
   double _responsiveFont(double sw, {required double base}) {
     if (sw <= 360) return base * 0.90;
     if (sw >= 600) return base * 1.20;

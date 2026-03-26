@@ -59,6 +59,7 @@ class _InboxPageState extends State<InboxPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(title: 'Kotak Masuk', subtitle: ''),
       body: StreamBuilder<QuerySnapshot>(
         stream: _shareService.getPendingRequests(),

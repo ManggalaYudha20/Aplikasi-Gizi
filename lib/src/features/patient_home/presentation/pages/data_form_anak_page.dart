@@ -12,7 +12,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.da
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/scaffold_with_animated_fab.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_validator_utils.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/models/nutrition_calculation_helper.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/nutrition_calculator_service.dart';
 import 'dart:async';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/diagnosis_terminology.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/intervensi_data.dart';
@@ -296,20 +296,18 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
 
       // 2. [FIX] Lakukan Perhitungan Status Gizi Disini
       // Kita harus memanggil Helper kalkulasi agar variabel 'calcResult' tersedia
-      final calcResult = NutritionCalculationHelper.calculateAll(
+      final calcResult = NutritionCalculatorService.calculateAll(
         birthDate: _selectedDate!,
         checkDate: DateTime.now(),
-        weight: bb,
-        height: tb,
+        weightKg: bb,
+        heightCm: tb,
         gender: _jenisKelaminController.text,
       );
 
       // Ambil string kategori status gizi dari hasil kalkulasi
       // Gunakan null-aware operator (??) untuk menghindari error jika data null
-      String statusBBTB =
-          calcResult['bbPerTB']?['category'] ?? ''; // Gizi Buruk/Baik
-      String statusTBU =
-          calcResult['tbPerU']?['category'] ?? ''; // Pendek/Normal
+      String statusBBTB = calcResult.weightForHeight.category; // Gizi Buruk/Baik (BB/TB)
+      String statusTBU = calcResult.heightForAge.category;     // Pendek/Normal (TB/U)
 
       // --- LOGIKA DIAGNOSA ANAK (NCP) ---
 
@@ -802,24 +800,25 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
           calculatedBBI = _hitungBBIAnak(_selectedDate!);
         }
 
-        final calculationResult = NutritionCalculationHelper.calculateAll(
+        final calculationResult = NutritionCalculatorService.calculateAll(
           birthDate: _selectedDate!,
           checkDate: DateTime.now(),
-          weight: beratBadan,
-          height: tinggiBadan,
+          weightKg: beratBadan,
+          heightCm: tinggiBadan,
           gender: _jenisKelaminController.text,
         );
 
         // Ambil hasil kalkulasi
-        final resultBBU = calculationResult['bbPerU'];
-        final resultTBU = calculationResult['tbPerU'];
-        final resultBBTB = calculationResult['bbPerTB'];
+        final resultBBU = calculationResult.weightForAge;
+        final resultTBU = calculationResult.heightForAge;
+        final resultBBTB = calculationResult.weightForHeight;
         
-        Map<String, dynamic> resultIMTU;
+        double? zScoreIMTU;
+        String statusGiziIMTU = '';
 
-        final int totalBulanUsia = NutritionCalculationHelper.calculateAgeInMonths(
-          _selectedDate!,
-          DateTime.now(),
+        final int totalBulanUsia = NutritionCalculatorService.calculateAgeInMonths(
+          birthDate: _selectedDate!,
+          checkDate: DateTime.now(),
         );
         final bool isAnak5Tahunkeatas = totalBulanUsia >= 60;
 
@@ -829,15 +828,18 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
           final double bmi = beratBadan / ((tinggiBadan / 100) * (tinggiBadan / 100));
 
           // Panggil helper baru yang menggunakan tabel 5-18 tahun
-          resultIMTU = NutritionCalculationHelper.calculateIMTU5To18(
+          final resultIMTU5to18 = NutritionCalculatorService.calculateIMTU5To18(
             ageYears            : ageYears,
             ageMonthsRemainder  : ageMonthsRemainder,
             bmi                 : bmi,
             gender              : _jenisKelaminController.text,
           );
+          zScoreIMTU = resultIMTU5to18.zScore;
+          statusGiziIMTU = resultIMTU5to18.category;
         } else {
           // Balita < 5 tahun: gunakan hasil dari calculateAll() seperti semula
-          resultIMTU = calculationResult['imtPerU'];
+          zScoreIMTU = calculationResult.bmiForAge.zScore;
+          statusGiziIMTU = calculationResult.bmiForAge.category;
         }
 
         Map<String, String> labResultsMap = {};
@@ -919,16 +921,17 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
           'kehilanganNafsuMakan':
               _appetiteMap[_kehilanganNafsuMakanController.text] ?? 0,
           'anakSakitBerat': _sickMap[_anakSakitBeratController.text] ?? 0,
-          'zScoreBBU': resultBBU['zScore'], // BB/U Z-Score
-          'statusGiziBBU': resultBBU['category'], // BB/U Status
+          'zScoreBBU': resultBBU.zScore, 
+          'statusGiziBBU': resultBBU.category, 
 
-          'zScoreTBU': resultTBU['zScore'], // TB/U Z-Score
-          'statusGiziTBU': resultTBU['category'],
-          'zScoreBBTB': resultBBTB['zScore'], // BB/TB (Gizi Buruk/Baik check)
-          'statusGiziBBTB': resultBBTB['category'],
+          'zScoreTBU': resultTBU.zScore, 
+          'statusGiziTBU': resultTBU.category,
+          
+          'zScoreBBTB': resultBBTB.zScore, 
+          'statusGiziBBTB': resultBBTB.category,
 
-          'zScoreIMTU': resultIMTU['zScore'], // IMT/U
-          'statusGiziIMTU': resultIMTU['category'],
+          'zScoreIMTU': zScoreIMTU, 
+          'statusGiziIMTU': statusGiziIMTU,
 
           'lila': double.tryParse(_lilaController.text),
           'lingkarKepala': double.tryParse(_lingkarKepalaController.text),
@@ -1020,15 +1023,17 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
           createdBy: widget.patient?.createdBy ?? currentUser.uid,
           diagnosisMedis: _diagnosisMedisController.text,
           tipePasien: 'anak',
-          zScoreBBU: resultBBU['zScore'],
-          statusGiziBBU: resultBBU['category'],
-          zScoreTBU: resultTBU['zScore'],
-          statusGiziTBU: resultTBU['category'],
-          zScoreBBTB: resultBBTB['zScore'], // BB/TB (Gizi Buruk/Baik check)
-          statusGiziBBTB: resultBBTB['category'],
+          zScoreBBU: resultBBU.zScore, 
+          statusGiziBBU: resultBBU.category, 
 
-          zScoreIMTU: resultIMTU['zScore'], // IMT/U
-          statusGiziIMTU: resultIMTU['category'],
+          zScoreTBU: resultTBU.zScore, 
+          statusGiziTBU: resultTBU.category,
+          
+          zScoreBBTB: resultBBTB.zScore, 
+          statusGiziBBTB: resultBBTB.category,
+
+          zScoreIMTU: zScoreIMTU, 
+          statusGiziIMTU: statusGiziIMTU,
 
           namaNutrisionis: _namaNutrisionisController.text,
           kehilanganBeratBadan:
