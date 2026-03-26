@@ -5,11 +5,16 @@ import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/pat
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/scaffold_with_animated_fab.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
-import 'data_form_anak_page.dart'; // Import form anak
-import '../../data/services/patient_delete_service.dart'; // Import logika hapus
-import '../../data/services/pdf_generator_anak.dart'; // Import PDF generator anak
-import '../../data/services/pdf_generator_asuhan_anak.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/services/share_patient_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/presentation/pages/data_form_anak_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/services/share_patient_service.dart';
+
+// ── Services (dipindahkan dari presentation/pages/) ──────────────────────────
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/services/patient_delete_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/services/pdf/pdf_generator_anak_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/services/pdf/pdf_generator_asuhan_anak.dart';
+
+// ── Widget yang diekstrak ────────────────────────────────────────────────────
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/presentation/widgets/patient_info_row.dart';
 
 class PatientAnakDetailPage extends StatefulWidget {
   final PatientAnak patient;
@@ -36,17 +41,16 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
   // ---------------------------------------------------------------------------
 
   /// `true`  → usia ≥ 5 tahun: tampilkan IMT/U saja.
-  /// `false` → usia < 5 tahun (balita): tampilkan semua indikator (BB/U, TB/U, BB/PB, IMT/U).
+  /// `false` → usia < 5 tahun (balita): tampilkan semua indikator.
   bool get _isAnak5Tahunkeatas {
-    // Total bulan kalender dari model; ambang batas: 60 bulan = tepat 5 tahun.
     final int totalBulan =
         (_currentPatient.usiaTahun * 12) + _currentPatient.usiaBulan;
     return totalBulan >= 60;
   }
 
-  // Fungsi memunculkan Bottom Sheet untuk berbagi
+  // ── Berbagi Data Pasien ───────────────────────────────────────────────────
   void _showShareDialog(BuildContext context) {
-    List<String> selectedUids = []; // Menyimpan UID penerima yang dicentang
+    List<String> selectedUids = [];
     bool isSending = false;
 
     showModalBottomSheet(
@@ -60,7 +64,7 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
           builder: (BuildContext context, StateSetter setModalState) {
             return Container(
               padding: const EdgeInsets.all(16),
-              height: MediaQuery.of(context).size.height * 0.6, // 60% tinggi layar
+              height: MediaQuery.of(context).size.height * 0.6,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -69,22 +73,26 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  const Text('Pilih satu atau lebih rekan untuk membagikan salinan data pasien ini.'),
+                  const Text(
+                      'Pilih satu atau lebih rekan untuk membagikan salinan data pasien ini.'),
                   const Divider(),
-                  
-                  // Daftar Nutrisionis
                   Expanded(
                     child: FutureBuilder<List<Map<String, dynamic>>>(
                       future: _shareService.getAvailableNutritionists(),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
                         }
                         if (snapshot.hasError) {
-                          return Center(child: Text('Error: ${snapshot.error}'));
+                          return Center(
+                              child: Text('Error: ${snapshot.error}'));
                         }
                         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return const Center(child: Text('Tidak ada akun Nutrisionis lain yang ditemukan.'));
+                          return const Center(
+                              child: Text(
+                                  'Tidak ada akun Nutrisionis lain yang ditemukan.'));
                         }
 
                         final nutritionists = snapshot.data!;
@@ -92,10 +100,12 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                           itemCount: nutritionists.length,
                           itemBuilder: (context, index) {
                             final user = nutritionists[index];
-                            final isChecked = selectedUids.contains(user['uid']);
-
+                            final isChecked =
+                                selectedUids.contains(user['uid']);
                             return CheckboxListTile(
-                              title: Text(user['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text(user['name'],
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
                               subtitle: Text(user['email']),
                               value: isChecked,
                               activeColor: Colors.blue,
@@ -114,13 +124,12 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                       },
                     ),
                   ),
-
-                  // Tombol Aksi
                   Row(
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: isSending ? null : () => Navigator.pop(context),
+                          onPressed:
+                              isSending ? null : () => Navigator.pop(context),
                           child: const Text('Batal'),
                         ),
                       ),
@@ -130,47 +139,56 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                           onPressed: (selectedUids.isEmpty || isSending)
                               ? null
                               : () async {
-                                  // Munculkan konfirmasi akhir
                                   bool? confirm = await showDialog<bool>(
                                     context: context,
                                     builder: (ctx) => AlertDialog(
-                                      title: const Text('Konfirmasi Pengiriman'),
-                                      content: Text('Kirim salinan data "${_currentPatient.namaLengkap}" ke ${selectedUids.length} orang?'),
+                                      title:
+                                          const Text('Konfirmasi Pengiriman'),
+                                      content: Text(
+                                          'Kirim salinan data "${_currentPatient.namaLengkap}" ke ${selectedUids.length} orang?'),
                                       actions: [
-                                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
-                                        ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Kirim')),
+                                        TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(ctx, false),
+                                            child: const Text('Batal')),
+                                        ElevatedButton(
+                                            onPressed: () =>
+                                                Navigator.pop(ctx, true),
+                                            child: const Text('Kirim')),
                                       ],
                                     ),
                                   );
 
                                   if (confirm != true) return;
-
                                   setModalState(() => isSending = true);
 
                                   try {
-                                    // Ambil raw data dari model menggunakan toMap()
-                                    Map<String, dynamic> rawData = _currentPatient.toMap();
-                                    // Hapus field ID agar saat di-import nanti dapat ID baru
-                                    rawData.remove('id'); 
-                                    
-                                    // Karena toMap() mungkin mengubah tanggal menjadi String, pastikan formatnya aman untuk dikirim
+                                    Map<String, dynamic> rawData =
+                                        _currentPatient.toMap();
+                                    rawData.remove('id');
                                     await _shareService.sendPatientData(
                                       receiverIds: selectedUids,
                                       patientData: rawData,
                                       patientName: _currentPatient.namaLengkap,
                                       patientType: 'anak',
                                     );
-
                                     if (context.mounted) {
-                                      Navigator.pop(context); // Tutup bottom sheet
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Berhasil mengirimkan permintaan berbagi!'), backgroundColor: Colors.green),
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Berhasil mengirimkan permintaan berbagi!'),
+                                            backgroundColor: Colors.green),
                                       );
                                     }
                                   } catch (e) {
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Gagal mengirim: $e'), backgroundColor: Colors.red),
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text('Gagal mengirim: $e'),
+                                            backgroundColor: Colors.red),
                                       );
                                     }
                                   } finally {
@@ -178,7 +196,11 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                                   }
                                 },
                           child: isSending
-                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                      color: Colors.white, strokeWidth: 2))
                               : const Text('Kirim'),
                         ),
                       ),
@@ -201,7 +223,7 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Evaluasi sekali per-build agar tidak dipanggil berkali-kali di dalam tree.
+    // Evaluasi sekali per-build agar tidak dipanggil berkali-kali di tree.
     final bool isAnak5Keatas = _isAnak5Tahunkeatas;
 
     return ScaffoldWithAnimatedFab(
@@ -219,7 +241,8 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
         resetButtonColor: Colors.red,
         submitButtonColor: const Color.fromARGB(255, 0, 148, 68),
         onReset: () {
-          PatientDeleteLogic.handlePatientDelete(
+          // ── Menggunakan PatientDeleteService (renamed) ────────────────
+          PatientDeleteService.handlePatientDelete(
             context: context,
             patientId: _currentPatient.id,
             patientName: _currentPatient.namaLengkap,
@@ -229,14 +252,11 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
           final updatedPatient = await Navigator.push<PatientAnak>(
             context,
             MaterialPageRoute(
-              builder: (context) => DataFormAnakPage(patient: _currentPatient),
+              builder: (_) => DataFormAnakPage(patient: _currentPatient),
             ),
           );
-
           if (updatedPatient != null && mounted) {
-            setState(() {
-              _currentPatient = updatedPatient;
-            });
+            setState(() => _currentPatient = updatedPatient);
           }
         },
       ),
@@ -245,37 +265,32 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Bagian 1: Data Dasar ─────────────────────────────────────────
+            // ── Bagian 1: Data Dasar ──────────────────────────────────────
             _buildSectionTitle('Data Pasien Anak'),
-            _buildInfoRow('No. RM', _currentPatient.noRM),
-            _buildInfoRow(
-              'Tanggal Lahir',
-              _currentPatient.tanggalLahirFormatted,
-            ),
-            _buildInfoRow('Usia', _currentPatient.usiaFormatted),
-            _buildInfoRow('Jenis Kelamin', _currentPatient.jenisKelamin),
-            _buildInfoRow(
-              'Diagnosis Medis',
-              '${_currentPatient.diagnosisMedis} ',
-            ),
-            _buildInfoRow('Berat Badan', '${_currentPatient.beratBadan} kg'),
-            _buildInfoRow(
+            PatientInfoRow('No. RM', _currentPatient.noRM),
+            PatientInfoRow('Tanggal Lahir', _currentPatient.tanggalLahirFormatted),
+            PatientInfoRow('Usia', _currentPatient.usiaFormatted),
+            PatientInfoRow('Jenis Kelamin', _currentPatient.jenisKelamin),
+            PatientInfoRow(
+                'Diagnosis Medis', '${_currentPatient.diagnosisMedis} '),
+            PatientInfoRow('Berat Badan', '${_currentPatient.beratBadan} kg'),
+            PatientInfoRow(
               'Panjang/Tinggi Badan',
               '${_currentPatient.tinggiBadan.toStringAsFixed(0)} cm',
             ),
             if (_currentPatient.lila != null)
-              _buildInfoRow('LILA', '${_currentPatient.lila} cm'),
+              PatientInfoRow('LILA', '${_currentPatient.lila} cm'),
             if (_currentPatient.lingkarKepala != null)
-              _buildInfoRow(
-                'Lingkar Kepala (LK)',
-                '${_currentPatient.lingkarKepala} cm',
-              ),
-            _buildInfoRow(
+              PatientInfoRow(
+                  'Lingkar Kepala (LK)', '${_currentPatient.lingkarKepala} cm'),
+            PatientInfoRow(
               'Berat Badan Ideal',
               '${_currentPatient.bbi?.toString() ?? ""} kg',
             ),
-             const SizedBox(height: 16), // Spasi atas tombol
-            // --- TOMBOL BERBAGI BARU ---
+
+            const SizedBox(height: 16),
+
+            // ── Tombol Berbagi ────────────────────────────────────────────
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -283,26 +298,26 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                 icon: const Icon(Icons.share, color: Colors.blue),
                 label: const Text(
                   'Bagikan Data Pasien ke Nutrisionis Lain',
-                  style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.blue, fontWeight: FontWeight.bold),
                 ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.blue),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                      borderRadius: BorderRadius.circular(8)),
                 ),
               ),
             ),
+
             const Divider(height: 20, thickness: 2, color: Colors.green),
 
-            // ── Bagian 2: Hasil Status Gizi ──────────────────────────────────
+            // ── Bagian 2: Hasil Status Gizi ───────────────────────────────
             // [KONDISIONAL] Tampilan indikator disesuaikan berdasarkan usia.
             //   • Usia < 5 tahun (balita) : tampil BB/U, TB/U, BB/PB, IMT/U
             //   • Usia ≥ 5 tahun          : hanya tampil IMT/U
             _buildSectionTitle('Hasil Status Gizi Anak'),
 
-            // --- BB/U — hanya untuk balita (< 5 tahun) ---
             if (!isAnak5Keatas)
               _buildStatusGiziItem(
                 title: 'Berat Badan menurut Umur (BB/U)',
@@ -310,7 +325,6 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                 category: _currentPatient.statusGiziBBU,
               ),
 
-            // --- TB/U — hanya untuk balita (< 5 tahun) ---
             if (!isAnak5Keatas)
               _buildStatusGiziItem(
                 title: 'Tinggi Badan menurut Umur (PB/U)',
@@ -318,7 +332,6 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                 category: _currentPatient.statusGiziTBU,
               ),
 
-            // --- BB/PB — hanya untuk balita (< 5 tahun) ---
             if (!isAnak5Keatas)
               _buildStatusGiziItem(
                 title: 'Berat Badan menurut Tinggi Badan (BB/PB)',
@@ -326,7 +339,6 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                 category: _currentPatient.statusGiziBBTB,
               ),
 
-            // --- IMT/U — tampil untuk SEMUA usia (balita & anak ≥ 5 tahun) ---
             _buildStatusGiziItem(
               title: 'Indeks Massa Tubuh menurut Umur (IMT/U)',
               zScore: _currentPatient.zScoreIMTU,
@@ -335,31 +347,25 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
 
             const Divider(height: 20, thickness: 2, color: Colors.green),
 
-            // ── Bagian 3: Skrining Gizi Lanjut ──────────────────────────────
+            // ── Bagian 3: Skrining Gizi Lanjut ────────────────────────────
             _buildSectionTitle('Skrining Gizi Lanjut'),
-            _buildInfoRow(
-              'Skor Status Antropometri',
-              '${_currentPatient.skorAntropometri}',
-            ),
-            _buildInfoRow(
-              'Skor Kehilangan Berat Badan',
-              _currentPatient.kehilanganBeratBadan == 2 ? '2' : '0',
-            ),
-            _buildInfoRow(
-              'Skor Asupan Makanan',
-              '${_currentPatient.kehilanganNafsuMakan ?? 0}',
-            ),
-            _buildInfoRow(
-              'Skor Penyakit Berat',
-              _currentPatient.anakSakitBerat == 2 ? '2' : '0',
-            ),
+            PatientInfoRow(
+                'Skor Status Antropometri',
+                '${_currentPatient.skorAntropometri}'),
+            PatientInfoRow(
+                'Skor Kehilangan Berat Badan',
+                _currentPatient.kehilanganBeratBadan == 2 ? '2' : '0'),
+            PatientInfoRow(
+                'Skor Asupan Makanan',
+                '${_currentPatient.kehilanganNafsuMakan ?? 0}'),
+            PatientInfoRow(
+                'Skor Penyakit Berat',
+                _currentPatient.anakSakitBerat == 2 ? '2' : '0'),
             const Divider(),
-            _buildInfoRow(
-              'Total Skor',
-              '${_currentPatient.totalPymsScore}',
-              isBold: true,
-            ),
-            _buildInfoRow(
+            PatientInfoRow(
+                'Total Skor', '${_currentPatient.totalPymsScore}',
+                isBold: true),
+            PatientInfoRow(
               'Interpretasi',
               _currentPatient.pymsInterpretation,
               isBold: true,
@@ -370,7 +376,7 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
 
             const SizedBox(height: 20),
 
-            // Tombol Cetak PDF Anak
+            // ── Tombol PDF Skrining Anak ──────────────────────────────────
             Row(
               children: [
                 Expanded(
@@ -378,36 +384,23 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                     onPressed: () async {
                       final scaffoldContext = ScaffoldMessenger.of(context);
                       try {
-                        scaffoldContext.showSnackBar(
-                          const SnackBar(
+                        scaffoldContext.showSnackBar(const SnackBar(
                             content: Text('Membuat File PDF...'),
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
-
-                        final pdfFile = await PdfGeneratorAnak.generate(
-                          _currentPatient,
-                        );
-
-                        await PdfGeneratorAnak.openFile(pdfFile);
-
+                            duration: Duration(seconds: 1)));
+                        // ── PdfGeneratorAnakService (renamed) ─────────────
+                        final pdfFile = await PdfGeneratorAnakService.generate(
+                            _currentPatient);
+                        await PdfGeneratorAnakService.openFile(pdfFile);
                         if (!mounted) return;
-                        scaffoldContext.showSnackBar(
-                          const SnackBar(
+                        scaffoldContext.showSnackBar(const SnackBar(
                             content: Text('File PDF Berhasil dibuat!'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
+                            backgroundColor: Colors.green));
                       } catch (e) {
                         if (!mounted) return;
-                        scaffoldContext.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'File PDF Gagal dibuat: ${e.toString()}',
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
+                        scaffoldContext.showSnackBar(SnackBar(
+                            content:
+                                Text('File PDF Gagal dibuat: ${e.toString()}'),
+                            backgroundColor: Colors.red));
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -415,8 +408,7 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                          borderRadius: BorderRadius.circular(8)),
                     ),
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -431,41 +423,37 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
 
+            const SizedBox(height: 20),
             const Divider(height: 20, thickness: 2, color: Colors.green),
 
-            // ── Bagian 4: Asesmen & Rencana Asuhan Gizi ─────────────────────
+            // ── Bagian 4: Asesmen & Rencana Asuhan Gizi ──────────────────
             _buildSectionTitle('Asesmen & Rencana Asuhan Gizi'),
 
-            // Kategori 1: Riwayat Gizi
+            // Riwayat Gizi
             ExpansionTile(
               leading: const Icon(Icons.history_edu_outlined),
-              title: const Text(
-                'Riwayat Gizi /FH (Food History)',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              title: const Text('Riwayat Gizi /FH (Food History)',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              childrenPadding:
+                  const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 _buildInfoDisplay(
-                  label: 'Alergi Makanan',
-                  value: _currentPatient.alergiMakanan ?? '-',
-                ),
+                    label: 'Alergi Makanan',
+                    value: _currentPatient.alergiMakanan ?? '-'),
                 _buildInfoDisplay(
-                  label: 'Pola Makan / Asupan',
-                  value: _currentPatient.polaMakan,
-                ),
+                    label: 'Pola Makan / Asupan',
+                    value: _currentPatient.polaMakan),
               ],
             ),
 
-            // 2. Biokimia
+            // Biokimia
             ExpansionTile(
               leading: const Icon(Icons.science_outlined),
-              title: const Text(
-                'Biokimia /BD \n(Biochemical Data)',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              title: const Text('Biokimia /BD \n(Biochemical Data)',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              childrenPadding:
+                  const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 if (_currentPatient.labResults.isEmpty)
                   const Padding(
@@ -473,99 +461,85 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                     child: Text('Tidak ada data laboratorium.'),
                   )
                 else
-                  ..._currentPatient.labResults.entries.map((entry) {
-                    return _buildInfoRow(entry.key, entry.value);
-                  }),
+                  ..._currentPatient.labResults.entries.map(
+                    (entry) => PatientInfoRow(entry.key, entry.value),
+                  ),
               ],
             ),
 
-            // 3. Klinik/Fisik
+            // Klinik/Fisik
             ExpansionTile(
               leading: const Icon(Icons.monitor_heart_outlined),
-              title: const Text(
-                'Klinik /Fisik /PD \n(Physical Data)',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              title: const Text('Klinik /Fisik /PD \n(Physical Data)',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              childrenPadding:
+                  const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
-                _buildInfoRow(
+                PatientInfoRow(
                   'Tekanan Darah (TD)',
-                  (_currentPatient.klinikTD != null &&
-                          _currentPatient.klinikTD!.isNotEmpty)
+                  (_currentPatient.klinikTD?.isNotEmpty ?? false)
                       ? '${_currentPatient.klinikTD} mmHg'
                       : '-',
                 ),
-                _buildInfoRow(
+                PatientInfoRow(
                   'Nadi',
-                  (_currentPatient.klinikNadi != null &&
-                          _currentPatient.klinikNadi!.isNotEmpty)
+                  (_currentPatient.klinikNadi?.isNotEmpty ?? false)
                       ? '${_currentPatient.klinikNadi} x/menit'
                       : '-',
                 ),
-                _buildInfoRow(
+                PatientInfoRow(
                   'Suhu Badan (SB)',
-                  (_currentPatient.klinikSuhu != null &&
-                          _currentPatient.klinikSuhu!.isNotEmpty)
+                  (_currentPatient.klinikSuhu?.isNotEmpty ?? false)
                       ? '${_currentPatient.klinikSuhu} °C'
                       : '-',
                 ),
-                _buildInfoRow(
+                PatientInfoRow(
                   'Pernapasan (RR)',
-                  (_currentPatient.klinikRR != null &&
-                          _currentPatient.klinikRR!.isNotEmpty)
+                  (_currentPatient.klinikRR?.isNotEmpty ?? false)
                       ? '${_currentPatient.klinikRR} x/menit'
                       : '-',
                 ),
-                _buildInfoRow(
+                PatientInfoRow(
                   'Saturasi Oksigen (SpO2)',
-                  (_currentPatient.klinikSPO2 != null &&
-                          _currentPatient.klinikSPO2!.isNotEmpty)
+                  (_currentPatient.klinikSPO2?.isNotEmpty ?? false)
                       ? '${_currentPatient.klinikSPO2} %'
                       : '-',
                 ),
                 _buildInfoDisplay(
-                  label: 'Keadaan Umum (KU) :',
-                  value: _currentPatient.klinikKU,
-                  emptyValueMessage: '-',
-                ),
+                    label: 'Keadaan Umum (KU) :',
+                    value: _currentPatient.klinikKU,
+                    emptyValueMessage: '-'),
                 _buildInfoDisplay(
-                  label: 'Kesadaran (KES) :',
-                  value: _currentPatient.klinikKES,
-                  emptyValueMessage: '-',
-                ),
+                    label: 'Kesadaran (KES) :',
+                    value: _currentPatient.klinikKES,
+                    emptyValueMessage: '-'),
               ],
             ),
 
+            // Riwayat Personal
             ExpansionTile(
               leading: const Icon(Icons.person_outline),
-              title: const Text(
-                'Riwayat Personal /CH \n(Client History)',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              title: const Text('Riwayat Personal /CH \n(Client History)',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              childrenPadding:
+                  const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 _buildInfoDisplay(
-                  label: 'Riwayat Penyakit Sekarang (RPS)',
-                  value: _currentPatient.riwayatPenyakitSekarang,
-                ),
+                    label: 'Riwayat Penyakit Sekarang (RPS)',
+                    value: _currentPatient.riwayatPenyakitSekarang),
                 _buildInfoDisplay(
-                  label: 'Riwayat Penyakit Dahulu (RPD)',
-                  value: _currentPatient.riwayatPenyakitDahulu,
-                ),
+                    label: 'Riwayat Penyakit Dahulu (RPD)',
+                    value: _currentPatient.riwayatPenyakitDahulu),
               ],
             ),
 
-            // 4. Diagnosis Gizi
+            // Diagnosis Gizi
             ExpansionTile(
               leading: const Icon(Icons.medical_services_outlined),
-              title: const Text(
-                'Diagnosa Gizi',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              title: const Text('Diagnosa Gizi',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               childrenPadding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 8.0,
-              ),
+                  horizontal: 16.0, vertical: 8.0),
               children: [
                 _buildInfoDisplay(
                   label: 'Diagnosa Gizi:',
@@ -575,108 +549,79 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
               ],
             ),
 
-            // 5. Intervensi
+            // Intervensi
             ExpansionTile(
               leading: const Icon(Icons.food_bank_outlined),
-              title: const Text(
-                'Intervensi Gizi',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              title: const Text('Intervensi Gizi',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              childrenPadding:
+                  const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
-                _buildInfoRow(
-                  'Jenis Diet',
-                  _currentPatient.intervensiDiet ?? '-',
-                ),
-                _buildInfoRow(
-                  'Bentuk Makanan (BM)',
-                  _currentPatient.intervensiBentukMakanan ?? '-',
-                ),
-                _buildInfoRow(
-                  'Tujuan Diet',
-                  _currentPatient.intervensiTujuan ?? '-',
-                ),
-                _buildInfoRow('Via', _currentPatient.intervensiVia ?? '-'),
+                PatientInfoRow(
+                    'Jenis Diet', _currentPatient.intervensiDiet ?? '-'),
+                PatientInfoRow('Bentuk Makanan (BM)',
+                    _currentPatient.intervensiBentukMakanan ?? '-'),
+                PatientInfoRow(
+                    'Tujuan Diet', _currentPatient.intervensiTujuan ?? '-'),
+                PatientInfoRow('Via', _currentPatient.intervensiVia ?? '-'),
               ],
             ),
 
-            // 6. Monev
+            // Monitoring & Evaluasi
             // [KONDISIONAL] Label status gizi di Monev disesuaikan dengan usia:
-            //   • Usia ≥ 5 tahun : tampilkan "Status Gizi IMT/U" (dari zScoreIMTU)
-            //   • Usia < 5 tahun : tampilkan "Status Gizi BB/U"  (dari statusGiziBBU)
+            //   • Usia ≥ 5 tahun : tampilkan "Status Gizi IMT/U"
+            //   • Usia < 5 tahun : tampilkan "Status Gizi BB/U"
             ExpansionTile(
               leading: const Icon(Icons.analytics_outlined),
-              title: const Text(
-                'Monitoring dan Evaluasi',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              title: const Text('Monitoring dan Evaluasi',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              childrenPadding:
+                  const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
-                // ── Status Gizi (kondisional berdasarkan usia) ───────────────
                 if (isAnak5Keatas)
-                  // Anak ≥ 5 tahun: pakai IMT/U sebagai acuan status gizi
                   _buildInfoDisplay(
-                    label: 'Status Gizi IMT/U :',
-                    value: _currentPatient.statusGiziIMTU,
-                  )
+                      label: 'Status Gizi IMT/U :',
+                      value: _currentPatient.statusGiziIMTU)
                 else
-                  // Balita < 5 tahun: tetap pakai BB/U
                   _buildInfoDisplay(
-                    label: 'Status Gizi BB/U :',
-                    value: _currentPatient.statusGiziBBU,
-                  ),
-                // ── Field Monev lainnya (tidak berubah) ─────────────────────
+                      label: 'Status Gizi BB/U :',
+                      value: _currentPatient.statusGiziBBU),
                 _buildInfoDisplay(
-                  label: 'Indikator Monitoring :',
-                  value: _currentPatient.monevIndikator,
-                ),
+                    label: 'Indikator Monitoring :',
+                    value: _currentPatient.monevIndikator),
                 _buildInfoDisplay(
-                  label: 'Asupan Makanan :',
-                  value: _currentPatient.monevAsupan,
-                ),
+                    label: 'Asupan Makanan :',
+                    value: _currentPatient.monevAsupan),
               ],
             ),
 
             const SizedBox(height: 20),
 
+            // ── Tombol PDF Asuhan Anak ────────────────────────────────────
             Row(
               children: [
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
                       final scaffoldContext = ScaffoldMessenger.of(context);
-
                       try {
-                        scaffoldContext.showSnackBar(
-                          const SnackBar(
+                        scaffoldContext.showSnackBar(const SnackBar(
                             content: Text('Membuat File PDF...'),
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
-
-                        final pdfFile = await PdfGeneratorAsuhanAnak.generate(
-                          _currentPatient,
-                        );
-
+                            duration: Duration(seconds: 1)));
+                        // ── PdfGeneratorAsuhanAnak (tidak diubah namanya) ─
+                        final pdfFile =
+                            await PdfGeneratorAsuhanAnak.generate(_currentPatient);
                         await PdfGeneratorAsuhanAnak.openFile(pdfFile);
-
                         if (!mounted) return;
-                        scaffoldContext.showSnackBar(
-                          const SnackBar(
+                        scaffoldContext.showSnackBar(const SnackBar(
                             content: Text('File PDF Berhasil dibuat!'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
+                            backgroundColor: Colors.green));
                       } catch (e) {
                         if (!mounted) return;
-                        scaffoldContext.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'File PDF Gagal dibuat: ${e.toString()}',
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
+                        scaffoldContext.showSnackBar(SnackBar(
+                            content:
+                                Text('File PDF Gagal dibuat: ${e.toString()}'),
+                            backgroundColor: Colors.red));
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -684,8 +629,7 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                          borderRadius: BorderRadius.circular(8)),
                     ),
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -706,33 +650,27 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
     );
   }
 
-  // ── Helper Widgets ─────────────────────────────────────────────────────────
+  // ── Private Helpers ───────────────────────────────────────────────────────
 
   Widget _buildInfoDisplay({
     required String label,
     required String? value,
     String emptyValueMessage = 'Tidak ada data.',
   }) {
-    final displayText = (value == null || value.isEmpty)
-        ? emptyValueMessage
-        : value;
-
+    final displayText =
+        (value == null || value.isEmpty) ? emptyValueMessage : value;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 16, color: Colors.black54),
-          ),
+          Text(label,
+              style: const TextStyle(fontSize: 16, color: Colors.black54)),
           const SizedBox(height: 6),
           SizedBox(
             width: double.infinity,
-            child: Text(
-              displayText,
-              style: const TextStyle(fontSize: 16, color: Colors.black87),
-            ),
+            child: Text(displayText,
+                style: const TextStyle(fontSize: 16, color: Colors.black87)),
           ),
         ],
       ),
@@ -793,21 +731,16 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             children: [
               Row(
                 children: [
-                  const Text(
-                    'Z-Score: ',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    zScore?.toStringAsFixed(2) ?? '-',
-                    style: const TextStyle(fontSize: 14),
-                  ),
+                  const Text('Z-Score: ',
+                      style: TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.bold)),
+                  Text(zScore?.toStringAsFixed(2) ?? '-',
+                      style: const TextStyle(fontSize: 14)),
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -839,44 +772,6 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
           fontWeight: FontWeight.bold,
           color: Color.fromARGB(255, 0, 148, 68),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(
-    String label,
-    String value, {
-    bool isBold = false,
-    Color? valueColor,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment:
-            CrossAxisAlignment.start, // Tambahkan ini agar teks rata atas
-        children: [
-          Expanded(
-            flex: 2, // Mengambil porsi ruang untuk label
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 16, color: Colors.black54),
-            ),
-          ),
-          const SizedBox(width: 16), // Jarak antara label dan value
-          Expanded(
-            flex: 3, // Mengambil porsi ruang lebih besar untuk value
-            child: Text(
-              value,
-              textAlign: TextAlign.right, // Teks rata kanan
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-                color: valueColor ?? Colors.black87,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

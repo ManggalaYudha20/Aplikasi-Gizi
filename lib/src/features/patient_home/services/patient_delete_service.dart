@@ -1,13 +1,18 @@
-//lib\src\features\home\presentation\pages\patient_delete_logic.dart
+// lib/src/features/patient_home/services/patient_delete_service.dart
+//
+// Dipindahkan dari: presentation/pages/patient_delete_logic.dart
+// Perubahan       : Class diubah namanya dari PatientDeleteLogic
+//                   menjadi PatientDeleteService agar konsisten dengan
+//                   konvensi penamaan folder services/.
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class PatientDeleteLogic {
-  /// Shows a confirmation dialog for deleting a patient
+class PatientDeleteService {
+  /// Menampilkan dialog konfirmasi sebelum menghapus data pasien.
   static Future<void> showDeleteConfirmationDialog({
     required BuildContext context,
-    required String patientId, // <-- SUDAH DIUBAH
+    required String patientId,
     required String patientName,
     required VoidCallback onDeleteSuccess,
   }) async {
@@ -15,7 +20,6 @@ class PatientDeleteLogic {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          // 1. Menambahkan Row dengan Icon peringatan merah
           title: const Row(
             children: [
               Icon(Icons.warning_amber_rounded, color: Colors.red),
@@ -23,30 +27,27 @@ class PatientDeleteLogic {
               Text('Konfirmasi Hapus'),
             ],
           ),
-          // 2. Mempertegas pesan bahwa ini tindakan permanen
           content: Text(
-            'Apakah Anda yakin ingin menghapus data pasien "$patientName" secara permanen? '
+            'Apakah Anda yakin ingin menghapus data pasien "$patientName" secara permanen? ',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Batal'),
             ),
-            // 3. Mengubah TextButton menjadi ElevatedButton dengan warna merah
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
-                // Store the dialog context before async operation
                 final navigator = Navigator.of(context);
                 await _deletePatient(
                   context: context,
                   patientId: patientId,
                   onDeleteSuccess: onDeleteSuccess,
                 );
-                navigator.pop(); // Close the dialog
+                navigator.pop();
               },
               child: const Text('Ya, Hapus'),
             ),
@@ -56,7 +57,7 @@ class PatientDeleteLogic {
     );
   }
 
-  /// Deletes a patient from Firestore
+  /// Menghapus dokumen pasien dari koleksi Firestore `patients`.
   static Future<void> _deletePatient({
     required BuildContext context,
     required String patientId,
@@ -64,7 +65,6 @@ class PatientDeleteLogic {
   }) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
-      // Show loading indicator
       scaffoldMessenger.showSnackBar(
         const SnackBar(
           content: Text('Menghapus Data Pasien...'),
@@ -72,24 +72,20 @@ class PatientDeleteLogic {
         ),
       );
 
-      // Delete from Firestore
       await FirebaseFirestore.instance
           .collection('patients')
           .doc(patientId)
           .delete();
-      
-      // Show success message using stored context
+
       scaffoldMessenger.showSnackBar(
         const SnackBar(
           content: Text('Berhasil Menghapus Data Pasien!'),
           backgroundColor: Colors.green,
         ),
       );
-      
-      // Call success callback
+
       onDeleteSuccess();
     } catch (e) {
-      // Show error message using stored context
       scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text('Gagal Menghapus Data Pasien: ${e.toString()}'),
@@ -99,10 +95,11 @@ class PatientDeleteLogic {
     }
   }
 
-  /// Handles the complete delete process including confirmation and navigation
+  /// Entry-point utama: menampilkan dialog konfirmasi lalu navigasi balik
+  /// setelah penghapusan berhasil.
   static Future<void> handlePatientDelete({
     required BuildContext context,
-    required String patientId, // <-- SUDAH DIUBAH
+    required String patientId,
     required String patientName,
   }) async {
     final navigator = Navigator.of(context);
@@ -111,7 +108,6 @@ class PatientDeleteLogic {
       patientId: patientId,
       patientName: patientName,
       onDeleteSuccess: () {
-        // Navigate back to patient list after successful deletion
         navigator.pop();
       },
     );

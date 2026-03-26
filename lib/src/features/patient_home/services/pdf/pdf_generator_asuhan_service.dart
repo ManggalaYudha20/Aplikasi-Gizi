@@ -1,4 +1,7 @@
-//lib\src\features\home\presentation\pages\pdf_generator_asuhan.dart
+// lib/src/features/patient_home/services/pdf/pdf_generator_asuhan_service.dart
+//
+// Dipindahkan dari: presentation/pages/pdf_generator_asuhan.dart
+// Perubahan       : Class diubah namanya PdfGeneratorAsuhan → PdfGeneratorAsuhanService.
 
 import 'dart:io';
 import 'package:open_file/open_file.dart';
@@ -9,7 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_model.dart';
 
-class PdfGeneratorAsuhan {
+class PdfGeneratorAsuhanService {
   static Future<File> generate(Patient patient) async {
     final pdf = pw.Document();
 
