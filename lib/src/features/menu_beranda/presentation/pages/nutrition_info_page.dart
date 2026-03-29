@@ -14,6 +14,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dar
 import 'package:aplikasi_diagnosa_gizi/src/features/about/presentation/pages/about_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/reference/presentation/pages/reference_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/consultation/presentation/pages/consultation_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/adult_quick_calc_page.dart';
 
 /// Model privat untuk konfigurasi menu agar lebih terstruktur
 class _MenuConfig {
@@ -38,10 +39,10 @@ class NutritionInfoPage extends StatelessWidget {
   const NutritionInfoPage({super.key, required this.userRole});
 
   int _getCrossAxisCount(double screenWidth) {
-  if (screenWidth >= 1200) return 4; // Desktop lebar / Windows besar
-  if (screenWidth >= 800) return 3;  // Tablet landscape / Windows kecil
-  return 2;                          // Mobile (default)
-}
+    if (screenWidth >= 1200) return 4; // Desktop lebar / Windows besar
+    if (screenWidth >= 800) return 3; // Tablet landscape / Windows kecil
+    return 2; // Mobile (default)
+  }
 
   /// 1. Clean Code: Memisahkan data menu dari metode build.
   /// Mengembalikan daftar menu berdasarkan role user.
@@ -84,20 +85,25 @@ class NutritionInfoPage extends StatelessWidget {
       ),
     ];
 
-    if (userRole == 'admin' || userRole == 'ahli_gizi' || userRole == 'nutrisionis') {
+    if (userRole == 'admin' ||
+        userRole == 'ahli_gizi' ||
+        userRole == 'nutrisionis') {
       // Sisipkan di urutan paling awal (index 0) agar posisinya tetap di atas kiri
-      items.insert(0, _MenuConfig(
-        id: 'kalkulator_penyakit',
-        label: 'Hitung Diet Penyakit',
-        icon: Icons.medical_services,
-        destinationPage: DiseaseCalculationPage(userRole: userRole),
-        semanticsLabel: 'Tombol masuk ke halaman kalkulator penyakit',
-      ));
+      items.insert(
+        0,
+        _MenuConfig(
+          id: 'kalkulator_penyakit',
+          label: 'Hitung Diet Penyakit',
+          icon: Icons.medical_services,
+          destinationPage: DiseaseCalculationPage(userRole: userRole),
+          semanticsLabel: 'Tombol masuk ke halaman kalkulator penyakit',
+        ),
+      );
     }
 
     // Logika kondisional role (Admin only)
     if (userRole == 'admin') {
-     items.addAll([
+      items.addAll([
         _MenuConfig(
           id: 'manajemen_pengguna',
           label: 'Manajemen Pengguna',
@@ -118,6 +124,161 @@ class NutritionInfoPage extends StatelessWidget {
     return items;
   }
 
+  // WIDGET BARU: Banner Hitung Cepat
+  Widget _buildQuickCalcBanner(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withValues(alpha: 0.05),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              const Icon(Icons.add, color: Colors.blue, size: 24),
+              const SizedBox(width: 8),
+              Text(
+                'Hitung Kebutuhan Gizi',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Tombol Pilihan
+          Row(
+            children: [
+              // Card Dewasa
+              Expanded(
+                child: _buildQuickCalcCard(
+                  title: 'Dewasa',
+                  icon: Icons
+                      .face, // Ganti ke Image.asset('path/gambar.png') jika ada ilustrasi
+                  iconColor: Colors.blue[300]!,
+                  bgColor: Colors.blue[50]!,
+                  buttonColor: Colors.blue,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AdultQuickCalcPage(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Card Anak
+              Expanded(
+                child: _buildQuickCalcCard(
+                  title: 'Anak',
+                  icon: Icons
+                      .child_care, // Ganti ke Image.asset('path/gambar.png') jika ada ilustrasi
+                  iconColor: Colors.green[300]!,
+                  bgColor: Colors.green[50]!,
+                  buttonColor: Colors.green,
+                  onTap: () {
+                    // TODO: Tambahkan navigasi ke Hitung Cepat Anak
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Menuju Kalkulator Anak...'),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // WIDGET BARU: Item Card untuk Dewasa / Anak
+  Widget _buildQuickCalcCard({
+    required String title,
+    required IconData icon,
+    required Color iconColor,
+    required Color bgColor,
+    required Color buttonColor,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              // Ilustrasi
+              Icon(icon, size: 50, color: iconColor),
+              const SizedBox(height: 8),
+              // Judul
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: buttonColor.withValues(alpha: 0.8),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Tombol bawah
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: buttonColor,
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final menuItems = _getMenuItems(context);
@@ -131,53 +292,73 @@ class NutritionInfoPage extends StatelessWidget {
             builder: (context, constraints) {
               // 2. Responsive Design: Kalkulasi dimensi berdasarkan ukuran layar saat ini
               final screenWidth = constraints.maxWidth;
-              
+
               // Tentukan padding horizontal dinamis (min 16, max 10% lebar layar)
-              final double horizontalPadding = (screenWidth * 0.08).clamp(16.0, 64.0);
-              
+              final double horizontalPadding = (screenWidth * 0.08).clamp(
+                16.0,
+                64.0,
+              );
+
               // Spacing antar grid item
               final double gridSpacing = (screenWidth * 0.04).clamp(10.0, 30.0);
 
-              return Center(
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const ClampingScrollPhysics(), // Mencegah bounce berlebih pada konten sedikit
-                  padding: EdgeInsets.symmetric(
-                    horizontal: horizontalPadding, 
-                    vertical: 24.0
-                  ),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: _getCrossAxisCount(screenWidth), // 
-                    crossAxisSpacing: gridSpacing,
-                    mainAxisSpacing: gridSpacing,
-                    childAspectRatio: 1.0, // Tetap persegi
-                  ),
-                  itemCount: menuItems.length,
-                  itemBuilder: (context, index) {
-                    final item = menuItems[index];
-
-                    // 3. QA Automation Readiness: Semantics wrapper & ValueKey
-                    return Semantics(
-                      label: item.semanticsLabel,
-                      button: true, // Memberitahu accessibility tools/Katalon bahwa ini tombol
-                      enabled: true,
-                      identifier: 'btn_${item.id}', // Identifikasi tambahan untuk accessibility
-                      child: MenuButton(
-                        // Key unik untuk Object Spy (contoh: 'menu_btn_referensi')
-                        key: ValueKey('menu_btn_${item.id}'),
-                        text: item.label,
-                        icon: item.icon,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => item.destinationPage,
-                            ),
-                          );
-                        },
+              // PERUBAHAN: Membungkus dengan SingleChildScrollView & Column
+              return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: Column(
+                  children: [
+                    // Widget Banner Hitung Cepat yang ditambahkan
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        horizontalPadding,
+                        24.0,
+                        horizontalPadding,
+                        0,
                       ),
-                    );
-                  },
+                      child: _buildQuickCalcBanner(context),
+                    ),
+
+                    // Grid Menu yang sudah ada sebelumnya
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics:
+                          const NeverScrollableScrollPhysics(), // Scroll sudah di-handle oleh SingleChildScrollView
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
+                        vertical: 24.0,
+                      ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: _getCrossAxisCount(screenWidth),
+                        crossAxisSpacing: gridSpacing,
+                        mainAxisSpacing: gridSpacing,
+                        childAspectRatio: 1.0,
+                      ),
+                      itemCount: menuItems.length,
+                      itemBuilder: (context, index) {
+                        final item = menuItems[index];
+
+                        return Semantics(
+                          label: item.semanticsLabel,
+                          button: true,
+                          enabled: true,
+                          identifier: 'btn_${item.id}',
+                          child: MenuButton(
+                            key: ValueKey('menu_btn_${item.id}'),
+                            text: item.label,
+                            icon: item.icon,
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => item.destinationPage,
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               );
             },
