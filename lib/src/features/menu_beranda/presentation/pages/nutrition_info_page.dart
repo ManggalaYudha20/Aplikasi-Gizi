@@ -124,13 +124,25 @@ class NutritionInfoPage extends StatelessWidget {
     return items;
   }
 
-  // WIDGET BARU: Banner Hitung Cepat
-  Widget _buildQuickCalcBanner(BuildContext context) {
+  // Fungsi pembantu untuk membuat ukuran dinamis
+  double _responsiveSize(double sw, {required double base}) {
+    if (sw <= 360) return base * 0.90;
+    if (sw >= 800) return base * 1.25;
+    if (sw >= 600) return base * 1.15;
+    return base;
+  }
+
+  // WIDGET BARU: Banner Hitung Cepat (Ditambahkan parameter screenWidth)
+  Widget _buildQuickCalcBanner(BuildContext context, double screenWidth) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(_responsiveSize(screenWidth, base: 16)),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: const Color(0xFF009444), // Warna hijau tema aplikasi
+          width: 1.5, // Ketebalan garis border
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.blue.withValues(alpha: 0.05),
@@ -146,28 +158,28 @@ class NutritionInfoPage extends StatelessWidget {
           // Header
           Row(
             children: [
-              const Icon(Icons.add, color: Colors.blue, size: 24),
-              const SizedBox(width: 8),
+              Icon(Icons.add, color: Colors.blue, size: _responsiveSize(screenWidth, base: 24)),
+              SizedBox(width: _responsiveSize(screenWidth, base: 8)),
               Text(
                 'Hitung Kebutuhan Gizi',
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: _responsiveSize(screenWidth, base: 18),
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: const Color(0xFF1E293B),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: _responsiveSize(screenWidth, base: 16)),
           // Tombol Pilihan
           Row(
             children: [
               // Card Dewasa
               Expanded(
                 child: _buildQuickCalcCard(
+                  screenWidth: screenWidth,
                   title: 'Dewasa',
-                  icon: Icons
-                      .face, // Ganti ke Image.asset('path/gambar.png') jika ada ilustrasi
+                  icon: Icons.face, // Ganti ke Image.asset('path/gambar.png') jika ada ilustrasi
                   iconColor: Colors.blue[300]!,
                   bgColor: Colors.blue[50]!,
                   buttonColor: Colors.blue,
@@ -181,13 +193,13 @@ class NutritionInfoPage extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: _responsiveSize(screenWidth, base: 12)),
               // Card Anak
               Expanded(
                 child: _buildQuickCalcCard(
+                  screenWidth: screenWidth,
                   title: 'Anak',
-                  icon: Icons
-                      .child_care, // Ganti ke Image.asset('path/gambar.png') jika ada ilustrasi
+                  icon: Icons.child_care, // Ganti ke Image.asset('path/gambar.png') jika ada ilustrasi
                   iconColor: Colors.green[300]!,
                   bgColor: Colors.green[50]!,
                   buttonColor: Colors.green,
@@ -208,8 +220,9 @@ class NutritionInfoPage extends StatelessWidget {
     );
   }
 
-  // WIDGET BARU: Item Card untuk Dewasa / Anak
+  // WIDGET BARU: Item Card untuk Dewasa / Anak (Ditambahkan parameter screenWidth)
   Widget _buildQuickCalcCard({
+    required double screenWidth,
     required String title,
     required IconData icon,
     required Color iconColor,
@@ -229,24 +242,24 @@ class NutritionInfoPage extends StatelessWidget {
           onTap: onTap,
           child: Column(
             children: [
-              const SizedBox(height: 16),
+              SizedBox(height: _responsiveSize(screenWidth, base: 16)),
               // Ilustrasi
-              Icon(icon, size: 50, color: iconColor),
-              const SizedBox(height: 8),
+              Icon(icon, size: _responsiveSize(screenWidth, base: 50), color: iconColor),
+              SizedBox(height: _responsiveSize(screenWidth, base: 8)),
               // Judul
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: _responsiveSize(screenWidth, base: 16),
                   fontWeight: FontWeight.bold,
                   color: buttonColor.withValues(alpha: 0.8),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: _responsiveSize(screenWidth, base: 16)),
               // Tombol bawah
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: EdgeInsets.symmetric(vertical: _responsiveSize(screenWidth, base: 10)),
                 decoration: BoxDecoration(
                   color: buttonColor,
                   borderRadius: const BorderRadius.vertical(
@@ -258,16 +271,17 @@ class NutritionInfoPage extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
+                        fontSize: _responsiveSize(screenWidth, base: 14),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    const Icon(
+                    SizedBox(width: _responsiveSize(screenWidth, base: 4)),
+                    Icon(
                       Icons.chevron_right,
                       color: Colors.white,
-                      size: 18,
+                      size: _responsiveSize(screenWidth, base: 18),
                     ),
                   ],
                 ),
@@ -315,7 +329,8 @@ class NutritionInfoPage extends StatelessWidget {
                         horizontalPadding,
                         0,
                       ),
-                      child: _buildQuickCalcBanner(context),
+                      // PERUBAHAN: Mengirimkan screenWidth ke dalam banner
+                      child: _buildQuickCalcBanner(context, screenWidth),
                     ),
 
                     // Grid Menu yang sudah ada sebelumnya
