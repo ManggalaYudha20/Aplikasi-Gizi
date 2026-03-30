@@ -15,6 +15,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/about/presentation/pages/abo
 import 'package:aplikasi_diagnosa_gizi/src/features/reference/presentation/pages/reference_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/consultation/presentation/pages/consultation_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/adult_quick_calc_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/child_quick_calc_page.dart';
 
 /// Model privat untuk konfigurasi menu agar lebih terstruktur
 class _MenuConfig {
@@ -158,7 +159,7 @@ class NutritionInfoPage extends StatelessWidget {
           // Header
           Row(
             children: [
-              Icon(Icons.add, color: Colors.blue, size: _responsiveSize(screenWidth, base: 24)),
+              Icon(Icons.add, color: Color(0xFF009444), size: _responsiveSize(screenWidth, base: 24)),
               SizedBox(width: _responsiveSize(screenWidth, base: 8)),
               Text(
                 'Hitung Kebutuhan Gizi',
@@ -179,7 +180,7 @@ class NutritionInfoPage extends StatelessWidget {
                 child: _buildQuickCalcCard(
                   screenWidth: screenWidth,
                   title: 'Dewasa',
-                  icon: Icons.face, // Ganti ke Image.asset('path/gambar.png') jika ada ilustrasi
+                  icon: Icons.face, 
                   iconColor: Colors.blue[300]!,
                   bgColor: Colors.blue[50]!,
                   buttonColor: Colors.blue,
@@ -199,15 +200,15 @@ class NutritionInfoPage extends StatelessWidget {
                 child: _buildQuickCalcCard(
                   screenWidth: screenWidth,
                   title: 'Anak',
-                  icon: Icons.child_care, // Ganti ke Image.asset('path/gambar.png') jika ada ilustrasi
+                  icon: Icons.child_care, 
                   iconColor: Colors.green[300]!,
                   bgColor: Colors.green[50]!,
                   buttonColor: Colors.green,
                   onTap: () {
-                    // TODO: Tambahkan navigasi ke Hitung Cepat Anak
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Menuju Kalkulator Anak...'),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ChildQuickCalcPage(),
                       ),
                     );
                   },
