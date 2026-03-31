@@ -50,7 +50,7 @@ class PatientInfoRow extends StatelessWidget {
         children: [
           // ── Label (kiri) ──────────────────────────────────────────────
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Text(
               label,
               style: const TextStyle(fontSize: 16, color: Colors.black54),

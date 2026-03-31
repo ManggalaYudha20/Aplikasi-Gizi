@@ -312,6 +312,39 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
 
             const Divider(height: 20, thickness: 2, color: Colors.green),
 
+            _buildSectionTitle('Hasil Kebutuhan Gizi'),
+            Builder(
+              builder: (context) {
+                final kebutuhan = _currentPatient.hitungKebutuhanGizi();
+                return Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      PatientInfoRow('BMR (Schofield)', '${kebutuhan['bmr']?.toStringAsFixed(0)} kkal/hari',isBold: true,),
+                      PatientInfoRow(
+                        'TDEE (Total Energi)', 
+                        '${kebutuhan['tdee']?.toStringAsFixed(0)} kkal/hari', 
+                        isBold: true, 
+                        valueColor: Colors.blue
+                      ),
+                      PatientInfoRow('Protein', '${kebutuhan['protein']?.toStringAsFixed(1)} g/hari',isBold: true,),
+                      PatientInfoRow('Lemak', '${kebutuhan['lemak']?.toStringAsFixed(1)} g/hari',isBold: true,),
+                      PatientInfoRow('Karbohidrat', '${kebutuhan['karbo']?.toStringAsFixed(1)} g/hari',isBold: true,),
+                      PatientInfoRow(
+                        'Kebutuhan Cairan', 
+                        '${kebutuhan['cairan']?.toStringAsFixed(0)} ml/hari', 
+                        isBold: true, 
+                        valueColor: Colors.lightBlue
+                      ),
+                    ],
+                  ),
+                );
+              }
+            ),
+
+            const Divider(height: 20, thickness: 2, color: Colors.green),
+
             // ── Bagian 2: Hasil Status Gizi ───────────────────────────────
             // [KONDISIONAL] Tampilan indikator disesuaikan berdasarkan usia.
             //   • Usia < 5 tahun (balita) : tampil BB/U, TB/U, BB/PB, IMT/U

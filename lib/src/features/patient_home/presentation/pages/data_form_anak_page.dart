@@ -19,6 +19,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/int
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/monitoring_data.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/terminology_item.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/searchable_terminology_field.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/schofield_calculator_service.dart';
 
 class LabInputItem {
   TextEditingController valueController;
@@ -68,6 +69,8 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
   final _tinggiBadanController = TextEditingController();
   final _namaNutrisionisController = TextEditingController();
   final _diagnosisMedisController = TextEditingController();
+  final _faController = TextEditingController(text: 'Tanpa Faktor Aktivitas');
+  final _fsController = TextEditingController(text: 'Tanpa Faktor Stres');
 
   // Controllers Skrining
   final _kehilanganBeratBadanController = TextEditingController();
@@ -80,7 +83,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
   final _bbiController = TextEditingController();
 
   final List<LabInputItem> _monevLabItems = [];
-  
+
   final Map<String, String> _labUnits = {
     'GDS': 'mg/dL',
     'GDP': 'mg/dL',
@@ -189,10 +192,13 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
 
   // Listener untuk menggabungkan dua form kembali ke _klinikTDController
   void _updateCombineTD() {
-    if (_sistolikController.text.isNotEmpty && _diastolikController.text.isNotEmpty) {
-      _klinikTDController.text = '${_sistolikController.text}/${_diastolikController.text}';
+    if (_sistolikController.text.isNotEmpty &&
+        _diastolikController.text.isNotEmpty) {
+      _klinikTDController.text =
+          '${_sistolikController.text}/${_diastolikController.text}';
     } else {
-      _klinikTDController.text = ''; // Kosongkan jika belum lengkap agar tidak tersimpan data parsial
+      _klinikTDController.text =
+          ''; // Kosongkan jika belum lengkap agar tidak tersimpan data parsial
     }
   }
 
@@ -306,8 +312,10 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
 
       // Ambil string kategori status gizi dari hasil kalkulasi
       // Gunakan null-aware operator (??) untuk menghindari error jika data null
-      String statusBBTB = calcResult.weightForHeight.category; // Gizi Buruk/Baik (BB/TB)
-      String statusTBU = calcResult.heightForAge.category;     // Pendek/Normal (TB/U)
+      String statusBBTB =
+          calcResult.weightForHeight.category; // Gizi Buruk/Baik (BB/TB)
+      String statusTBU =
+          calcResult.heightForAge.category; // Pendek/Normal (TB/U)
 
       // --- LOGIKA DIAGNOSA ANAK (NCP) ---
 
@@ -343,7 +351,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
       // Logika 4: Masalah Lain (Cek Riwayat Alergi)
       if (_alergiMakananController.text == 'Ya') {
         List<String> alergiList = [];
-        
+
         // Gunakan kurung kurawal {} untuk setiap if
         if (_alergiTelur) {
           alergiList.add('Telur');
@@ -366,7 +374,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
         if (_alergiHazelnut) {
           alergiList.add('Hazelnut');
         }
-        
+
         // PERBAIKAN UTAMA: Tambahkan {} dan hapus duplikasi if
         if (_alergiLainnyaController.text.isNotEmpty) {
           alergiList.add(_alergiLainnyaController.text);
@@ -417,6 +425,8 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     _tinggiBadanController.text = patient.tinggiBadan.toString();
     _namaNutrisionisController.text = patient.namaNutrisionis ?? '';
     _diagnosisMedisController.text = patient.diagnosisMedis;
+    _faController.text = patient.faktorAktivitas ?? 'Tanpa Faktor Aktivitas';
+    _fsController.text = patient.faktorStres ?? 'Tanpa Faktor Stres';
     _kehilanganBeratBadanController.text =
         _getKeyFromValue(_bbLossMap, patient.kehilanganBeratBadan) ?? '';
     _kehilanganNafsuMakanController.text =
@@ -427,13 +437,13 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     _lingkarKepalaController.text = patient.lingkarKepala?.toString() ?? '';
     _bbiController.text = patient.bbi?.toString() ?? '';
 
-   _labItems.clear();
+    _labItems.clear();
     if (patient.labResults.isNotEmpty) {
       patient.labResults.forEach((key, value) {
         String cleanValue = value;
         // Ambil angka saja (sebelum spasi satuan)
         if (value.contains(' ')) {
-           cleanValue = value.split(' ')[0]; 
+          cleanValue = value.split(' ')[0];
         }
         _addLabItem(key, cleanValue);
       });
@@ -518,15 +528,18 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     _intervensiTujuanController.text = patient.intervensiTujuan ?? '';
 
     _monevAsupanController.text = patient.monevAsupan ?? '';
-    _monevLabItems.clear(); 
+    _monevLabItems.clear();
     String fullMonevData = patient.monevHasilLab ?? '';
-    
+
     // Cek format baru
-    if (fullMonevData.contains('Catatan Tambahan:') || fullMonevData.contains('Hasil Lab:')) {
-      
+    if (fullMonevData.contains('Catatan Tambahan:') ||
+        fullMonevData.contains('Hasil Lab:')) {
       // A. Ambil Catatan
       if (fullMonevData.contains('Catatan Tambahan:')) {
-        _monevHasilLabController.text = fullMonevData.split('Catatan Tambahan:').last.trim();
+        _monevHasilLabController.text = fullMonevData
+            .split('Catatan Tambahan:')
+            .last
+            .trim();
       } else {
         _monevHasilLabController.clear();
       }
@@ -534,35 +547,36 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
       // B. Ambil Hasil Terukur
       // Kita asumsikan bagian atas sebelum "Catatan Tambahan:" adalah hasil terukur
       if (fullMonevData.contains('Hasil Lab:')) {
-      String measuredPart = fullMonevData.split('Hasil Lab:').last;
+        String measuredPart = fullMonevData.split('Hasil Lab:').last;
         if (measuredPart.contains('Catatan Tambahan:')) {
           measuredPart = measuredPart.split('Catatan Tambahan:').first;
         }
-      
-      
-      List<String> lines = measuredPart.trim().split('\n');
-      for (String line in lines) {
-        line = line.trim();
-        // Format: "- GDS: 100 mg/dL"
-        if (line.startsWith('-')) {
-          line = line.substring(1).trim(); // Hapus dash
-          int colonIndex = line.indexOf(':');
-          
-          if (colonIndex != -1) {
-            String type = line.substring(0, colonIndex).trim();
-            String valWithUnit = line.substring(colonIndex + 1).trim();
-            String cleanVal = valWithUnit.split(' ')[0]; // Ambil angka saja
 
-            if (_labOptions.contains(type)) {
-               _monevLabItems.add(LabInputItem(
-                  valueController: TextEditingController(text: cleanVal),
-                  selectedType: type,
-               ));
+        List<String> lines = measuredPart.trim().split('\n');
+        for (String line in lines) {
+          line = line.trim();
+          // Format: "- GDS: 100 mg/dL"
+          if (line.startsWith('-')) {
+            line = line.substring(1).trim(); // Hapus dash
+            int colonIndex = line.indexOf(':');
+
+            if (colonIndex != -1) {
+              String type = line.substring(0, colonIndex).trim();
+              String valWithUnit = line.substring(colonIndex + 1).trim();
+              String cleanVal = valWithUnit.split(' ')[0]; // Ambil angka saja
+
+              if (_labOptions.contains(type)) {
+                _monevLabItems.add(
+                  LabInputItem(
+                    valueController: TextEditingController(text: cleanVal),
+                    selectedType: type,
+                  ),
+                );
+              }
             }
           }
         }
       }
-    }
     } else {
       // Format Lama: Masukkan semua ke catatan
       _monevHasilLabController.text = fullMonevData;
@@ -700,6 +714,8 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
       _lilaController.clear();
       _lingkarKepalaController.clear();
       _bbiController.clear();
+      _faController.text = 'Tanpa Faktor Aktivitas';
+      _fsController.text = 'Tanpa Faktor Stres';
       for (var item in _labItems) {
         item.valueController.dispose();
       }
@@ -812,27 +828,29 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
         final resultBBU = calculationResult.weightForAge;
         final resultTBU = calculationResult.heightForAge;
         final resultBBTB = calculationResult.weightForHeight;
-        
+
         double? zScoreIMTU;
         String statusGiziIMTU = '';
 
-        final int totalBulanUsia = NutritionCalculatorService.calculateAgeInMonths(
-          birthDate: _selectedDate!,
-          checkDate: DateTime.now(),
-        );
+        final int totalBulanUsia =
+            NutritionCalculatorService.calculateAgeInMonths(
+              birthDate: _selectedDate!,
+              checkDate: DateTime.now(),
+            );
         final bool isAnak5Tahunkeatas = totalBulanUsia >= 60;
 
         if (isAnak5Tahunkeatas && tinggiBadan > 0) {
-          final int ageYears           = totalBulanUsia ~/ 12;
+          final int ageYears = totalBulanUsia ~/ 12;
           final int ageMonthsRemainder = totalBulanUsia % 12;
-          final double bmi = beratBadan / ((tinggiBadan / 100) * (tinggiBadan / 100));
+          final double bmi =
+              beratBadan / ((tinggiBadan / 100) * (tinggiBadan / 100));
 
           // Panggil helper baru yang menggunakan tabel 5-18 tahun
           final resultIMTU5to18 = NutritionCalculatorService.calculateIMTU5To18(
-            ageYears            : ageYears,
-            ageMonthsRemainder  : ageMonthsRemainder,
-            bmi                 : bmi,
-            gender              : _jenisKelaminController.text,
+            ageYears: ageYears,
+            ageMonthsRemainder: ageMonthsRemainder,
+            bmi: bmi,
+            gender: _jenisKelaminController.text,
           );
           zScoreIMTU = resultIMTU5to18.zScore;
           statusGiziIMTU = resultIMTU5to18.category;
@@ -869,40 +887,42 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
           }
         }
 
-for (var item in _labItems) {
-  if (item.selectedType != null && item.valueController.text.isNotEmpty) {
-    String rawVal = item.valueController.text.trim();
-    String unit = _labUnits[item.selectedType] ?? '';
-    labResultsMap[item.selectedType!] = '$rawVal $unit'.trim();
-  }
-}
+        for (var item in _labItems) {
+          if (item.selectedType != null &&
+              item.valueController.text.isNotEmpty) {
+            String rawVal = item.valueController.text.trim();
+            String unit = _labUnits[item.selectedType] ?? '';
+            labResultsMap[item.selectedType!] = '$rawVal $unit'.trim();
+          }
+        }
 
-// 2. Gabungkan Data Monev (Dinamis + Catatan)
-StringBuffer combinedMonevLab = StringBuffer();
+        // 2. Gabungkan Data Monev (Dinamis + Catatan)
+        StringBuffer combinedMonevLab = StringBuffer();
 
-// A. Hasil Terukur
-List<String> dynamicResults = [];
-for (var item in _monevLabItems) {
-  if (item.selectedType != null && item.valueController.text.isNotEmpty) {
-    String rawVal = item.valueController.text.trim();
-    String unit = _labUnits[item.selectedType] ?? '';
-    dynamicResults.add("- ${item.selectedType}: $rawVal $unit");
-  }
-}
+        // A. Hasil Terukur
+        List<String> dynamicResults = [];
+        for (var item in _monevLabItems) {
+          if (item.selectedType != null &&
+              item.valueController.text.isNotEmpty) {
+            String rawVal = item.valueController.text.trim();
+            String unit = _labUnits[item.selectedType] ?? '';
+            dynamicResults.add("- ${item.selectedType}: $rawVal $unit");
+          }
+        }
 
-if (dynamicResults.isNotEmpty) {
-  combinedMonevLab.writeln("Hasil Lab:");
-  combinedMonevLab.writeln(dynamicResults.join('\n'));
-  combinedMonevLab.writeln(); 
-}
+        if (dynamicResults.isNotEmpty) {
+          combinedMonevLab.writeln("Hasil Lab:");
+          combinedMonevLab.writeln(dynamicResults.join('\n'));
+          combinedMonevLab.writeln();
+        }
 
-// B. Catatan Tambahan
-if (_monevHasilLabController.text.isNotEmpty) {
-  combinedMonevLab.writeln("Catatan Tambahan:");
-  combinedMonevLab.writeln(_monevHasilLabController.text);
-}
+        // B. Catatan Tambahan
+        if (_monevHasilLabController.text.isNotEmpty) {
+          combinedMonevLab.writeln("Catatan Tambahan:");
+          combinedMonevLab.writeln(_monevHasilLabController.text);
+        }
 
-String finalMonevLabString = combinedMonevLab.toString().trim();
+        String finalMonevLabString = combinedMonevLab.toString().trim();
 
         final patientAnakData = {
           'noRM': _noRMController.text,
@@ -921,21 +941,23 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
           'kehilanganNafsuMakan':
               _appetiteMap[_kehilanganNafsuMakanController.text] ?? 0,
           'anakSakitBerat': _sickMap[_anakSakitBeratController.text] ?? 0,
-          'zScoreBBU': resultBBU.zScore, 
-          'statusGiziBBU': resultBBU.category, 
+          'zScoreBBU': resultBBU.zScore,
+          'statusGiziBBU': resultBBU.category,
 
-          'zScoreTBU': resultTBU.zScore, 
+          'zScoreTBU': resultTBU.zScore,
           'statusGiziTBU': resultTBU.category,
-          
-          'zScoreBBTB': resultBBTB.zScore, 
+
+          'zScoreBBTB': resultBBTB.zScore,
           'statusGiziBBTB': resultBBTB.category,
 
-          'zScoreIMTU': zScoreIMTU, 
+          'zScoreIMTU': zScoreIMTU,
           'statusGiziIMTU': statusGiziIMTU,
 
           'lila': double.tryParse(_lilaController.text),
           'lingkarKepala': double.tryParse(_lingkarKepalaController.text),
           'bbi': calculatedBBI,
+          'faktorAktivitas': _faController.text,
+          'faktorStres': _fsController.text,
 
           'labResults': labResultsMap,
 
@@ -1023,16 +1045,16 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
           createdBy: widget.patient?.createdBy ?? currentUser.uid,
           diagnosisMedis: _diagnosisMedisController.text,
           tipePasien: 'anak',
-          zScoreBBU: resultBBU.zScore, 
-          statusGiziBBU: resultBBU.category, 
+          zScoreBBU: resultBBU.zScore,
+          statusGiziBBU: resultBBU.category,
 
-          zScoreTBU: resultTBU.zScore, 
+          zScoreTBU: resultTBU.zScore,
           statusGiziTBU: resultTBU.category,
-          
-          zScoreBBTB: resultBBTB.zScore, 
+
+          zScoreBBTB: resultBBTB.zScore,
           statusGiziBBTB: resultBBTB.category,
 
-          zScoreIMTU: zScoreIMTU, 
+          zScoreIMTU: zScoreIMTU,
           statusGiziIMTU: statusGiziIMTU,
 
           namaNutrisionis: _namaNutrisionisController.text,
@@ -1044,6 +1066,8 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
           lila: double.tryParse(_lilaController.text),
           lingkarKepala: double.tryParse(_lingkarKepalaController.text),
           bbi: calculatedBBI,
+          faktorAktivitas: _faController.text,
+          faktorStres: _fsController.text,
 
           // 2. Biokimia
           labResults: labResultsMap,
@@ -1349,6 +1373,25 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                   ),
                   const SizedBox(height: 16),
                   _buildCustomDropdown(
+                    controller: _faController,
+                    label: 'Faktor Aktivitas (FA)',
+                    prefixIcon: const Icon(Icons.directions_run),
+                    items: SchofieldCalculatorService.activityFactors.keys
+                        .toList(),
+                    focusNode:
+                        _focusNodes[28], // sesuaikan index focusNode yang aman/belum terpakai
+                  ),
+                  const SizedBox(height: 16),
+                  _buildCustomDropdown(
+                    controller: _fsController,
+                    label: 'Faktor Stres (FS)',
+                    prefixIcon: const Icon(Icons.local_hospital),
+                    items: SchofieldCalculatorService.stressFactors.keys
+                        .toList(),
+                    focusNode: _focusNodes[29], // sesuaikan index focusNode
+                  ),
+                  const SizedBox(height: 16),
+                  _buildCustomDropdown(
                     controller: _kehilanganBeratBadanController,
                     label: 'Penurunan berat badan akhir-akhir ini?',
                     prefixIcon: const Icon(Icons.trending_down),
@@ -1609,9 +1652,10 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                                 decoration: InputDecoration(
                                   labelText: 'Hasil',
                                   border: OutlineInputBorder(),
-                                  suffixText: _labItems[index].selectedType != null
-                                  ? _labUnits[_labItems[index].selectedType]
-                                  : '',
+                                  suffixText:
+                                      _labItems[index].selectedType != null
+                                      ? _labUnits[_labItems[index].selectedType]
+                                      : '',
                                 ),
                                 validator: (val) {
                                   if (_labItems[index].selectedType != null &&
@@ -1653,16 +1697,13 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                   // 3. Klinik / Fisik
                   _buildSectionHeader('Klinik/Fisik/PD'),
 
-                   const Text(
-                        'Tekanan Darah (TD)',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                  const Text(
+                    'Tekanan Darah (TD)',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 10),
 
-                Row(
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // INPUT SISTOLIK
@@ -1721,7 +1762,7 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 16),
                   _buildTextFormField(
                     controller: _klinikNadiController,
@@ -1852,86 +1893,124 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                               LayoutBuilder(
                                 builder: (context, constraints) {
                                   return Autocomplete<TerminologyItem>(
-  optionsBuilder: (TextEditingValue textEditingValue) {
-    if (textEditingValue.text.isEmpty) {
-      return const Iterable<TerminologyItem>.empty();
-    }
-    // Menggunakan method matches() bawaan TerminologyItem
-    return DiagnosisTerminology.allDiagnoses.where((TerminologyItem option) {
-      return option.matches(textEditingValue.text);
-    });
-  },
-  displayStringForOption: (TerminologyItem option) =>
-      '[${option.code}] ${option.label}',
-  onSelected: (TerminologyItem selection) {
-    _diagnosisItems[index].pController.text =
-        '[${selection.code}] ${selection.label}';
-  },
-  fieldViewBuilder: (
-    context,
-    fieldTextEditingController,
-    fieldFocusNode,
-    onFieldSubmitted,
-  ) {
-    if (_diagnosisItems[index].pController.text.isNotEmpty &&
-        fieldTextEditingController.text.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          fieldTextEditingController.text =
-              _diagnosisItems[index].pController.text;
-        }
-      });
-    }
-    fieldTextEditingController.addListener(() {
-      _diagnosisItems[index].pController.text =
-          fieldTextEditingController.text;
-    });
+                                    optionsBuilder:
+                                        (TextEditingValue textEditingValue) {
+                                          if (textEditingValue.text.isEmpty) {
+                                            return const Iterable<
+                                              TerminologyItem
+                                            >.empty();
+                                          }
+                                          // Menggunakan method matches() bawaan TerminologyItem
+                                          return DiagnosisTerminology
+                                              .allDiagnoses
+                                              .where((TerminologyItem option) {
+                                                return option.matches(
+                                                  textEditingValue.text,
+                                                );
+                                              });
+                                        },
+                                    displayStringForOption:
+                                        (TerminologyItem option) =>
+                                            '[${option.code}] ${option.label}',
+                                    onSelected: (TerminologyItem selection) {
+                                      _diagnosisItems[index].pController.text =
+                                          '[${selection.code}] ${selection.label}';
+                                    },
+                                    fieldViewBuilder:
+                                        (
+                                          context,
+                                          fieldTextEditingController,
+                                          fieldFocusNode,
+                                          onFieldSubmitted,
+                                        ) {
+                                          if (_diagnosisItems[index]
+                                                  .pController
+                                                  .text
+                                                  .isNotEmpty &&
+                                              fieldTextEditingController
+                                                  .text
+                                                  .isEmpty) {
+                                            WidgetsBinding.instance
+                                                .addPostFrameCallback((_) {
+                                                  if (context.mounted) {
+                                                    fieldTextEditingController
+                                                            .text =
+                                                        _diagnosisItems[index]
+                                                            .pController
+                                                            .text;
+                                                  }
+                                                });
+                                          }
+                                          fieldTextEditingController
+                                              .addListener(() {
+                                                _diagnosisItems[index]
+                                                        .pController
+                                                        .text =
+                                                    fieldTextEditingController
+                                                        .text;
+                                              });
 
-    return TextFormField(
-      controller: fieldTextEditingController,
-      focusNode: fieldFocusNode,
-      maxLength: 200,
-      textInputAction: TextInputAction.done,
-      decoration: const InputDecoration(
-        labelText: 'Problem (P)',
-        isDense: true,
-        border: OutlineInputBorder(),
-        suffixIcon: Icon(Icons.search),
-      ),
-      maxLines: null,
-    );
-  },
-  optionsViewBuilder: (context, onSelected, options) {
-    return Align(
-      alignment: Alignment.topLeft,
-      child: Material(
-        elevation: 4.0,
-        child: SizedBox(
-          width: constraints.maxWidth,
-          height: 200,
-          child: ListView.builder(
-            padding: const EdgeInsets.all(8.0),
-            itemCount: options.length,
-            itemBuilder: (BuildContext context, int i) {
-              final TerminologyItem option = options.elementAt(i);
-              return ListTile(
-                title: Text(
-                  '${option.code} - ${option.label}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                // Menggunakan category karena definition sudah dihapus
-                subtitle: Text(option.category),
-                onTap: () {
-                  onSelected(option);
-                },
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  },
-);
+                                          return TextFormField(
+                                            controller:
+                                                fieldTextEditingController,
+                                            focusNode: fieldFocusNode,
+                                            maxLength: 200,
+                                            textInputAction:
+                                                TextInputAction.done,
+                                            decoration: const InputDecoration(
+                                              labelText: 'Problem (P)',
+                                              isDense: true,
+                                              border: OutlineInputBorder(),
+                                              suffixIcon: Icon(Icons.search),
+                                            ),
+                                            maxLines: null,
+                                          );
+                                        },
+                                    optionsViewBuilder: (context, onSelected, options) {
+                                      return Align(
+                                        alignment: Alignment.topLeft,
+                                        child: Material(
+                                          elevation: 4.0,
+                                          child: SizedBox(
+                                            width: constraints.maxWidth,
+                                            height: 200,
+                                            child: ListView.builder(
+                                              padding: const EdgeInsets.all(
+                                                8.0,
+                                              ),
+                                              itemCount: options.length,
+                                              itemBuilder:
+                                                  (
+                                                    BuildContext context,
+                                                    int i,
+                                                  ) {
+                                                    final TerminologyItem
+                                                    option = options.elementAt(
+                                                      i,
+                                                    );
+                                                    return ListTile(
+                                                      title: Text(
+                                                        '${option.code} - ${option.label}',
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      // Menggunakan category karena definition sudah dihapus
+                                                      subtitle: Text(
+                                                        option.category,
+                                                      ),
+                                                      onTap: () {
+                                                        onSelected(option);
+                                                      },
+                                                    );
+                                                  },
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
                                 },
                               ),
                               const SizedBox(height: 8),
@@ -2007,13 +2086,7 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                     controller: _intervensiBentukMakananController,
                     label: 'Bentuk Makanan',
                     prefixIcon: const Icon(Icons.fastfood),
-                    items: const [
-                      'Biasa',
-                      'Tim',
-                      'Lunak',
-                      'Cair',
-                      'Saring',
-                    ], 
+                    items: const ['Biasa', 'Tim', 'Lunak', 'Cair', 'Saring'],
                     focusNode: _focusNodes[30],
                     validator: (v) => null,
                   ),
@@ -2059,99 +2132,115 @@ String finalMonevLabString = combinedMonevLab.toString().trim();
                   ),
                   const SizedBox(height: 16),
                   // [BARU] Field Hasil Lab Monev
-                 const Text(
-  "Hasil Lab :",
-  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-),
-const SizedBox(height: 8),
+                  const Text(
+                    "Hasil Lab :",
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
 
-ListView.builder(
-  shrinkWrap: true,
-  physics: const NeverScrollableScrollPhysics(),
-  itemCount: _monevLabItems.length,
-  itemBuilder: (context, index) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // DROPDOWN
-          Expanded(
-            flex: 2,
-            child: DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Jenis Tes',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-              ),
-              initialValue: _monevLabItems[index].selectedType,
-              items: _labOptions.map((String type) {
-                return DropdownMenuItem<String>(
-                  value: type,
-                  child: Text(type, style: const TextStyle(fontSize: 13)),
-                );
-              }).toList(),
-              onChanged: (val) {
-                setState(() {
-                  _monevLabItems[index].selectedType = val;
-                });
-              },
-            ),
-          ),
-          const SizedBox(width: 10),
-          // INPUT HASIL
-          Expanded(
-            flex: 2,
-            child: TextFormField(
-              controller: _monevLabItems[index].valueController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Hasil',
-                border: const OutlineInputBorder(),
-                suffixText: _monevLabItems[index].selectedType != null
-                    ? _labUnits[_monevLabItems[index].selectedType]
-                    : '',
-              ),
-            ),
-          ),
-          // HAPUS
-          if (_monevLabItems.length > 1 || index > 0)
-            IconButton(
-              icon: const Icon(Icons.remove_circle, color: Colors.red),
-              onPressed: () {
-                setState(() {
-                  _monevLabItems[index].valueController.dispose();
-                  _monevLabItems.removeAt(index);
-                });
-              },
-            ),
-        ],
-      ),
-    );
-  },
-),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _monevLabItems.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // DROPDOWN
+                            Expanded(
+                              flex: 2,
+                              child: DropdownButtonFormField<String>(
+                                decoration: const InputDecoration(
+                                  labelText: 'Jenis Tes',
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 15,
+                                  ),
+                                ),
+                                initialValue:
+                                    _monevLabItems[index].selectedType,
+                                items: _labOptions.map((String type) {
+                                  return DropdownMenuItem<String>(
+                                    value: type,
+                                    child: Text(
+                                      type,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (val) {
+                                  setState(() {
+                                    _monevLabItems[index].selectedType = val;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            // INPUT HASIL
+                            Expanded(
+                              flex: 2,
+                              child: TextFormField(
+                                controller:
+                                    _monevLabItems[index].valueController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: 'Hasil',
+                                  border: const OutlineInputBorder(),
+                                  suffixText:
+                                      _monevLabItems[index].selectedType != null
+                                      ? _labUnits[_monevLabItems[index]
+                                            .selectedType]
+                                      : '',
+                                ),
+                              ),
+                            ),
+                            // HAPUS
+                            if (_monevLabItems.length > 1 || index > 0)
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.remove_circle,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _monevLabItems[index].valueController
+                                        .dispose();
+                                    _monevLabItems.removeAt(index);
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
 
-OutlinedButton.icon(
-  onPressed: _monevLabItems.length >= 6 
-      ? null 
-      : () => _addMonevLabItem(null, ''),
-  icon: const Icon(Icons.add),
-  label: Text(_monevLabItems.length >= 6 
-      ? 'Batas Maksimal Tercapai (6)' 
-      : 'Tambah Hasil Lab Monev'),
-),
-const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: _monevLabItems.length >= 6
+                        ? null
+                        : () => _addMonevLabItem(null, ''),
+                    icon: const Icon(Icons.add),
+                    label: Text(
+                      _monevLabItems.length >= 6
+                          ? 'Batas Maksimal Tercapai (6)'
+                          : 'Tambah Hasil Lab Monev',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
-// --- FIELD LAMA JADI CATATAN ---
-_buildTextFormField(
-  controller: _monevHasilLabController,
-  label: 'Catatan Tambahan Hasil Lab',
-  prefixIcon: const Icon(Icons.note_alt_outlined),
-  focusNode: _focusNodes[34], // Sesuaikan index focusNode
-  maxLength: 500,
-  maxLines: 2,
-  validator: (value) => null,
-),
+                  // --- FIELD LAMA JADI CATATAN ---
+                  _buildTextFormField(
+                    controller: _monevHasilLabController,
+                    label: 'Catatan Tambahan Hasil Lab',
+                    prefixIcon: const Icon(Icons.note_alt_outlined),
+                    focusNode: _focusNodes[34], // Sesuaikan index focusNode
+                    maxLength: 500,
+                    maxLines: 2,
+                    validator: (value) => null,
+                  ),
                   const SizedBox(height: 32),
                 ],
               ),

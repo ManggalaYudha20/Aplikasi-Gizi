@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/schofield_calculator_service.dart';
 
 class PatientAnak {
   final String id;
@@ -30,6 +31,8 @@ class PatientAnak {
   final double? lila; // Lingkar Lengan Atas
   final double? lingkarKepala; // LK
   final double? bbi; // Berat Badan Ideal
+  final String? faktorAktivitas;
+  final String? faktorStres;
 
   // --- Skrining Risiko ---
   final String? namaNutrisionis;
@@ -98,6 +101,8 @@ class PatientAnak {
     this.lila,
     this.lingkarKepala,
     this.bbi,
+    this.faktorAktivitas,
+  this.faktorStres,
     this.labResults = const {},
     this.klinikTD,
     this.klinikNadi,
@@ -185,6 +190,8 @@ class PatientAnak {
       lila: (data['lila'] as num?)?.toDouble(),
       lingkarKepala: (data['lingkarKepala'] as num?)?.toDouble(),
       bbi: (data['bbi'] as num?)?.toDouble(),
+      faktorAktivitas: data['faktorAktivitas'] as String?,
+  faktorStres: data['faktorStres'] as String?,
       
       labResults: parsedLabs,
       
@@ -245,6 +252,8 @@ class PatientAnak {
       'lila': lila,
       'lingkarKepala': lingkarKepala,
       'bbi': bbi,
+      'faktorAktivitas': faktorAktivitas,
+  'faktorStres': faktorStres,
       'labResults': labResults,
       'klinikTD': klinikTD,
       'klinikNadi': klinikNadi,
@@ -351,64 +360,67 @@ class PatientAnak {
 
   Map<String, double> hitungKebutuhanGizi() {
     // 1. Tentukan Berat Badan (Prioritas: BBI -> Berat Aktual)
-    // RDA biasanya menargetkan berat badan ideal untuk tumbuh kejar (catch-up growth).
     double weightToUse = (bbi != null && bbi! > 0) ? bbi! : beratBadan.toDouble();
-    
-    // 2. Hitung Umur dalam Tahun
-    double ageInYears = usiaInDays / 365.0;
+    double heightCm = tinggiBadan.toDouble();
+    double ageInYearsFraction = usiaInDays / 365.25;
+    bool isMale = jenisKelamin.toLowerCase().contains('laki');
 
-    double kaloriPerKg = 0;
+    // 2. Hitung BMR Schofield
+    double bmr = 0.0;
+    try {
+      bmr = SchofieldCalculatorService.calculateWithWeightAndHeight(
+        weightKg: beratBadan.toDouble(), // BMR biasanya menggunakan BB aktual
+        heightCm: heightCm,
+        ageInYears: ageInYearsFraction,
+        isMale: isMale,
+      );
+    } catch (e) {
+      bmr = 0.0; // Fallback jika usia di luar range
+    }
+
+    // 3. Hitung TDEE
+    double fa = SchofieldCalculatorService.activityFactors[faktorAktivitas ?? 'Tanpa Faktor Aktivitas'] ?? 1.0;
+    double fs = SchofieldCalculatorService.stressFactors[faktorStres ?? 'Tanpa Faktor Stres'] ?? 1.0;
+    double tdee = bmr * fa * fs;
+
+    // 4. Hitung Makronutrien
     double proteinPerKg = 0;
-
-    // Referensi Tabel RDA / AKG (Angka Kecukupan Gizi)
-    if (ageInYears < 0.5) {
-      kaloriPerKg = 108; proteinPerKg = 2.2;
-    } else if (ageInYears < 1) {
-      kaloriPerKg = 98; proteinPerKg = 1.5;
-    } else if (ageInYears <= 3) {
-      kaloriPerKg = 102; proteinPerKg = 1.23;
-    } else if (ageInYears <= 6) {
-      kaloriPerKg = 90; proteinPerKg = 1.2;
-    } else if (ageInYears <= 10) {
-      kaloriPerKg = 70; proteinPerKg = 1.0;
+    if (ageInYearsFraction < 0.5) {
+      proteinPerKg = 2.2;
+    } else if (ageInYearsFraction < 1) {
+      proteinPerKg = 1.5;
+    } else if (ageInYearsFraction <= 3) {
+      proteinPerKg = 1.23;
+    } else if (ageInYearsFraction <= 6) {
+      proteinPerKg = 1.2;
+    } else if (ageInYearsFraction <= 10) {
+      proteinPerKg = 1.0;
     } else {
-      // Usia > 10 Tahun (Dibedakan Laki/Perempuan)
-      bool isMale = jenisKelamin.toLowerCase().contains('laki');
-      if (ageInYears <= 14) {
-        kaloriPerKg = isMale ? 55 : 47;
+      if (ageInYearsFraction <= 14) {
         proteinPerKg = 1.0;
       } else {
-        kaloriPerKg = isMale ? 45 : 40;
         proteinPerKg = 0.8;
       }
     }
 
-    // Hitung Total Energi & Protein
-    double totalEnergi = kaloriPerKg * weightToUse;
     double totalProtein = proteinPerKg * weightToUse;
+    double totalLemak = (0.35 * tdee) / 9; // 35% dari TDEE
+    double totalKarbo = (tdee - (totalProtein * 4) - (totalLemak * 9)) / 4;
+    if (totalKarbo < 0) totalKarbo = 0;
 
-    // Hitung Lemak & Karbohidrat (Persentase standar anak)
-    // Lemak: Anak 1-3 th (30-40%), 4-18 th (25-35%). Kita ambil rata-rata 35%.
-    double totalLemak = (0.35 * totalEnergi) / 9; // 1 gram lemak = 9 kkal
-    
-    // Karbohidrat: Sisa energi
-    // Karbo = (Total Energi - (Protein*4 + Lemak*9)) / 4
-    double totalKarbo = (totalEnergi - (totalProtein * 4) - (totalLemak * 9)) / 4;
-    
-    if(totalKarbo < 0) totalKarbo = 0;
-
-    // Hitung Cairan (Rumus Holliday-Segar)
+    // 5. Hitung Cairan (Rumus Standar Holliday-Segar)
     double totalCairan = 0;
     if (weightToUse <= 10) {
-      totalCairan = 100;
+      totalCairan = 100 * weightToUse;
     } else if (weightToUse <= 20) {
-      totalCairan = 1000 +  50;
+      totalCairan = 1000 + 50;
     } else {
       totalCairan = 1500 + 20;
     }
 
     return {
-      'energi': totalEnergi,
+      'bmr': bmr,
+      'tdee': tdee,
       'protein': totalProtein,
       'lemak': totalLemak,
       'karbo': totalKarbo,

@@ -308,6 +308,9 @@ class Patient {
 
     return bmr * activityFactor * stressFactorValue;
   }
+  double get kebutuhanProtein => (tdee * 0.15) / 4;
+  double get kebutuhanLemak => (tdee * 0.25) / 9;
+  double get kebutuhanKarbo => (tdee * 0.60) / 4;
   
   String get interpretasi {
     if (totalSkor == 0) return 'Resiko rendah';

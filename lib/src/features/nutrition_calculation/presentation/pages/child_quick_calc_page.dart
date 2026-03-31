@@ -136,25 +136,6 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
   _ChildGenderCalcResult? _maleResult;
   _ChildGenderCalcResult? _femaleResult;
 
-  // Pilihan Faktor Aktivitas & Stres (Menggunakan Map untuk DropdownSearch)
-  final Map<String, double> _activityFactors = {
-    'Tanpa Faktor Aktivitas': 1.0,
-    'Aktivitas Sangat Ringan': 1.1,
-    'Aktivitas Ringan': 1.2,
-    'Aktivitas Sedang': 1.3,
-    'Aktivitas Berat': 1.4,
-    'Aktivitas Sangat Berat': 1.5,
-  };
-
-  final Map<String, double> _stressFactors = {
-    'Tanpa Faktor Stres': 1.0,
-    'Stres Sangat Ringan': 1.1,
-    'Stres Ringan': 1.2,
-    'Stres Sedang': 1.3,
-    'Stres Berat': 1.4,
-    'Stres Sangat Berat': 1.5,
-  };
-
   @override
   void initState() {
     super.initState();
@@ -247,14 +228,15 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
     double totalKarbo = (tdee - (totalProtein * 4) - (totalLemak * 9)) / 4;
     if (totalKarbo < 0) totalKarbo = 0;
 
-    // Cairan metode Holliday-Segar
+    // Cairan metode Holliday-Segar 
+    // (Bisa diganti dengan FluidCalculatorService.calculateHollidaySegar(weightToUse) jika file service-nya sudah ada)
     double totalCairan = 0;
     if (weightToUse <= 10) {
-      totalCairan =  100 * weightToUse; // 100ml per kg untuk 10kg pertama
+      totalCairan =  100 * weightToUse;
     } else if (weightToUse <= 20) {
-      totalCairan = 1000 + (50 * (weightToUse - 10)); // 1000ml + 50ml/kg untuk 10kg kedua
+      totalCairan = 1000 + 50;
     } else {
-      totalCairan = 1500 + (20 * (weightToUse - 20)); // 1500ml + 20ml/kg untuk sisa BB
+      totalCairan = 1500 + 20;
     }
 
     return {
@@ -277,9 +259,9 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
     final double weight = double.parse(_weightController.text);
     final double height = double.parse(_heightController.text);
     
-    // Ambil nilai FA dan FS dari Map
-    final double selectedFA = _activityFactors[_faController.text] ?? 1.0;
-    final double selectedFS = _stressFactors[_fsController.text] ?? 1.0;
+    // Ambil nilai FA dan FS dari SchofieldCalculatorService
+    final double selectedFA = SchofieldCalculatorService.activityFactors[_faController.text] ?? 1.0;
+    final double selectedFS = SchofieldCalculatorService.stressFactors[_fsController.text] ?? 1.0;
 
     // Hitung Usia (Bulan & Tahun Kalender)
     int years = _measurementDate!.year - _birthDate!.year;

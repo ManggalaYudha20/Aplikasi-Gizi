@@ -292,34 +292,55 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
             const Divider(height: 20, thickness: 2, color: Colors.green),
 
             // ── Hasil Perhitungan Gizi ────────────────────────────────────
-            _buildSectionTitle('Hasil Perhitungan Gizi'),
+            _buildSectionTitle('Hasil Kebutuhan Gizi'),
             PatientInfoRow(
-              'IMT (Indeks Massa Tubuh)',
+              'IMT',
               '${_currentPatient.imt.toStringAsFixed(2)} kg/m²',
               isBold: true,
             ),
             PatientInfoRow(
-              'BBI (Berat Badan Ideal)',
+              'BBI',
               _currentPatient.bbi != 0.0
                   ? '${_currentPatient.bbi.toStringAsFixed(1)} kg'
                   : '-',
               isBold: true,
             ),
             PatientInfoRow(
-              'BMR (Kebutuhan Kalori Basal)',
+              'BMR (Harris-Benedict)',
               _currentPatient.bmr != 0.0
                   ? '${_currentPatient.bmr.toStringAsFixed(2)} kkal'
                   : '-',
               isBold: true,
             ),
             PatientInfoRow(
-              'TDEE (Total Kebutuhan Energi)',
+              'TDEE (Total Energi)',
               _currentPatient.tdee != 0.0
                   ? '${_currentPatient.tdee.toStringAsFixed(2)} kkal'
                   : '-',
               isBold: true,
             ),
-            PatientInfoRow('Aktivitas', _currentPatient.aktivitas),
+            PatientInfoRow(
+              'Protein (15%)',
+              _currentPatient.tdee != 0.0
+                  ? '${_currentPatient.kebutuhanProtein.toStringAsFixed(1)} g/hari'
+                  : '-',
+                  isBold: true,
+            ),
+            PatientInfoRow(
+              'Lemak (25%)',
+              _currentPatient.tdee != 0.0
+                  ? '${_currentPatient.kebutuhanLemak.toStringAsFixed(1)} g/hari'
+                  : '-',
+                  isBold: true,
+            ),
+            PatientInfoRow(
+              'Karbohidrat (60%)',
+              _currentPatient.tdee != 0.0
+                  ? '${_currentPatient.kebutuhanKarbo.toStringAsFixed(1)} g/hari'
+                  : '-',
+                  isBold: true,
+            ),
+            PatientInfoRow('Aktivitas', _currentPatient.aktivitas, isBold: true,),
 
             const Divider(height: 20, thickness: 2, color: Colors.green),
 
