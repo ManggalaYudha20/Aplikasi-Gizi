@@ -163,6 +163,7 @@ class _SchofieldFormPageState extends State<SchofieldFormPage> {
         checkDate: DateTime.now(),
       ).toString();
       _bmrResult = null;
+      _totalEnergyResult = null;
     });
   }
 
@@ -200,10 +201,15 @@ class _SchofieldFormPageState extends State<SchofieldFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  PatientPickerWidget(
+                  Semantics(
                     key: _Keys.patientPicker,
-                    onPatientSelected: _fillDataFromPatient,
-                    userRole: widget.userRole,
+                    label: 'Pemilih Pasien',
+                    hint: 'Pilih pasien untuk mengisi data secara otomatis',
+                    child: PatientPickerWidget(
+                      key: _patientPickerKey, // <--- Ubah baris ini menjadi _patientPickerKey
+                      onPatientSelected: _fillDataFromPatient,
+                      userRole: widget.userRole,
+                    ),
                   ),
                   SizedBox(height: sw * 0.05),
                   Text(
