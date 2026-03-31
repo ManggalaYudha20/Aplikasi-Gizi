@@ -106,6 +106,19 @@ class ReferenceData {
       ],
     ),
     ReferenceTableItem(
+      id: 'table_activity_anak',
+      title: 'Faktor Aktivitas',
+      headers: ['Tingkat Aktivitas', 'Faktor Aktivitas'],
+      data: [
+        [ 'Tanpa Faktor Aktivitas','1.0'],
+        ['Aktivitas Sangat Ringan', '1,1'],
+        ['Aktivitas Ringan', '1,2'],
+        ['Aktivitas Sedang', '1,3'],
+        ['Aktivitas Berat', '1,4'],
+        ['Aktivitas Sangat Berat', '1,5'],
+      ],
+    ),
+    ReferenceTableItem(
       id: 'table_stress',
       title: 'Faktor Stress',
       headers: ['Tingkat Stress', 'Faktor Stress'],
@@ -121,6 +134,19 @@ class ReferenceData {
         ['Puasa', '0,7'],
         ['Payah gagal jantung', '1,3 - 1,5'],
         ['kanker', '1,3'],
+      ],
+    ),
+    ReferenceTableItem(
+      id: 'table_stress_anak',
+      title: 'Faktor Stress',
+      headers: ['Tingkat Stress', 'Faktor Stress'],
+      data: [
+        [ 'Tanpa Faktor Stress','1.0'],
+        [ 'Stres Sangat Ringan','1.1'],
+        [ 'Stres Ringan','1.2'],
+        [ 'Stress Sedang','1.3'],
+        [ 'Stress Berat','1.4'],
+        [ 'Stress Sangat Berat','1.5'],
       ],
     ),
     ReferenceTableItem(

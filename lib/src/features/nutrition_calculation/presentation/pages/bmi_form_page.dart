@@ -266,8 +266,9 @@ class _BmiFormPageState extends State<BmiFormPage> {
       case BmiClassification.normal:
         return _kBrandGreen;
       case BmiClassification.gemuk:
-        return Colors.orange;
       case BmiClassification.kurus:
+        return Colors.orange;
+      case BmiClassification.kurusSekali:
       case BmiClassification.obesitas:
         return Colors.red;
     }

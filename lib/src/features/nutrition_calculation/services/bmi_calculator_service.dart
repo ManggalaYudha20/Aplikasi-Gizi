@@ -17,6 +17,7 @@ class BmiCalculatorService {
   // ── KONSTANTA BATAS KLASIFIKASI ────────────────────────────────────────────
 
   /// Batas bawah IMT kategori Normal (standar WHO umum / Indonesia).
+  static const double _kUnderweightLow = 17.0;
   static const double _kNormalLow = 18.5;
 
   /// Batas bawah IMT kategori Gemuk.
@@ -27,6 +28,7 @@ class BmiCalculatorService {
 
   // ── NAMA KATEGORI ──────────────────────────────────────────────────────────
 
+  static const String categoryKurusSekali   = 'Kurus Sekali';
   static const String categoryKurus   = 'Kurus';
   static const String categoryNormal  = 'Normal';
   static const String categoryGemuk   = 'Gemuk';
@@ -66,6 +68,7 @@ class BmiCalculatorService {
   /// Mengembalikan [BmiClassification] yang berisi nama kategori dan
   /// kode kategori terstandarisasi untuk keperluan logika downstream.
   static BmiClassification classify(double bmi) {
+    if (bmi < _kUnderweightLow)     return BmiClassification.kurusSekali;
     if (bmi < _kNormalLow)     return BmiClassification.kurus;
     if (bmi < _kOverweightLow) return BmiClassification.normal;
     if (bmi < _kObeseLow)      return BmiClassification.gemuk;
@@ -93,6 +96,7 @@ class BmiCalculatorService {
 /// Menggunakan enum agar UI dapat menggunakan switch-expression exhaustive
 /// (compile-time safe) daripada membandingkan String literal yang rawan typo.
 enum BmiClassification {
+  kurusSekali,
   kurus,
   normal,
   gemuk,
@@ -101,6 +105,7 @@ enum BmiClassification {
   /// Nama kategori dalam Bahasa Indonesia untuk ditampilkan di UI.
   String get label {
     switch (this) {
+      case BmiClassification.kurusSekali:    return BmiCalculatorService.categoryKurusSekali;
       case BmiClassification.kurus:    return BmiCalculatorService.categoryKurus;
       case BmiClassification.normal:   return BmiCalculatorService.categoryNormal;
       case BmiClassification.gemuk:    return BmiCalculatorService.categoryGemuk;

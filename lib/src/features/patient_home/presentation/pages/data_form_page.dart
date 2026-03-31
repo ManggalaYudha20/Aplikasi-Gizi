@@ -270,178 +270,112 @@ class _DataFormPageState extends State<DataFormPage> {
     });
   }
 
-void _generateExpertDiagnosis() {
-    bool isBasicDataEmpty =
-        _beratBadanController.text.isEmpty ||
-        _tinggiBadanController.text.isEmpty;
-    bool isLabEmpty = _labItems.every(
-      (item) => item.valueController.text.isEmpty,
-    );
-    bool isClinicEmpty = _klinikTDController.text.isEmpty;
-
-    if (isBasicDataEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gagal: Harap lengkapi Berat Badan dan Tinggi Badan.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+  void _generateExpertDiagnosis() {
+    // ── Validasi minimal ──────────────────────────────────────────────────────
+    if (_beratBadanController.text.isEmpty || _tinggiBadanController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Gagal: Harap lengkapi Berat Badan dan Tinggi Badan.'),
+        backgroundColor: Colors.red,
+      ));
       return;
     }
-    if (isLabEmpty && isClinicEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Peringatan: Data Lab & Klinis kosong. Hasil diagnosa mungkin kurang spesifik.',
-          ),
-          backgroundColor: Colors.orange,
-        ),
-      );
+
+    final bool isLabEmpty = _labItems.every((i) => i.valueController.text.isEmpty);
+    if (isLabEmpty && _klinikTDController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Peringatan: Data Lab & Klinis kosong. Hasil mungkin kurang spesifik.'),
+        backgroundColor: Colors.orange,
+      ));
     }
 
-    // 1. Ambil data fisik
-    double? beratBadan = double.tryParse(_beratBadanController.text);
-    double? tinggiBadan = double.tryParse(_tinggiBadanController.text);
-    double imt = 0;
-    if (beratBadan != null && tinggiBadan != null && tinggiBadan > 0) {
-      final tbMeter = tinggiBadan / 100;
-      imt = beratBadan / (tbMeter * tbMeter);
-    }
+    // ── Kumpulkan nilai lab ke Map ────────────────────────────────────────────
+    final Map<String, String> labMap = {
+      for (final item in _labItems)
+        if (item.selectedType != null && item.valueController.text.isNotEmpty)
+          item.selectedType!: item.valueController.text,
+    };
 
-    // 2. Ambil Data Lab
-    double? gds, gdp, hba1c, ureum, kreatinin, kalium, kolesterol;
-    for (var item in _labItems) {
-      if (item.selectedType != null && item.valueController.text.isNotEmpty) {
-
-        String cleanVal = item.valueController.text.replaceAll(',', '.');
-        cleanVal = cleanVal.replaceAll(RegExp(r'[^0-9.]'), '');
-        double? val = double.tryParse(cleanVal);
-        if (val != null) {
-          String type = item.selectedType!;
-          if (type == 'GDS') gds = val;
-          if (type == 'GDP') gdp = val;
-          if (type == 'HbA1c') hba1c = val;
-          if (type == 'Ureum') ureum = val;
-          if (type == 'Kreatinin') kreatinin = val;
-          if (type == 'Kalium') kalium = val;
-          if (type == 'Kolesterol Total') kolesterol = val;
-        }
-      }
-    }
-
-    // 3. Riwayat Makan
-    List<String> dietaryHistoryList = [];
-    if (_sukaManis) dietaryHistoryList.add('Suka manis');
-    if (_sukaAsin) dietaryHistoryList.add('Suka asin');
-    if (_makanBerlemak) dietaryHistoryList.add('Suka berlemak');
-    if (_jarangOlahraga) dietaryHistoryList.add('Jarang olahraga');
-
-    // 4. Siapkan Input
-    final input = ExpertSystemInput(
-      imt: imt,
-      gds: gds,
-      gdp: gdp,
-      hba1c: hba1c,
-      ureum: ureum,
-      kreatinin: kreatinin,
-      kalium: kalium,
-      cholesterol: kolesterol,
-      bloodPressure: _klinikTDController.text,
-      dietaryHistory: dietaryHistoryList,
-      medicalDiagnosis: _diagnosisMedisController.text,
+    // ── Panggil service — semua parsing & logika ada di sana ─────────────────
+    final result = DiseaseExpertService().buildAndRun(
+      beratBadanText:  _beratBadanController.text,
+      tinggiBadanText: _tinggiBadanController.text,
+      tanggalLahir:    _selectedDate,
+      labValues:       labMap,
+      sistolikText:    _sistolikController.text,
+      diastolikText:   _diastolikController.text,
+      tdText:          _klinikTDController.text,
+      diagnosisMedis:  _diagnosisMedisController.text,
+      sukaManis:       _sukaManis,
+      sukaAsin:        _sukaAsin,
+      makanBerlemak:   _makanBerlemak,
+      jarangOlahraga:  _jarangOlahraga,
     );
 
-    // 5. Panggil Service
-    final service = DiseaseExpertService();
-    final result = service.generateCarePlan(input);
+    // ── Hitung IMT lokal untuk teks Signs ─────────────────────────────────────
+    final double? bb = double.tryParse(_beratBadanController.text);
+    final double? tb = double.tryParse(_tinggiBadanController.text);
+    double imt = 0;
+    if (bb != null && tb != null && tb > 0) imt = bb / ((tb / 100) * (tb / 100));
 
-    // 6. Update UI
+    // ── Update UI ─────────────────────────────────────────────────────────────
     setState(() {
-      _diagnosisItems.clear(); // Reset form lama
+      // 1. Diagnosa (PES)
+      // Bersihkan controller lama untuk menghindari memory leak
+      for (var item in _diagnosisItems) {
+        item.dispose();
+      }
+      _diagnosisItems.clear();
 
-      // --- DIAGNOSA (PES) ---
-      for (var diag in result.suggestedDiagnoses) {
-        if (_diagnosisItems.length >= 3) break;
-        String problem = "[${diag.code}] ${diag.label}";
-        
-        // --- PERBAIKAN DI SINI ---
-        // Menggunakan 'category' karena 'definition' tidak ada di TerminologyItem
-        String etiology = diag.category; 
-        // -------------------------
+      // Ambil maksimal 3 diagnosa
+      final diagnosesToApply = result.suggestedDiagnoses.take(3).toList();
 
-        String signs =
-            ""; // Signs bisa ditambahkan logika manual jika perlu (seperti lab value)
-
-        // Logika tambahan untuk Signs (Opsional, agar lebih detail)
-        if (diag.code == 'NC-2.2') {
-          // Kumpulkan semua data lab yang tidak null ke dalam list
-          List<String> labFindings = [];
-          if (gds != null) {
-            labFindings.add("GDS: ${gds.round()}");
-          }
-          if (gdp != null) {
-            labFindings.add("GDP: ${gdp.round()}");
-          }
-          if (hba1c != null) {
-            labFindings.add("HbA1c: $hba1c");
-          }
-          if (ureum != null) {
-            labFindings.add("Ureum: ${ureum.round()}");
-          }
-          if (kreatinin != null) {
-            labFindings.add("Kreatinin: $kreatinin");
-          }
-          if (kolesterol != null) {
-            labFindings.add("Kolesterol: ${kolesterol.round()}");
-          }
-          if (kalium != null) {
-            labFindings.add("Kalium: $kalium");
-          }
-
-          if (labFindings.isNotEmpty) {
-            signs = "Hasil Lab: ${labFindings.join(', ')}";
-          } else {
-            // Fallback jika lab kosong tapi diagnosa ini muncul (misal dari diagnosa medis)
-            signs = "Perubahan nilai lab terkait";
-          }
-        }
-        // --- Logika Signs Lainnya ---
-        else if (diag.code == 'NI-5.8.3') {
-          signs = "Riwayat: Suka makanan manis";
-        } else if (diag.code == 'NI-5.10.1') {
-          if (kalium != null) signs = "Kalium: $kalium";
-        } else if (diag.code == 'NI-5.10.2') {
-          signs = "Riwayat suka asin, TD: ${_klinikTDController.text}";
-        } else if (diag.code == 'NC-3.3' || diag.code == 'NC-3.1') {
-          signs = "IMT: ${imt.toStringAsFixed(1)}";
-        } else if (diag.code == 'NB-2.1') {
-          signs = "Riwayat: Jarang berolahraga";
-        }
-        _addDiagnosisItem(p: problem, e: etiology, s: signs);
+      for (final diag in diagnosesToApply) {
+        _diagnosisItems.add(DiagnosisInput(
+          p: '[${diag.code}] ${diag.label}',
+          e: diag.category,
+          s: DiseaseExpertService.buildSigns(
+            diag,
+            gds:          double.tryParse(labMap['GDS'] ?? ''),
+            gdp:          double.tryParse(labMap['GDP'] ?? ''),
+            hba1c:        double.tryParse(labMap['HbA1c'] ?? ''),
+            ureum:        double.tryParse(labMap['Ureum'] ?? ''),
+            kreatinin:    double.tryParse(labMap['Kreatinin'] ?? ''),
+            kolesterol:   double.tryParse(labMap['Kolesterol Total'] ?? ''),
+            ldl:          double.tryParse(labMap['LDL'] ?? ''),
+            hdl:          double.tryParse(labMap['HDL'] ?? ''),
+            trigliserida: double.tryParse(labMap['Trigliserida'] ?? ''),
+            kalium:       double.tryParse(labMap['Kalium'] ?? ''),
+            natrium:      double.tryParse(labMap['Natrium'] ?? ''),
+            hgb:          double.tryParse(labMap['HGB'] ?? ''),
+            sistolik:     int.tryParse(_sistolikController.text),
+            diastolik:    int.tryParse(_diastolikController.text),
+            imt:          imt,
+            sukaAsin:     _sukaAsin,
+          ),
+        ));
       }
       if (_diagnosisItems.isEmpty) _addDiagnosisItem();
 
-      // --- INTERVENSI ---
-      // Format harus: [KODE] Label
-      // Agar terbaca otomatis oleh SearchableTerminologyField
+      // 2. Intervensi (MAKS 3 TERMINOLOGI)
       if (_intervensiDietController.text.isEmpty) {
-        _intervensiDietController.text = result.suggestedInterventions
-            .map((i) => '[${i.code}] ${i.label}')
-            .join('; '); // Gunakan ; sebagai pemisah jika ada banyak
+        _intervensiDietController.text =
+            result.suggestedInterventions.take(3).map((i) => '[${i.code}] ${i.label}').join('\n');
       }
 
-      // --- MONITORING (UPDATED) ---
-      // Masuk ke _monevIndikatorController (Bukan Asupan)
+      // 3. Monitoring (MAKS 3 TERMINOLOGI)
       if (_monevIndikatorController.text.isEmpty) {
-        _monevIndikatorController.text = result.suggestedMonitoring
-            .map((m) => '[${m.code}] ${m.label}')
-            .join('; ');
+        _monevIndikatorController.text =
+            result.suggestedMonitoring.take(3).map((m) => '[${m.code}] ${m.label}').join('\n');
       }
+
+      // 4. Tujuan Intervensi: Dikosongkan sesuai permintaan
+      _intervensiTujuanController.clear(); 
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Saran Diagnosa otomatis berhasil dimuat.')),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Saran diagnosa otomatis berhasil dimuat.'),
+      backgroundColor: Colors.green,
+    ));
   }
 
   void _initializeFormWithPatientData() {
@@ -1963,9 +1897,9 @@ void _generateExpertDiagnosis() {
     fieldFocusNode,
     onFieldSubmitted,
   ) {
-    // Sinkronisasi controller bawaan Autocomplete dengan controller kita
-    if (_diagnosisItems[index].pController.text.isNotEmpty &&
-        fieldTextEditingController.text.isEmpty) {
+    // Sinkronisasi: Paksa Autocomplete mengikuti nilai controller kita
+    // Hapus pengecekan ".isEmpty" agar sistem bisa menimpa teks kapan saja
+    if (_diagnosisItems[index].pController.text != fieldTextEditingController.text) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
           fieldTextEditingController.text =
@@ -1974,10 +1908,12 @@ void _generateExpertDiagnosis() {
       });
     }
 
-    // Listener: Jika user mengetik manual
+    // Listener: Jika user mengetik manual, simpan ke controller kita
     fieldTextEditingController.addListener(() {
-      _diagnosisItems[index].pController.text =
-          fieldTextEditingController.text;
+      if (_diagnosisItems[index].pController.text != fieldTextEditingController.text) {
+        _diagnosisItems[index].pController.text =
+            fieldTextEditingController.text;
+      }
     });
 
     return TextFormField(
