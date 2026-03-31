@@ -164,6 +164,8 @@ class _DataFormPageState extends State<DataFormPage> {
   final _diastolikController = TextEditingController();
   final _sistolikFocusNode = FocusNode();
   final _diastolikFocusNode = FocusNode();
+  Key _intervensiKey = UniqueKey();
+  Key _monevIndikatorKey = UniqueKey();
 
   bool _sukaManis = false;
   bool _sukaAsin = false;
@@ -706,6 +708,8 @@ class _DataFormPageState extends State<DataFormPage> {
       _klinikSPO2Controller.clear();
       _namaNutrisionisController.clear();
       _monevIndikatorController.clear();
+      _intervensiKey = UniqueKey();
+      _monevIndikatorKey = UniqueKey();
 
       for (var item in _monevLabItems) {
         item.valueController.dispose();
@@ -2029,6 +2033,7 @@ class _DataFormPageState extends State<DataFormPage> {
                   _buildSectionHeader('Intervensi Gizi'),
 
                   SearchableTerminologyField(
+                    key: _intervensiKey,
                     label: 'Jenis Diet / Intervensi',
                     controller: _intervensiDietController,
                     dataList: IntervensiData
@@ -2079,6 +2084,7 @@ class _DataFormPageState extends State<DataFormPage> {
                   _buildSectionHeader('Monitoring & Evaluasi'),
 
                   SearchableTerminologyField(
+                    key: _monevIndikatorKey,
                     label: 'Indikator Monitoring',
                     controller: _monevIndikatorController,
                     dataList: MonitoringData.allMonitoringItems,
