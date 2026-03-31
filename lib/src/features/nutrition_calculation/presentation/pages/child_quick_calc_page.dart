@@ -11,6 +11,8 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presen
 // Service Imports
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/nutrition_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/bbi_calculator_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/data/models/reference_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/widgets/reference_widgets.dart';
 
 class _Keys {
   const _Keys._();
@@ -24,7 +26,7 @@ class _Keys {
 class _Str {
   const _Str._();
   static const appBarTitle = 'Anak';
-  static const appBarSubtitle = 'Hitung Cepat Gizi (0-18 Tahun)';
+  static const appBarSubtitle = 'Hitung Kebutuhan Gizi (0-18 Tahun)';
   static const sectionTitle = 'Input Data Anak';
 
   static const weightLabel = 'Berat Badan';
@@ -503,6 +505,31 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
                       result: _femaleResult!,
                     ),
                     SizedBox(height: sw * 0.08),
+                    const Divider(thickness: 2),
+                    SizedBox(height: sw * 0.04),
+                    Text(
+                      'Referensi Formula',
+                      style: TextStyle(
+                        fontSize: _responsiveFont(sw, base: 18),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueGrey[800],
+                      ),
+                    ),
+                    SizedBox(height: sw * 0.04),
+                    
+                    // Menampilkan formula terkait anak (menyaring formula dewasa)
+                    ...ReferenceData.formulas
+                        .where((formula) => formula.id.contains('_anak'))
+                        .map((formula) => FormulaTile(
+                              key: ValueKey('cqc_${formula.id}'),
+                              semanticId: 'cqc_${formula.id}',
+                              title: formula.title,
+                              formulaName: formula.formulaName,
+                              formulaContent: formula.formulaContent,
+                              note: formula.note,
+                            )),
+                            
+                    SizedBox(height: sw * 0.08),
                   ],
                 ],
               ),
@@ -577,18 +604,14 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
                 const SizedBox(height: 16),
                 
                 // Makronutrien & Cairan
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('Kebutuhan Harian (RDA):', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color)),
-                ),
                 const SizedBox(height: 8),
                 _buildResultRow('Total Energi', '${result.energi.toStringAsFixed(0)} kkal/hari', isHighlight: true, color: color),
                 const Divider(height: 8),
-                _buildResultRow('Karbohidrat', '${result.karbo.toStringAsFixed(0)} g/hari'),
+                _buildResultRow('Protein', '${result.protein.toStringAsFixed(0)} g/hari'),
                 const Divider(height: 8),
                 _buildResultRow('Lemak', '${result.lemak.toStringAsFixed(0)} g/hari'),
                 const Divider(height: 8),
-                _buildResultRow('Protein', '${result.protein.toStringAsFixed(0)} g/hari'),
+                _buildResultRow('Karbohidrat', '${result.karbo.toStringAsFixed(0)} g/hari'),
                 const Divider(height: 8),
                 _buildResultRow('Kebutuhan Cairan', '${result.cairan.toStringAsFixed(0)} ml/hari', isHighlight: true, color: Colors.lightBlue),
                 const Divider(height: 16, thickness: 2),
@@ -603,6 +626,9 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
                 const Divider(height: 8),
 
                 if (result.status0to60 != null) ...[
+                  _buildResultRow('IMT/U (Z-Score)', '${result.status0to60!.bmiForAge.zScore?.toStringAsFixed(2) ?? '-'} (${result.status0to60!.bmiForAge.category})',
+                      customValueColor: _NutritionColorResolver.resolve('IMT/U', result.status0to60!.bmiForAge.category)),
+                  const Divider(height: 8),
                   _buildResultRow('BB/U (Z-Score)', '${result.status0to60!.weightForAge.zScore?.toStringAsFixed(2) ?? '-'} (${result.status0to60!.weightForAge.category})',
                       customValueColor: _NutritionColorResolver.resolve('BB/U', result.status0to60!.weightForAge.category)),
                   const Divider(height: 8),
@@ -612,13 +638,11 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
                   _buildResultRow('BB/TB (Z-Score)', '${result.status0to60!.weightForHeight.zScore?.toStringAsFixed(2) ?? '-'} (${result.status0to60!.weightForHeight.category})',
                       customValueColor: _NutritionColorResolver.resolve('BB/TB', result.status0to60!.weightForHeight.category)),
                   const Divider(height: 8),
-                  _buildResultRow('IMT/U (Z-Score)', '${result.status0to60!.bmiForAge.zScore?.toStringAsFixed(2) ?? '-'} (${result.status0to60!.bmiForAge.category})',
-                      customValueColor: _NutritionColorResolver.resolve('IMT/U', result.status0to60!.bmiForAge.category)),
                 ] else if (result.imtu5to18 != null) ...[
+                  _buildResultRow('IMT', '${result.imtu5to18!.bmi.toStringAsFixed(2)} kg/m²'),
+                  const Divider(height: 8),
                   _buildResultRow('IMT/U 5-18 Thn', '${result.imtu5to18!.zScore?.toStringAsFixed(2) ?? '-'} (${result.imtu5to18!.category})',
                       customValueColor: _NutritionColorResolver.resolve('IMT/U', result.imtu5to18!.category)),
-                  const Divider(height: 8),
-                  _buildResultRow('Nilai IMT', '${result.imtu5to18!.bmi.toStringAsFixed(2)} kg/m²'),
                 ]
               ],
             ),

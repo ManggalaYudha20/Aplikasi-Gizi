@@ -13,6 +13,8 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/servic
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/bbi_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/services/diabetes_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/services/kidney_calculator_service.dart'; // Import Service Ginjal
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/data/models/reference_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/widgets/reference_widgets.dart';
 
 class _Keys {
   const _Keys._();
@@ -361,112 +363,145 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
 
                   // ── Inputs Diabetes Melitus ────────────────────────────
                   SizedBox(height: sw * 0.08),
-                  const Divider(thickness: 1.5),
-                  SizedBox(height: sw * 0.06),
                   
-                  Text(
-                    _Str.dmSectionTitle,
-                    style: TextStyle(
-                      fontSize: _responsiveFont(sw, base: 18),
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey[800],
-                    ),
-                  ),
-                  SizedBox(height: sw * 0.05),
-
-                  _buildDropdown(
-                    widgetKey: _Keys.dmActivityDropdown,
-                    controller: _dmActivityController,
-                    label: _Str.dmActivityLabel,
-                    prefixIcon: const Icon(Icons.directions_walk),
-                    items: const ['Bed rest', 'Ringan', 'Sedang', 'Berat'],
-                    itemAsString: (String key) {
-                      double val = 0.0;
-                      switch (key) {
-                        case 'Bed rest': val = 0.1; break;
-                        case 'Ringan': val = 0.2; break;
-                        case 'Sedang': val = 0.3; break;
-                        case 'Berat': val = 0.4; break;
-                      }
-                      return '$key (+${(val * 100).toStringAsFixed(0)}%)';
-                    },
-                  ),
-                  SizedBox(height: sw * 0.04),
-
-                  _buildDropdown(
-                    widgetKey: _Keys.hospitalizedDropdown,
-                    controller: _hospitalizedStatusController,
-                    label: _Str.hospitalizedLabel,
-                    prefixIcon: const Icon(Icons.local_hospital),
-                    items: const ['Ya', 'Tidak'],
-                    menuHeight: 120,
-                    onChanged: (String? value) {
-                      setState(() {
-                        _hospitalizedStatusController.text = value ?? 'Tidak';
-                        if (value == 'Tidak') _stressMetabolic = 20.0;
-                      });
-                    },
-                  ),
-
-                  if (_hospitalizedStatusController.text == 'Ya') ...[
-                    SizedBox(height: sw * 0.04),
-                    Column(
-                      key: _Keys.stressSlider,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  // Gunakan Theme untuk menghilangkan garis border bawaan ExpansionTile
+                  Theme(
+                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                    child: Column(
                       children: [
-                        Text(
-                          'Stress Metabolik: ${_stressMetabolic.round()}%',
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        
+                        // ── TILE DIABETES MELITUS ──────────────────────────────
+                        Card(
+                          elevation: 0,
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          child: ExpansionTile(
+                            title: Text(
+                              _Str.dmSectionTitle,
+                              style: TextStyle(
+                                fontSize: _responsiveFont(sw, base: 16),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueGrey[800],
+                              ),
+                            ),
+                            leading: Icon(Icons.bloodtype, color: Colors.red[400]),
+                            childrenPadding: EdgeInsets.fromLTRB(sw * 0.04, 0, sw * 0.04, sw * 0.04),
+                            children: [
+                              SizedBox(height:10),
+                              _buildDropdown(
+                                widgetKey: _Keys.dmActivityDropdown,
+                                controller: _dmActivityController,
+                                label: _Str.dmActivityLabel,
+                                prefixIcon: const Icon(Icons.directions_walk),
+                                items: const ['Bed rest', 'Ringan', 'Sedang', 'Berat'],
+                                itemAsString: (String key) {
+                                  double val = 0.0;
+                                  switch (key) {
+                                    case 'Bed rest': val = 0.1; break;
+                                    case 'Ringan': val = 0.2; break;
+                                    case 'Sedang': val = 0.3; break;
+                                    case 'Berat': val = 0.4; break;
+                                  }
+                                  return '$key (+${(val * 100).toStringAsFixed(0)}%)';
+                                },
+                              ),
+                              SizedBox(height: sw * 0.04),
+            
+                              _buildDropdown(
+                                widgetKey: _Keys.hospitalizedDropdown,
+                                controller: _hospitalizedStatusController,
+                                label: _Str.hospitalizedLabel,
+                                prefixIcon: const Icon(Icons.local_hospital),
+                                items: const ['Ya', 'Tidak'],
+                                menuHeight: 120,
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    _hospitalizedStatusController.text = value ?? 'Tidak';
+                                    if (value == 'Tidak') _stressMetabolic = 20.0;
+                                  });
+                                },
+                              ),
+            
+                              if (_hospitalizedStatusController.text == 'Ya') ...[
+                                SizedBox(height: sw * 0.04),
+                                Column(
+                                  key: _Keys.stressSlider,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Stress Metabolik: ${_stressMetabolic.round()}%',
+                                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                    ),
+                                    Slider(
+                                      value: _stressMetabolic,
+                                      min: 10, max: 40, divisions: 30,
+                                      label: '${_stressMetabolic.round()}%',
+                                      onChanged: (v) => setState(() => _stressMetabolic = v),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
-                        Slider(
-                          value: _stressMetabolic,
-                          min: 10, max: 40, divisions: 30,
-                          label: '${_stressMetabolic.round()}%',
-                          onChanged: (v) => setState(() => _stressMetabolic = v),
+                        
+                        SizedBox(height: sw * 0.04),
+
+                        // ── TILE GINJAL KRONIS ─────────────────────────────────
+                        Card(
+                          elevation: 0,
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          child: ExpansionTile(
+                            title: Text(
+                              _Str.ckdSectionTitle,
+                              style: TextStyle(
+                                fontSize: _responsiveFont(sw, base: 16),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueGrey[800],
+                              ),
+                            ),
+                            leading: Icon(Icons.water_drop, color: Colors.blue[400]),
+                            childrenPadding: EdgeInsets.fromLTRB(sw * 0.04, 0, sw * 0.04, sw * 0.04),
+                            children: [
+                              SizedBox(height:10),
+                              _buildDropdown(
+                                widgetKey: _Keys.ckdDialysisDropdown,
+                                controller: _ckdDialysisController,
+                                label: 'Status Cuci Darah',
+                                prefixIcon: const Icon(Icons.bloodtype_outlined),
+                                items: const ['Ya', 'Tidak'],
+                                menuHeight: 120,
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    _ckdDialysisController.text = value ?? 'Tidak';
+                                  });
+                                },
+                              ),
+                              
+                              if (_ckdDialysisController.text == 'Tidak') ...[
+                                SizedBox(height: sw * 0.04),
+                                _buildDropdown(
+                                  widgetKey: _Keys.ckdProteinFactorDropdown,
+                                  controller: _ckdProteinFactorController,
+                                  label: 'Faktor Kebutuhan Protein',
+                                  prefixIcon: const Icon(Icons.rule),
+                                  items: const ['0.6 (Rendah)', '0.7 (Sedang)', '0.8 (Tinggi)'],
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
+                        
                       ],
                     ),
-                  ],
-
-                  // ── Inputs Ginjal Kronis ──────────────────────────────
-                  SizedBox(height: sw * 0.08),
-                  const Divider(thickness: 1.5),
-                  SizedBox(height: sw * 0.06),
-                  
-                  Text(
-                    _Str.ckdSectionTitle,
-                    style: TextStyle(
-                      fontSize: _responsiveFont(sw, base: 18),
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey[800],
-                    ),
                   ),
-                  SizedBox(height: sw * 0.05),
-
-                  _buildDropdown(
-                    widgetKey: _Keys.ckdDialysisDropdown,
-                    controller: _ckdDialysisController,
-                    label: 'Status Cuci Darah',
-                    prefixIcon: const Icon(Icons.bloodtype_outlined),
-                    items: const ['Ya', 'Tidak'],
-                    menuHeight: 120,
-                    onChanged: (String? value) {
-                      setState(() {
-                        _ckdDialysisController.text = value ?? 'Tidak';
-                      });
-                    },
-                  ),
-                  
-                  if (_ckdDialysisController.text == 'Tidak') ...[
-                    SizedBox(height: sw * 0.04),
-                    _buildDropdown(
-                      widgetKey: _Keys.ckdProteinFactorDropdown,
-                      controller: _ckdProteinFactorController,
-                      label: 'Faktor Kebutuhan Protein',
-                      prefixIcon: const Icon(Icons.rule),
-                      items: const ['0.6 (Rendah)', '0.7 (Sedang)', '0.8 (Tinggi)'],
-                    ),
-                  ],
 
                   SizedBox(height: sw * 0.08),
 
@@ -504,6 +539,31 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
                       color: _kFemaleColor,
                       result: _femaleResult!,
                     ),
+                    SizedBox(height: sw * 0.08),
+                    const Divider(thickness: 2),
+                    SizedBox(height: sw * 0.04),
+                    Text(
+                      'Referensi Formula',
+                      style: TextStyle(
+                        fontSize: _responsiveFont(sw, base: 18),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueGrey[800],
+                      ),
+                    ),
+                    SizedBox(height: sw * 0.04),
+                    
+                    // Menampilkan formula terkait orang dewasa (menyaring formula anak)
+                    ...ReferenceData.formulas
+                        .where((formula) => !formula.id.contains('_anak'))
+                        .map((formula) => FormulaTile(
+                              key: ValueKey('qc_${formula.id}'),
+                              semanticId: 'qc_${formula.id}',
+                              title: formula.title,
+                              formulaName: formula.formulaName,
+                              formulaContent: formula.formulaContent,
+                              note: formula.note,
+                            )),
+                            
                     SizedBox(height: sw * 0.08),
                   ],
                 ],
@@ -622,22 +682,21 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
             child: Column(
               children: [
                 // --- SECTION MAKRONUTRIEN (UMUM) ---
-                _buildResultRow('Karbohidrat (60%)', '${result.tdeeResult.carbsGram.toStringAsFixed(0)} g/hari'),
-                const Divider(height: 8),
-                _buildResultRow('Lemak (25%)', '${result.tdeeResult.fatGram.toStringAsFixed(0)} g/hari'),
-                const Divider(height: 8),
-                _buildResultRow('Protein (15%)', '${result.tdeeResult.proteinGram.toStringAsFixed(0)} g/hari'),
-                const Divider(height: 16),
-
                 _buildResultRow('IMT (BMI)', '${result.bmiResult.bmi.toStringAsFixed(1)} (${result.bmiResult.categoryLabel})'),
                 const Divider(height: 16),
                 _buildResultRow('Berat Badan Ideal', '${result.bbi.toStringAsFixed(1)} kg'),
                 const Divider(height: 16),
+                _buildResultRow('TDEE (Total Energi)', '${result.tdeeResult.tdee.toStringAsFixed(0)} kkal/hari', isHighlight: true, color: color),
+                const Divider(height: 16),
+                _buildResultRow('Protein (15%)', '${result.tdeeResult.proteinGram.toStringAsFixed(0)} g/hari'),
+                const Divider(height: 16),
+                _buildResultRow('Lemak (25%)', '${result.tdeeResult.fatGram.toStringAsFixed(0)} g/hari'),
+                const Divider(height: 16),
+                _buildResultRow('Karbohidrat (60%)', '${result.tdeeResult.carbsGram.toStringAsFixed(0)} g/hari'),
+                const Divider(height: 16),
                 _buildResultRow('BMR (Harris-Benedict)', '${result.bmrHarris.toStringAsFixed(0)} kkal/hari'),
                 const Divider(height: 16),
                 _buildResultRow('BMR (Mifflin-St Jeor)', '${result.bmrMifflin.toStringAsFixed(0)} kkal/hari'),
-                const Divider(height: 16),
-                _buildResultRow('TDEE (Total Energi Umum)', '${result.tdeeResult.tdee.toStringAsFixed(0)} kkal/hari', isHighlight: true, color: color),
 
                 const Divider(height: 16, thickness: 2),
 
@@ -650,13 +709,13 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildResultRow('Karbohidrat DM', '${result.dmResult.dietInfo.carbohydrate.toStringAsFixed(0)} g/hari'),
-                const Divider(height: 8),
-                _buildResultRow('Lemak DM', '${result.dmResult.dietInfo.fat.toStringAsFixed(0)} g/hari'),
+                _buildResultRow('BMR', '${result.dmResult.bmr.toStringAsFixed(0)} kkal'),
                 const Divider(height: 8),
                 _buildResultRow('Protein DM', '${result.dmResult.dietInfo.protein.toStringAsFixed(0)} g/hari'),
                 const Divider(height: 8),
-                _buildResultRow('BMR', '${result.dmResult.bmr.toStringAsFixed(0)} kkal'),
+                _buildResultRow('Lemak DM', '${result.dmResult.dietInfo.fat.toStringAsFixed(0)} g/hari'),
+                const Divider(height: 8),
+                _buildResultRow('Karbohidrat DM', '${result.dmResult.dietInfo.carbohydrate.toStringAsFixed(0)} g/hari'),
                 const Divider(height: 8),
                 _buildResultRow('Koreksi Aktivitas', '${result.dmResult.activityCorrection >= 0 ? '+' : ''}${result.dmResult.activityCorrection.toStringAsFixed(0)} kkal'),
                 const Divider(height: 8),
@@ -683,13 +742,13 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
                 const SizedBox(height: 8),
                 
                 // Makronutrien spesifik CKD (Bila objeknya tidak null)
-                _buildResultRow('Karbohidrat CKD', '${ckdKarbo.toStringAsFixed(0)} g/hari'),
-                const Divider(height: 8),
-                _buildResultRow('Lemak CKD', '${ckdLemak.toStringAsFixed(0)} g/hari'),
+                _buildResultRow('BMR (Ginjal)', '${result.ckdResult.bmr.toStringAsFixed(0)} kkal/hari'),
                 const Divider(height: 8),
                 _buildResultRow('Protein CKD', '${ckdProtein.toStringAsFixed(1)} g/hari', isHighlight: true, color: color),
                 const Divider(height: 8),
-                _buildResultRow('BMR (Ginjal)', '${result.ckdResult.bmr.toStringAsFixed(0)} kkal/hari'),
+                _buildResultRow('Lemak CKD', '${ckdLemak.toStringAsFixed(0)} g/hari'),
+                const Divider(height: 8),
+                _buildResultRow('Karbohidrat CKD', '${ckdKarbo.toStringAsFixed(0)} g/hari'),
                 const Divider(height: 8),
                 
                 if (result.ckdResult.nutritionInfo != null) ...[
@@ -716,7 +775,7 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          flex: 2,
+          flex: 3,
           child: Text(
             label,
             style: TextStyle(

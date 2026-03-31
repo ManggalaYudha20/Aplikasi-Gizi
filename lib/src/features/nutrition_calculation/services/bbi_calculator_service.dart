@@ -57,7 +57,17 @@ class BbiCalculatorService {
     }
 
     final double base = heightCm - 100.0;
-    return isMale ? base * 0.90 : base * 0.85;
+
+    // Menentukan apakah menggunakan persamaan (a) berdasarkan gender dan tinggi badan
+    final bool useFormulaA = (isMale && heightCm >= 160.0) || (!isMale && heightCm >= 150.0);
+
+    if (useFormulaA) {
+      // Persamaan (a): (TB - 100) dikurangi 10% (sama dengan dikali 0.90)
+      return base * 0.90; 
+    } else {
+      // Persamaan (b): (TB - 100) tanpa pengurangan 10%
+      return base; 
+    }
   }
 
   // ── FORMULA BBI ANAK (Usia 0–12 Tahun) ───────────────────────────────────

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/reference_widgets.dart';
 
 // --- Models ---
 
@@ -29,6 +30,22 @@ class ReferenceTableItem {
     this.subtitle,
     required this.headers,
     required this.data,
+  });
+}
+
+class FormulaItem {
+  final String id;
+  final String title;
+  final String formulaName;
+  final Widget formulaContent;
+  final String note;
+
+  const FormulaItem({
+    required this.id,
+    required this.title,
+    required this.formulaName,
+    required this.formulaContent,
+    required this.note,
   });
 }
 
@@ -149,4 +166,230 @@ class ReferenceData {
       ],
     ),
   ];
+  static final List<FormulaItem> formulas = [
+    FormulaItem(
+      id: 'formula_ginjal',
+      title: 'Kebutuhan Protein (Ginjal Kronik)',
+      formulaName: 'Rumus Perhitungan (Berdasarkan BBI)',
+      formulaContent: Column(
+        children: [
+          const Text(
+            'Pasien Pradialisis (Belum HD)',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          _buildColoredFormulaBox('Total Protein = (0,6 s/d 0,8) x BBI', Colors.orange),
+          const SizedBox(height: 12),
+          const Text(
+            'Pasien Hemodialisis (HD Rutin)',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          _buildColoredFormulaBox('Total Protein = (1,2) x BBI', Colors.red),
+        ],
+      ),
+      note: 'Keterangan:\n'
+          '• BBI = Berat Badan Ideal (dihitung dengan rumus Broca).\n'
+          '• Rumus ini memastikan ginjal tidak bekerja terlalu berat akibat kelebihan protein dari berat badan aktual (jika pasien obesitas/edema).\n'
+          '• Min. 50% protein harus bernilai biologis tinggi (telur, daging, ikan).',
+    ),
+    const FormulaItem(
+      id: 'formula_perkeni',
+      title: 'Kebutuhan Kalori Diet DM',
+      formulaName: 'Metode PERKENI 2024',
+      formulaContent: Text(
+        'Total = (BBI x Kalori Basal) + Aktivitas - Usia +/- Koreksi BB +/- Stress Metabolik',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+      ),
+      note: 'Sumber: Pedoman Pengelolaan dan Pencegahan Diabetes Melitus Tipe 2 Dewasa di Indonesia 2024, Hal. 53-54.\n\n'
+          'Rincian Faktor:\n'
+          '• Kalori Basal: Pria (30 kal/kg BBI), Wanita (25 kal/kg BBI)\n'
+          '• Koreksi Usia: 40-59 th (-5%), 60-69 th (-10%), >70 th (-20%)\n'
+          '• Aktivitas: Ringan (+20%), Sedang (+30%), Berat (+40%)\n'
+          '• Status Gizi: Gemuk (-20% s/d -30%), Kurus (+20% s/d +30%)',
+    ),
+    const FormulaItem(
+      id: 'formula_broca',
+      title: 'Berat Badan Ideal (BBI)',
+      formulaName: 'Rumus Broca (Modifikasi)',
+      formulaContent: Text(
+        '(a) (Tinggi Badan (cm) - 100) - 10%) \n(b) (Tinggi Badan (cm) - 100)',
+        style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
+      ),
+      note: 'Pada persamaan (a) digunakan Bagi pria dengan tinggi badan ≥ 160 cm dan wanita dengan tinggi badan ≥ 150 cm. sedangkan Bagi pria dengan tinggi badan < 160 cm dan wanita dengan tinggi badan < 150 cm menggunakan persamaan (b)',
+    ),
+    const FormulaItem(
+      id: 'formula_bbi_anak',
+      title: 'Berat Badan Ideal (Anak)',
+      formulaName: 'Usia < 12 tahun',
+      formulaContent: Text(
+        '0 - 11 bulan: \nDBW = a + 9 / 2 atau a/2 + 3 s/d 4\n\n1 - 6 tahun: \nBBI = 2n + 8\n\n7 - 12 tahun: \nBBI = 7n-5/2',
+        style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
+      ),
+      note: 'a = usia dalam bulan\nn = usia dalam tahun',
+    ),
+    const FormulaItem(
+      id: 'formula_imt',
+      title: 'Indeks Massa Tubuh (IMT)',
+      formulaName: 'Standar WHO / Kemenkes',
+      formulaContent: FractionText('Berat Badan (kg)', 'Tinggi Badan (m) x Tinggi Badan (m)'),
+      note: 'Kategori: Kurus (<18.5), Normal (18.5-25.0), Gemuk (>25.0).',
+    ),
+    const FormulaItem(
+      id: 'formula_bmr',
+      title: 'Basal Metabolic Rate (BMR)',
+      formulaName: 'Kebutuhan Energi Basal',
+      formulaContent: Text(
+        'Persamaan Harris-Benedict :\n'
+        'Pria: 66,47+(13,75 x BB)+(5,003 x TB)-(6,755 x U)\n\n'
+        'Wanita: 655,1+(9,563 x BB)+(1,850 x TB)-(4,676xU)\n\n'
+        'Persamaan Mifflin-St Jeor :\n'
+        'Pria: 5+(9,99 x BB)+(6,25 x TB)-(4,92 x U)\n\n'
+        'Wanita: 161-(9,99 x BB)+(6,25 x TB)-(4,92 x U)',
+        style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 10.5),
+      ),
+      note: 'BB = Berat Badan (kg)\nTB = Tinggi Badan (cm)\nU = Usia (Tahun)',
+    ),
+    const FormulaItem(
+      id: 'formula_tdee',
+      title: 'Total Daily Energy Expenditure (TDEE)',
+      formulaName: 'Faktor Aktivitas Fisik',
+      formulaContent: Text(
+        'BMR x Faktor Aktivitas x Faktor Stress',
+        style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
+      ),
+      note: 'TDEE adalah perkiraan jumlah total kalori yang dibakar oleh tubuh dalam satu hari (24 jam).',
+    ),
+    const FormulaItem(
+      id: 'formula_makronutrien',
+      title: 'Kebutuhan Makronutrien Umum',
+      formulaName: 'Persentase dari Total Kalori (TDEE)',
+      formulaContent: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '• Protein (15%) = (15% x TDEE) / 4',
+            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          Text(
+            '• Lemak (25%) = (25% x TDEE) / 9',
+            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          Text(
+            '• Karbohidrat (60%) = (60% x TDEE) / 4',
+            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      note: 'Keterangan Nilai Konversi Kalori:\n'
+          '• 1 gram Protein = 4 kkal\n'
+          '• 1 gram Lemak = 9 kkal\n'
+          '• 1 gram Karbohidrat = 4 kkal\n\n'
+          '*Catatan: Persentase di atas adalah pedoman gizi seimbang secara umum. Distribusi makronutrien dapat diubah menyesuaikan kondisi klinis dan jenis diet pasien (misalnya: diet DM, diet ginjal, atau diet rendah lemak).',
+    ),
+    // --- TAMBAHAN FORMULA GIZI ANAK ---
+    const FormulaItem(
+      id: 'formula_energi_protein_anak',
+      title: 'Kebutuhan Energi & Protein (Anak)',
+      formulaName: 'Berdasarkan AKG (Per kg Berat Badan)',
+      formulaContent: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '• < 6 bln   : E=108 kkal/kg, P=2.2 g/kg\n'
+            '• 6-11 bln  : E=98 kkal/kg, P=1.5 g/kg\n'
+            '• 1-3 thn   : E=102 kkal/kg, P=1.23 g/kg\n'
+            '• 4-6 thn   : E=90 kkal/kg, P=1.2 g/kg\n'
+            '• 7-10 thn  : E=70 kkal/kg, P=1.0 g/kg\n'
+            '• 11-14 thn : (L: 55 kkal, P: 47 kkal), P=1.0 g/kg\n'
+            '• > 14 thn  : (L: 45 kkal, P: 40 kkal), P=0.8 g/kg',
+            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 11),
+          ),
+        ],
+      ),
+      note: 'Catatan:\n'
+          'E = Energi (Kkal), P = Protein (Gram). '
+          'Perhitungan menggunakan Berat Badan Ideal (BBI) jika tersedia, '
+          'atau menggunakan berat badan aktual untuk target tumbuh kejar (catch-up growth).',
+    ),
+
+    const FormulaItem(
+      id: 'formula_makro_anak',
+      title: 'Kebutuhan Makronutrien (Anak)',
+      formulaName: 'Distribusi Lemak dan Karbohidrat',
+      formulaContent: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Total Energi = Kalori/kg x Berat Badan',
+            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Protein = Protein/kg x Berat Badan',
+            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Lemak (35%) = (35% x Total Energi) / 9',
+            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Karbohidrat = (Total Energi - (Protein x 4) - (Lemak x 9)) / 4',
+            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 11),
+          ),
+        ],
+      ),
+      note: 'Keterangan:\n'
+          'Rentang kebutuhan lemak anak umumnya 30-40% untuk usia 1-3 tahun dan 25-35% untuk 4-18 tahun. '
+          'Aplikasi ini menggunakan nilai rata-rata 35%. Karbohidrat dihitung dari sisa total energi setelah dikurangi kalori dari protein dan lemak.',
+    ),
+
+    const FormulaItem(
+      id: 'formula_cairan_anak',
+      title: 'Kebutuhan Cairan Anak',
+      formulaName: 'Rumus Holliday-Segar',
+      formulaContent: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            ' 1 - 10 kg  : 100 ml / kg BB',
+            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+          SizedBox(height: 8),
+          Text(
+            ' 11 - 20 kg : 1000 ml + 50 ml',
+            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+          SizedBox(height: 8),
+          Text(
+            ' > 20 kg    : 1500 ml + 20 ml',
+            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+        ],
+      ),
+      note: 'Keterangan:\n'
+          'Rumus ini digunakan untuk menghitung kebutuhan cairan pemeliharaan harian (maintenance fluid) pada anak berdasarkan berat badannya.',
+    ),
+  ];
+
+  // Helper Widget Pindah Kesini
+  static Widget _buildColoredFormulaBox(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 13),
+      ),
+    );
+  }
 }
