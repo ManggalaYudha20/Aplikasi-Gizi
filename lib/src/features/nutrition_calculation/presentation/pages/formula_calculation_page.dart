@@ -55,13 +55,17 @@ class FormulaCalculationPage extends StatelessWidget {
   static Widget _buildStatusGiziPage(String role) =>
       NutritionStatusFormPage(userRole: role);
   static Widget _buildImtuPage(String role) => IMTUFormPage(userRole: role);
-  static Widget _buildDiabetesPage(String role) => DiabetesCalculationPage(userRole: role);
-  static Widget _buildKidneyPage(String role) => KidneyCalculationPage(userRole: role);
-  static Widget _buildSchofieldPage(String role) => SchofieldFormPage(userRole: role);
+  static Widget _buildDiabetesPage(String role) =>
+      DiabetesCalculationPage(userRole: role);
+  static Widget _buildKidneyPage(String role) =>
+      KidneyCalculationPage(userRole: role);
+  static Widget _buildSchofieldPage(String role) =>
+      SchofieldFormPage(userRole: role);
+
   /// DATA MENU (Single Source of Truth)
   /// Dideklarasikan sebagai 'static const' untuk optimasi memori maksimal.
   /// List ini hanya dibuat satu kali saat aplikasi dijalankan.
-  
+
   static const List<_FormulaMenu> _diseaseMenuItems = [
     _FormulaMenu(
       keyId: 'btn_calc_dm',
@@ -149,10 +153,10 @@ class FormulaCalculationPage extends StatelessWidget {
   ];
 
   int _getCrossAxisCount(double screenWidth) {
-      if (screenWidth >= 1200) return 4; // Desktop lebar / Windows besar
-      if (screenWidth >= 800) return 3; // Tablet landscape / Windows kecil
-      return 2; // Mobile (default)
-    }
+    if (screenWidth >= 1200) return 4; // Desktop lebar / Windows besar
+    if (screenWidth >= 800) return 3; // Tablet landscape / Windows kecil
+    return 2; // Mobile (default)
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -163,19 +167,22 @@ class FormulaCalculationPage extends StatelessWidget {
     final double screenHeight = screenSize.height;
     final int crossAxisCount = _getCrossAxisCount(screenWidth);
     final double totalSpacing = (crossAxisCount - 1) * 16.0;
-    
+
     // Konsistensi Visual: Menggunakan logika padding yang sama dengan Disease Page
     // Padding 8% dari lebar layar agar konsisten di HP kecil maupun Tablet
     final double gridPadding = screenWidth * 0.08;
 
     // Menghitung Aspect Ratio agar kartu tetap proporsional
     // Rumus: (Lebar Layar - Padding Kiri Kanan - Spasi Tengah) / 2 Kolom
-    final double colWidth = (screenWidth - (gridPadding * 2) - totalSpacing) / crossAxisCount;
+    final double colWidth =
+        (screenWidth - (gridPadding * 2) - totalSpacing) / crossAxisCount;
     // Tinggi kartu ditargetkan sekitar 22% dari tinggi layar
     final double cardHeight = screenHeight * 0.22;
 
     // Mencegah division by zero atau nilai negatif pada layar sangat kecil
-    final double childAspectRatio = (cardHeight > 0) ? (colWidth / cardHeight) : 1.0;
+    final double childAspectRatio = (cardHeight > 0)
+        ? (colWidth / cardHeight)
+        : 1.0;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -190,27 +197,26 @@ class FormulaCalculationPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 24), // Spasi atas
-              
               // --- SEKSI 1: DIET PENYAKIT KHUSUS ---
               _buildSectionTitle('Diet Penyakit Khusus', gridPadding),
               _buildGridSection(
-                context, 
-                _diseaseMenuItems, 
-                crossAxisCount, 
-                childAspectRatio, 
-                gridPadding
+                context,
+                _diseaseMenuItems,
+                crossAxisCount,
+                childAspectRatio,
+                gridPadding,
               ),
-              
+
               // --- SEKSI 2: KALKULATOR GIZI UMUM ---
               _buildSectionTitle('Kalkulator Gizi Umum', gridPadding),
               _buildGridSection(
-                context, 
-                _menuItems, 
-                crossAxisCount, 
-                childAspectRatio, 
-                gridPadding
+                context,
+                _menuItems,
+                crossAxisCount,
+                childAspectRatio,
+                gridPadding,
               ),
-              
+
               const SizedBox(height: 24), // Spasi bawah tambahan
             ],
           ),
@@ -244,7 +250,8 @@ class FormulaCalculationPage extends StatelessWidget {
   ) {
     return GridView.builder(
       shrinkWrap: true, // PENTING: Agar tinggi Grid menyesuaikan isi
-      physics: const NeverScrollableScrollPhysics(), // Scroll di-handle oleh SingleChildScrollView luar
+      physics:
+          const NeverScrollableScrollPhysics(), // Scroll di-handle oleh SingleChildScrollView luar
       padding: EdgeInsets.fromLTRB(gridPadding, 16, gridPadding, 24),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,

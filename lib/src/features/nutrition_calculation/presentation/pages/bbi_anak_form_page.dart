@@ -18,30 +18,31 @@ import 'package:aplikasi_diagnosa_gizi/src/features/reference/widgets/reference_
 // ---------------------------------------------------------------------------
 class _Keys {
   const _Keys._();
-  static const patientPicker     = ValueKey('patientPickerWidget');
-  static const categoryDropdown  = ValueKey('categoryDropdown');
-  static const ageField          = ValueKey('ageField');
-  static const btnReset          = ValueKey('btnReset');
+  static const patientPicker = ValueKey('patientPickerWidget');
+  static const categoryDropdown = ValueKey('categoryDropdown');
+  static const ageField = ValueKey('ageField');
+  static const btnReset = ValueKey('btnReset');
   static const bbiAnakResultCard = ValueKey('bbiAnakResultCard');
 }
 
 class _Str {
   const _Str._();
-  static const appBarTitle    = 'BBI Anak';
+  static const appBarTitle = 'BBI Anak';
   static const appBarSubtitle = 'Berat Badan Ideal Anak';
-  static const sectionTitle   = 'Input Data BBI Anak';
-  static const categoryLabel  = 'Kategori Usia';
-  static const resultTitle    = 'Hasil BBI Anak';
-  static const resultUnit     = 'kg';
+  static const sectionTitle = 'Input Data BBI Anak';
+  static const categoryLabel = 'Kategori Usia';
+  static const resultTitle = 'Hasil BBI Anak';
+  static const resultUnit = 'kg';
 
   // Label & suffix dinamis per kategori
-  static const ageLabelMonths  = 'Usia (Bulan)';
-  static const ageLabelYears   = 'Usia (Tahun)';
+  static const ageLabelMonths = 'Usia (Bulan)';
+  static const ageLabelYears = 'Usia (Tahun)';
   static const ageSuffixMonths = 'bln';
-  static const ageSuffixYears  = 'thn';
+  static const ageSuffixYears = 'thn';
 
   // Pesan snackbar
-  static const snackOutOfRange = 'Umur pasien di luar kategori anak (0-12 tahun)';
+  static const snackOutOfRange =
+      'Umur pasien di luar kategori anak (0-12 tahun)';
 }
 
 const _kBrandGreen = Color(0xFF009444);
@@ -60,18 +61,21 @@ class BbiAnakFormPage extends StatefulWidget {
 }
 
 class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
-  final _formKey            = GlobalKey<FormState>();
-  final _ageController      = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _ageController = TextEditingController();
   final _categoryController = TextEditingController();
-  final _scrollController   = ScrollController();
-  final _resultCardKey      = GlobalKey();
-  final _patientPickerKey   = GlobalKey<PatientPickerWidgetState>();
+  final _scrollController = ScrollController();
+  final _resultCardKey = GlobalKey();
+  final _patientPickerKey = GlobalKey<PatientPickerWidgetState>();
 
   double? _bbiResult;
 
-  bool get _isMonthCategory => _categoryController.text == BbiCalculatorService.categoryMonths0to11;
-  bool get _is1to6Category  => _categoryController.text == BbiCalculatorService.categoryYears1to6;
-  bool get _is7to12Category => _categoryController.text == BbiCalculatorService.categoryYears7to12;
+  bool get _isMonthCategory =>
+      _categoryController.text == BbiCalculatorService.categoryMonths0to11;
+  bool get _is1to6Category =>
+      _categoryController.text == BbiCalculatorService.categoryYears1to6;
+  bool get _is7to12Category =>
+      _categoryController.text == BbiCalculatorService.categoryYears7to12;
 
   @override
   void dispose() {
@@ -109,16 +113,22 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
   }
 
   void _fillDataFromPatient(
-    double weight, double height, String gender, DateTime dob,
+    double weight,
+    double height,
+    String gender,
+    DateTime dob,
   ) {
     // [REFACTOR] Logika deteksi kategori usia ada di Service.
-    final (int years, int totalMonths) = BbiCalculatorService.calculateAgeComponents(
+    final (
+      int years,
+      int totalMonths,
+    ) = BbiCalculatorService.calculateAgeComponents(
       birthDate: dob,
       checkDate: DateTime.now(),
     );
 
     final String? category = BbiCalculatorService.detectAgeCategory(
-      ageYears:       years,
+      ageYears: years,
       totalAgeMonths: totalMonths,
     );
 
@@ -129,9 +139,9 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
         _ageController.clear();
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(_Str.snackOutOfRange)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text(_Str.snackOutOfRange)));
         });
         return;
       }
@@ -148,27 +158,29 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
         Scrollable.ensureVisible(
           _resultCardKey.currentContext!,
           duration: const Duration(milliseconds: 600),
-          curve:    Curves.easeInOut,
+          curve: Curves.easeInOut,
         );
       }
     });
   }
 
   // Getters dinamis tetap di page (presentasi)
-  String get _ageLabel  => _isMonthCategory ? _Str.ageLabelMonths  : _Str.ageLabelYears;
-  String get _ageSuffix => _isMonthCategory ? _Str.ageSuffixMonths : _Str.ageSuffixYears;
+  String get _ageLabel =>
+      _isMonthCategory ? _Str.ageLabelMonths : _Str.ageLabelYears;
+  String get _ageSuffix =>
+      _isMonthCategory ? _Str.ageSuffixMonths : _Str.ageSuffixYears;
 
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    final double sw   = MediaQuery.sizeOf(context).width;
+    final double sw = MediaQuery.sizeOf(context).width;
     final double hPad = sw * 0.04;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
-        title:    _Str.appBarTitle,
+        title: _Str.appBarTitle,
         subtitle: _Str.appBarSubtitle,
       ),
       body: SafeArea(
@@ -182,16 +194,16 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-
                   Semantics(
-                    key:   _Keys.patientPicker,
+                    key: _Keys.patientPicker,
                     label: 'Pemilih Pasien',
-                    hint:  'Pilih pasien untuk mengisi kategori usia dan '
-                           'nilai usia secara otomatis',
+                    hint:
+                        'Pilih pasien untuk mengisi kategori usia dan '
+                        'nilai usia secara otomatis',
                     child: PatientPickerWidget(
-                      key:               _patientPickerKey,
+                      key: _patientPickerKey,
                       onPatientSelected: _fillDataFromPatient,
-                      userRole:          widget.userRole,
+                      userRole: widget.userRole,
                     ),
                   ),
 
@@ -200,7 +212,7 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
                   Text(
                     _Str.sectionTitle,
                     style: TextStyle(
-                      fontSize:   _responsiveFont(sw, base: 20),
+                      fontSize: _responsiveFont(sw, base: 20),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -210,19 +222,20 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
                   // ── Category Dropdown ──────────────────────────────────
                   Semantics(
                     label: 'Dropdown Kategori Usia BBI Anak',
-                    hint:  'Pilih kategori usia: 0-11 Bulan, 1-6 Tahun, atau 7-12 Tahun',
+                    hint:
+                        'Pilih kategori usia: 0-11 Bulan, 1-6 Tahun, atau 7-12 Tahun',
                     child: DropdownSearch<String>(
                       key: _Keys.categoryDropdown,
                       popupProps: const PopupProps.menu(
                         showSearchBox: false,
-                        fit:           FlexFit.loose,
+                        fit: FlexFit.loose,
                       ),
                       // [REFACTOR] Konstanta dari Service
                       items: BbiCalculatorService.ageCategories,
                       dropdownDecoratorProps: const DropDownDecoratorProps(
                         dropdownSearchDecoration: InputDecoration(
-                          labelText:  _Str.categoryLabel,
-                          border:     OutlineInputBorder(),
+                          labelText: _Str.categoryLabel,
+                          border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.category),
                         ),
                       ),
@@ -232,9 +245,11 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
                         _bbiResult = null;
                       }),
                       selectedItem: _categoryController.text.isEmpty
-                          ? null : _categoryController.text,
-                      validator: (v) =>
-                          (v == null || v.isEmpty) ? '${_Str.categoryLabel} harus dipilih' : null,
+                          ? null
+                          : _categoryController.text,
+                      validator: (v) => (v == null || v.isEmpty)
+                          ? '${_Str.categoryLabel} harus dipilih'
+                          : null,
                     ),
                   ),
 
@@ -242,23 +257,25 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
 
                   // ── Age Field (label & suffix dinamis) ─────────────────
                   Semantics(
-                    label:     'Input Nilai Usia BBI Anak',
-                    hint:      _isMonthCategory
+                    label: 'Input Nilai Usia BBI Anak',
+                    hint: _isMonthCategory
                         ? 'Masukkan usia dalam satuan bulan (0 hingga 11)'
                         : 'Masukkan usia dalam satuan tahun',
                     textField: true,
                     child: TextFormField(
-                      key:          _Keys.ageField,
-                      controller:   _ageController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      key: _Keys.ageField,
+                      controller: _ageController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       inputFormatters: [
                         LengthLimitingTextInputFormatter(3),
                         FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                       ],
                       decoration: InputDecoration(
-                        labelText:  _ageLabel,
+                        labelText: _ageLabel,
                         suffixText: _ageSuffix,
-                        border:     const OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.cake),
                       ),
                       validator: (value) {
@@ -288,15 +305,19 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
 
                   Semantics(
                     label: 'Tombol Aksi Form BBI Anak',
-                    hint:  'Tombol Reset menghapus semua input; '
-                           'Tombol Hitung menghitung nilai BBI Anak',
+                    hint:
+                        'Tombol Reset menghapus semua input; '
+                        'Tombol Hitung menghitung nilai BBI Anak',
                     child: FormActionButtons(
-                      key:                  _Keys.btnReset,
-                      onReset:              _resetForm,
-                      onSubmit:             _calculateBBI,
-                      resetButtonColor:     Colors.white,
+                      key: _Keys.btnReset,
+                      onReset: _resetForm,
+                      onSubmit: _calculateBBI,
+                      resetButtonColor: Colors.white,
                       resetForegroundColor: _kBrandGreen,
-                      submitIcon: const Icon(Icons.calculate, color: Colors.white),
+                      submitIcon: const Icon(
+                        Icons.calculate,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
 
@@ -307,10 +328,11 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
                     const Divider(),
                     SizedBox(height: sw * 0.08),
                     CalculationResultCard(
-                      containerKey:   _Keys.bbiAnakResultCard,
-                      title:          _Str.resultTitle,
-                      value:          '${_bbiResult!.toStringAsFixed(2)} ${_Str.resultUnit}',
-                      color:          _kBrandGreen,
+                      containerKey: _Keys.bbiAnakResultCard,
+                      title: _Str.resultTitle,
+                      value:
+                          '${_bbiResult!.toStringAsFixed(2)} ${_Str.resultUnit}',
+                      color: _kBrandGreen,
                       // [REFACTOR] Deskripsi formula dari Service — tidak ada string formula di page
                       subtitle: BbiCalculatorService.getChildFormulaDescription(
                         _categoryController.text,
@@ -321,7 +343,7 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
                           'kategori ${_categoryController.text}',
                     ),
                     SizedBox(height: sw * 0.08),
-                    _buildReferenceFormula(sw)
+                    _buildReferenceFormula(sw),
                   ],
                 ],
               ),
@@ -331,15 +353,21 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
       ),
     );
   }
+
   Widget _buildReferenceFormula(double sw) {
-    final formula = ReferenceData.formulas.firstWhere((f) => f.id == 'formula_bbi_anak');
+    final formula = ReferenceData.formulas.firstWhere(
+      (f) => f.id == 'formula_bbi_anak',
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           'Rumus Perhitungan',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: _responsiveFont(sw, base: 18), fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: _responsiveFont(sw, base: 18),
+            fontWeight: FontWeight.bold,
+          ),
         ),
         SizedBox(height: sw * 0.04),
         FormulaTile(

@@ -16,24 +16,24 @@ import 'package:aplikasi_diagnosa_gizi/src/features/reference/widgets/reference_
 class _Keys {
   const _Keys._();
   static const patientPicker = ValueKey('patientPickerWidget');
-  static const modeDropdown  = ValueKey('modeDropdown');
-  static const genderDropdown= ValueKey('genderDropdown');
-  static const ageField      = ValueKey('ageField');
-  static const weightField   = ValueKey('weightField');
-  static const heightField   = ValueKey('heightField');
+  static const modeDropdown = ValueKey('modeDropdown');
+  static const genderDropdown = ValueKey('genderDropdown');
+  static const ageField = ValueKey('ageField');
+  static const weightField = ValueKey('weightField');
+  static const heightField = ValueKey('heightField');
   static const activityDropdown = ValueKey('activityDropdown');
-  static const stressDropdown   = ValueKey('stressDropdown');
-  static const btnReset      = ValueKey('btnReset');
-  static const resultCard    = ValueKey('schofieldResultCard');
+  static const stressDropdown = ValueKey('stressDropdown');
+  static const btnReset = ValueKey('btnReset');
+  static const resultCard = ValueKey('schofieldResultCard');
 }
 
 class _Str {
   const _Str._();
-  static const appBarTitle    = 'Schofield';
+  static const appBarTitle = 'Schofield';
   static const appBarSubtitle = 'BMR Anak & Remaja (0-18 Tahun)';
-  static const sectionTitle   = 'Input Data Schofield';
-  
-  static const modeLabel      = 'Metode Perhitungan';
+  static const sectionTitle = 'Input Data Schofield';
+
+  static const modeLabel = 'Metode Perhitungan';
   static const modeWeightOnly = 'Hanya Berat Badan';
   static const modeWeightHeight = 'Berat & Tinggi Badan';
 
@@ -52,18 +52,20 @@ class SchofieldFormPage extends StatefulWidget {
 }
 
 class _SchofieldFormPageState extends State<SchofieldFormPage> {
-  final _formKey           = GlobalKey<FormState>();
-  final _modeController    = TextEditingController(text: _Str.modeWeightOnly);
-  final _genderController  = TextEditingController();
-  final _ageController     = TextEditingController();
-  final _weightController  = TextEditingController();
-  final _heightController  = TextEditingController();
-  final _activityController= TextEditingController(text: 'Tanpa Faktor Aktivitas');
-  final _stressController  = TextEditingController(text: 'Tanpa Faktor Stres');
-  
-  final _scrollController  = ScrollController();
-  final _resultCardKey     = GlobalKey();
-  final _patientPickerKey  = GlobalKey<PatientPickerWidgetState>();
+  final _formKey = GlobalKey<FormState>();
+  final _modeController = TextEditingController(text: _Str.modeWeightOnly);
+  final _genderController = TextEditingController();
+  final _ageController = TextEditingController();
+  final _weightController = TextEditingController();
+  final _heightController = TextEditingController();
+  final _activityController = TextEditingController(
+    text: 'Tanpa Faktor Aktivitas',
+  );
+  final _stressController = TextEditingController(text: 'Tanpa Faktor Stres');
+
+  final _scrollController = ScrollController();
+  final _resultCardKey = GlobalKey();
+  final _patientPickerKey = GlobalKey<PatientPickerWidgetState>();
 
   double? _bmrResult;
   double? _totalEnergyResult;
@@ -96,16 +98,26 @@ class _SchofieldFormPageState extends State<SchofieldFormPage> {
       if (_requiresHeight) {
         final double height = double.parse(_heightController.text);
         bmr = SchofieldCalculatorService.calculateWithWeightAndHeight(
-          weightKg: weight, heightCm: height, ageInYears: age, isMale: isMale,
+          weightKg: weight,
+          heightCm: height,
+          ageInYears: age,
+          isMale: isMale,
         );
       } else {
         bmr = SchofieldCalculatorService.calculateWithWeightOnly(
-          weightKg: weight, ageInYears: age, isMale: isMale,
+          weightKg: weight,
+          ageInYears: age,
+          isMale: isMale,
         );
       }
 
-      final double activity = SchofieldCalculatorService.activityFactors[_activityController.text] ?? 1.0;
-      final double stress = SchofieldCalculatorService.stressFactors[_stressController.text] ?? 1.0;
+      final double activity =
+          SchofieldCalculatorService.activityFactors[_activityController
+              .text] ??
+          1.0;
+      final double stress =
+          SchofieldCalculatorService.stressFactors[_stressController.text] ??
+          1.0;
 
       setState(() {
         _bmrResult = bmr;
@@ -114,7 +126,9 @@ class _SchofieldFormPageState extends State<SchofieldFormPage> {
 
       _scrollToResult();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -134,13 +148,19 @@ class _SchofieldFormPageState extends State<SchofieldFormPage> {
     _patientPickerKey.currentState?.resetSelection();
   }
 
-  void _fillDataFromPatient(double weight, double height, String gender, DateTime dob) {
+  void _fillDataFromPatient(
+    double weight,
+    double height,
+    String gender,
+    DateTime dob,
+  ) {
     setState(() {
       _weightController.text = weight.toString();
       _heightController.text = height.toString();
       _genderController.text = BmrTdeeCalculatorService.normalizeGender(gender);
       _ageController.text = BmrTdeeCalculatorService.calculateAgeInYears(
-        birthDate: dob, checkDate: DateTime.now(),
+        birthDate: dob,
+        checkDate: DateTime.now(),
       ).toString();
       _bmrResult = null;
     });
@@ -165,7 +185,10 @@ class _SchofieldFormPageState extends State<SchofieldFormPage> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: const CustomAppBar(title: _Str.appBarTitle, subtitle: _Str.appBarSubtitle),
+      appBar: const CustomAppBar(
+        title: _Str.appBarTitle,
+        subtitle: _Str.appBarSubtitle,
+      ),
       body: SafeArea(
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
@@ -183,25 +206,45 @@ class _SchofieldFormPageState extends State<SchofieldFormPage> {
                     userRole: widget.userRole,
                   ),
                   SizedBox(height: sw * 0.05),
-                  Text(_Str.sectionTitle, style: TextStyle(fontSize: _responsiveFont(sw, base: 20), fontWeight: FontWeight.bold)),
+                  Text(
+                    _Str.sectionTitle,
+                    style: TextStyle(
+                      fontSize: _responsiveFont(sw, base: 20),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   SizedBox(height: sw * 0.05),
 
                   _buildDropdown(
-                    widgetKey: _Keys.modeDropdown, controller: _modeController,
-                    label: _Str.modeLabel, prefixIcon: const Icon(Icons.tune), items: _Str.modeOptions,
-                    onChanged: (val) => setState(() { _modeController.text = val ?? ''; _bmrResult = null; }),
+                    widgetKey: _Keys.modeDropdown,
+                    controller: _modeController,
+                    label: _Str.modeLabel,
+                    prefixIcon: const Icon(Icons.tune),
+                    items: _Str.modeOptions,
+                    onChanged: (val) => setState(() {
+                      _modeController.text = val ?? '';
+                      _bmrResult = null;
+                    }),
+                    menuHeight: 120,
                   ),
                   SizedBox(height: sw * 0.04),
 
                   _buildDropdown(
-                    widgetKey: _Keys.genderDropdown, controller: _genderController,
-                    label: 'Jenis Kelamin', prefixIcon: const Icon(Icons.wc), items: _Str.genderOptions,
+                    widgetKey: _Keys.genderDropdown,
+                    controller: _genderController,
+                    label: 'Jenis Kelamin',
+                    prefixIcon: const Icon(Icons.wc),
+                    items: _Str.genderOptions,
+                    menuHeight: 120,
                   ),
                   SizedBox(height: sw * 0.04),
 
                   ResponsiveNumberField(
-                    widgetKey: _Keys.ageField, controller: _ageController,
-                    label: 'Usia', prefixIcon: const Icon(Icons.cake), suffixText: 'tahun',
+                    widgetKey: _Keys.ageField,
+                    controller: _ageController,
+                    label: 'Usia',
+                    prefixIcon: const Icon(Icons.cake),
+                    suffixText: 'tahun',
                     customValidator: (v) {
                       if (v == null || v.isEmpty) return 'Usia wajib diisi';
                       final age = double.tryParse(v);
@@ -213,37 +256,57 @@ class _SchofieldFormPageState extends State<SchofieldFormPage> {
                   SizedBox(height: sw * 0.04),
 
                   ResponsiveNumberField(
-                    widgetKey: _Keys.weightField, controller: _weightController,
-                    label: 'Berat Badan', prefixIcon: const Icon(Icons.monitor_weight), suffixText: 'kg',
+                    widgetKey: _Keys.weightField,
+                    controller: _weightController,
+                    label: 'Berat Badan',
+                    prefixIcon: const Icon(Icons.monitor_weight),
+                    suffixText: 'kg',
                   ),
-                  
+
                   if (_requiresHeight) ...[
                     SizedBox(height: sw * 0.04),
                     ResponsiveNumberField(
-                      widgetKey: _Keys.heightField, controller: _heightController,
-                      label: 'Tinggi Badan', prefixIcon: const Icon(Icons.height), suffixText: 'cm',
+                      widgetKey: _Keys.heightField,
+                      controller: _heightController,
+                      label: 'Tinggi Badan',
+                      prefixIcon: const Icon(Icons.height),
+                      suffixText: 'cm',
                     ),
                   ],
-                  
+
                   SizedBox(height: sw * 0.04),
                   _buildDropdown(
-                    widgetKey: _Keys.activityDropdown, controller: _activityController,
-                    label: 'Faktor Aktivitas', prefixIcon: const Icon(Icons.directions_run), 
-                    items: SchofieldCalculatorService.activityFactors.keys.toList(), menuHeight: 250,
+                    widgetKey: _Keys.activityDropdown,
+                    controller: _activityController,
+                    label: 'Faktor Aktivitas',
+                    prefixIcon: const Icon(Icons.directions_run),
+                    items: SchofieldCalculatorService.activityFactors.keys
+                        .toList(),
+                    menuHeight: 250,
                   ),
                   SizedBox(height: sw * 0.04),
 
                   _buildDropdown(
-                    widgetKey: _Keys.stressDropdown, controller: _stressController,
-                    label: 'Faktor Stres', prefixIcon: const Icon(Icons.healing), 
-                    items: SchofieldCalculatorService.stressFactors.keys.toList(), menuHeight: 250,
+                    widgetKey: _Keys.stressDropdown,
+                    controller: _stressController,
+                    label: 'Faktor Stres',
+                    prefixIcon: const Icon(Icons.healing),
+                    items: SchofieldCalculatorService.stressFactors.keys
+                        .toList(),
+                    menuHeight: 250,
                   ),
 
                   SizedBox(height: sw * 0.08),
                   FormActionButtons(
-                    key: _Keys.btnReset, onReset: _resetForm, onSubmit: _calculateSchofield,
-                    resetButtonColor: Colors.white, resetForegroundColor: _kBrandGreen,
-                    submitIcon: const Icon(Icons.calculate, color: Colors.white),
+                    key: _Keys.btnReset,
+                    onReset: _resetForm,
+                    onSubmit: _calculateSchofield,
+                    resetButtonColor: Colors.white,
+                    resetForegroundColor: _kBrandGreen,
+                    submitIcon: const Icon(
+                      Icons.calculate,
+                      color: Colors.white,
+                    ),
                   ),
                   SizedBox(height: sw * 0.08),
 
@@ -255,15 +318,20 @@ class _SchofieldFormPageState extends State<SchofieldFormPage> {
                     CalculationResultCard(
                       containerKey: _Keys.resultCard,
                       title: 'Kebutuhan Kalori Anak (Schofield)',
-                      value: 'Total: ${_totalEnergyResult!.toStringAsFixed(2)} kkal/hari',
+                      value:
+                          'Total: ${_totalEnergyResult!.toStringAsFixed(2)} kkal/hari',
                       color: _kBrandGreen,
-                      subtitle: 'Estimasi total energi harian berdasarkan BMR, aktivitas, dan stres.',
+                      subtitle:
+                          'Estimasi total energi harian berdasarkan BMR, aktivitas, dan stres.',
                       extra: Padding(
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
                           'BMR Basal: ${_bmrResult!.toStringAsFixed(2)} kkal/hari',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black54,
+                          ),
                         ),
                       ),
                     ),
@@ -280,35 +348,60 @@ class _SchofieldFormPageState extends State<SchofieldFormPage> {
   }
 
   Widget _buildReferenceFormula(double sw) {
-    final formula = ReferenceData.formulas.firstWhere((f) => f.id == 'formula_schofield_anak');
+    final formula = ReferenceData.formulas.firstWhere(
+      (f) => f.id == 'formula_schofield_anak',
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Rumus Perhitungan', textAlign: TextAlign.center, style: TextStyle(fontSize: _responsiveFont(sw, base: 18), fontWeight: FontWeight.bold)),
+        Text(
+          'Rumus Perhitungan',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: _responsiveFont(sw, base: 18),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         SizedBox(height: sw * 0.04),
         FormulaTile(
-          semanticId: formula.id, title: formula.title, formulaName: formula.formulaName,
-          formulaContent: formula.formulaContent, note: formula.note,
+          semanticId: formula.id,
+          title: formula.title,
+          formulaName: formula.formulaName,
+          formulaContent: formula.formulaContent,
+          note: formula.note,
         ),
       ],
     );
   }
 
   Widget _buildDropdown({
-    required ValueKey<String> widgetKey, required TextEditingController controller,
-    required String label, required Icon prefixIcon, required List<String> items,
-    void Function(String?)? onChanged, double? menuHeight,
+    required ValueKey<String> widgetKey,
+    required TextEditingController controller,
+    required String label,
+    required Icon prefixIcon,
+    required List<String> items,
+    void Function(String?)? onChanged,
+    double? menuHeight,
   }) {
     return DropdownSearch<String>(
       key: widgetKey,
-      popupProps: PopupProps.menu(showSearchBox: false, constraints: BoxConstraints(maxHeight: menuHeight ?? 180)),
+      popupProps: PopupProps.menu(
+        showSearchBox: false,
+        constraints: BoxConstraints(maxHeight: menuHeight ?? 180),
+      ),
       items: items,
       dropdownDecoratorProps: DropDownDecoratorProps(
-        dropdownSearchDecoration: InputDecoration(labelText: label, border: const OutlineInputBorder(), prefixIcon: prefixIcon),
+        dropdownSearchDecoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          prefixIcon: prefixIcon,
+        ),
       ),
-      onChanged: onChanged ?? (val) => setState(() => controller.text = val ?? ''),
+      onChanged:
+          onChanged ?? (val) => setState(() => controller.text = val ?? ''),
       selectedItem: controller.text.isEmpty ? null : controller.text,
-      validator: (v) => (v == null || v.isEmpty) ? '$label harus dipilih' : null,
+      validator: (v) =>
+          (v == null || v.isEmpty) ? '$label harus dipilih' : null,
     );
   }
 

@@ -53,14 +53,21 @@ abstract class _NutritionColorResolver {
 
   static Color resolve(String cardTitle, String category) {
     final lowerCat = category.toLowerCase();
-    
-    if (lowerCat.contains('buruk') || lowerCat.contains('sangat kurang') || lowerCat.contains('severely')) {
+
+    if (lowerCat.contains('buruk') ||
+        lowerCat.contains('sangat kurang') ||
+        lowerCat.contains('severely')) {
       return Colors.red;
     }
-    if (lowerCat.contains('kurang') || lowerCat.contains('risiko') || lowerCat.contains('pendek') || lowerCat.contains('stunted')) {
+    if (lowerCat.contains('kurang') ||
+        lowerCat.contains('risiko') ||
+        lowerCat.contains('pendek') ||
+        lowerCat.contains('stunted')) {
       return Colors.orange;
     }
-    if (lowerCat.contains('lebih') || lowerCat.contains('obesitas') || lowerCat.contains('obese')) {
+    if (lowerCat.contains('lebih') ||
+        lowerCat.contains('obesitas') ||
+        lowerCat.contains('obese')) {
       return Colors.red;
     }
     if (lowerCat.contains('normal') || lowerCat.contains('baik')) {
@@ -76,10 +83,10 @@ abstract class _NutritionColorResolver {
 class _ChildGenderCalcResult {
   final String ageFormatted;
   final double bbi;
-  
+
   // Jika 0 - 60 Bulan
   final NutritionAllResult? status0to60;
-  
+
   // Jika > 60 Bulan - 18 Tahun
   final ImtuResult? imtu5to18;
 
@@ -122,10 +129,10 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
   final _heightController = TextEditingController();
   final _birthDateController = TextEditingController();
   final _measureDateController = TextEditingController();
-  
+
   final _faController = TextEditingController(text: 'Tanpa Faktor Aktivitas');
   final _fsController = TextEditingController(text: 'Tanpa Faktor Stres');
-  
+
   final _scrollController = ScrollController();
   final _resultSectionKey = GlobalKey();
 
@@ -143,8 +150,10 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
       if (!mounted) return;
       setState(() {
         _measurementDate = DateTime.now();
-        _measureDateController.text =
-            DateFormat('dd MMMM yyyy', 'id_ID').format(_measurementDate!);
+        _measureDateController.text = DateFormat(
+          'dd MMMM yyyy',
+          'id_ID',
+        ).format(_measurementDate!);
       });
     });
   }
@@ -181,12 +190,16 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
     setState(() {
       if (isBirthDate) {
         _birthDate = picked;
-        _birthDateController.text =
-            DateFormat('dd MMMM yyyy', 'id_ID').format(picked);
+        _birthDateController.text = DateFormat(
+          'dd MMMM yyyy',
+          'id_ID',
+        ).format(picked);
       } else {
         _measurementDate = picked;
-        _measureDateController.text =
-            DateFormat('dd MMMM yyyy', 'id_ID').format(picked);
+        _measureDateController.text = DateFormat(
+          'dd MMMM yyyy',
+          'id_ID',
+        ).format(picked);
       }
       _maleResult = null;
       _femaleResult = null;
@@ -228,11 +241,11 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
     double totalKarbo = (tdee - (totalProtein * 4) - (totalLemak * 9)) / 4;
     if (totalKarbo < 0) totalKarbo = 0;
 
-    // Cairan metode Holliday-Segar 
+    // Cairan metode Holliday-Segar
     // (Bisa diganti dengan FluidCalculatorService.calculateHollidaySegar(weightToUse) jika file service-nya sudah ada)
     double totalCairan = 0;
     if (weightToUse <= 10) {
-      totalCairan =  100 * weightToUse;
+      totalCairan = 100 * weightToUse;
     } else if (weightToUse <= 20) {
       totalCairan = 1000 + 50;
     } else {
@@ -251,17 +264,21 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
     if (!_formKey.currentState!.validate()) return;
     if (_birthDate == null || _measurementDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pastikan Tanggal Lahir & Pemeriksaan telah diisi!')),
+        const SnackBar(
+          content: Text('Pastikan Tanggal Lahir & Pemeriksaan telah diisi!'),
+        ),
       );
       return;
     }
 
     final double weight = double.parse(_weightController.text);
     final double height = double.parse(_heightController.text);
-    
+
     // Ambil nilai FA dan FS dari SchofieldCalculatorService
-    final double selectedFA = SchofieldCalculatorService.activityFactors[_faController.text] ?? 1.0;
-    final double selectedFS = SchofieldCalculatorService.stressFactors[_fsController.text] ?? 1.0;
+    final double selectedFA =
+        SchofieldCalculatorService.activityFactors[_faController.text] ?? 1.0;
+    final double selectedFS =
+        SchofieldCalculatorService.stressFactors[_fsController.text] ?? 1.0;
 
     // Hitung Usia (Bulan & Tahun Kalender)
     int years = _measurementDate!.year - _birthDate!.year;
@@ -273,11 +290,11 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
       years -= 1;
       months += 12;
     }
-    
+
     final int ageYears = years;
     final int ageMonthsRemainder = months;
     final int totalCalendarMonths = (ageYears * 12) + ageMonthsRemainder;
-    
+
     // Perhitungan umur desimal untuk Formula
     final int days = _measurementDate!.difference(_birthDate!).inDays;
     final double ageInYearsFraction = days / 365.25;
@@ -290,27 +307,38 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
 
     if (ageInYearsFraction < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tanggal Lahir tidak boleh melewati Tanggal Pemeriksaan')),
-      );
-      return;
-    }
-    
-    if (totalCalendarMonths > 216) { // 18 Tahun
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Usia pasien melebihi batas 18 tahun untuk kalkulator anak.')),
+        const SnackBar(
+          content: Text(
+            'Tanggal Lahir tidak boleh melewati Tanggal Pemeriksaan',
+          ),
+        ),
       );
       return;
     }
 
-    String ageFormatted = ageYears > 0 
-        ? '$ageYears tahun $ageMonthsRemainder bulan' 
+    if (totalCalendarMonths > 216) {
+      // 18 Tahun
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Usia pasien melebihi batas 18 tahun untuk kalkulator anak.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    String ageFormatted = ageYears > 0
+        ? '$ageYears tahun $ageMonthsRemainder bulan'
         : '$ageMonthsRemainder bulan';
 
     setState(() {
       for (int i = 0; i < 2; i++) {
         bool isMale = i == 0;
-        String genderStr = isMale ? NutritionCalculatorService.genderMale : NutritionCalculatorService.genderFemale;
-        
+        String genderStr = isMale
+            ? NutritionCalculatorService.genderMale
+            : NutritionCalculatorService.genderFemale;
+
         // 1. Hitung BBI
         double bbi = 0;
         if (ageYears <= 12) {
@@ -322,20 +350,29 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
           } else if (ageYears >= 7 && ageYears <= 12) {
             bbiCategory = BbiCalculatorService.categoryYears7to12;
           }
-          
-          double ageValForBbi = (totalCalendarMonths < 12) ? totalCalendarMonths.toDouble() : ageYears.toDouble();
-          bbi = BbiCalculatorService.calculateChild(ageValue: ageValForBbi, category: bbiCategory);
+
+          double ageValForBbi = (totalCalendarMonths < 12)
+              ? totalCalendarMonths.toDouble()
+              : ageYears.toDouble();
+          bbi = BbiCalculatorService.calculateChild(
+            ageValue: ageValForBbi,
+            category: bbiCategory,
+          );
         } else {
-          bbi = BbiCalculatorService.calculateAdult(heightCm: height, isMale: isMale);
+          bbi = BbiCalculatorService.calculateAdult(
+            heightCm: height,
+            isMale: isMale,
+          );
         }
 
         // 2. Hitung BMR Schofield dan TDEE
-        double bmrSchofield = SchofieldCalculatorService.calculateWithWeightAndHeight(
-          weightKg: weight,
-          heightCm: height,
-          ageInYears: ageInYearsFraction,
-          isMale: isMale,
-        );
+        double bmrSchofield =
+            SchofieldCalculatorService.calculateWithWeightAndHeight(
+              weightKg: weight,
+              heightCm: height,
+              ageInYears: ageInYearsFraction,
+              isMale: isMale,
+            );
 
         double tdee = bmrSchofield * selectedFA * selectedFS;
 
@@ -383,7 +420,7 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
           cairan: macros['cairan']!,
         );
 
-       if (isMale) {
+        if (isMale) {
           _maleResult = resultObj;
         } else {
           _femaleResult = resultObj;
@@ -400,11 +437,14 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
       _weightController.clear();
       _heightController.clear();
       _birthDateController.clear();
-      
+
       _birthDate = null;
       _measurementDate = DateTime.now();
-      _measureDateController.text = DateFormat('dd MMMM yyyy', 'id_ID').format(_measurementDate!);
-      
+      _measureDateController.text = DateFormat(
+        'dd MMMM yyyy',
+        'id_ID',
+      ).format(_measurementDate!);
+
       _faController.text = 'Tanpa Faktor Aktivitas';
       _fsController.text = 'Tanpa Faktor Stres';
 
@@ -464,7 +504,9 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
                     prefixIcon: const Icon(Icons.cake),
                     readOnly: true,
                     onTap: () => _pickDate(isBirthDate: true),
-                    customValidator: (v) => (v == null || v.isEmpty) ? 'Tanggal lahir wajib diisi' : null,
+                    customValidator: (v) => (v == null || v.isEmpty)
+                        ? 'Tanggal lahir wajib diisi'
+                        : null,
                   ),
                   SizedBox(height: sw * 0.04),
 
@@ -475,7 +517,9 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
                     prefixIcon: const Icon(Icons.event),
                     readOnly: true,
                     onTap: () => _pickDate(isBirthDate: false),
-                    customValidator: (v) => (v == null || v.isEmpty) ? 'Tanggal pemeriksaan wajib diisi' : null,
+                    customValidator: (v) => (v == null || v.isEmpty)
+                        ? 'Tanggal pemeriksaan wajib diisi'
+                        : null,
                   ),
                   SizedBox(height: sw * 0.04),
 
@@ -505,8 +549,10 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
                     controller: _faController,
                     label: 'Faktor Aktivitas (FA)',
                     prefixIcon: const Icon(Icons.directions_run),
-                    items: SchofieldCalculatorService.activityFactors.keys.toList(),
-                    itemAsString: (String key) => '$key (${SchofieldCalculatorService.activityFactors[key]})',
+                    items: SchofieldCalculatorService.activityFactors.keys
+                        .toList(),
+                    itemAsString: (String key) =>
+                        '$key (${SchofieldCalculatorService.activityFactors[key]})',
                   ),
                   SizedBox(height: sw * 0.04),
 
@@ -516,8 +562,10 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
                     controller: _fsController,
                     label: 'Faktor Stres (FS)',
                     prefixIcon: const Icon(Icons.local_hospital),
-                    items: SchofieldCalculatorService.stressFactors.keys.toList(),
-                    itemAsString: (String key) => '$key (${SchofieldCalculatorService.stressFactors[key]})',
+                    items: SchofieldCalculatorService.stressFactors.keys
+                        .toList(),
+                    itemAsString: (String key) =>
+                        '$key (${SchofieldCalculatorService.stressFactors[key]})',
                   ),
 
                   SizedBox(height: sw * 0.08),
@@ -528,7 +576,10 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
                     onSubmit: _calculateAll,
                     resetButtonColor: Colors.white,
                     resetForegroundColor: _kBrandGreen,
-                    submitIcon: const Icon(Icons.calculate, color: Colors.white),
+                    submitIcon: const Icon(
+                      Icons.calculate,
+                      color: Colors.white,
+                    ),
                   ),
 
                   SizedBox(height: sw * 0.08),
@@ -565,19 +616,21 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
                       ),
                     ),
                     SizedBox(height: sw * 0.04),
-                    
+
                     // Menampilkan formula terkait anak (menyaring formula dewasa)
                     ...ReferenceData.formulas
                         .where((formula) => formula.id.contains('_anak'))
-                        .map((formula) => FormulaTile(
-                              key: ValueKey('cqc_${formula.id}'),
-                              semanticId: 'cqc_${formula.id}',
-                              title: formula.title,
-                              formulaName: formula.formulaName,
-                              formulaContent: formula.formulaContent,
-                              note: formula.note,
-                            )),
-                            
+                        .map(
+                          (formula) => FormulaTile(
+                            key: ValueKey('cqc_${formula.id}'),
+                            semanticId: 'cqc_${formula.id}',
+                            title: formula.title,
+                            formulaName: formula.formulaName,
+                            formulaContent: formula.formulaContent,
+                            note: formula.note,
+                          ),
+                        ),
+
                     SizedBox(height: sw * 0.08),
                   ],
                 ],
@@ -605,7 +658,7 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
       key: widgetKey,
       popupProps: PopupProps.menu(
         showSearchBox: false,
-        constraints: BoxConstraints(maxHeight: menuHeight ?? 250), 
+        constraints: BoxConstraints(maxHeight: menuHeight ?? 250),
       ),
       items: items,
       itemAsString: itemAsString,
@@ -617,9 +670,11 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
           filled: false,
         ),
       ),
-      onChanged: onChanged ?? (val) => setState(() => controller.text = val ?? ''),
+      onChanged:
+          onChanged ?? (val) => setState(() => controller.text = val ?? ''),
       selectedItem: controller.text.isEmpty ? null : controller.text,
-      validator: (v) => (v == null || v.isEmpty) ? '$label harus dipilih' : null,
+      validator: (v) =>
+          (v == null || v.isEmpty) ? '$label harus dipilih' : null,
     );
   }
 
@@ -651,7 +706,9 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(14),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -679,54 +736,123 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
                   alignment: Alignment.center,
                   child: Text(
                     'Usia: ${result.ageFormatted}',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.blueGrey[700]),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey[700],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Energi & Makronutrien
                 const SizedBox(height: 8),
-                _buildResultRow('BMR (Schofield)', '${result.bmrSchofield.toStringAsFixed(0)} kkal/hari'),
+                _buildResultRow(
+                  'BMR (Schofield)',
+                  '${result.bmrSchofield.toStringAsFixed(0)} kkal/hari',
+                ),
                 const Divider(height: 8),
-                _buildResultRow('Total Energi (TDEE)', '${result.tdee.toStringAsFixed(0)} kkal/hari', isHighlight: true, color: color),
+                _buildResultRow(
+                  'Total Energi (TDEE)',
+                  '${result.tdee.toStringAsFixed(0)} kkal/hari',
+                  isHighlight: true,
+                  color: color,
+                ),
                 const Divider(height: 8),
-                _buildResultRow('Protein', '${result.protein.toStringAsFixed(0)} g/hari'),
+                _buildResultRow(
+                  'Protein',
+                  '${result.protein.toStringAsFixed(0)} g/hari',
+                ),
                 const Divider(height: 8),
-                _buildResultRow('Lemak', '${result.lemak.toStringAsFixed(0)} g/hari'),
+                _buildResultRow(
+                  'Lemak',
+                  '${result.lemak.toStringAsFixed(0)} g/hari',
+                ),
                 const Divider(height: 8),
-                _buildResultRow('Karbohidrat', '${result.karbo.toStringAsFixed(0)} g/hari'),
+                _buildResultRow(
+                  'Karbohidrat',
+                  '${result.karbo.toStringAsFixed(0)} g/hari',
+                ),
                 const Divider(height: 8),
-                _buildResultRow('Kebutuhan Cairan', '${result.cairan.toStringAsFixed(0)} ml/hari', isHighlight: true, color: Colors.lightBlue),
+                _buildResultRow(
+                  'Kebutuhan Cairan',
+                  '${result.cairan.toStringAsFixed(0)} ml/hari',
+                  isHighlight: true,
+                  color: Colors.lightBlue,
+                ),
                 const Divider(height: 16, thickness: 2),
 
                 // Indikator Gizi
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Indikator Status Gizi:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color)),
+                  child: Text(
+                    'Indikator Status Gizi:',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 8),
-                _buildResultRow('Berat Badan Ideal', '${result.bbi.toStringAsFixed(1)} kg'),
+                _buildResultRow(
+                  'Berat Badan Ideal',
+                  '${result.bbi.toStringAsFixed(1)} kg',
+                ),
                 const Divider(height: 8),
 
                 if (result.status0to60 != null) ...[
-                  _buildResultRow('IMT/U (Z-Score)', '${result.status0to60!.bmiForAge.zScore?.toStringAsFixed(2) ?? '-'} (${result.status0to60!.bmiForAge.category})',
-                      customValueColor: _NutritionColorResolver.resolve('IMT/U', result.status0to60!.bmiForAge.category)),
+                  _buildResultRow(
+                    'IMT/U (Z-Score)',
+                    '${result.status0to60!.bmiForAge.zScore?.toStringAsFixed(2) ?? '-'} (${result.status0to60!.bmiForAge.category})',
+                    customValueColor: _NutritionColorResolver.resolve(
+                      'IMT/U',
+                      result.status0to60!.bmiForAge.category,
+                    ),
+                  ),
                   const Divider(height: 8),
-                  _buildResultRow('BB/U (Z-Score)', '${result.status0to60!.weightForAge.zScore?.toStringAsFixed(2) ?? '-'} (${result.status0to60!.weightForAge.category})',
-                      customValueColor: _NutritionColorResolver.resolve('BB/U', result.status0to60!.weightForAge.category)),
+                  _buildResultRow(
+                    'BB/U (Z-Score)',
+                    '${result.status0to60!.weightForAge.zScore?.toStringAsFixed(2) ?? '-'} (${result.status0to60!.weightForAge.category})',
+                    customValueColor: _NutritionColorResolver.resolve(
+                      'BB/U',
+                      result.status0to60!.weightForAge.category,
+                    ),
+                  ),
                   const Divider(height: 8),
-                  _buildResultRow('TB/U (Z-Score)', '${result.status0to60!.heightForAge.zScore?.toStringAsFixed(2) ?? '-'} (${result.status0to60!.heightForAge.category})',
-                      customValueColor: _NutritionColorResolver.resolve('TB/U', result.status0to60!.heightForAge.category)),
+                  _buildResultRow(
+                    'TB/U (Z-Score)',
+                    '${result.status0to60!.heightForAge.zScore?.toStringAsFixed(2) ?? '-'} (${result.status0to60!.heightForAge.category})',
+                    customValueColor: _NutritionColorResolver.resolve(
+                      'TB/U',
+                      result.status0to60!.heightForAge.category,
+                    ),
+                  ),
                   const Divider(height: 8),
-                  _buildResultRow('BB/TB (Z-Score)', '${result.status0to60!.weightForHeight.zScore?.toStringAsFixed(2) ?? '-'} (${result.status0to60!.weightForHeight.category})',
-                      customValueColor: _NutritionColorResolver.resolve('BB/TB', result.status0to60!.weightForHeight.category)),
+                  _buildResultRow(
+                    'BB/TB (Z-Score)',
+                    '${result.status0to60!.weightForHeight.zScore?.toStringAsFixed(2) ?? '-'} (${result.status0to60!.weightForHeight.category})',
+                    customValueColor: _NutritionColorResolver.resolve(
+                      'BB/TB',
+                      result.status0to60!.weightForHeight.category,
+                    ),
+                  ),
                   const Divider(height: 8),
                 ] else if (result.imtu5to18 != null) ...[
-                  _buildResultRow('IMT', '${result.imtu5to18!.bmi.toStringAsFixed(2)} kg/m²'),
+                  _buildResultRow(
+                    'IMT',
+                    '${result.imtu5to18!.bmi.toStringAsFixed(2)} kg/m²',
+                  ),
                   const Divider(height: 8),
-                  _buildResultRow('IMT/U 5-18 Thn', '${result.imtu5to18!.zScore?.toStringAsFixed(2) ?? '-'} (${result.imtu5to18!.category})',
-                      customValueColor: _NutritionColorResolver.resolve('IMT/U', result.imtu5to18!.category)),
-                ]
+                  _buildResultRow(
+                    'IMT/U 5-18 Thn',
+                    '${result.imtu5to18!.zScore?.toStringAsFixed(2) ?? '-'} (${result.imtu5to18!.category})',
+                    customValueColor: _NutritionColorResolver.resolve(
+                      'IMT/U',
+                      result.imtu5to18!.category,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -764,7 +890,9 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
             style: TextStyle(
               fontSize: 15,
               fontWeight: isHighlight ? FontWeight.bold : FontWeight.w600,
-              color: customValueColor ?? (isHighlight ? (color ?? Colors.black87) : Colors.black87),
+              color:
+                  customValueColor ??
+                  (isHighlight ? (color ?? Colors.black87) : Colors.black87),
             ),
           ),
         ),

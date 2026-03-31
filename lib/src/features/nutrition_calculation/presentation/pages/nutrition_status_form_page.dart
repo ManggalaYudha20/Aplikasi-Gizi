@@ -66,8 +66,8 @@ abstract class _NutritionColorResolver {
   static Color forBMIForAge(String category) => forWeightForHeight(category);
 
   static Color resolve(String cardTitle, String category) {
-    if (cardTitle.contains('BB/U'))  return forWeightForAge(category);
-    if (cardTitle.contains('TB/U'))  return forHeightForAge(category);
+    if (cardTitle.contains('BB/U')) return forWeightForAge(category);
+    if (cardTitle.contains('TB/U')) return forHeightForAge(category);
     if (cardTitle.contains('BB/TB')) return forWeightForHeight(category);
     if (cardTitle.contains('IMT/U')) return forBMIForAge(category);
     return _green;
@@ -90,20 +90,20 @@ class NutritionStatusFormPage extends StatefulWidget {
 
 class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   // ── Controllers & Keys ────────────────────────────────────────────────────
-  final _formKey                  = GlobalKey<FormState>();
-  final _weightController         = TextEditingController();
-  final _heightController         = TextEditingController();
-  final _birthDateController      = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _weightController = TextEditingController();
+  final _heightController = TextEditingController();
+  final _birthDateController = TextEditingController();
   final _measurementDateController = TextEditingController();
-  final _genderController         = TextEditingController();
-  final _scrollController         = ScrollController();
-  final _resultSectionKey         = GlobalKey();
-  final _patientPickerKey         = GlobalKey<PatientPickerWidgetState>();
+  final _genderController = TextEditingController();
+  final _scrollController = ScrollController();
+  final _resultSectionKey = GlobalKey();
+  final _patientPickerKey = GlobalKey<PatientPickerWidgetState>();
 
   // ── State ─────────────────────────────────────────────────────────────────
-  DateTime?         _birthDate;
-  DateTime?         _measurementDate;
-  int?              _ageInMonths;
+  DateTime? _birthDate;
+  DateTime? _measurementDate;
+  int? _ageInMonths;
   // [REFACTOR] Diganti dari Map<String, dynamic>? ke NutritionAllResult? yang type-safe.
   NutritionAllResult? _result;
 
@@ -115,8 +115,10 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
       if (!mounted) return;
       setState(() {
         _measurementDate = DateTime.now();
-        _measurementDateController.text =
-            DateFormat('dd MMMM yyyy', 'id_ID').format(_measurementDate!);
+        _measurementDateController.text = DateFormat(
+          'dd MMMM yyyy',
+          'id_ID',
+        ).format(_measurementDate!);
       });
     });
   }
@@ -143,7 +145,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     if (_ageInMonths! < 0 || _ageInMonths! > 60) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:         Text('Usia anak harus antara 0-60 bulan'),
+          content: Text('Usia anak harus antara 0-60 bulan'),
           backgroundColor: Colors.red,
         ),
       );
@@ -156,7 +158,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     if (_ageInMonths == null || _ageInMonths! < 0 || _ageInMonths! > 60) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:         Text('Pastikan usia anak antara 0-60 bulan'),
+          content: Text('Pastikan usia anak antara 0-60 bulan'),
           backgroundColor: Colors.red,
         ),
       );
@@ -168,9 +170,9 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
       _result = NutritionCalculatorService.calculateAll(
         birthDate: _birthDate!,
         checkDate: _measurementDate!,
-        weightKg:  double.parse(_weightController.text),
-        heightCm:  double.parse(_heightController.text),
-        gender:    _genderController.text,
+        weightKg: double.parse(_weightController.text),
+        heightCm: double.parse(_heightController.text),
+        gender: _genderController.text,
       );
     });
 
@@ -184,26 +186,33 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
       _heightController.clear();
       _birthDateController.clear();
       _genderController.clear();
-      _birthDate   = null;
+      _birthDate = null;
       _ageInMonths = null;
-      _result      = null;
+      _result = null;
       _measurementDate = DateTime.now();
-      _measurementDateController.text =
-          DateFormat('dd MMMM yyyy', 'id_ID').format(_measurementDate!);
+      _measurementDateController.text = DateFormat(
+        'dd MMMM yyyy',
+        'id_ID',
+      ).format(_measurementDate!);
     });
     _patientPickerKey.currentState?.resetSelection();
   }
 
   void _fillDataFromPatient(
-    double weight, double height, String gender, DateTime dob,
+    double weight,
+    double height,
+    String gender,
+    DateTime dob,
   ) {
     setState(() {
       _weightController.text = weight.toString();
       _heightController.text = height.toString();
       _genderController.text = gender;
-      _birthDate             = dob;
-      _birthDateController.text =
-          DateFormat('dd MMMM yyyy', 'id_ID').format(dob);
+      _birthDate = dob;
+      _birthDateController.text = DateFormat(
+        'dd MMMM yyyy',
+        'id_ID',
+      ).format(dob);
       _result = null;
       _recalculateAge();
     });
@@ -216,7 +225,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
         Scrollable.ensureVisible(
           ctx,
           duration: const Duration(milliseconds: 600),
-          curve:    Curves.easeInOut,
+          curve: Curves.easeInOut,
         );
       }
     });
@@ -228,11 +237,11 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
         : (_measurementDate ?? DateTime.now());
 
     final DateTime? picked = await showDatePicker(
-      context:     context,
+      context: context,
       initialDate: initial,
-      firstDate:   DateTime(2000),
-      lastDate:    DateTime.now(),
-      locale:      const Locale('id', 'ID'),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+      locale: const Locale('id', 'ID'),
     );
 
     if (picked == null) return;
@@ -240,12 +249,16 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     setState(() {
       if (isBirthDate) {
         _birthDate = picked;
-        _birthDateController.text =
-            DateFormat('dd MMMM yyyy', 'id_ID').format(picked);
+        _birthDateController.text = DateFormat(
+          'dd MMMM yyyy',
+          'id_ID',
+        ).format(picked);
       } else {
         _measurementDate = picked;
-        _measurementDateController.text =
-            DateFormat('dd MMMM yyyy', 'id_ID').format(picked);
+        _measurementDateController.text = DateFormat(
+          'dd MMMM yyyy',
+          'id_ID',
+        ).format(picked);
       }
       _recalculateAge();
       _result = null;
@@ -256,14 +269,14 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final double sw          = MediaQuery.sizeOf(context).width;
-    final double hPad        = sw * 0.04;
+    final double sw = MediaQuery.sizeOf(context).width;
+    final double hPad = sw * 0.04;
     final double scaleFactor = sw >= 600 ? 1.2 : (sw <= 360 ? 0.9 : 1.0);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
-        title:    'Status Gizi',
+        title: 'Status Gizi',
         subtitle: 'Usia 0-60 Bulan',
       ),
       body: SafeArea(
@@ -277,12 +290,11 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-
                   // ── Patient Picker ─────────────────────────────────────
                   PatientPickerWidget(
-                    key:               _patientPickerKey,
+                    key: _patientPickerKey,
                     onPatientSelected: _fillDataFromPatient,
-                    userRole:          widget.userRole,
+                    userRole: widget.userRole,
                   ),
 
                   SizedBox(height: sw * 0.05),
@@ -290,7 +302,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                   Text(
                     'Input Data Status Gizi',
                     style: TextStyle(
-                      fontSize:   16 * scaleFactor,
+                      fontSize: 16 * scaleFactor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -299,28 +311,30 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
 
                   // ── Tanggal Lahir ──────────────────────────────────────
                   ResponsiveNumberField(
-                    widgetKey:  const ValueKey('birthDateField'),
+                    widgetKey: const ValueKey('birthDateField'),
                     controller: _birthDateController,
-                    label:      'Tanggal Lahir',
+                    label: 'Tanggal Lahir',
                     prefixIcon: const Icon(Icons.calendar_today),
-                    readOnly:   true,
-                    onTap:      () => _pickDate(isBirthDate: true),
-                    customValidator: (v) =>
-                        (v == null || v.isEmpty) ? 'Tanggal lahir tidak boleh kosong' : null,
+                    readOnly: true,
+                    onTap: () => _pickDate(isBirthDate: true),
+                    customValidator: (v) => (v == null || v.isEmpty)
+                        ? 'Tanggal lahir tidak boleh kosong'
+                        : null,
                   ),
 
                   SizedBox(height: sw * 0.04),
 
                   // ── Tanggal Pemeriksaan ────────────────────────────────
                   ResponsiveNumberField(
-                    widgetKey:  const ValueKey('measurementDateField'),
+                    widgetKey: const ValueKey('measurementDateField'),
                     controller: _measurementDateController,
-                    label:      'Tanggal Pemeriksaan',
+                    label: 'Tanggal Pemeriksaan',
                     prefixIcon: const Icon(Icons.event),
-                    readOnly:   true,
-                    onTap:      () => _pickDate(isBirthDate: false),
-                    customValidator: (v) =>
-                        (v == null || v.isEmpty) ? 'Tanggal pemeriksaan tidak boleh kosong' : null,
+                    readOnly: true,
+                    onTap: () => _pickDate(isBirthDate: false),
+                    customValidator: (v) => (v == null || v.isEmpty)
+                        ? 'Tanggal pemeriksaan tidak boleh kosong'
+                        : null,
                   ),
 
                   if (_ageInMonths != null) ...[
@@ -329,7 +343,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                       'Usia: $_ageInMonths bulan',
                       style: TextStyle(
                         fontSize: 14 * scaleFactor,
-                        color:    Colors.grey.shade600,
+                        color: Colors.grey.shade600,
                       ),
                     ),
                   ],
@@ -341,8 +355,8 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                     key: const ValueKey('genderDropdown'),
                     popupProps: const PopupProps.menu(
                       showSearchBox: false,
-                      fit:           FlexFit.loose,
-                      constraints:   BoxConstraints(maxHeight: 240),
+                      fit: FlexFit.loose,
+                      constraints: BoxConstraints(maxHeight: 240),
                     ),
                     items: const [
                       NutritionCalculatorService.genderMale,
@@ -350,26 +364,28 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                     ],
                     dropdownDecoratorProps: DropDownDecoratorProps(
                       dropdownSearchDecoration: InputDecoration(
-                        labelText:  'Jenis Kelamin',
-                        border:     const OutlineInputBorder(),
+                        labelText: 'Jenis Kelamin',
+                        border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.wc),
                       ),
                     ),
                     onChanged: (val) =>
                         setState(() => _genderController.text = val ?? ''),
                     selectedItem: _genderController.text.isEmpty
-                        ? null : _genderController.text,
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Jenis kelamin harus dipilih' : null,
+                        ? null
+                        : _genderController.text,
+                    validator: (v) => (v == null || v.isEmpty)
+                        ? 'Jenis kelamin harus dipilih'
+                        : null,
                   ),
 
                   SizedBox(height: sw * 0.04),
 
                   // ── Berat & Tinggi ─────────────────────────────────────
                   ResponsiveNumberField(
-                    widgetKey:  const ValueKey('weightField'),
+                    widgetKey: const ValueKey('weightField'),
                     controller: _weightController,
-                    label:      'Berat Badan',
+                    label: 'Berat Badan',
                     prefixIcon: const Icon(Icons.monitor_weight),
                     suffixText: 'kg',
                   ),
@@ -377,9 +393,9 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                   SizedBox(height: sw * 0.04),
 
                   ResponsiveNumberField(
-                    widgetKey:  const ValueKey('heightField'),
+                    widgetKey: const ValueKey('heightField'),
                     controller: _heightController,
-                    label:      'Tinggi/Panjang Badan',
+                    label: 'Tinggi/Panjang Badan',
                     prefixIcon: const Icon(Icons.height),
                     suffixText: 'cm',
                   ),
@@ -387,11 +403,14 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
                   SizedBox(height: sw * 0.08),
 
                   FormActionButtons(
-                    onReset:              _resetForm,
-                    onSubmit:             _calculateNutritionStatus,
-                    resetButtonColor:     Colors.white,
+                    onReset: _resetForm,
+                    onSubmit: _calculateNutritionStatus,
+                    resetButtonColor: Colors.white,
                     resetForegroundColor: const Color(0xFF009444),
-                    submitIcon: const Icon(Icons.calculate, color: Colors.white),
+                    submitIcon: const Icon(
+                      Icons.calculate,
+                      color: Colors.white,
+                    ),
                   ),
 
                   SizedBox(height: sw * 0.08),
@@ -413,7 +432,9 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
   }
 
   Widget _buildReferenceFormula(double sw, double scaleFactor) {
-    final formula = ReferenceData.formulas.firstWhere((f) => f.id == 'formula_zscore_anak');
+    final formula = ReferenceData.formulas.firstWhere(
+      (f) => f.id == 'formula_zscore_anak',
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -421,7 +442,10 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
         Text(
           'Rumus Perhitungan',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16.0 * scaleFactor, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 16.0 * scaleFactor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         SizedBox(height: 16.0 * scaleFactor),
         FormulaTile(
@@ -446,7 +470,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
         Text(
           'Hasil Perhitungan Status Gizi',
           style: TextStyle(
-            fontSize:   16.0 * scaleFactor,
+            fontSize: 16.0 * scaleFactor,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -454,55 +478,55 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
 
         // BB/U
         ZScoreResultCard(
-          containerKey:   const ValueKey('resultCard_bbPerU'),
+          containerKey: const ValueKey('resultCard_bbPerU'),
           semanticsLabel: 'Hasil Z-Score BB per Umur',
-          title:          'Berat Badan menurut Umur (BB/U)',
-          zScore:         r.weightForAge.zScore,
-          category:       r.weightForAge.category,
+          title: 'Berat Badan menurut Umur (BB/U)',
+          zScore: r.weightForAge.zScore,
+          category: r.weightForAge.category,
           color: _NutritionColorResolver.resolve(
-            'BB/U', r.weightForAge.category,
+            'BB/U',
+            r.weightForAge.category,
           ),
         ),
         SizedBox(height: 12.0 * scaleFactor),
 
         // TB/U
         ZScoreResultCard(
-          containerKey:   const ValueKey('resultCard_tbPerU'),
+          containerKey: const ValueKey('resultCard_tbPerU'),
           semanticsLabel: 'Hasil Z-Score TB per Umur',
-          title:          'Tinggi Badan menurut Umur (TB/U)',
-          zScore:         r.heightForAge.zScore,
-          category:       r.heightForAge.category,
+          title: 'Tinggi Badan menurut Umur (TB/U)',
+          zScore: r.heightForAge.zScore,
+          category: r.heightForAge.category,
           color: _NutritionColorResolver.resolve(
-            'TB/U', r.heightForAge.category,
+            'TB/U',
+            r.heightForAge.category,
           ),
         ),
         SizedBox(height: 12.0 * scaleFactor),
 
         // BB/TB
         ZScoreResultCard(
-          containerKey:   const ValueKey('resultCard_bbPerTb'),
+          containerKey: const ValueKey('resultCard_bbPerTb'),
           semanticsLabel: 'Hasil Z-Score BB per Tinggi Badan',
-          title:          'Berat Badan menurut Tinggi Badan (BB/TB)',
-          zScore:         r.weightForHeight.zScore,
-          category:       r.weightForHeight.category,
+          title: 'Berat Badan menurut Tinggi Badan (BB/TB)',
+          zScore: r.weightForHeight.zScore,
+          category: r.weightForHeight.category,
           color: _NutritionColorResolver.resolve(
-            'BB/TB', r.weightForHeight.category,
+            'BB/TB',
+            r.weightForHeight.category,
           ),
         ),
         SizedBox(height: 12.0 * scaleFactor),
 
         // IMT/U
         ZScoreResultCard(
-          containerKey:   const ValueKey('resultCard_imtPerU'),
+          containerKey: const ValueKey('resultCard_imtPerU'),
           semanticsLabel: 'Hasil Z-Score IMT per Umur',
-          title:          'Indeks Massa Tubuh menurut Umur (IMT/U)',
-          zScore:         r.bmiForAge.zScore,
-          category:       r.bmiForAge.category,
-          color: _NutritionColorResolver.resolve(
-            'IMT/U', r.bmiForAge.category,
-          ),
-          additionalInfo:
-              'IMT: ${r.bmi.toStringAsFixed(2)} kg/m²',
+          title: 'Indeks Massa Tubuh menurut Umur (IMT/U)',
+          zScore: r.bmiForAge.zScore,
+          category: r.bmiForAge.category,
+          color: _NutritionColorResolver.resolve('IMT/U', r.bmiForAge.category),
+          additionalInfo: 'IMT: ${r.bmi.toStringAsFixed(2)} kg/m²',
         ),
         _buildReferenceFormula(sw, scaleFactor),
       ],

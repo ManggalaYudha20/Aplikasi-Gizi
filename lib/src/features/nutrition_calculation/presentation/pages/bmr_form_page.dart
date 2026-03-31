@@ -12,36 +12,37 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presen
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/responsive_number_field.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/reference/data/models/reference_data.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/reference/widgets/reference_widgets.dart';
+
 // ---------------------------------------------------------------------------
 // [QA] ValueKey TIDAK diubah.
 // ---------------------------------------------------------------------------
 class _Keys {
   const _Keys._();
-  static const patientPicker   = ValueKey('patientPickerWidget');
+  static const patientPicker = ValueKey('patientPickerWidget');
   static const formulaDropdown = ValueKey('formulaDropdown');
-  static const weightField     = ValueKey('weightField');
-  static const heightField     = ValueKey('heightField');
-  static const genderDropdown  = ValueKey('genderDropdown');
-  static const ageField        = ValueKey('ageField');
-  static const btnReset        = ValueKey('btnReset');
-  static const bmrResultCard   = ValueKey('bmrResultCard');
+  static const weightField = ValueKey('weightField');
+  static const heightField = ValueKey('heightField');
+  static const genderDropdown = ValueKey('genderDropdown');
+  static const ageField = ValueKey('ageField');
+  static const btnReset = ValueKey('btnReset');
+  static const bmrResultCard = ValueKey('bmrResultCard');
 }
 
 class _Str {
   const _Str._();
-  static const appBarTitle    = 'BMR';
+  static const appBarTitle = 'BMR';
   static const appBarSubtitle = 'Basal Metabolic Rate';
-  static const sectionTitle   = 'Input Data BMR';
-  static const formulaLabel   = 'Pilih Formula BMR';
-  static const weightLabel    = 'Berat Badan';
-  static const weightUnit     = 'kg';
-  static const heightLabel    = 'Tinggi Badan';
-  static const heightUnit     = 'cm';
-  static const genderLabel    = 'Jenis Kelamin';
-  static const ageLabel       = 'Umur';
-  static const ageUnit        = 'tahun';
-  static const resultUnit     = 'kkal/hari';
-  static const resultDesc     =
+  static const sectionTitle = 'Input Data BMR';
+  static const formulaLabel = 'Pilih Formula BMR';
+  static const weightLabel = 'Berat Badan';
+  static const weightUnit = 'kg';
+  static const heightLabel = 'Tinggi Badan';
+  static const heightUnit = 'cm';
+  static const genderLabel = 'Jenis Kelamin';
+  static const ageLabel = 'Umur';
+  static const ageUnit = 'tahun';
+  static const resultUnit = 'kkal/hari';
+  static const resultDesc =
       'Basal Metabolic Rate (BMR) adalah jumlah kalori yang dibutuhkan '
       'tubuh untuk fungsi dasar saat istirahat.';
 
@@ -73,16 +74,16 @@ class BmrFormPage extends StatefulWidget {
 
 class _BmrFormPageState extends State<BmrFormPage> {
   // ── Controllers & Keys ────────────────────────────────────────────────────
-  final _formKey           = GlobalKey<FormState>();
-  final _weightController  = TextEditingController();
-  final _heightController  = TextEditingController();
-  final _ageController     = TextEditingController();
-  final _genderController  = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _weightController = TextEditingController();
+  final _heightController = TextEditingController();
+  final _ageController = TextEditingController();
+  final _genderController = TextEditingController();
   final _formulaController = TextEditingController(
     text: BmrTdeeCalculatorService.formulaMifflin,
   );
   final _scrollController = ScrollController();
-  final _resultCardKey    = GlobalKey();
+  final _resultCardKey = GlobalKey();
   final _patientPickerKey = GlobalKey<PatientPickerWidgetState>();
 
   // ── State ─────────────────────────────────────────────────────────────────
@@ -104,11 +105,12 @@ class _BmrFormPageState extends State<BmrFormPage> {
   void _calculateBMR() {
     if (!_formKey.currentState!.validate()) return;
 
-    final double weight  = double.parse(_weightController.text);
-    final double height  = double.parse(_heightController.text);
-    final int    age     = int.parse(_ageController.text);
-    final bool   isMale  =
-        BmrTdeeCalculatorService.isMaleFromString(_genderController.text);
+    final double weight = double.parse(_weightController.text);
+    final double height = double.parse(_heightController.text);
+    final int age = int.parse(_ageController.text);
+    final bool isMale = BmrTdeeCalculatorService.isMaleFromString(
+      _genderController.text,
+    );
     final String formula = _formulaController.text;
 
     // [REFACTOR] Logika hitung didelegasikan penuh ke Service.
@@ -117,8 +119,8 @@ class _BmrFormPageState extends State<BmrFormPage> {
         weightKg: weight,
         heightCm: height,
         ageYears: age,
-        isMale:   isMale,
-        formula:  formula,
+        isMale: isMale,
+        formula: formula,
       );
     });
 
@@ -139,12 +141,15 @@ class _BmrFormPageState extends State<BmrFormPage> {
   }
 
   void _fillDataFromPatient(
-    double weight, double height, String gender, DateTime dob,
+    double weight,
+    double height,
+    String gender,
+    DateTime dob,
   ) {
     setState(() {
       _weightController.text = weight.toString();
       _heightController.text = height.toString();
-      _ageController.text    = BmrTdeeCalculatorService.calculateAgeInYears(
+      _ageController.text = BmrTdeeCalculatorService.calculateAgeInYears(
         birthDate: dob,
         checkDate: DateTime.now(),
       ).toString();
@@ -159,7 +164,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
         Scrollable.ensureVisible(
           _resultCardKey.currentContext!,
           duration: const Duration(milliseconds: 600),
-          curve:    Curves.easeInOut,
+          curve: Curves.easeInOut,
         );
       }
     });
@@ -169,13 +174,13 @@ class _BmrFormPageState extends State<BmrFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final double sw   = MediaQuery.sizeOf(context).width;
+    final double sw = MediaQuery.sizeOf(context).width;
     final double hPad = sw * 0.04;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: const CustomAppBar(
-        title:    _Str.appBarTitle,
+        title: _Str.appBarTitle,
         subtitle: _Str.appBarSubtitle,
       ),
       body: SafeArea(
@@ -189,17 +194,17 @@ class _BmrFormPageState extends State<BmrFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-
                   // ── Patient Picker ─────────────────────────────────────
                   Semantics(
-                    key:   _Keys.patientPicker,
+                    key: _Keys.patientPicker,
                     label: 'Pemilih Pasien',
-                    hint:  'Pilih pasien untuk mengisi data berat badan, '
-                           'tinggi badan, jenis kelamin, dan umur secara otomatis',
+                    hint:
+                        'Pilih pasien untuk mengisi data berat badan, '
+                        'tinggi badan, jenis kelamin, dan umur secara otomatis',
                     child: PatientPickerWidget(
-                      key:               _patientPickerKey,
+                      key: _patientPickerKey,
                       onPatientSelected: _fillDataFromPatient,
-                      userRole:          widget.userRole,
+                      userRole: widget.userRole,
                     ),
                   ),
 
@@ -208,7 +213,7 @@ class _BmrFormPageState extends State<BmrFormPage> {
                   Text(
                     _Str.sectionTitle,
                     style: TextStyle(
-                      fontSize:   _responsiveFont(sw, base: 20),
+                      fontSize: _responsiveFont(sw, base: 20),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -218,14 +223,15 @@ class _BmrFormPageState extends State<BmrFormPage> {
                   // ── Formula Dropdown ───────────────────────────────────
                   Semantics(
                     label: 'Dropdown Formula BMR',
-                    hint:  'Pilih formula kalkulasi: Mifflin-St Jeor atau Harris-Benedict',
+                    hint:
+                        'Pilih formula kalkulasi: Mifflin-St Jeor atau Harris-Benedict',
                     child: _buildDropdown(
-                      widgetKey:  _Keys.formulaDropdown,
+                      widgetKey: _Keys.formulaDropdown,
                       controller: _formulaController,
-                      label:      _Str.formulaLabel,
+                      label: _Str.formulaLabel,
                       prefixIcon: const Icon(Icons.calculate),
-                      items:      _Str.formulaOptions,
-                      onChanged:  (val) => setState(() {
+                      items: _Str.formulaOptions,
+                      onChanged: (val) => setState(() {
                         _formulaController.text = val ?? '';
                         _bmrResult = null;
                       }),
@@ -237,26 +243,26 @@ class _BmrFormPageState extends State<BmrFormPage> {
 
                   // ── Weight Field ───────────────────────────────────────
                   ResponsiveNumberField(
-                    widgetKey:     _Keys.weightField,
-                    controller:    _weightController,
-                    label:         _Str.weightLabel,
-                    prefixIcon:    const Icon(Icons.monitor_weight),
-                    suffixText:    _Str.weightUnit,
+                    widgetKey: _Keys.weightField,
+                    controller: _weightController,
+                    label: _Str.weightLabel,
+                    prefixIcon: const Icon(Icons.monitor_weight),
+                    suffixText: _Str.weightUnit,
                     semanticLabel: 'Input Berat Badan BMR',
-                    semanticHint:  'Masukkan berat badan dalam kilogram',
+                    semanticHint: 'Masukkan berat badan dalam kilogram',
                   ),
 
                   SizedBox(height: sw * 0.04),
 
                   // ── Height Field ───────────────────────────────────────
                   ResponsiveNumberField(
-                    widgetKey:     _Keys.heightField,
-                    controller:    _heightController,
-                    label:         _Str.heightLabel,
-                    prefixIcon:    const Icon(Icons.height),
-                    suffixText:    _Str.heightUnit,
+                    widgetKey: _Keys.heightField,
+                    controller: _heightController,
+                    label: _Str.heightLabel,
+                    prefixIcon: const Icon(Icons.height),
+                    suffixText: _Str.heightUnit,
                     semanticLabel: 'Input Tinggi Badan BMR',
-                    semanticHint:  'Masukkan tinggi badan dalam sentimeter',
+                    semanticHint: 'Masukkan tinggi badan dalam sentimeter',
                   ),
 
                   SizedBox(height: sw * 0.04),
@@ -264,14 +270,14 @@ class _BmrFormPageState extends State<BmrFormPage> {
                   // ── Gender Dropdown ────────────────────────────────────
                   Semantics(
                     label: 'Dropdown Jenis Kelamin BMR',
-                    hint:  'Pilih jenis kelamin: Laki-laki atau Perempuan',
+                    hint: 'Pilih jenis kelamin: Laki-laki atau Perempuan',
                     child: _buildDropdown(
-                      widgetKey:  _Keys.genderDropdown,
+                      widgetKey: _Keys.genderDropdown,
                       controller: _genderController,
-                      label:      _Str.genderLabel,
+                      label: _Str.genderLabel,
                       prefixIcon: const Icon(Icons.wc),
-                      items:      _Str.genderOptions,
-                      onChanged:  (val) => setState(() {
+                      items: _Str.genderOptions,
+                      onChanged: (val) => setState(() {
                         _genderController.text = val ?? '';
                         _bmrResult = null;
                       }),
@@ -282,15 +288,15 @@ class _BmrFormPageState extends State<BmrFormPage> {
 
                   // ── Age Field ──────────────────────────────────────────
                   ResponsiveNumberField(
-                    widgetKey:     _Keys.ageField,
-                    controller:    _ageController,
-                    label:         _Str.ageLabel,
-                    prefixIcon:    const Icon(Icons.calendar_today),
-                    suffixText:    _Str.ageUnit,
+                    widgetKey: _Keys.ageField,
+                    controller: _ageController,
+                    label: _Str.ageLabel,
+                    prefixIcon: const Icon(Icons.calendar_today),
+                    suffixText: _Str.ageUnit,
                     semanticLabel: 'Input Umur BMR',
-                    semanticHint:  'Masukkan umur dalam tahun',
-                    isInteger:     true,
-                    maxLength:     3,
+                    semanticHint: 'Masukkan umur dalam tahun',
+                    isInteger: true,
+                    maxLength: 3,
                   ),
 
                   SizedBox(height: sw * 0.08),
@@ -298,15 +304,19 @@ class _BmrFormPageState extends State<BmrFormPage> {
                   // ── Action Buttons ─────────────────────────────────────
                   Semantics(
                     label: 'Tombol Aksi Form BMR',
-                    hint:  'Tombol Reset menghapus semua input; '
-                           'Tombol Hitung menghitung nilai BMR',
+                    hint:
+                        'Tombol Reset menghapus semua input; '
+                        'Tombol Hitung menghitung nilai BMR',
                     child: FormActionButtons(
-                      key:                  _Keys.btnReset,
-                      onReset:              _resetForm,
-                      onSubmit:             _calculateBMR,
-                      resetButtonColor:     Colors.white,
+                      key: _Keys.btnReset,
+                      onReset: _resetForm,
+                      onSubmit: _calculateBMR,
+                      resetButtonColor: Colors.white,
                       resetForegroundColor: _kBrandGreen,
-                      submitIcon: const Icon(Icons.calculate, color: Colors.white),
+                      submitIcon: const Icon(
+                        Icons.calculate,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
 
@@ -321,10 +331,12 @@ class _BmrFormPageState extends State<BmrFormPage> {
                     // [REFACTOR] _buildBmrResultCard diganti CalculationResultCard
                     CalculationResultCard(
                       containerKey: _Keys.bmrResultCard,
-                      title:        'Hasil Perhitungan BMR\n(${_formulaController.text})',
-                      value:        '${_bmrResult!.toStringAsFixed(2)} ${_Str.resultUnit}',
-                      color:        _kBrandGreen,
-                      subtitle:     _Str.resultDesc,
+                      title:
+                          'Hasil Perhitungan BMR\n(${_formulaController.text})',
+                      value:
+                          '${_bmrResult!.toStringAsFixed(2)} ${_Str.resultUnit}',
+                      color: _kBrandGreen,
+                      subtitle: _Str.resultDesc,
                       semanticsLabel:
                           'Hasil Perhitungan BMR: '
                           '${_bmrResult!.toStringAsFixed(2)} kkal per hari, '
@@ -341,7 +353,8 @@ class _BmrFormPageState extends State<BmrFormPage> {
       ),
     );
   }
-Widget _buildReferenceFormula(double sw) {
+
+  Widget _buildReferenceFormula(double sw) {
     final bmrFormula = ReferenceData.formulas.firstWhere(
       (f) => f.id == 'formula_bmr',
     );
@@ -358,7 +371,7 @@ Widget _buildReferenceFormula(double sw) {
           ),
         ),
         SizedBox(height: sw * 0.04),
-        
+
         FormulaTile(
           semanticId: bmrFormula.id,
           title: bmrFormula.title,
@@ -374,48 +387,50 @@ Widget _buildReferenceFormula(double sw) {
 
   Widget _buildFormulaInfo(double sw) {
     final String formula = _formulaController.text;
-    final String desc    = formula == BmrTdeeCalculatorService.formulaHarris
+    final String desc = formula == BmrTdeeCalculatorService.formulaHarris
         ? 'Menggunakan rumus Harris-Benedict (1919).'
         : 'Menggunakan rumus Mifflin-St Jeor '
-          '(dianggap lebih akurat untuk populasi modern).';
+              '(dianggap lebih akurat untuk populasi modern).';
     return Padding(
       padding: EdgeInsets.only(top: sw * 0.02),
       child: Text(
         '$formula dipilih. $desc',
         style: TextStyle(
           fontSize: _responsiveFont(sw, base: 12),
-          color:    Colors.black54,
+          color: Colors.black54,
         ),
       ),
     );
   }
 
   Widget _buildDropdown({
-    required ValueKey<String>        widgetKey,
-    required TextEditingController   controller,
-    required String                  label,
-    required Icon                    prefixIcon,
-    required List<String>            items,
-    void Function(String?)?          onChanged,
+    required ValueKey<String> widgetKey,
+    required TextEditingController controller,
+    required String label,
+    required Icon prefixIcon,
+    required List<String> items,
+    void Function(String?)? onChanged,
   }) {
     return DropdownSearch<String>(
-      key:       widgetKey,
+      key: widgetKey,
       popupProps: const PopupProps.menu(
         showSearchBox: false,
-        fit:           FlexFit.loose,
-        constraints:   BoxConstraints(maxHeight: 240),
+        fit: FlexFit.loose,
+        constraints: BoxConstraints(maxHeight: 240),
       ),
       items: items,
       dropdownDecoratorProps: DropDownDecoratorProps(
         dropdownSearchDecoration: InputDecoration(
-          labelText:  label,
-          border:     const OutlineInputBorder(),
+          labelText: label,
+          border: const OutlineInputBorder(),
           prefixIcon: prefixIcon,
         ),
       ),
-      onChanged:    onChanged ?? (val) => setState(() => controller.text = val ?? ''),
+      onChanged:
+          onChanged ?? (val) => setState(() => controller.text = val ?? ''),
       selectedItem: controller.text.isEmpty ? null : controller.text,
-      validator:    (v) => (v == null || v.isEmpty) ? '$label harus dipilih' : null,
+      validator: (v) =>
+          (v == null || v.isEmpty) ? '$label harus dipilih' : null,
     );
   }
 

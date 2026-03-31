@@ -19,21 +19,21 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presen
 class _Keys {
   const _Keys._();
   static const patientPicker = ValueKey('patientPickerWidget');
-  static const weightField   = ValueKey('weightField');
-  static const heightField   = ValueKey('heightField');
-  static const btnReset      = ValueKey('btnReset');
+  static const weightField = ValueKey('weightField');
+  static const heightField = ValueKey('heightField');
+  static const btnReset = ValueKey('btnReset');
   static const bmiResultCard = ValueKey('bmiResultCard');
 }
 
 class _Str {
   const _Str._();
   static const sectionTitle = 'Input Data IMT';
-  static const weightLabel  = 'Berat Badan';
-  static const heightLabel  = 'Tinggi Badan';
-  static const weightUnit   = 'kg';
-  static const heightUnit   = 'cm';
-  static const resultTitle  = 'Hasil Perhitungan IMT';
-  static const resultDesc   =
+  static const weightLabel = 'Berat Badan';
+  static const heightLabel = 'Tinggi Badan';
+  static const weightUnit = 'kg';
+  static const heightUnit = 'cm';
+  static const resultTitle = 'Hasil Perhitungan IMT';
+  static const resultDesc =
       'Indeks Massa Tubuh (IMT) adalah ukuran untuk mengevaluasi berat badan '
       'ideal berdasarkan tinggi badan.';
 }
@@ -55,11 +55,11 @@ class BmiFormPage extends StatefulWidget {
 
 class _BmiFormPageState extends State<BmiFormPage> {
   // ── Controllers & Keys ────────────────────────────────────────────────────
-  final _formKey          = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
   final _scrollController = ScrollController();
-  final _resultCardKey    = GlobalKey();
+  final _resultCardKey = GlobalKey();
   final _patientPickerKey = GlobalKey<PatientPickerWidgetState>();
 
   // ── State ─────────────────────────────────────────────────────────────────
@@ -105,7 +105,10 @@ class _BmiFormPageState extends State<BmiFormPage> {
   }
 
   void _fillDataFromPatient(
-    double weight, double height, String gender, DateTime dob,
+    double weight,
+    double height,
+    String gender,
+    DateTime dob,
   ) {
     setState(() {
       _weightController.text = weight.toString();
@@ -120,7 +123,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
         Scrollable.ensureVisible(
           _resultCardKey.currentContext!,
           duration: const Duration(milliseconds: 600),
-          curve:    Curves.easeInOut,
+          curve: Curves.easeInOut,
         );
       }
     });
@@ -130,7 +133,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final double sw   = MediaQuery.sizeOf(context).width;
+    final double sw = MediaQuery.sizeOf(context).width;
     final double hPad = sw * 0.04;
 
     return Scaffold(
@@ -147,16 +150,16 @@ class _BmiFormPageState extends State<BmiFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-
                   // ── Patient Picker ─────────────────────────────────────
                   Semantics(
-                    key:   _Keys.patientPicker,
+                    key: _Keys.patientPicker,
                     label: 'Pemilih Pasien',
-                    hint:  'Pilih pasien untuk mengisi data berat dan tinggi badan secara otomatis',
+                    hint:
+                        'Pilih pasien untuk mengisi data berat dan tinggi badan secara otomatis',
                     child: PatientPickerWidget(
-                      key:               _patientPickerKey,
+                      key: _patientPickerKey,
                       onPatientSelected: _fillDataFromPatient,
-                      userRole:          widget.userRole,
+                      userRole: widget.userRole,
                     ),
                   ),
 
@@ -165,7 +168,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
                   Text(
                     _Str.sectionTitle,
                     style: TextStyle(
-                      fontSize:   _responsiveFont(sw, base: 20),
+                      fontSize: _responsiveFont(sw, base: 20),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -175,26 +178,26 @@ class _BmiFormPageState extends State<BmiFormPage> {
                   // ── Weight Field ───────────────────────────────────────
                   // [REFACTOR] _buildInputField diganti ResponsiveNumberField
                   ResponsiveNumberField(
-                    widgetKey:     _Keys.weightField,
-                    controller:    _weightController,
-                    label:         _Str.weightLabel,
-                    prefixIcon:    const Icon(Icons.monitor_weight),
-                    suffixText:    _Str.weightUnit,
+                    widgetKey: _Keys.weightField,
+                    controller: _weightController,
+                    label: _Str.weightLabel,
+                    prefixIcon: const Icon(Icons.monitor_weight),
+                    suffixText: _Str.weightUnit,
                     semanticLabel: 'Input Berat Badan',
-                    semanticHint:  'Masukkan berat badan dalam kilogram',
+                    semanticHint: 'Masukkan berat badan dalam kilogram',
                   ),
 
                   SizedBox(height: sw * 0.04),
 
                   // ── Height Field ───────────────────────────────────────
                   ResponsiveNumberField(
-                    widgetKey:     _Keys.heightField,
-                    controller:    _heightController,
-                    label:         _Str.heightLabel,
-                    prefixIcon:    const Icon(Icons.height),
-                    suffixText:    _Str.heightUnit,
+                    widgetKey: _Keys.heightField,
+                    controller: _heightController,
+                    label: _Str.heightLabel,
+                    prefixIcon: const Icon(Icons.height),
+                    suffixText: _Str.heightUnit,
                     semanticLabel: 'Input Tinggi Badan',
-                    semanticHint:  'Masukkan tinggi badan dalam sentimeter',
+                    semanticHint: 'Masukkan tinggi badan dalam sentimeter',
                   ),
 
                   SizedBox(height: sw * 0.08),
@@ -202,14 +205,18 @@ class _BmiFormPageState extends State<BmiFormPage> {
                   // ── Action Buttons ─────────────────────────────────────
                   Semantics(
                     label: 'Tombol Aksi Form IMT',
-                    hint:  'Tombol Reset menghapus semua input; Tombol Hitung menghitung nilai IMT',
+                    hint:
+                        'Tombol Reset menghapus semua input; Tombol Hitung menghitung nilai IMT',
                     child: FormActionButtons(
-                      key:                  _Keys.btnReset,
-                      onReset:              _resetForm,
-                      onSubmit:             _calculateBMI,
-                      resetButtonColor:     Colors.white,
+                      key: _Keys.btnReset,
+                      onReset: _resetForm,
+                      onSubmit: _calculateBMI,
+                      resetButtonColor: Colors.white,
                       resetForegroundColor: _kBrandGreen,
-                      submitIcon: const Icon(Icons.calculate, color: Colors.white),
+                      submitIcon: const Icon(
+                        Icons.calculate,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
 
@@ -224,11 +231,11 @@ class _BmiFormPageState extends State<BmiFormPage> {
                     // [REFACTOR] _buildResultCard diganti CalculationResultCard
                     CalculationResultCard(
                       containerKey: _Keys.bmiResultCard,
-                      title:        _Str.resultTitle,
-                      value:        '${_result!.bmi.toStringAsFixed(2)} kg/m\u00B2',
-                      category:     _result!.categoryLabel,
-                      color:        _resolveColor(_result!.classification),
-                      subtitle:     _Str.resultDesc,
+                      title: _Str.resultTitle,
+                      value: '${_result!.bmi.toStringAsFixed(2)} kg/m\u00B2',
+                      category: _result!.categoryLabel,
+                      color: _resolveColor(_result!.classification),
+                      subtitle: _Str.resultDesc,
                       semanticsLabel:
                           'Hasil Perhitungan IMT: '
                           '${_result!.bmi.toStringAsFixed(2)} kilogram per meter kuadrat, '
@@ -284,7 +291,7 @@ class _BmiFormPageState extends State<BmiFormPage> {
           ),
         ),
         SizedBox(height: sw * 0.04),
-       FormulaTile(
+        FormulaTile(
           semanticId: imtFormula.id,
           title: imtFormula.title,
           formulaName: imtFormula.formulaName,
@@ -296,9 +303,15 @@ class _BmiFormPageState extends State<BmiFormPage> {
   }
 
   Widget _buildReferenceTables(double sw) {
-    final imtTables = ReferenceData.referenceTables.where((t) =>
-        ['table_imt_indo', 'table_imt_asia', 'table_imt_eropa',].contains(t.id),
-    ).toList();
+    final imtTables = ReferenceData.referenceTables
+        .where(
+          (t) => [
+            'table_imt_indo',
+            'table_imt_asia',
+            'table_imt_eropa',
+          ].contains(t.id),
+        )
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -307,19 +320,21 @@ class _BmiFormPageState extends State<BmiFormPage> {
           'Tabel Referensi IMT',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize:   _responsiveFont(sw, base: 18),
+            fontSize: _responsiveFont(sw, base: 18),
             fontWeight: FontWeight.bold,
           ),
         ),
         SizedBox(height: sw * 0.04),
-        ...imtTables.map((table) => ReferenceTableWidget(
-              key:        ValueKey(table.id),
-              semanticId: table.id,
-              title:      table.title,
-              subtitle:   table.subtitle,
-              headers:    table.headers,
-              data:       table.data,
-            )),
+        ...imtTables.map(
+          (table) => ReferenceTableWidget(
+            key: ValueKey(table.id),
+            semanticId: table.id,
+            title: table.title,
+            subtitle: table.subtitle,
+            headers: table.headers,
+            data: table.data,
+          ),
+        ),
       ],
     );
   }
