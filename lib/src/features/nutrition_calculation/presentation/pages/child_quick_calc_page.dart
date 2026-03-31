@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.dart';
@@ -11,6 +12,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presen
 // Service Imports
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/nutrition_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/bbi_calculator_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/schofield_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/reference/data/models/reference_data.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/reference/widgets/reference_widgets.dart';
 
@@ -20,6 +22,8 @@ class _Keys {
   static const measureDateField = ValueKey('cqc_measureDateField');
   static const weightField = ValueKey('cqc_weightField');
   static const heightField = ValueKey('cqc_heightField');
+  static const faDropdown = ValueKey('cqc_faDropdown');
+  static const fsDropdown = ValueKey('cqc_fsDropdown');
   static const btnReset = ValueKey('cqc_btnReset');
 }
 
@@ -79,8 +83,9 @@ class _ChildGenderCalcResult {
   // Jika > 60 Bulan - 18 Tahun
   final ImtuResult? imtu5to18;
 
-  // Makronutrien & Cairan
-  final double energi;
+  // Energi & Makronutrien
+  final double bmrSchofield;
+  final double tdee; // Total Daily Energy Expenditure
   final double protein;
   final double lemak;
   final double karbo;
@@ -91,7 +96,8 @@ class _ChildGenderCalcResult {
     required this.bbi,
     this.status0to60,
     this.imtu5to18,
-    required this.energi,
+    required this.bmrSchofield,
+    required this.tdee,
     required this.protein,
     required this.lemak,
     required this.karbo,
@@ -117,15 +123,37 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
   final _birthDateController = TextEditingController();
   final _measureDateController = TextEditingController();
   
+  final _faController = TextEditingController(text: 'Tanpa Faktor Aktivitas');
+  final _fsController = TextEditingController(text: 'Tanpa Faktor Stres');
+  
   final _scrollController = ScrollController();
   final _resultSectionKey = GlobalKey();
 
   // ── State ─────────────────────────────────────────────────────────────────
   DateTime? _birthDate;
   DateTime? _measurementDate;
-  
+
   _ChildGenderCalcResult? _maleResult;
   _ChildGenderCalcResult? _femaleResult;
+
+  // Pilihan Faktor Aktivitas & Stres (Menggunakan Map untuk DropdownSearch)
+  final Map<String, double> _activityFactors = {
+    'Tanpa Faktor Aktivitas': 1.0,
+    'Aktivitas Sangat Ringan': 1.1,
+    'Aktivitas Ringan': 1.2,
+    'Aktivitas Sedang': 1.3,
+    'Aktivitas Berat': 1.4,
+    'Aktivitas Sangat Berat': 1.5,
+  };
+
+  final Map<String, double> _stressFactors = {
+    'Tanpa Faktor Stres': 1.0,
+    'Stres Sangat Ringan': 1.1,
+    'Stres Ringan': 1.2,
+    'Stres Sedang': 1.3,
+    'Stres Berat': 1.4,
+    'Stres Sangat Berat': 1.5,
+  };
 
   @override
   void initState() {
@@ -146,6 +174,8 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
     _heightController.dispose();
     _birthDateController.dispose();
     _measureDateController.dispose();
+    _faController.dispose();
+    _fsController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -187,52 +217,47 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
     required double bbi,
     required double ageInYearsFraction,
     required bool isMale,
+    required double tdee,
   }) {
     // Gunakan BBI jika valid, jika tidak gunakan aktual
     double weightToUse = (bbi > 0) ? bbi : weight;
-    
-    double kaloriPerKg = 0;
     double proteinPerKg = 0;
 
-    // Referensi Tabel RDA / AKG Anak
+    // Referensi Protein RDA/AKG Anak (g/kg BB)
     if (ageInYearsFraction < 0.5) {
-      kaloriPerKg = 108; proteinPerKg = 2.2;
+      proteinPerKg = 2.2;
     } else if (ageInYearsFraction < 1) {
-      kaloriPerKg = 98; proteinPerKg = 1.5;
+      proteinPerKg = 1.5;
     } else if (ageInYearsFraction <= 3) {
-      kaloriPerKg = 102; proteinPerKg = 1.23;
+      proteinPerKg = 1.23;
     } else if (ageInYearsFraction <= 6) {
-      kaloriPerKg = 90; proteinPerKg = 1.2;
+      proteinPerKg = 1.2;
     } else if (ageInYearsFraction <= 10) {
-      kaloriPerKg = 70; proteinPerKg = 1.0;
+      proteinPerKg = 1.0;
     } else {
       if (ageInYearsFraction <= 14) {
-        kaloriPerKg = isMale ? 55 : 47;
         proteinPerKg = 1.0;
       } else {
-        kaloriPerKg = isMale ? 45 : 40;
         proteinPerKg = 0.8;
       }
     }
 
-    double totalEnergi = kaloriPerKg * weightToUse;
     double totalProtein = proteinPerKg * weightToUse;
-    double totalLemak = (0.35 * totalEnergi) / 9; // 35% dari total energi
-    double totalKarbo = (totalEnergi - (totalProtein * 4) - (totalLemak * 9)) / 4;
+    double totalLemak = (0.35 * tdee) / 9; // 35% dari TDEE
+    double totalKarbo = (tdee - (totalProtein * 4) - (totalLemak * 9)) / 4;
     if (totalKarbo < 0) totalKarbo = 0;
 
     // Cairan metode Holliday-Segar
     double totalCairan = 0;
     if (weightToUse <= 10) {
-      totalCairan =  100;
+      totalCairan =  100 * weightToUse; // 100ml per kg untuk 10kg pertama
     } else if (weightToUse <= 20) {
-      totalCairan = 1000 +  50;
+      totalCairan = 1000 + (50 * (weightToUse - 10)); // 1000ml + 50ml/kg untuk 10kg kedua
     } else {
-      totalCairan = 1500 +  20;
+      totalCairan = 1500 + (20 * (weightToUse - 20)); // 1500ml + 20ml/kg untuk sisa BB
     }
 
     return {
-      'energi': totalEnergi,
       'protein': totalProtein,
       'lemak': totalLemak,
       'karbo': totalKarbo,
@@ -251,6 +276,10 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
 
     final double weight = double.parse(_weightController.text);
     final double height = double.parse(_heightController.text);
+    
+    // Ambil nilai FA dan FS dari Map
+    final double selectedFA = _activityFactors[_faController.text] ?? 1.0;
+    final double selectedFS = _stressFactors[_fsController.text] ?? 1.0;
 
     // Hitung Usia (Bulan & Tahun Kalender)
     int years = _measurementDate!.year - _birthDate!.year;
@@ -267,7 +296,7 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
     final int ageMonthsRemainder = months;
     final int totalCalendarMonths = (ageYears * 12) + ageMonthsRemainder;
     
-    // Perhitungan umur hari untuk presisi RDA
+    // Perhitungan umur desimal untuk Formula
     final int days = _measurementDate!.difference(_birthDate!).inDays;
     final double ageInYearsFraction = days / 365.25;
 
@@ -318,15 +347,26 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
           bbi = BbiCalculatorService.calculateAdult(heightCm: height, isMale: isMale);
         }
 
-        // 2. Hitung Kebutuhan Makro & Cairan
+        // 2. Hitung BMR Schofield dan TDEE
+        double bmrSchofield = SchofieldCalculatorService.calculateWithWeightAndHeight(
+          weightKg: weight,
+          heightCm: height,
+          ageInYears: ageInYearsFraction,
+          isMale: isMale,
+        );
+
+        double tdee = bmrSchofield * selectedFA * selectedFS;
+
+        // 3. Hitung Kebutuhan Makro & Cairan menggunakan TDEE
         final macros = _calculateMacrosAndFluid(
           weight: weight,
           bbi: bbi,
           ageInYearsFraction: ageInYearsFraction,
           isMale: isMale,
+          tdee: tdee,
         );
 
-        // 3. Status Gizi (0-60 Bulan vs 5-18 Tahun)
+        // 4. Status Gizi (0-60 Bulan vs 5-18 Tahun)
         NutritionAllResult? status0to60;
         ImtuResult? imtu5to18;
 
@@ -353,7 +393,8 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
           bbi: bbi,
           status0to60: status0to60,
           imtu5to18: imtu5to18,
-          energi: macros['energi']!,
+          bmrSchofield: bmrSchofield,
+          tdee: tdee,
           protein: macros['protein']!,
           lemak: macros['lemak']!,
           karbo: macros['karbo']!,
@@ -382,6 +423,9 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
       _measurementDate = DateTime.now();
       _measureDateController.text = DateFormat('dd MMMM yyyy', 'id_ID').format(_measurementDate!);
       
+      _faController.text = 'Tanpa Faktor Aktivitas';
+      _fsController.text = 'Tanpa Faktor Stres';
+
       _maleResult = null;
       _femaleResult = null;
     });
@@ -471,6 +515,29 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
                     suffixText: _Str.heightUnit,
                     semanticLabel: 'Input Tinggi Badan',
                   ),
+                  SizedBox(height: sw * 0.04),
+
+                  // Dropdown Faktor Aktivitas menggunakan DropdownSearch
+                  _buildDropdown(
+                    widgetKey: _Keys.faDropdown,
+                    controller: _faController,
+                    label: 'Faktor Aktivitas (FA)',
+                    prefixIcon: const Icon(Icons.directions_run),
+                    items: SchofieldCalculatorService.activityFactors.keys.toList(),
+                    itemAsString: (String key) => '$key (${SchofieldCalculatorService.activityFactors[key]})',
+                  ),
+                  SizedBox(height: sw * 0.04),
+
+                  // Dropdown Faktor Stres menggunakan DropdownSearch
+                  _buildDropdown(
+                    widgetKey: _Keys.fsDropdown,
+                    controller: _fsController,
+                    label: 'Faktor Stres (FS)',
+                    prefixIcon: const Icon(Icons.local_hospital),
+                    items: SchofieldCalculatorService.stressFactors.keys.toList(),
+                    itemAsString: (String key) => '$key (${SchofieldCalculatorService.stressFactors[key]})',
+                  ),
+
                   SizedBox(height: sw * 0.08),
 
                   FormActionButtons(
@@ -542,6 +609,38 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
 
   // ── Private Helpers ───────────────────────────────────────────────────────
 
+  Widget _buildDropdown({
+    required ValueKey<String> widgetKey,
+    required TextEditingController controller,
+    required String label,
+    required Icon prefixIcon,
+    required List<String> items,
+    void Function(String?)? onChanged,
+    String Function(String)? itemAsString,
+    double? menuHeight,
+  }) {
+    return DropdownSearch<String>(
+      key: widgetKey,
+      popupProps: PopupProps.menu(
+        showSearchBox: false,
+        constraints: BoxConstraints(maxHeight: menuHeight ?? 250), 
+      ),
+      items: items,
+      itemAsString: itemAsString,
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          prefixIcon: prefixIcon,
+          filled: false,
+        ),
+      ),
+      onChanged: onChanged ?? (val) => setState(() => controller.text = val ?? ''),
+      selectedItem: controller.text.isEmpty ? null : controller.text,
+      validator: (v) => (v == null || v.isEmpty) ? '$label harus dipilih' : null,
+    );
+  }
+
   Widget _buildGenderResultCard({
     required String title,
     required IconData icon,
@@ -603,9 +702,11 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
                 ),
                 const SizedBox(height: 16),
                 
-                // Makronutrien & Cairan
+                // Energi & Makronutrien
                 const SizedBox(height: 8),
-                _buildResultRow('Total Energi', '${result.energi.toStringAsFixed(0)} kkal/hari', isHighlight: true, color: color),
+                _buildResultRow('BMR (Schofield)', '${result.bmrSchofield.toStringAsFixed(0)} kkal/hari'),
+                const Divider(height: 8),
+                _buildResultRow('Total Energi (TDEE)', '${result.tdee.toStringAsFixed(0)} kkal/hari', isHighlight: true, color: color),
                 const Divider(height: 8),
                 _buildResultRow('Protein', '${result.protein.toStringAsFixed(0)} g/hari'),
                 const Divider(height: 8),

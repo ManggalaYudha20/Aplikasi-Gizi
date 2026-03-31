@@ -189,9 +189,9 @@ class ReferenceData {
         ],
       ),
       note: 'Keterangan:\n'
-          '• BBI = Berat Badan Ideal (dihitung dengan rumus Broca).\n'
-          '• Rumus ini memastikan ginjal tidak bekerja terlalu berat akibat kelebihan protein dari berat badan aktual (jika pasien obesitas/edema).\n'
-          '• Min. 50% protein harus bernilai biologis tinggi (telur, daging, ikan).',
+          ' BBI = Berat Badan Ideal (dihitung dengan rumus Broca).\n'
+          ' Rumus ini memastikan ginjal tidak bekerja terlalu berat akibat kelebihan protein dari berat badan aktual (jika pasien obesitas/edema).\n'
+          ' Min. 50% protein harus bernilai biologis tinggi (telur, daging, ikan).',
     ),
     const FormulaItem(
       id: 'formula_perkeni',
@@ -204,10 +204,10 @@ class ReferenceData {
       ),
       note: 'Sumber: Pedoman Pengelolaan dan Pencegahan Diabetes Melitus Tipe 2 Dewasa di Indonesia 2024, Hal. 53-54.\n\n'
           'Rincian Faktor:\n'
-          '• Kalori Basal: Pria (30 kal/kg BBI), Wanita (25 kal/kg BBI)\n'
-          '• Koreksi Usia: 40-59 th (-5%), 60-69 th (-10%), >70 th (-20%)\n'
-          '• Aktivitas: Ringan (+20%), Sedang (+30%), Berat (+40%)\n'
-          '• Status Gizi: Gemuk (-20% s/d -30%), Kurus (+20% s/d +30%)',
+          ' Kalori Basal: Pria (30 kal/kg BBI), Wanita (25 kal/kg BBI)\n'
+          ' Koreksi Usia: 40-59 th (-5%), 60-69 th (-10%), >70 th (-20%)\n'
+          ' Aktivitas: Ringan (+20%), Sedang (+30%), Berat (+40%)\n'
+          ' Status Gizi: Gemuk (-20% s/d -30%), Kurus (+20% s/d +30%)',
     ),
     const FormulaItem(
       id: 'formula_broca',
@@ -269,25 +269,25 @@ class ReferenceData {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '• Protein (15%) = (15% x TDEE) / 4',
+            ' Protein (15%) = (15% x TDEE) / 4',
             style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 8),
           Text(
-            '• Lemak (25%) = (25% x TDEE) / 9',
+            ' Lemak (25%) = (25% x TDEE) / 9',
             style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 8),
           Text(
-            '• Karbohidrat (60%) = (60% x TDEE) / 4',
+            ' Karbohidrat (60%) = (60% x TDEE) / 4',
             style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
           ),
         ],
       ),
       note: 'Keterangan Nilai Konversi Kalori:\n'
-          '• 1 gram Protein = 4 kkal\n'
-          '• 1 gram Lemak = 9 kkal\n'
-          '• 1 gram Karbohidrat = 4 kkal\n\n'
+          ' 1 gram Protein = 4 kkal\n'
+          ' 1 gram Lemak = 9 kkal\n'
+          ' 1 gram Karbohidrat = 4 kkal\n\n'
           '*Catatan: Persentase di atas adalah pedoman gizi seimbang secara umum. Distribusi makronutrien dapat diubah menyesuaikan kondisi klinis dan jenis diet pasien (misalnya: diet DM, diet ginjal, atau diet rendah lemak).',
     ),
     // --- TAMBAHAN FORMULA GIZI ANAK ---
@@ -299,13 +299,13 @@ class ReferenceData {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '• < 6 bln   : E=108 kkal/kg, P=2.2 g/kg\n'
-            '• 6-11 bln  : E=98 kkal/kg, P=1.5 g/kg\n'
-            '• 1-3 thn   : E=102 kkal/kg, P=1.23 g/kg\n'
-            '• 4-6 thn   : E=90 kkal/kg, P=1.2 g/kg\n'
-            '• 7-10 thn  : E=70 kkal/kg, P=1.0 g/kg\n'
-            '• 11-14 thn : (L: 55 kkal, P: 47 kkal), P=1.0 g/kg\n'
-            '• > 14 thn  : (L: 45 kkal, P: 40 kkal), P=0.8 g/kg',
+            ' < 6 bln   : E=108 kkal/kg, P=2.2 g/kg\n'
+            ' 6-11 bln  : E=98 kkal/kg, P=1.5 g/kg\n'
+            ' 1-3 thn   : E=102 kkal/kg, P=1.23 g/kg\n'
+            ' 4-6 thn   : E=90 kkal/kg, P=1.2 g/kg\n'
+            ' 7-10 thn  : E=70 kkal/kg, P=1.0 g/kg\n'
+            ' 11-14 thn : (L: 55 kkal, P: 47 kkal), P=1.0 g/kg\n'
+            ' > 14 thn  : (L: 45 kkal, P: 40 kkal), P=0.8 g/kg',
             style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 11),
           ),
         ],
@@ -374,6 +374,77 @@ class ReferenceData {
       ),
       note: 'Keterangan:\n'
           'Rumus ini digunakan untuk menghitung kebutuhan cairan pemeliharaan harian (maintenance fluid) pada anak berdasarkan berat badannya.',
+    ),
+    const FormulaItem(
+      id: 'formula_zscore_anak',
+      title: 'Perhitungan Z-Score (Status Gizi Anak)',
+      formulaName: 'Simpangan Baku (Standard Deviation)',
+      formulaContent: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '1. Jika Nilai Riil < Nilai Median:',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          Center(
+            child: FractionText(
+              'Nilai Riil - Nilai Median',
+              'Median - SD Minus Satu (-1 SD)',
+            ),
+          ),
+          SizedBox(height: 12),
+          Text(
+            '2. Jika Nilai Riil > Nilai Median:',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          Center(
+            child: FractionText(
+              'Nilai Riil - Nilai Median',
+              'SD Plus Satu (+1 SD) - Median',
+            ),
+          ),
+        ],
+      ),
+      note: 'Keterangan:\n'
+          ' Nilai Riil: Hasil pengukuran (BB, TB, atau IMT) pasien.\n'
+          ' Median & SD: Nilai standar WHO sesuai jenis kelamin dan umur pasien.\n'
+          ' Indikator yang dihitung meliputi: BB/U (Berat Badan menurut Umur), TB/U (Tinggi Badan menurut Umur), BB/TB (Berat Badan menurut Tinggi Badan), dan IMT/U (Indeks Massa Tubuh menurut Umur).',
+    ),
+    const FormulaItem(
+      id: 'formula_schofield_anak',
+      title: 'Basal Metabolic Rate (BMR) Anak',
+      formulaName: 'Formula Schofield (0 - 18 Tahun)',
+      formulaContent: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Laki-laki (Berdasarkan Berat Badan):\n'
+            ' < 3 thn   : (59.512 x W) - 30.4\n'
+            ' 3-10 thn  : (22.7 x W) + 504.3\n'
+            ' 10-18 thn : (17.5 x W) + 651\n\n'
+            'Perempuan (Berdasarkan Berat Badan):\n'
+            ' < 3 thn   : (58.317 x W) - 31.1\n'
+            ' 3-10 thn  : (22.706 x W) + 485.9\n'
+            ' 10-18 thn : (13.384 x W) + 692.6\n\n'
+            'Laki-laki (Berat & Tinggi Badan):\n'
+            ' < 3 thn   : (0.167 x W) + (1517.4 x H) - 616.6\n'
+            ' 3-10 thn  : (19.59 x W) + (130.3 x H) + 414.9\n'
+            ' 10-18 thn : (16.25 x W) + (137.2 x H) + 515.5\n\n'
+            'Perempuan (Berat & Tinggi Badan):\n'
+            ' < 3 thn   : (16.252 x W) + (1023.3 x H) - 413.5\n'
+            ' 3-10 thn  : (16.969 x W) + (161.8 x H) + 371.2\n'
+            ' 10-18 thn : (8.365 x W) + (465 x H) + 200.0',
+            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 11),
+          ),
+        ],
+      ),
+      note: 'Keterangan:\n'
+          'W = Berat Badan dalam Kilogram (kg)\n'
+          'H = Tinggi Badan dalam Meter (m)\n'
+          'Formula Schofield direkomendasikan secara internasional (termasuk oleh WHO/FAO/UNU) '
+          'untuk memperkirakan angka metabolisme basal (BMR) pada anak-anak dan remaja.',
     ),
   ];
 
