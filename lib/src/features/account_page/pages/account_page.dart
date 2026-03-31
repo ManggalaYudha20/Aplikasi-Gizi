@@ -12,11 +12,11 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dar
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/version_info_app.dart';
 
 // Imports hasil refaktoring baru
-import 'package:aplikasi_diagnosa_gizi/src/features/account/logic/role_formatter.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/account/widgets/account_dialogs.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/account/widgets/role_badge.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/account/widgets/account_menu_button.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/account/pages/backup_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/account_page/logic/role_formatter.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/account_page/widgets/account_dialogs.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/account_page/widgets/role_badge.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/account_page/widgets/account_menu_button.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/account_page/pages/backup_page.dart';
 
 import 'package:aplikasi_diagnosa_gizi/src/features/login/login_screen.dart';
 
@@ -85,7 +85,7 @@ class AccountPage extends StatelessWidget {
                       if (rawRole == 'ahli_gizi' || rawRole == 'admin' || rawRole == 'nutrisionis' ) ...[
                         AccountMenuButton(
                           testId: 'btn_backup_restore',
-                          label: 'Backup & Restore Data Pasien',
+                          label: 'Cadangan',
                           icon: Icons.cloud_sync_outlined,
                           textColor: Colors.black87,
                           iconColor: Colors.blue,

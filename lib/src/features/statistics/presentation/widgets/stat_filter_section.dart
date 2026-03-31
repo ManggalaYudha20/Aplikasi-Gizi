@@ -224,31 +224,35 @@ class StatFilterSection extends StatelessWidget {
         ),
 
         // ── Chart Type Toggle ─────────────────────────────────────────────────
-        Semantics(
-          identifier: 'stats_chart_type_toggle',
-          label: 'Toggle jenis grafik, terpilih: $chartType',
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _ChartTypeButton(
-                  type: 'Pie',
-                  icon: Icons.pie_chart,
-                  selectedType: chartType,
-                  onTap: onChartTypeChanged,
-                ),
-                _ChartTypeButton(
-                  type: 'Bar',
-                  icon: Icons.bar_chart,
-                  selectedType: chartType,
-                  onTap: onChartTypeChanged,
-                ),
-              ],
+       // ── Chart Type Toggle ─────────────────────────────────────────────────
+        Align(
+          alignment: Alignment.centerLeft, // Ubah ke Alignment.center jika ingin posisinya di tengah
+          child: Semantics(
+            identifier: 'stats_chart_type_toggle',
+            label: 'Toggle jenis grafik, terpilih: $chartType',
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _ChartTypeButton(
+                    type: 'Pie',
+                    icon: Icons.pie_chart,
+                    selectedType: chartType,
+                    onTap: onChartTypeChanged,
+                  ),
+                  _ChartTypeButton(
+                    type: 'Bar',
+                    icon: Icons.bar_chart,
+                    selectedType: chartType,
+                    onTap: onChartTypeChanged,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

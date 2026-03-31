@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/account/logic/backup_restore_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/account_page/logic/backup_restore_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_anak_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
@@ -176,7 +176,8 @@ class _BackupPageState extends State<BackupPage> {
         (_selectedDewasa.length + _selectedAnak.length) == (_allDewasa.length + _allAnak.length);
 
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Backup & Restore Data Pasien', subtitle: ''),
+      backgroundColor: Colors.grey[50],
+      appBar: const CustomAppBar(title: 'Cadangan', subtitle: 'Backup & Restore Data Pasien'),
       body: _isLoading || _isUploading
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -233,6 +234,9 @@ class _BackupPageState extends State<BackupPage> {
                           onChanged: (val) => setState(() => val! ? _selectedDewasa.add(p) : _selectedDewasa.remove(p)),
                         )),
                       ],
+
+                      const Divider(height: 20, thickness: 2),
+
                       if (_allAnak.isNotEmpty) ...[
                         const Padding(padding: EdgeInsets.all(8.0), child: Text("PASIEN ANAK", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green))),
                         ..._allAnak.map((p) => CheckboxListTile(
