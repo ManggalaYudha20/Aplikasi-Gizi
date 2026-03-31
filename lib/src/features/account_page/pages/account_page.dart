@@ -87,7 +87,7 @@ class AccountPage extends StatelessWidget {
                           testId: 'btn_backup_restore',
                           label: 'Cadangan',
                           icon: Icons.cloud_sync_outlined,
-                          textColor: Colors.black87,
+                          textColor: Colors.blue,
                           iconColor: Colors.blue,
                           onPressed: () {
                             if (user != null) {
