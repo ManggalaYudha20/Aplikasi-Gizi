@@ -7,8 +7,8 @@ import 'package:aplikasi_diagnosa_gizi/src/features/food_database/services/food_
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_detail_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/add_food_item_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/role_builder.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/food_filter_model.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/food_filter_sheet.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_filter_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/widgets/food_filter_sheet.dart';
 
 class FoodListPage extends StatefulWidget {
   const FoodListPage({super.key});

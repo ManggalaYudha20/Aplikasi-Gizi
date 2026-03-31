@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart'; // Pastikan import ini ada
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/food_filter_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_filter_model.dart';
 
 class FoodFilterSheet extends StatefulWidget {
   final FoodFilterModel currentFilters;

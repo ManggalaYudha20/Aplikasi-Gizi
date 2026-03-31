@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:dropdown_search/dropdown_search.dart'; // Import package
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_filter_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_filter_model.dart';
 
 class PatientFilterSheet extends StatefulWidget {
   final PatientFilterModel currentFilters;

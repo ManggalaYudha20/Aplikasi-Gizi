@@ -1,7 +1,5 @@
 // lib/src/shared/widgets/patient_filter_model.dart
 import 'package:flutter/material.dart';
-// HAPUS: import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_model.dart';
-// TAMBAHKAN:
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PatientFilterModel {
