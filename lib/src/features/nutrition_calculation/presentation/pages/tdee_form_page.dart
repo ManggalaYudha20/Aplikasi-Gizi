@@ -10,6 +10,8 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/bmr_tdee_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/calculation_result_card.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/responsive_number_field.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/data/models/reference_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/widgets/reference_widgets.dart';
 
 // ---------------------------------------------------------------------------
 // [QA] ValueKey TIDAK diubah.
@@ -392,6 +394,8 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                           'TDEE ${_result!.tdee.toStringAsFixed(2)} kkal per hari',
                       extra: _buildMacroSection(sw),
                     ),
+                    SizedBox(height: sw * 0.08),
+                    _buildReferenceFormula(sw),
                   ],
                 ],
               ),
@@ -399,6 +403,48 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
           ),
         ),
       ),
+    );
+  }
+
+Widget _buildReferenceFormula(double sw) {
+    // Ambil data formula TDEE dan Makro dari ReferenceData
+    final tdeeFormula = ReferenceData.formulas.firstWhere(
+      (f) => f.id == 'formula_tdee',
+    );
+    final macroFormula = ReferenceData.formulas.firstWhere(
+      (f) => f.id == 'formula_makronutrien',
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Rumus Perhitungan',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: _responsiveFont(sw, base: 18),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: sw * 0.04),
+        
+        // Memakai widget FormulaTile bawaan Anda yang sudah berupa ExpansionTile
+        FormulaTile(
+          semanticId: tdeeFormula.id,
+          title: tdeeFormula.title,
+          formulaName: tdeeFormula.formulaName,
+          formulaContent: tdeeFormula.formulaContent,
+          note: tdeeFormula.note,
+        ),
+        
+        FormulaTile(
+          semanticId: macroFormula.id,
+          title: macroFormula.title,
+          formulaName: macroFormula.formulaName,
+          formulaContent: macroFormula.formulaContent,
+          note: macroFormula.note,
+        ),
+      ],
     );
   }
 

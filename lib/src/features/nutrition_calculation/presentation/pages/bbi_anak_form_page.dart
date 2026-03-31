@@ -10,6 +10,8 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.
 // [REFACTOR] Import Service & Widgets baru
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/bbi_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/calculation_result_card.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/data/models/reference_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/widgets/reference_widgets.dart';
 
 // ---------------------------------------------------------------------------
 // [QA] ValueKey TIDAK diubah.
@@ -318,6 +320,8 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
                           '${_bbiResult!.toStringAsFixed(2)} kilogram, '
                           'kategori ${_categoryController.text}',
                     ),
+                    SizedBox(height: sw * 0.08),
+                    _buildReferenceFormula(sw)
                   ],
                 ],
               ),
@@ -325,6 +329,27 @@ class _BbiAnakFormPageState extends State<BbiAnakFormPage> {
           ),
         ),
       ),
+    );
+  }
+  Widget _buildReferenceFormula(double sw) {
+    final formula = ReferenceData.formulas.firstWhere((f) => f.id == 'formula_bbi_anak');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Rumus Perhitungan',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: _responsiveFont(sw, base: 18), fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: sw * 0.04),
+        FormulaTile(
+          semanticId: formula.id,
+          title: formula.title,
+          formulaName: formula.formulaName,
+          formulaContent: formula.formulaContent,
+          note: formula.note,
+        ),
+      ],
     );
   }
 

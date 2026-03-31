@@ -236,6 +236,9 @@ class _BmiFormPageState extends State<BmiFormPage> {
                     ),
 
                     SizedBox(height: sw * 0.08),
+                    _buildReferenceFormula(sw),
+
+                    SizedBox(height: sw * 0.08),
                     _buildReferenceTables(sw),
                   ],
                 ],
@@ -263,9 +266,38 @@ class _BmiFormPageState extends State<BmiFormPage> {
     }
   }
 
+  Widget _buildReferenceFormula(double sw) {
+    // Ambil data formula IMT dari ReferenceData
+    final imtFormula = ReferenceData.formulas.firstWhere(
+      (f) => f.id == 'formula_imt',
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Rumus Perhitungan',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: _responsiveFont(sw, base: 18),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: sw * 0.04),
+       FormulaTile(
+          semanticId: imtFormula.id,
+          title: imtFormula.title,
+          formulaName: imtFormula.formulaName,
+          formulaContent: imtFormula.formulaContent,
+          note: imtFormula.note,
+        ),
+      ],
+    );
+  }
+
   Widget _buildReferenceTables(double sw) {
     final imtTables = ReferenceData.referenceTables.where((t) =>
-        ['table_imt_indo', 'table_imt_asia', 'table_imt_eropa'].contains(t.id),
+        ['table_imt_indo', 'table_imt_asia', 'table_imt_eropa',].contains(t.id),
     ).toList();
 
     return Column(

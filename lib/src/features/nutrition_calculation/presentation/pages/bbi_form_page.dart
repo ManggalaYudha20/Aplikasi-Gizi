@@ -11,6 +11,9 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/servic
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/calculation_result_card.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/responsive_number_field.dart';
 
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/data/models/reference_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/widgets/reference_widgets.dart';
+
 // ---------------------------------------------------------------------------
 // [QA] ValueKey TIDAK diubah.
 // ---------------------------------------------------------------------------
@@ -244,6 +247,8 @@ class _BbiFormPageState extends State<BbiFormPage> {
                       semanticsLabel: 'Hasil Perhitungan BBI: '
                                       '${_bbiResult!.toStringAsFixed(2)} kilogram',
                     ),
+                    SizedBox(height: sw * 0.08),
+                    _buildReferenceFormula(sw),
                   ],
                 ],
               ),
@@ -251,6 +256,28 @@ class _BbiFormPageState extends State<BbiFormPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildReferenceFormula(double sw) {
+    final formula = ReferenceData.formulas.firstWhere((f) => f.id == 'formula_broca');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Rumus Perhitungan',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: _responsiveFont(sw, base: 18), fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: sw * 0.04),
+        FormulaTile(
+          semanticId: formula.id,
+          title: formula.title,
+          formulaName: formula.formulaName,
+          formulaContent: formula.formulaContent,
+          note: formula.note,
+        ),
+      ],
     );
   }
 

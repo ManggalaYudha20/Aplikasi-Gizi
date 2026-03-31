@@ -10,7 +10,8 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/bmr_tdee_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/calculation_result_card.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/responsive_number_field.dart';
-
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/data/models/reference_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/widgets/reference_widgets.dart';
 // ---------------------------------------------------------------------------
 // [QA] ValueKey TIDAK diubah.
 // ---------------------------------------------------------------------------
@@ -329,6 +330,8 @@ class _BmrFormPageState extends State<BmrFormPage> {
                           '${_bmrResult!.toStringAsFixed(2)} kkal per hari, '
                           'menggunakan formula ${_formulaController.text}',
                     ),
+                    SizedBox(height: sw * 0.08),
+                    _buildReferenceFormula(sw),
                   ],
                 ],
               ),
@@ -336,6 +339,34 @@ class _BmrFormPageState extends State<BmrFormPage> {
           ),
         ),
       ),
+    );
+  }
+Widget _buildReferenceFormula(double sw) {
+    final bmrFormula = ReferenceData.formulas.firstWhere(
+      (f) => f.id == 'formula_bmr',
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Rumus Perhitungan',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: _responsiveFont(sw, base: 18),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: sw * 0.04),
+        
+        FormulaTile(
+          semanticId: bmrFormula.id,
+          title: bmrFormula.title,
+          formulaName: bmrFormula.formulaName,
+          formulaContent: bmrFormula.formulaContent,
+          note: bmrFormula.note,
+        ),
+      ],
     );
   }
 

@@ -10,6 +10,8 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/nutrition_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/calculation_result_card.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/responsive_number_field.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/data/models/reference_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/widgets/reference_widgets.dart';
 
 // ---------------------------------------------------------------------------
 // [QA] ValueKey TIDAK diubah.
@@ -375,6 +377,8 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                           'Z-Score ${_result!.zScore?.toStringAsFixed(2) ?? "-"}, '
                           'Kategori ${_result!.category}',
                     ),
+                    SizedBox(height: sw * 0.08),
+                    _buildReferenceFormula(sw),
                   ],
                 ],
               ),
@@ -382,6 +386,36 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
           ),
         ),
       ),
+    );
+  }
+  Widget _buildReferenceFormula(double sw) {
+    final imtFormula = ReferenceData.formulas.firstWhere((f) => f.id == 'formula_imt');
+    final zscoreFormula = ReferenceData.formulas.firstWhere((f) => f.id == 'formula_zscore_anak');
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Rumus Perhitungan',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: _responsiveFont(sw, base: 18), fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: sw * 0.04),
+        FormulaTile(
+          semanticId: imtFormula.id,
+          title: imtFormula.title,
+          formulaName: imtFormula.formulaName,
+          formulaContent: imtFormula.formulaContent,
+          note: imtFormula.note,
+        ),
+        FormulaTile(
+          semanticId: zscoreFormula.id,
+          title: zscoreFormula.title,
+          formulaName: zscoreFormula.formulaName,
+          formulaContent: zscoreFormula.formulaContent,
+          note: zscoreFormula.note,
+        ),
+      ],
     );
   }
 

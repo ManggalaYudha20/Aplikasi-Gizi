@@ -13,6 +13,8 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/patient_picker_widget.
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/nutrition_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/calculation_result_card.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/widgets/responsive_number_field.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/data/models/reference_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/reference/widgets/reference_widgets.dart';
 
 // ============================================================================
 // Helper: Resolver warna kategori gizi
@@ -410,6 +412,29 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
     );
   }
 
+  Widget _buildReferenceFormula(double sw, double scaleFactor) {
+    final formula = ReferenceData.formulas.firstWhere((f) => f.id == 'formula_zscore_anak');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(height: 24.0 * scaleFactor),
+        Text(
+          'Rumus Perhitungan',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16.0 * scaleFactor, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 16.0 * scaleFactor),
+        FormulaTile(
+          semanticId: formula.id,
+          title: formula.title,
+          formulaName: formula.formulaName,
+          formulaContent: formula.formulaContent,
+          note: formula.note,
+        ),
+      ],
+    );
+  }
+
   // ── Private Widget Builders ───────────────────────────────────────────────
 
   Widget _buildResultSection(double sw, double scaleFactor) {
@@ -479,6 +504,7 @@ class _NutritionStatusFormPageState extends State<NutritionStatusFormPage> {
           additionalInfo:
               'IMT: ${r.bmi.toStringAsFixed(2)} kg/m²',
         ),
+        _buildReferenceFormula(sw, scaleFactor),
       ],
     );
   }
