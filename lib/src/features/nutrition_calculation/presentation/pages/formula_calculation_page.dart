@@ -13,6 +13,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presen
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/bbi_anak_form_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/presentation/pages/diabetes_calculation_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/presentation/pages/kidney_calculation_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/schofield_form_page.dart';
 
 /// Model konfigurasi menu formula — immutable & type-safe.
 /// Menggunakan 'final' untuk properti agar bisa menjadi compile-time constant.
@@ -56,7 +57,7 @@ class FormulaCalculationPage extends StatelessWidget {
   static Widget _buildImtuPage(String role) => IMTUFormPage(userRole: role);
   static Widget _buildDiabetesPage(String role) => DiabetesCalculationPage(userRole: role);
   static Widget _buildKidneyPage(String role) => KidneyCalculationPage(userRole: role);
-
+  static Widget _buildSchofieldPage(String role) => SchofieldFormPage(userRole: role);
   /// DATA MENU (Single Source of Truth)
   /// Dideklarasikan sebagai 'static const' untuk optimasi memori maksimal.
   /// List ini hanya dibuat satu kali saat aplikasi dijalankan.
@@ -136,6 +137,14 @@ class FormulaCalculationPage extends StatelessWidget {
       icon: Icons.calculate,
       color: Colors.brown,
       pageBuilder: _buildImtuPage,
+    ),
+    _FormulaMenu(
+      keyId: 'btn_calc_schofield',
+      name: 'Schofield',
+      fullName: 'BMR Anak & Remaja\n(Usia 0-18 Tahun)',
+      icon: Icons.child_friendly, // Atau Icons.face
+      color: Colors.deepOrange,
+      pageBuilder: _buildSchofieldPage,
     ),
   ];
 
