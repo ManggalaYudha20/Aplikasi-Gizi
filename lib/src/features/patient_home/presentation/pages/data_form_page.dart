@@ -13,12 +13,12 @@ import 'package:aplikasi_diagnosa_gizi/src/features/login/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/expert_system_service.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/diagnosis_terminology.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/intervensi_data.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/monitoring_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/expert_system_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/data/diagnosis_terminology.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/data/intervensi_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/data/monitoring_data.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/searchable_terminology_field.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/data/terminology_item.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/data/terminology_item.dart';
 
 class LabInputItem {
   TextEditingController valueController;

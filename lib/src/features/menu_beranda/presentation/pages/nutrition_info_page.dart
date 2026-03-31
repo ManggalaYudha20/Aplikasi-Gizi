@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 // Imports (Dipertahankan sesuai file asli)
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/pages/user_management_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/presentation/pages/disease_calculation_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/formula_calculation_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/presentation/pages/food_list_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pages/leaflet_list_page.dart';
@@ -70,6 +69,28 @@ class NutritionInfoPage extends StatelessWidget {
         destinationPage: const LeafletListPage(),
         semanticsLabel: 'Tombol unduh dan lihat leaflet PDF',
       ),
+    ];
+    // Logika kondisional role (Admin only)
+    if (userRole == 'admin') {
+      items.addAll([
+        _MenuConfig(
+          id: 'manajemen_pengguna',
+          label: 'Manajemen Pengguna',
+          icon: Icons.manage_accounts_outlined,
+          destinationPage: const UserManagementPage(),
+          semanticsLabel: 'Tombol masuk ke halaman admin manajemen pengguna',
+        ),
+        _MenuConfig(
+          id: 'konsultasi',
+          label: 'Konsultasi Gizi',
+          icon: Icons.medical_information,
+          destinationPage: const ConsultationPage(),
+          semanticsLabel: 'Tombol masuk ke halaman konsultasi gizi',
+        ),
+      ]);
+    }
+
+    items.addAll([
       _MenuConfig(
         id: 'referensi',
         label: 'Referensi',
@@ -84,43 +105,7 @@ class NutritionInfoPage extends StatelessWidget {
         destinationPage: const AboutPage(),
         semanticsLabel: 'Tombol masuk ke halaman informasi aplikasi',
       ),
-    ];
-
-    if (userRole == 'admin' ||
-        userRole == 'ahli_gizi' ||
-        userRole == 'nutrisionis') {
-      // Sisipkan di urutan paling awal (index 0) agar posisinya tetap di atas kiri
-      items.insert(
-        0,
-        _MenuConfig(
-          id: 'kalkulator_penyakit',
-          label: 'Hitung Diet Penyakit',
-          icon: Icons.medical_services,
-          destinationPage: DiseaseCalculationPage(userRole: userRole),
-          semanticsLabel: 'Tombol masuk ke halaman kalkulator penyakit',
-        ),
-      );
-    }
-
-    // Logika kondisional role (Admin only)
-    if (userRole == 'admin') {
-      items.addAll([
-        _MenuConfig(
-          id: 'manajemen_pengguna',
-          label: 'Manajemen Pengguna',
-          icon: Icons.manage_accounts_outlined,
-          destinationPage: const UserManagementPage(),
-          semanticsLabel: 'Tombol masuk ke halaman admin manajemen pengguna',
-        ),
-        _MenuConfig(
-          id: 'konsultasi',
-          label: 'Konsultasi Gizi',
-          icon: Icons.person_2,
-          destinationPage: const ConsultationPage(),
-          semanticsLabel: 'Tombol masuk ke halaman konsultasi gizi',
-        ),
-      ]);
-    }
+    ]);
 
     return items;
   }
@@ -293,6 +278,75 @@ class NutritionInfoPage extends StatelessWidget {
       ),
     );
   }
+  // WIDGET BARU: Menu melebar (full-width) dengan icon di kiri
+  Widget _buildWideMenuButton(
+    BuildContext context,
+    _MenuConfig item,
+    double screenWidth,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFF009444),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withValues(alpha: 0.05),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => item.destinationPage),
+            );
+          },
+          child: Padding(
+            padding: EdgeInsets.all(_responsiveSize(screenWidth, base: 16)),
+            child: Row(
+              children: [
+                // Icon di sebelah kiri
+                Container(
+                  padding: EdgeInsets.all(_responsiveSize(screenWidth, base: 12)),
+                 
+                  child: Icon(
+                    item.icon,
+                    color: Colors.white,
+                    size: _responsiveSize(screenWidth, base: 28),
+                  ),
+                ),
+                SizedBox(width: _responsiveSize(screenWidth, base: 16)),
+                // Label Teks
+                Expanded(
+                  child: Text(
+                    item.label,
+                    style: TextStyle(
+                      fontSize: _responsiveSize(screenWidth, base: 16),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                // Icon panah (opsional, untuk indikasi bisa di-klik)
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.white,
+                  size: _responsiveSize(screenWidth, base: 24),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -316,6 +370,16 @@ class NutritionInfoPage extends StatelessWidget {
 
               // Spacing antar grid item
               final double gridSpacing = (screenWidth * 0.04).clamp(10.0, 30.0);
+              // --- LOGIKA PEMISAHAN MENU ---
+              int crossAxisCount = _getCrossAxisCount(screenWidth);
+              
+              // Mencari tahu apakah ada menu yang "sisa" (tidak pas masuk ke kolom genap)
+              int remainder = menuItems.length % crossAxisCount;
+              
+              // Jumlah item yang pas dimasukkan ke grid
+              int gridItemCount = menuItems.length - remainder;
+              List<_MenuConfig> gridItems = menuItems.sublist(0, gridItemCount);
+              List<_MenuConfig> wideItems = menuItems.sublist(gridItemCount);
 
               // PERUBAHAN: Membungkus dengan SingleChildScrollView & Column
               return SingleChildScrollView(
@@ -334,46 +398,61 @@ class NutritionInfoPage extends StatelessWidget {
                       child: _buildQuickCalcBanner(context, screenWidth),
                     ),
 
-                    // Grid Menu yang sudah ada sebelumnya
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics:
-                          const NeverScrollableScrollPhysics(), // Scroll sudah di-handle oleh SingleChildScrollView
-                      padding: EdgeInsets.symmetric(
-                        horizontal: horizontalPadding,
-                        vertical: 24.0,
+if (gridItems.isNotEmpty)
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.fromLTRB(horizontalPadding, 24.0, horizontalPadding, 12.0),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: gridSpacing,
+                          mainAxisSpacing: gridSpacing,
+                          childAspectRatio: 1.0,
+                        ),
+                        itemCount: gridItems.length,
+                        itemBuilder: (context, index) {
+                          final item = gridItems[index];
+                          return Semantics(
+                            label: item.semanticsLabel,
+                            button: true,
+                            enabled: true,
+                            identifier: 'btn_${item.id}',
+                            child: MenuButton( // Ini tetap menggunakan custom widget bawaan Anda
+                              key: ValueKey('menu_btn_${item.id}'),
+                              text: item.label,
+                              icon: item.icon,
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => item.destinationPage),
+                                );
+                              },
+                            ),
+                          );
+                        },
                       ),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: _getCrossAxisCount(screenWidth),
-                        crossAxisSpacing: gridSpacing,
-                        mainAxisSpacing: gridSpacing,
-                        childAspectRatio: 1.0,
-                      ),
-                      itemCount: menuItems.length,
-                      itemBuilder: (context, index) {
-                        final item = menuItems[index];
 
-                        return Semantics(
-                          label: item.semanticsLabel,
-                          button: true,
-                          enabled: true,
-                          identifier: 'btn_${item.id}',
-                          child: MenuButton(
-                            key: ValueKey('menu_btn_${item.id}'),
-                            text: item.label,
-                            icon: item.icon,
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => item.destinationPage,
-                                ),
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    ),
+                    // 2. Render List Item yang Sisa (Ganjil) agar melebar di bawah Grid
+                    if (wideItems.isNotEmpty)
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          horizontalPadding, 
+                          gridItems.isNotEmpty ? 0 : 24.0, // Sesuaikan padding jika grid kosong
+                          horizontalPadding, 
+                          24.0
+                        ),
+                        child: Column(
+                          children: wideItems.map((item) {
+                            return Semantics(
+                              label: item.semanticsLabel,
+                              button: true,
+                              enabled: true,
+                              child: _buildWideMenuButton(context, item, screenWidth),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+
                   ],
                 ),
               );

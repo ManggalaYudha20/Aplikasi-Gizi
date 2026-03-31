@@ -2,7 +2,7 @@
 
 import 'dart:math';
 
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/food_database_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_database_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/data/models/kidney_menu_models.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/data/models/kidney_standard_food_model.dart';

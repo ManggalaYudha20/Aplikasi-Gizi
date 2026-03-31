@@ -4,7 +4,7 @@ import 'dart:math';
 
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/dm_meal_session_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/meal_distribution_model.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/disease_calculation/services/food_database_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_database_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
 
 class DiabetesMealPlannerService {

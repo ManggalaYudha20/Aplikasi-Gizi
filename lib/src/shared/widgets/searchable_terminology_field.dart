@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../features/disease_calculation/data/terminology_item.dart'; // Pastikan path import ini sesuai
+import '../clinical_data/data/terminology_item.dart'; // Pastikan path import ini sesuai
 
 class SearchableTerminologyField extends StatelessWidget {
   final String label;

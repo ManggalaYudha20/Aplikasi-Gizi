@@ -11,6 +11,8 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presen
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/nutrition_status_form_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/imtu_form_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/bbi_anak_form_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/presentation/pages/diabetes_calculation_page.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/presentation/pages/kidney_calculation_page.dart';
 
 /// Model konfigurasi menu formula — immutable & type-safe.
 /// Menggunakan 'final' untuk properti agar bisa menjadi compile-time constant.
@@ -52,10 +54,32 @@ class FormulaCalculationPage extends StatelessWidget {
   static Widget _buildStatusGiziPage(String role) =>
       NutritionStatusFormPage(userRole: role);
   static Widget _buildImtuPage(String role) => IMTUFormPage(userRole: role);
+  static Widget _buildDiabetesPage(String role) => DiabetesCalculationPage(userRole: role);
+  static Widget _buildKidneyPage(String role) => KidneyCalculationPage(userRole: role);
 
   /// DATA MENU (Single Source of Truth)
   /// Dideklarasikan sebagai 'static const' untuk optimasi memori maksimal.
   /// List ini hanya dibuat satu kali saat aplikasi dijalankan.
+  
+  static const List<_FormulaMenu> _diseaseMenuItems = [
+    _FormulaMenu(
+      keyId: 'btn_calc_dm',
+      name: 'Diet DM',
+      fullName: 'Diet Diabetes Melitus',
+      icon: Icons.medication,
+      color: Colors.blue,
+      pageBuilder: _buildDiabetesPage,
+    ),
+    _FormulaMenu(
+      keyId: 'btn_calc_ginjal',
+      name: 'Diet Ginjal',
+      fullName: 'Diet Ginjal Kronis',
+      icon: Icons.water_drop,
+      color: Colors.teal,
+      pageBuilder: _buildKidneyPage,
+    ),
+  ];
+
   static const List<_FormulaMenu> _menuItems = [
     _FormulaMenu(
       keyId: 'btn_calc_imt',
@@ -151,24 +175,82 @@ class FormulaCalculationPage extends StatelessWidget {
         subtitle: 'Pilih Jenis Kalkulator',
       ),
       body: SafeArea(
-        child: GridView.builder(
-          padding: EdgeInsets.all(gridPadding),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount, // Tetap 2 kolom sesuai request
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: childAspectRatio, // Dinamis
+        child: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 24), // Spasi atas
+              
+              // --- SEKSI 1: DIET PENYAKIT KHUSUS ---
+              _buildSectionTitle('Diet Penyakit Khusus', gridPadding),
+              _buildGridSection(
+                context, 
+                _diseaseMenuItems, 
+                crossAxisCount, 
+                childAspectRatio, 
+                gridPadding
+              ),
+              
+              // --- SEKSI 2: KALKULATOR GIZI UMUM ---
+              _buildSectionTitle('Kalkulator Gizi Umum', gridPadding),
+              _buildGridSection(
+                context, 
+                _menuItems, 
+                crossAxisCount, 
+                childAspectRatio, 
+                gridPadding
+              ),
+              
+              const SizedBox(height: 24), // Spasi bawah tambahan
+            ],
           ),
-          itemCount: _menuItems.length,
-          itemBuilder: (context, index) {
-            final _FormulaMenu item = _menuItems[index];
-            return _FormulaMenuCard(
-              item: item,
-              onTap: () => _handleNavigation(context, item),
-            );
-          },
         ),
       ),
+    );
+  }
+
+  // Helper untuk membuat Teks Judul Kategori
+  Widget _buildSectionTitle(String title, double horizontalPadding) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF1E293B), // Warna teks gelap elegan
+        ),
+      ),
+    );
+  }
+
+  // Helper untuk membuat GridView per kategori
+  Widget _buildGridSection(
+    BuildContext context,
+    List<_FormulaMenu> items,
+    int crossAxisCount,
+    double childAspectRatio,
+    double gridPadding,
+  ) {
+    return GridView.builder(
+      shrinkWrap: true, // PENTING: Agar tinggi Grid menyesuaikan isi
+      physics: const NeverScrollableScrollPhysics(), // Scroll di-handle oleh SingleChildScrollView luar
+      padding: EdgeInsets.fromLTRB(gridPadding, 16, gridPadding, 24),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: childAspectRatio,
+      ),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final _FormulaMenu item = items[index];
+        return _FormulaMenuCard(
+          item: item,
+          onTap: () => _handleNavigation(context, item),
+        );
+      },
     );
   }
 
