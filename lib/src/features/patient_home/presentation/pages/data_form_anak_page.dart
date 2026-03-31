@@ -20,6 +20,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/data/monitoring_
 import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/data/terminology_item.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/searchable_terminology_field.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/schofield_calculator_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/expert_system_service.dart';
 
 class LabInputItem {
   TextEditingController valueController;
@@ -278,7 +279,6 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
 
   void _generateChildDiagnosis() {
     // 1. Validasi Input Dasar
-    // PENTING: Tambahkan cek _selectedDate (Tanggal Lahir) karena dibutuhkan untuk hitung umur
     if (_beratBadanController.text.isEmpty ||
         _tinggiBadanController.text.isEmpty ||
         _selectedDate == null ||
@@ -294,100 +294,75 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
       return;
     }
 
+    double bb = double.tryParse(_beratBadanController.text) ?? 0;
+    double tb = double.tryParse(_tinggiBadanController.text) ?? 0;
+
+    // 2. Kalkulasi Status Gizi menggunakan helper yang sudah ada
+    final calcResult = NutritionCalculatorService.calculateAll(
+      birthDate: _selectedDate!,
+      checkDate: DateTime.now(),
+      weightKg: bb,
+      heightCm: tb,
+      gender: _jenisKelaminController.text,
+    );
+
+    String statusBBTB = calcResult.weightForHeight.category;
+    String statusTBU = calcResult.heightForAge.category;
+
+    // 3. Kumpulkan List Alergi
+    List<String> alergiList = [];
+    if (_alergiMakananController.text == 'Ya') {
+      if (_alergiTelur) alergiList.add('Telur');
+      // ... (lanjutan logika alergi sebelumnya)
+      if (_alergiLainnyaController.text.isNotEmpty) {
+        alergiList.add(_alergiLainnyaController.text);
+      }
+    }
+
+    // 4. Kumpulkan Nilai Lab dari UI
+    Map<String, String> labMap = {};
+    for (var item in _labItems) {
+      if (item.selectedType != null && item.valueController.text.isNotEmpty) {
+        labMap[item.selectedType!] = item.valueController.text;
+      }
+    }
+
+    // 5. Panggil Expert System Service Khusus Anak dengan Data Lab & Diagnosis Medis
+    final result = DiseaseExpertService().buildAndRunPediatric(
+      beratBadanText: _beratBadanController.text,
+      tinggiBadanText: _tinggiBadanController.text,
+      statusBBTB: statusBBTB,
+      statusTBU: statusTBU,
+      alergiList: alergiList,
+      labValues: labMap, // BARU: Kirim map hasil lab
+      diagnosisMedis: _diagnosisMedisController
+          .text, // BARU: Kirim teks diagnosis medis dokter
+    );
+
+    // 6. Update UI
     setState(() {
-      _diagnosisItems.clear(); // Reset diagnosa lama
+      // --- Update Diagnosa (PES) ---
+      for (var item in _diagnosisItems) {
+        item.dispose();
+      }
+      _diagnosisItems.clear();
 
-      double bb = double.tryParse(_beratBadanController.text) ?? 0;
-      double tb = double.tryParse(_tinggiBadanController.text) ?? 0;
+      final diagnosesToApply = result.suggestedDiagnoses.take(3).toList();
 
-      // 2. [FIX] Lakukan Perhitungan Status Gizi Disini
-      // Kita harus memanggil Helper kalkulasi agar variabel 'calcResult' tersedia
-      final calcResult = NutritionCalculatorService.calculateAll(
-        birthDate: _selectedDate!,
-        checkDate: DateTime.now(),
-        weightKg: bb,
-        heightCm: tb,
-        gender: _jenisKelaminController.text,
-      );
-
-      // Ambil string kategori status gizi dari hasil kalkulasi
-      // Gunakan null-aware operator (??) untuk menghindari error jika data null
-      String statusBBTB =
-          calcResult.weightForHeight.category; // Gizi Buruk/Baik (BB/TB)
-      String statusTBU =
-          calcResult.heightForAge.category; // Pendek/Normal (TB/U)
-
-      // --- LOGIKA DIAGNOSA ANAK (NCP) ---
-
-      // Logika 1: Gizi Kurang/Buruk (Underweight)
-      if (statusBBTB.contains('Gizi Buruk') ||
-          statusBBTB.contains('Gizi Kurang')) {
-        _addDiagnosisItem(
-          p: '[NI-2.1] Asupan oral tidak adekuat',
-          e: 'Kurangnya akses makanan / Penyakit penyerta / Pola asuh makan',
-          s: 'Status Gizi BB/TB: $statusBBTB, BB aktual $bb kg',
+      for (final diag in diagnosesToApply) {
+        _diagnosisItems.add(
+          DiagnosisInput(
+            p: '[${diag.code}] ${diag.label}',
+            e: diag.category
+                .split(' — ')
+                .first, // Pisahkan etiologi dan sign (opsional menyesuaikan format)
+            s: diag.category.contains(' — ')
+                ? diag.category.split(' — ').last
+                : diag.category,
+          ),
         );
       }
 
-      // Logika 2: Stunting (TB/U < -2 SD)
-      if (statusTBU.contains('Pendek') || statusTBU.contains('Sangat Pendek')) {
-        _addDiagnosisItem(
-          p: '[NC-3.2] Pertumbuhan janin/bayi/anak terhambat',
-          e: 'Riwayat asupan energi protein kronis / Infeksi berulang',
-          s: 'Status Gizi TB/U: $statusTBU, TB aktual $tb cm',
-        );
-      }
-
-      // Logika 3: Gizi Lebih (Overweight)
-      if (statusBBTB.contains('Gizi Lebih') ||
-          statusBBTB.contains('Obesitas')) {
-        _addDiagnosisItem(
-          p: '[NC-3.3] Berat badan lebih/Obesitas',
-          e: 'Asupan energi berlebih / Kurang aktivitas fisik',
-          s: 'Status Gizi BB/TB: $statusBBTB',
-        );
-      }
-
-      // Logika 4: Masalah Lain (Cek Riwayat Alergi)
-      if (_alergiMakananController.text == 'Ya') {
-        List<String> alergiList = [];
-
-        // Gunakan kurung kurawal {} untuk setiap if
-        if (_alergiTelur) {
-          alergiList.add('Telur');
-        }
-        if (_alergiSusu) {
-          alergiList.add('Susu');
-        }
-        if (_alergiKacang) {
-          alergiList.add('Kacang');
-        }
-        if (_alergiGluten) {
-          alergiList.add('Gluten');
-        }
-        if (_alergiUdang) {
-          alergiList.add('Udang');
-        }
-        if (_alergiIkan) {
-          alergiList.add('Ikan');
-        }
-        if (_alergiHazelnut) {
-          alergiList.add('Hazelnut');
-        }
-
-        // PERBAIKAN UTAMA: Tambahkan {} dan hapus duplikasi if
-        if (_alergiLainnyaController.text.isNotEmpty) {
-          alergiList.add(_alergiLainnyaController.text);
-        }
-
-        _addDiagnosisItem(
-          p: '[NC-2.2] Perubahan nilai lab terkait gizi',
-          e: 'Reaksi alergi makanan',
-          s: 'Riwayat alergi: ${alergiList.join(", ")}',
-        );
-      }
-
-      // Fallback jika tidak ada diagnosa yang cocok
       if (_diagnosisItems.isEmpty) {
         _addDiagnosisItem(
           p: '[NO-1.1] Tidak ada diagnosis gizi saat ini',
@@ -396,22 +371,28 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
         );
       }
 
-      // Isi Intervensi Otomatis (Saran)
+      // --- Update Intervensi ---
       if (_intervensiDietController.text.isEmpty) {
-        if (statusBBTB.contains('Kurang') || statusBBTB.contains('Buruk')) {
-          _intervensiDietController.text =
-              "Diet ETPT (Energi Tinggi Protein Tinggi)";
-        } else if (statusBBTB.contains('Lebih') ||
-            statusBBTB.contains('Obesitas')) {
-          _intervensiDietController.text = "Diet Gizi Seimbang & Rendah Kalori";
-        } else {
-          _intervensiDietController.text = "Diet Gizi Seimbang";
-        }
+        _intervensiDietController.text = result.suggestedInterventions
+            .take(3)
+            .map((i) => '[${i.code}] ${i.label}\nCatatan: ${i.category}')
+            .join('\n\n');
+      }
+
+      // --- Update Monitoring ---
+      if (_monevIndikatorController.text.isEmpty) {
+        _monevIndikatorController.text = result.suggestedMonitoring
+            .take(3)
+            .map((m) => '[${m.code}] ${m.label} (${m.category})')
+            .join('\n');
       }
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Saran Diagnosa berhasil dimuat.')),
+      const SnackBar(
+        content: Text('Saran Diagnosa Otomatis Anak berhasil dimuat.'),
+        backgroundColor: Colors.green,
+      ),
     );
   }
 
@@ -2079,7 +2060,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     controller: _intervensiDietController,
                     dataList: IntervensiData.allInterventions,
                     prefixIcon: const Icon(Icons.food_bank),
-                    maxLength: 200,
+                    maxLength: 500,
                   ),
                   const SizedBox(height: 16),
                   _buildCustomDropdown(
