@@ -54,7 +54,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   final _heightController             = TextEditingController();
   final _genderController             = TextEditingController();
   final _activityController           = TextEditingController();
-  final _hospitalizedStatusController = TextEditingController();
+  final _hospitalizedStatusController = TextEditingController(text: 'Tidak');
   final _notesController              = TextEditingController();
   final _scrollController             = ScrollController();
 
@@ -66,7 +66,12 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
 
   // ── Static data ──────────────────────────────────────────────────────────────
   static const _genders        = ['Laki-laki', 'Perempuan'];
-  static const _activityLevels = ['Bed rest', 'Ringan', 'Sedang', 'Berat'];
+  static const _activityLevels = [
+  'Bed rest (0.1)', 
+  'Ringan (0.2)', 
+  'Sedang (0.3)', 
+  'Berat (0.4)'
+];
 
   // ── Colour constant (dipakai di action buttons) ───────────────────────────
   static const _kGreen = Color.fromARGB(255, 0, 148, 68);
@@ -139,7 +144,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
       weight: double.parse(_weightController.text),
       height: double.parse(_heightController.text),
       gender: _genderController.text,
-      activity: _activityController.text,
+      activity: _activityController.text.split(' (')[0],
       hospitalizedStatus: _hospitalizedStatusController.text,
       stressMetabolic: _stressMetabolic,
     );
@@ -169,7 +174,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     setState(() {
       _genderController.clear();
       _activityController.clear();
-      _hospitalizedStatusController.clear();
+      _hospitalizedStatusController.text = 'Tidak';
       _stressMetabolic = 20.0;
       _result = null;
     });

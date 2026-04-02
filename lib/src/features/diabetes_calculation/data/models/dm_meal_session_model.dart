@@ -48,6 +48,9 @@ class DiabetesCalculationResult {
   final DietInfo dietInfo;
   final FoodGroupDiet foodGroupDiet;
   final DailyMealDistribution dailyMealDistribution;
+  final double calculatedProteinGram;
+  final double calculatedFatGram;
+  final double calculatedCarbsGram;
 
   DiabetesCalculationResult({
     required this.bbIdeal,
@@ -60,5 +63,8 @@ class DiabetesCalculationResult {
     required this.dietInfo,
     required this.foodGroupDiet,
     required this.dailyMealDistribution,
+    required this.calculatedProteinGram,
+    required this.calculatedFatGram,
+    required this.calculatedCarbsGram,
   });
 }

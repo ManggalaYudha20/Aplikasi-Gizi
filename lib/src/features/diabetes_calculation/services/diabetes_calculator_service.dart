@@ -58,6 +58,9 @@ class DiabetesCalculatorService {
     final dietInfo = _getDietType(totalCalories);
     final foodGroupDiet = _getFoodGroupDiet(totalCalories);
     final dailyMealDistribution = _getDailyMealDistribution(totalCalories);
+    final double proteinGram = (totalCalories * 0.15) / 4.0;
+    final double fatGram = (totalCalories * 0.25) / 9.0;
+    final double carbsGram = (totalCalories * 0.60) / 4.0;
 
     return DiabetesCalculationResult(
       bbIdeal: bbIdeal,
@@ -70,6 +73,9 @@ class DiabetesCalculatorService {
       dietInfo: dietInfo,
       foodGroupDiet: foodGroupDiet,
       dailyMealDistribution: dailyMealDistribution,
+      calculatedProteinGram: proteinGram,
+      calculatedFatGram: fatGram,
+      calculatedCarbsGram: carbsGram,
     );
   }
 

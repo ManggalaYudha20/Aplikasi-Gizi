@@ -730,9 +730,10 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
     required Color color,
     required _GenderCalcResult result,
   }) {
+    final double bmrDm = result.dmResult.bmr;
     final double stressMetabolicCorrection =
         result.dmResult.totalCalories -
-        result.dmResult.bmr -
+        bmrDm -
         result.dmResult.activityCorrection -
         result.dmResult.weightCorrection +
         result.dmResult.ageCorrection;
@@ -857,8 +858,8 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
                 ),
                 const SizedBox(height: 8),
                 _buildResultRow(
-                  'BMR',
-                  '${result.dmResult.bmr.toStringAsFixed(0)} kkal',
+                  title == 'PRIA' ? 'BMR DM (BBI x 30)' : 'BMR DM (BBI x 25)',
+                  '${bmrDm.toStringAsFixed(0)} kkal/hari',
                 ),
                 const Divider(height: 8),
                 _buildResultRow(
@@ -925,11 +926,13 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
                 const SizedBox(height: 8),
 
                 // Makronutrien spesifik CKD (Bila objeknya tidak null)
-                _buildResultRow(
-                  'BMR (Ginjal)',
-                  '${result.ckdResult.bmr.toStringAsFixed(0)} kkal/hari',
-                ),
-                const Divider(height: 8),
+                if (result.ckdResult.nutritionInfo != null) ...[
+                  _buildResultRow(
+                    'BMR (Ginjal)',
+                    '${ckdEnergi.toStringAsFixed(0)} kkal/hari',
+                  ),
+                  const Divider(height: 8),
+                ],
                 _buildResultRow(
                   'Protein CKD',
                   '${ckdProtein.toStringAsFixed(1)} g/hari',
@@ -948,15 +951,6 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
                 ),
                 const Divider(height: 8),
 
-                if (result.ckdResult.nutritionInfo != null) ...[
-                  _buildResultRow(
-                    'Total Kalori CKD',
-                    '${ckdEnergi.toStringAsFixed(0)} kkal/hari',
-                    isHighlight: true,
-                    color: color,
-                  ),
-                  const Divider(height: 8),
-                ],
 
                 _buildResultRow(
                   'Rekomendasi Diet',
