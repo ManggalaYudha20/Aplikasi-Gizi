@@ -70,4 +70,33 @@ class FoodDatabaseService {
       return null;
     }
   }
+// Tambahkan method ini di dalam class FoodDatabaseService
+
+  // Tambahkan parameter {bool requiresOlahan = false}
+  Future<List<FoodItem>?> getAllFoodItemsByCategory(String category, {bool requiresOlahan = false}) async {
+    try {
+      // Buat dasar query-nya terlebih dahulu
+      var query = FirebaseFirestore.instance
+          .collection('food_items') 
+          .where('kelompok_makanan', isEqualTo: category);
+          
+      // Jika butuh olahan, tambahkan filter tambahan 'mentah_olahan'
+      if (requiresOlahan) {
+        query = query.where('mentah_olahan', isEqualTo: 'Olahan');
+      }
+
+      final querySnapshot = await query.get();
+
+      if (querySnapshot.docs.isEmpty) {
+        debugPrint("Data kosong di Firestore untuk kategori: $category (Butuh Olahan: $requiresOlahan)");
+        return null;
+      }
+
+      return querySnapshot.docs.map((doc) => FoodItem.fromFirestore(doc)).toList();
+
+    } catch (e) {
+      debugPrint("Error fetching all foods for category $category: $e");
+      return null;
+    }
+  }
 }

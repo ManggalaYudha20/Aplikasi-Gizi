@@ -1,96 +1,187 @@
 // lib/src/features/diabetes_calculation/services/diabetes_meal_planner_service.dart
 
-import 'dart:math';
-
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/dm_meal_session_model.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/meal_distribution_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/services/expert_system_engine.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_database_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/diabetes_knowledge_base.dart'; // Ditambahkan untuk akses model MealItemRule
+import 'dart:math';
 
 class DiabetesMealPlannerService {
   final FoodDatabaseService _dbService;
+  final ExpertSystemEngine _expertEngine;
 
-  DiabetesMealPlannerService(this._dbService);
+  DiabetesMealPlannerService(this._dbService, this._expertEngine);
 
   // ---------------------------------------------------------------------------
   // Public API
   // ---------------------------------------------------------------------------
 
-  Future<List<DmMealSession>> generateDailyPlan(DailyMealDistribution dist) async {
-    return [
-      await _createSession('Makan Pagi', dist.pagi),
-      await _createSession('Pukul 10:00', dist.snackPagi),
-      await _createSession('Makan Siang', dist.siang),
-      await _createSession('Pukul 16:00', dist.snackSore),
-      await _createSession('Makan Malam', dist.malam),
+  /// Menghasilkan rencana menu berdasarkan input FAKTA (Kalori Total Pasien)
+  Future<List<DmMealSession>> generateDailyPlan(
+    double calculatedCalories,
+  ) async {
+    // 1. Siapkan Fakta Input Pasien
+    final fact = PatientFact(
+      diseaseId: 'dm',
+      calculatedCalories: calculatedCalories,
+    );
+
+    // 2. Panggil Mesin Inferensi (Forward Chaining)
+    final prescription = _expertEngine.forwardChain(fact);
+
+    // 3. Ekstrak Resep dari Knowledge Base (Disesuaikan dengan model KB baru)
+    final forbiddenKeywords = prescription.guideline.forbiddenFoods;
+
+    // Asumsi: prescription.distribution mengembalikan objek DietDistributionRule
+    final distributionMap = prescription.distribution.distribution;
+
+    List<DmMealSession> dailySessions = [];
+
+    // 4. Iterasi Dinamis Berdasarkan Jadwal (Pagi, Siang, Pukul 10.00, dll)
+    for (var mealEntry in distributionMap.entries) {
+      final String sessionName = mealEntry.key;
+      // Disesuaikan: Value sekarang adalah List<MealItemRule>
+      final List<MealItemRule> mealItems = mealEntry.value;
+
+      List<DmMenuItem> sessionItems = [];
+
+      // 5. Iterasi Item Makanan berdasarkan Rule (Karbohidrat, Protein Hewani, dll)
+      for (var rule in mealItems) {
+        final String categoryLabel = rule.categoryLabel;
+        final dynamic portionValue = rule.portion;
+
+        // Skip jika porsi 0 (contoh: tidak ada jatah nabati di pagi hari)
+        if (portionValue is num && portionValue <= 0) continue;
+
+        // Map kategori penukar medis ke kategori database (Serealia, Lauk Hewani, dll)
+        String dbCategory = _mapCategoryToDb(categoryLabel);
+
+        // Fetch makanan acak yang LOLOS filter pantangan (Constraint Filtering)
+        FoodItem? selectedFood = await _getValidFoodItem(
+          dbCategory,
+          forbiddenKeywords,
+        );
+
+        String formattedPortion;
+        if (portionValue is num) {
+          // Jika nilainya sama dengan nilai integer-nya (contoh: 1.0 == 1), jadikan int
+          formattedPortion = (portionValue == portionValue.toInt())
+              ? portionValue.toInt().toString()
+              : portionValue.toString();
+        } else {
+          // Tangkap nilai non-angka, misalnya string 'S'
+          formattedPortion = portionValue.toString(); 
+        }
+
+        sessionItems.add(
+          DmMenuItem(
+            categoryLabel: categoryLabel,
+            foodName:
+                selectedFood?.name ?? 'Belum ada data $dbCategory yang aman',
+            portion: formattedPortion, // Mengakomodasi double '1.5' atau String 'S'
+            foodData: selectedFood,
+          ),
+        );
+      }
+
+      dailySessions.add(
+        DmMealSession(sessionName: sessionName, items: sessionItems),
+      );
+    }
+
+    return dailySessions;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private Helpers
+  // ---------------------------------------------------------------------------
+
+  /// Mapping nama Kategori Penukar dari Knowledge Base ke nama Kategori di Firebase/SQLite
+  String _mapCategoryToDb(String label) {
+    final l = label.toLowerCase();
+    final random = Random();
+
+    // 1. Karbohidrat -> Serealia atau Umbi
+    if (l.contains('karbohidrat') || l.contains('nasi')) {
+      final options = ['Serealia', 'Umbi']; // Diubah dari 'Umbi-umbi'
+      return options[random.nextInt(options.length)];
+    }
+
+    // 2. Protein Hewani -> Daging, Ikan dsb, atau Telur
+    if (l.contains('protein hewani') ||
+        l.contains('ikan') ||
+        l.contains('daging')) {
+      final options = [
+        'Daging', // Diubah dari 'Daging dan Unggas'
+        'Ikan dsb', // Diubah dari 'Ikan, Kerang, Udang'
+        'Telur',
+      ];
+      return options[random.nextInt(options.length)];
+    }
+
+    // 3. Protein Nabati -> Kacang
+    if (l.contains('protein nabati') ||
+        l.contains('tempe') ||
+        l.contains('tahu')) {
+      return 'Kacang'; // Diubah dari 'Kacang-kacangan'
+    }
+
+    // 4. Sayuran
+    if (l.contains('sayuran') || l.contains('sayur')) {
+      return 'Sayur'; // Diubah dari 'Sayuran'
+    }
+
+    // 5. Buah
+    if (l.contains('buah')) {
+      return 'Buah'; // Diubah dari 'Buah-buahan'
+    }
+
+    // 6. Susu
+    if (l.contains('susu')) {
+      return 'Susu';
+    }
+
+    // 7. Minyak / Lemak
+    if (l.contains('minyak') || l.contains('lemak')) {
+      return 'Lemak'; // Diubah dari 'Minyak dan Lemak'
+    }
+
+    return 'Serealia'; // Fallback aman
+  }
+
+  /// AI Constraint Filtering: Mencari makanan yang TIDAK mengandung kata kunci terlarang
+  /// AI Constraint Filtering: Mengambil semua data, filter pantangan, lalu pilih acak
+ Future<FoodItem?> _getValidFoodItem(String dbCategory, List<String> forbiddenKeywords) async {
+    
+    // 1. Tentukan kategori mana saja yang WAJIB berupa 'olahan'
+    final List<String> wajibOlahan = [
+      'Serealia', 'Umbi', 'Kacang', 'Sayur', 'Daging', 'Ikan dsb', 'Telur'
     ];
-  }
+    
+    // Cek apakah kategori saat ini ada di dalam daftar wajib olahan
+    bool isOlahanRequired = wajibOlahan.contains(dbCategory);
 
-  // ---------------------------------------------------------------------------
-  // Private helpers
-  // ---------------------------------------------------------------------------
+    // 2. Ambil data dengan mengirimkan parameter requiresOlahan ke Database Service
+    final allItems = await _dbService.getAllFoodItemsByCategory(
+      dbCategory, 
+      requiresOlahan: isOlahanRequired, // <-- Lempar nilai boolean ke DB
+    );
+    
+    if (allItems == null || allItems.isEmpty) return null;
 
-  Future<DmMealSession> _createSession(String name, MealDistribution mealDist) async {
-    final List<DmMenuItem> items = [];
+    // 3. Filter khusus untuk pantangan DM (Tetap seperti semula)
+    final validItems = allItems.where((item) {
+      final itemName = item.name.toLowerCase();
+      bool isForbidden = forbiddenKeywords.any(
+        (keyword) => itemName.contains(keyword.toLowerCase())
+      );
+      return !isForbidden; 
+    }).toList();
 
-    // 1. Karbohidrat
-    await _addItem(items, 'Karbohidrat', mealDist.nasiP, 'Serealia', fixedName: 'Nasi');
+    if (validItems.isEmpty) return null;
 
-    // 2. Protein hewani
-    if (mealDist.ikanP > 0) {
-      await _addItem(items, 'Lauk Hewani (Ikan)', mealDist.ikanP, 'Ikan dsb');
-    }
-    if (mealDist.dagingP > 0) {
-      await _addItem(items, 'Lauk Hewani (Daging)', mealDist.dagingP, 'Daging');
-    }
-
-    // 3. Protein nabati
-    await _addItem(items, 'Lauk Nabati', mealDist.tempeP, 'Kacang');
-
-    // 4. Sayuran A (bebas / sekehendak)
-    if (mealDist.sayuranA == 'S' || mealDist.sayuranA.isNotEmpty) {
-      final FoodItem? item = await _dbService.getRandomFoodItemByCategory('Sayur');
-      items.add(DmMenuItem(
-        categoryLabel: 'Sayuran A',
-        foodName: item?.name ?? 'Sayuran A',
-        portion: 'S',
-        foodData: item,
-      ));
-    }
-
-    // 5. Sayuran B
-    await _addItem(items, 'Sayuran B', mealDist.sayuranB, 'Sayur');
-
-    // 6. Buah (acak dari daftar prioritas)
-    if (mealDist.buah > 0) {
-      const opsiBuah = ['Apel', 'Jambu Biji', 'Pir', 'Jeruk', 'Alpukat'];
-      final buahTerpilih = opsiBuah[Random().nextInt(opsiBuah.length)];
-      await _addItem(items, 'Buah', mealDist.buah, 'Buah', fixedName: buahTerpilih);
-    }
-
-    // 7. Susu
-    await _addItem(items, 'Susu', mealDist.susu, 'Susu');
-
-    return DmMealSession(sessionName: name, items: items);
-  }
-
-  Future<void> _addItem(
-    List<DmMenuItem> list,
-    String label,
-    double porsi,
-    String firestoreCategory, {
-    String? fixedName,
-  }) async {
-    if (porsi <= 0) return;
-
-    final FoodItem? item = await _dbService.getRandomFoodItemByCategory(firestoreCategory);
-    final finalName = fixedName ?? item?.name ?? 'Pilih $label';
-
-    list.add(DmMenuItem(
-      categoryLabel: label,
-      foodName: finalName,
-      portion: porsi,
-      foodData: item,
-    ));
+    validItems.shuffle();
+    return validItems.first;
   }
 }

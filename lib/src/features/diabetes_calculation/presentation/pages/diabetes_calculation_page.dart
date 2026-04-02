@@ -13,6 +13,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/service
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/services/pdf_generator_dm.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_database_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_search_delegate.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/services/expert_system_engine.dart';
 
 // ── Shared widgets ───────────────────────────────────────────────────────────
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
@@ -46,7 +47,8 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
 
   final _calculatorService = DiabetesCalculatorService();
   final _foodDbService = FoodDatabaseService();
-  late final _mealPlannerService = DiabetesMealPlannerService(_foodDbService);
+  final _expertEngine = ExpertSystemEngine(); 
+  late final _mealPlannerService = DiabetesMealPlannerService(_foodDbService, _expertEngine);
 
   // ── Controllers ─────────────────────────────────────────────────────────────
   final _ageController                = TextEditingController();
@@ -156,11 +158,28 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     });
 
     _mealPlannerService
-        .generateDailyPlan(result.dailyMealDistribution)
-        .then((menu) => setState(() {
+        .generateDailyPlan(result.totalCalories) 
+        .then((menu) {
+          if (mounted) {
+            setState(() {
               _dailyMenu = menu;
               _isGeneratingMenu = false;
-            }));
+            });
+          }
+        })
+        .catchError((error) {
+          if (mounted) {
+            setState(() {
+              _isGeneratingMenu = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Gagal membuat menu: $error'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        });
 
     _scrollToResult();
   }
