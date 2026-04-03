@@ -1,17 +1,21 @@
 // lib\src\features\diabetes_calculation\services\expert_system_engine.dart
 
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/diabetes_knowledge_base.dart';
-
+import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/data/models/kidney_knowledge_base.dart';
 // --- Data Structures ---
 
 /// Representasi Fakta Input dari sistem kalkulator sebelumnya
 class PatientFact {
   final String diseaseId;
   final double calculatedCalories;
+  final double? calculatedProtein;
+  final List<String> complications;
 
   PatientFact({
     required this.diseaseId,
     required this.calculatedCalories,
+    this.calculatedProtein,
+    this.complications = const [],
   });
 }
 
@@ -45,9 +49,9 @@ class ExpertSystemEngine {
     _guidelineRegistry[diabetesGuideline.diseaseId] = diabetesGuideline;
     _distributionRegistry[diabetesGuideline.diseaseId] = diabetesDistributionRules;
     
-    // Register Penyakit Lain nanti:
-    // _guidelineRegistry[kidneyGuideline.diseaseId] = kidneyGuideline;
-    // ...
+    // Register Ginjal <-- TAMBAHKAN INI
+    _guidelineRegistry[kidneyGuideline.diseaseId] = kidneyGuideline;
+    _distributionRegistry[kidneyGuideline.diseaseId] = kidneyDistributionRules;
   }
 
   /// Proses Forward Chaining: Menerima Fakta -> Menghasilkan Resep Diet
@@ -68,9 +72,13 @@ class ExpertSystemEngine {
     DietDistributionRule? matchedRule;
     double smallestDifference = double.infinity;
 
+    double targetToMatch = fact.diseaseId == 'ginjal' && fact.calculatedProtein != null 
+        ? fact.calculatedProtein! 
+        : fact.calculatedCalories;
+
     for (var rule in availableRules) {
       // Menghitung selisih absolut antara kalori pasien dengan target rule
-      double difference = (fact.calculatedCalories - rule.targetCalories).abs();
+      double difference = (targetToMatch - rule.targetCalories).abs();
       if (difference < smallestDifference) {
         smallestDifference = difference;
         matchedRule = rule;

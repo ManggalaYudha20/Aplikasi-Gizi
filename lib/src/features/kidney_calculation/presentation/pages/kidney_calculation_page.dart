@@ -20,8 +20,8 @@ import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/services/
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/services/kidney_meal_planner_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_database_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_search_delegate.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart'
-    as db;
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart' as db;
+import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/services/expert_system_engine.dart';
 
 // ── Widgets modul ginjal ───────────────────────────────────────────────────
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/presentation/widgets/kidney_result_card.dart';
@@ -67,7 +67,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
   @override
   void initState() {
     super.initState();
-    _menuGenerator = KidneyDynamicMenuService(FoodDatabaseService());
+    _menuGenerator = KidneyDynamicMenuService(FoodDatabaseService(), ExpertSystemEngine());
     _heightController        = TextEditingController();
     _ageController           = TextEditingController();
     _dialysisController      = TextEditingController();
@@ -124,6 +124,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
       final dynamicMenu = await _menuGenerator.generateDailyMenu(
         result.recommendedDiet,
         isHighPotassium: _isHighPotassium,
+        totalCalories: result.bmr,
       );
       if (mounted) {
         setState(() {
