@@ -1,6 +1,6 @@
 // lib/src/features/kidney_calculation/data/models/kidney_knowledge_base.dart
 
-import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/diabetes_knowledge_base.dart'; // Import model DiseaseGuideline & DietDistributionRule
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/data/models/knowledge_base_model.dart'; // Import model DiseaseGuideline & DietDistributionRule
 
 // 1. Aturan Universal Ginjal (Contoh pantangan umum)
 final DiseaseGuideline kidneyGuideline = DiseaseGuideline(
@@ -21,18 +21,28 @@ final DiseaseGuideline kidneyGuideline = DiseaseGuideline(
     'babi'
   ],
   conditionalForbiddenFoods: {
-    'hiperkalemia': [ // Rule makanan spesifik kalium tinggi
-      'bayam', 'daun singkong', 'asparagus', 'kembang kol', 'kangkung',
-      'pisang', 'belimbing', 'bit', 'alpukat', 'mangga', 'semangka', 'melon'
-    ]
-  }
+  'hiperkalemia': [ 
+    // Sayuran tinggi kalium
+    'bayam', 'daun singkong', 'asparagus', 'kembang kol', 'kangkung', 'bit',
+    'daun pepaya', 'daun melinjo', 'genjer', 'jamur kuping', 'tomat',
+    
+    // Buah-buahan tinggi kalium
+    'pisang', 'belimbing', 'alpukat', 'mangga', 'semangka', 'melon', 'nangka',
+    
+    // Umbi-umbian tinggi kalium
+    'kentang', 'talas', 'ubi jalar', 'gadung',
+    
+    // Kacang-kacangan tinggi kalium
+    'kacang kedelai', 'kacang merah', 'kacang hijau', 'kacang tanah'
+  ]
+}
 );
 final List<String> allowedProteinSourcesPreDialisis = [
-  'telur', 'ikan', 'ayam', 'daging sapi' // Disesuaikan dengan gambar
+  'telur', 'ikan', 'ayam', 'daging sapi' 
 ];
 
 final List<String> allowedVegetableSources = [
-  'tahu', 'tempe', 'kacang hijau' // Disesuaikan dengan gambar
+  'tahu', 'tempe', 'kacang hijau' 
 ];
 // 2. Aturan Distribusi berdasarkan Target PROTEIN (bukan kalori)
 // Catatan: Gunakan field targetCalories pada model bawaan untuk mewakili target protein 

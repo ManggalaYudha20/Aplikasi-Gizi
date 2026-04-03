@@ -1,7 +1,7 @@
 // lib/src/features/disease_calculation/presentation/widgets/food_search_delegate.dart
 
 import 'package:flutter/material.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_database_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/food_database_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
 
 class FoodSearchDelegate extends SearchDelegate<FoodItem?> {

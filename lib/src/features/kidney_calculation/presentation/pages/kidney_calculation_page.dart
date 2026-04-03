@@ -18,10 +18,10 @@ import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/data/mode
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/services/kidney_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/services/kidney_dynamic_menu_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/services/kidney_meal_planner_service.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_database_service.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_search_delegate.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/food_database_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/food_search_delegate.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart' as db;
-import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/services/expert_system_engine.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/expert_system_engine.dart';
 
 // ── Widgets modul ginjal ───────────────────────────────────────────────────
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/presentation/widgets/kidney_result_card.dart';

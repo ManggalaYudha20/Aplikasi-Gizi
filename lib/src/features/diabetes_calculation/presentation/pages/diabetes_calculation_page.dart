@@ -11,9 +11,9 @@ import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/mo
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/services/diabetes_calculator_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/services/diabetes_meal_planner_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/services/pdf_generator_dm.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_database_service.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_search_delegate.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/services/expert_system_engine.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/food_database_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/food_search_delegate.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/expert_system_engine.dart';
 
 // ── Shared widgets ───────────────────────────────────────────────────────────
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';

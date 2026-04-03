@@ -14,13 +14,13 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_validator_utils.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/nutrition_calculator_service.dart';
 import 'dart:async';
-import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/data/diagnosis_terminology.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/data/intervensi_data.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/data/monitoring_data.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/data/terminology_item.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/data/models/diagnosis_terminology.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/data/models/intervensi_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/data/models/monitoring_data.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/data/models/terminology_item.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/searchable_terminology_field.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/services/schofield_calculator_service.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/expert_system_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/expert_system_service.dart';
 
 class LabInputItem {
   TextEditingController valueController;

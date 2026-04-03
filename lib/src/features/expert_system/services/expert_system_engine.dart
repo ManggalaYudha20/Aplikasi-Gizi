@@ -1,7 +1,7 @@
 // lib\src\features\diabetes_calculation\services\expert_system_engine.dart
-
-import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/diabetes_knowledge_base.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/data/models/kidney_knowledge_base.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/data/models/knowledge_base_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/data/models/diabetes_knowledge_base.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/data/models/kidney_knowledge_base.dart';
 // --- Data Structures ---
 
 /// Representasi Fakta Input dari sistem kalkulator sebelumnya

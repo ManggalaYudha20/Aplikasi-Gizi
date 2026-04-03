@@ -1,10 +1,10 @@
 // lib/src/features/diabetes_calculation/services/diabetes_meal_planner_service.dart
 
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/dm_meal_session_model.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/services/expert_system_engine.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_database_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/expert_system_engine.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/food_database_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/diabetes_knowledge_base.dart'; // Ditambahkan untuk akses model MealItemRule
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/data/models/knowledge_base_model.dart'; // Ditambahkan untuk akses model MealItemRule
 import 'dart:math';
 
 class DiabetesMealPlannerService {

@@ -6,10 +6,10 @@
 //   • Diet Ginjal Kronik dengan Hemodialisis
 // ─────────────────────────────────────────────────────────────────────────────
 
-import '../data/terminology_item.dart';
-import '../data/diagnosis_terminology.dart';
-import '../data/intervensi_data.dart';
-import '../data/monitoring_data.dart';
+import '../data/models/terminology_item.dart';
+import '../data/models/diagnosis_terminology.dart';
+import '../data/models/intervensi_data.dart';
+import '../data/models/monitoring_data.dart';
 import 'package:flutter/widgets.dart';
 
 // ═════════════════════════════════════════════════════════════════════════════

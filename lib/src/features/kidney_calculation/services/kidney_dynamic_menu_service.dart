@@ -2,11 +2,11 @@
 
 import 'dart:math';
 
-import 'package:aplikasi_diagnosa_gizi/src/shared/clinical_data/services/food_database_service.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/food_database_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/data/models/kidney_menu_models.dart';
 // kidney_knowledge_base tidak diimport langsung — sudah terdaftar di ExpertSystemEngine
-import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/services/expert_system_engine.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/expert_system_engine.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/services/kidney_meal_planner_service.dart';
 
 class KidneyDynamicMenuService {
@@ -49,23 +49,109 @@ class KidneyDynamicMenuService {
     //    Ini memastikan hanya bahan yang sesuai standar diet yang digunakan.
     final standardIngredients = KidneyMealPlans.getPlanFor(proteinTarget);
 
-    // ── 4. Load DB & bangun lookup: keyword bahan standar → FoodItem lolos filter
-    final allFoods = await _dbService.getAllFoodItems();
+    final Map<String, List<String>> processedFoodMap = {
+    'beras': [
+      'nasi', 
+      'nasi tim', 
+      'nasi gurih', 
+      'nasi rames', 
+      'bubur tinotuan (manado)'
+    ],
+    'ayam': [
+      'ayam goreng pasundan', 
+      'ayam goreng kalasan', 
+      'ayam taliwang, masakan', 
+      'kalio ayam, masakan'
+    ],
+    'telur': [
+      'telur ayam, dadar, masakan', 
+      'telur bebek, dadar, masakan', 
+      'kalio telur, masakan', 
+      'tahu telur'
+    ],
+    'ikan': [
+      'ikan bandeng presto', 
+      'ikan baung bakar', 
+      'ikan mas pepes', 
+      'ikan mujahir goreng', 
+      'ikan mujahir pepes', 
+      'ikan patin, bakar', 
+      'gulai ikan, masakan'
+    ],
+    'tahu': [
+      'tahu goreng', 
+      'kembang tahu rebus', 
+      'moon tahu'
+    ],
+    'tempe': [
+      'tempe kedelai murni, goreng', 
+      'tempe pasar goreng', 
+      'keripik tempe'
+    ],
+    'sayur': [
+      'sayur asem', 
+      'sayur sop', 
+      'cap cai, sayur', 
+      'asinan bogor, sayuran'
+    ],
+    'buah': [
+      'pepaya ', 
+      'pir', 
+      'apel', 
+    ],
+  };
 
+  // ── 4. Load DB & bangun lookup: keyword bahan standar -> FoodItem lolos filter
+    final allFoods = await _dbService.getAllFoodItems();
     final Map<String, List<FoodItem>> dbLookup = {};
 
     for (final ingredient in standardIngredients) {
       final keyword = ingredient.name.toLowerCase();
 
+      // --- PERBAIKAN 1: Tentukan matchedKey dengan mendeteksi isi keyword ---
+      String? matchedKey;
+      
+      // Pengecekan 'telur' diletakkan sebelum 'ayam' untuk mencegah
+      // bahan bernama "Telur Ayam" salah masuk ke kategori "ayam".
+      if (keyword.contains('beras') || keyword.contains('nasi')) {
+        matchedKey = 'beras';
+      } else if (keyword.contains('telur')) {
+        matchedKey = 'telur';
+      } else if (keyword.contains('ayam')) {
+        matchedKey = 'ayam';
+      } else if (keyword.contains('ikan')) {
+        matchedKey = 'ikan';
+      } else if (keyword.contains('tahu')) {
+        matchedKey = 'tahu';
+      } else if (keyword.contains('tempe')) {
+        matchedKey = 'tempe';
+      } else if (keyword.contains('sayur')) {
+        matchedKey = 'sayur';
+      } else if (keyword.contains('buah')) {
+        matchedKey = 'buah';
+      }
+
       final matches = allFoods.where((f) {
         final lowerName = f.name.toLowerCase();
 
-        // Harus mengandung keyword bahan standar
-        if (!lowerName.contains(keyword)) {
-          return false;
+        bool isMatch = false;
+
+        // --- PERBAIKAN 2: Gunakan matchedKey, bukan containsKey ---
+        if (matchedKey != null && processedFoodMap.containsKey(matchedKey)) {
+          // Jika cocok dengan salah satu kategori, cari nama olahannya
+          isMatch = processedFoodMap[matchedKey]!.any(
+            (olahan) => lowerName.contains(olahan.toLowerCase().trim()) 
+            // .trim() digunakan untuk mencegah error jika ada typo spasi seperti 'pepaya '
+          );
+        } else {
+          // Fallback: Jika bukan bahan yang ada di map (misal: gula, minyak), 
+          // cari berdasarkan nama bahan dasarnya.
+          isMatch = lowerName.contains(keyword);
         }
 
-        // Tidak boleh mengandung kata pantangan dari KB
+        if (!isMatch) return false;
+
+        // Filter Pantangan: Tetap pastikan makanan tidak mengandung bahan terlarang
         if (forbiddenKeywords.any((p) => lowerName.contains(p.toLowerCase()))) {
           return false;
         }
@@ -202,8 +288,8 @@ class KidneyDynamicMenuService {
     }
 
     // Pokok
-    if (lower.contains('beras') ||
-        lower.contains('nasi') ||
+    if (lower.contains('nasi') ||
+        lower.contains('beras') ||
         lower.contains('maizena') ||
         lower.contains('tepung')) {
       return 'Pokok';
