@@ -70,7 +70,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     _menuGenerator = KidneyDynamicMenuService(FoodDatabaseService(), ExpertSystemEngine());
     _heightController        = TextEditingController();
     _ageController           = TextEditingController();
-    _dialysisController      = TextEditingController();
+    _dialysisController      = TextEditingController(text: 'Tidak');
     _genderController        = TextEditingController();
     _proteinFactorController = TextEditingController(text: '0.6 (Rendah)');
     _currentWeightController = TextEditingController();
@@ -213,7 +213,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     _currentWeightController.clear();
     _patientPickerKey.currentState?.resetSelection();
     setState(() {
-      _dialysisController.clear();
+      _dialysisController.text = 'Tidak';
       _genderController.clear();
       _proteinFactorController.text = '0.6 (Rendah)';
       _result           = null;

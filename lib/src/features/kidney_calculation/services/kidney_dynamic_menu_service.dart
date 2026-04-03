@@ -21,8 +21,6 @@ class KidneyDynamicMenuService {
     double totalCalories = 0.0,
   }) async {
     // ── 1. Forward Chaining → dapatkan guideline & distribusi sesi ────────────
-    //    ExpertSystemEngine sudah mendaftarkan kidneyGuideline & kidneyDistributionRules
-    //    secara internal. Cukup kirim PatientFact dengan diseaseId 'ginjal'.
     final fact = PatientFact(
       diseaseId: 'ginjal',
       calculatedCalories: totalCalories,
@@ -33,8 +31,9 @@ class KidneyDynamicMenuService {
     final prescription = _expertEngine.forwardChain(fact);
 
     // ── 2. Kumpulkan pantangan (umum + kondisional) dari KB via prescription ──
-    final List<String> forbiddenKeywords =
-        List.from(prescription.guideline.forbiddenFoods);
+    final List<String> forbiddenKeywords = List.from(
+      prescription.guideline.forbiddenFoods,
+    );
 
     for (final complication in fact.complications) {
       final conditional =
@@ -45,63 +44,53 @@ class KidneyDynamicMenuService {
     }
 
     // ── 3. Ambil bahan dasar dari KidneyMealPlans ─────────────────────────────
-    //    KidneyMealPlans adalah "daftar belanja" resmi per target protein.
-    //    Ini memastikan hanya bahan yang sesuai standar diet yang digunakan.
     final standardIngredients = KidneyMealPlans.getPlanFor(proteinTarget);
 
     final Map<String, List<String>> processedFoodMap = {
-    'beras': [
-      'nasi', 
-      'nasi tim', 
-      'nasi gurih', 
-      'nasi rames', 
-      'bubur tinotuan (manado)'
-    ],
-    'ayam': [
-      'ayam goreng pasundan', 
-      'ayam goreng kalasan', 
-      'ayam taliwang, masakan', 
-      'kalio ayam, masakan'
-    ],
-    'telur': [
-      'telur ayam, dadar, masakan', 
-      'telur bebek, dadar, masakan', 
-      'kalio telur, masakan', 
-      'tahu telur'
-    ],
-    'ikan': [
-      'ikan bandeng presto', 
-      'ikan baung bakar', 
-      'ikan mas pepes', 
-      'ikan mujahir goreng', 
-      'ikan mujahir pepes', 
-      'ikan patin, bakar', 
-      'gulai ikan, masakan'
-    ],
-    'tahu': [
-      'tahu goreng', 
-      'kembang tahu rebus', 
-      'moon tahu'
-    ],
-    'tempe': [
-      'tempe kedelai murni, goreng', 
-      'tempe pasar goreng', 
-      'keripik tempe'
-    ],
-    'sayur': [
-      'sayur asem', 
-      'sayur sop', 
-      'cap cai, sayur', 
-      'asinan bogor, sayuran'
-    ],
-    'buah': [
-      'pepaya ', 
-      'pir', 
-      'apel', 
-    ],
-  };
+      'beras': [
+        'nasi',
+        'nasi tim',
+        'nasi gurih',
+        'nasi rames',
+        'bubur tinotuan (manado)',
+      ],
+      'ayam': [
+        'ayam goreng pasundan',
+        'ayam goreng kalasan',
+        'ayam taliwang, masakan',
+        'kalio ayam, masakan',
+      ],
+      'telur': [
+        'telur ayam, dadar, masakan',
+        'telur bebek, dadar, masakan',
+        'kalio telur, masakan',
+        'tahu telur',
+      ],
+      'ikan': [
+        'ikan bandeng presto',
+        'ikan baung bakar',
+        'ikan mas pepes',
+        'ikan mujahir goreng',
+        'ikan mujahir pepes',
+        'ikan patin, bakar',
+        'gulai ikan, masakan',
+      ],
+      'tahu': ['tahu goreng', 'kembang tahu rebus', 'moon tahu'],
+      'tempe': [
+        'tempe kedelai murni, goreng',
+        'tempe pasar goreng',
+        'keripik tempe',
+      ],
+      'sayur': [
+        'sayur asem',
+        'sayur sop',
+        'cap cai, sayur',
+        'asinan bogor, sayuran',
+      ],
+      'buah': ['pepaya ', 'pir', 'apel'],
+    };
 
-  // ── 4. Load DB & bangun lookup: keyword bahan standar -> FoodItem lolos filter
+    // ── 4. Load DB & bangun lookup: keyword bahan standar -> FoodItem lolos filter
     final allFoods = await _dbService.getAllFoodItems();
     final Map<String, List<FoodItem>> dbLookup = {};
 
@@ -110,14 +99,13 @@ class KidneyDynamicMenuService {
 
       // --- PERBAIKAN 1: Tentukan matchedKey dengan mendeteksi isi keyword ---
       String? matchedKey;
-      
-      // Pengecekan 'telur' diletakkan sebelum 'ayam' untuk mencegah
-      // bahan bernama "Telur Ayam" salah masuk ke kategori "ayam".
+
       if (keyword.contains('beras') || keyword.contains('nasi')) {
         matchedKey = 'beras';
       } else if (keyword.contains('telur')) {
         matchedKey = 'telur';
-      } else if (keyword.contains('ayam')) {
+      } else if (RegExp(r'\bayam\b').hasMatch(keyword)) {
+        // Menggunakan Regex agar "bayam" tidak masuk ke "ayam"
         matchedKey = 'ayam';
       } else if (keyword.contains('ikan')) {
         matchedKey = 'ikan';
@@ -138,15 +126,37 @@ class KidneyDynamicMenuService {
 
         // --- PERBAIKAN 2: Gunakan matchedKey, bukan containsKey ---
         if (matchedKey != null && processedFoodMap.containsKey(matchedKey)) {
-          // Jika cocok dengan salah satu kategori, cari nama olahannya
-          isMatch = processedFoodMap[matchedKey]!.any(
-            (olahan) => lowerName.contains(olahan.toLowerCase().trim()) 
-            // .trim() digunakan untuk mencegah error jika ada typo spasi seperti 'pepaya '
-          );
+          isMatch = processedFoodMap[matchedKey]!.any((olahan) {
+            String term = olahan.toLowerCase().trim();
+            // Perbaikan Bug 'Pirous': Gunakan batas kata untuk buah bersuku kata pendek
+            if (term == 'pir' || term == 'apel' || term == 'jeruk') {
+              return RegExp(r'\b' + term + r'\b').hasMatch(lowerName);
+            }
+            // Untuk nama masakan panjang, tetap pakai contains
+            return lowerName.contains(term);
+          });
+          
+          if (isMatch && matchedKey == 'buah') {
+            if (lowerName.contains('daun') ||
+                lowerName.contains('sayur') ||
+                lowerName.contains('bunga')) {
+              isMatch = false; // Batalkan kecocokan
+            }
+          }
         } else {
-          // Fallback: Jika bukan bahan yang ada di map (misal: gula, minyak), 
-          // cari berdasarkan nama bahan dasarnya.
-          isMatch = lowerName.contains(keyword);
+          // Regex digunakan di sini juga untuk fallback agar akurat
+          if (keyword == 'madu' || keyword == 'ayam') {
+            isMatch = RegExp(r'\b' + keyword + r'\b').hasMatch(lowerName);
+          } else if (keyword == 'minyak') {
+            // --- PERBAIKAN BUG NASI MINYAK ---
+            isMatch =
+                RegExp(r'\bminyak\b').hasMatch(lowerName) &&
+                !lowerName.contains('nasi') &&
+                !lowerName.contains('mie') &&
+                !lowerName.contains('kerupuk');
+          } else {
+            isMatch = lowerName.contains(keyword);
+          }
         }
 
         if (!isMatch) return false;
@@ -163,9 +173,6 @@ class KidneyDynamicMenuService {
     }
 
     // ── 5. Bangun categoryFoodMap dari bahan standar ──────────────────────────
-    //    Setiap bahan standar dipetakan ke categoryLabel yang dipakai KB ginjal.
-    //    Jika tidak ada item DB yang cocok, FoodItem sintetis dibuat sebagai fallback
-    //    agar sesi menu tidak kosong.
     final Map<String, List<FoodItem>> categoryFoodMap = {
       'Pokok': [],
       'Lauk Hewani': [],
@@ -190,7 +197,7 @@ class KidneyDynamicMenuService {
       if (candidates.isNotEmpty) {
         categoryFoodMap[category]?.addAll(candidates);
       } else {
-        // Fallback sintetis — nama & berat dari KidneyMealPlans, gizi kosong
+        // Fallback sintetis
         categoryFoodMap[category]?.add(
           FoodItem(
             id: '',
@@ -229,14 +236,12 @@ class KidneyDynamicMenuService {
     // Deduplikasi per kategori
     for (final key in categoryFoodMap.keys) {
       final seen = <String>{};
-      categoryFoodMap[key] =
-          categoryFoodMap[key]!.where((f) => seen.add(f.name)).toList();
+      categoryFoodMap[key] = categoryFoodMap[key]!
+          .where((f) => seen.add(f.name))
+          .toList();
     }
 
     // ── 6. Susun menu harian mengikuti distribusi sesi dari KB ginjal ──────────
-    //    prescription.distribution.distribution adalah Map<sessionName, List<MealItemRule>>
-    //    yang berasal langsung dari kidneyDistributionRules (lihat ExpertSystemEngine).
-    //    Setiap rule membawa: categoryLabel, weightGrams (berat final), dan urt.
     final expertDistribution = prescription.distribution.distribution;
     final List<KidneyMealSession> dailyMenu = [];
 
@@ -248,15 +253,12 @@ class KidneyDynamicMenuService {
         final dbItem = _pickRandom(candidates);
 
         if (dbItem != null) {
-          // Gunakan weightGrams langsung dari rule KB — ini sudah merupakan
-          // berat final per sesi sesuai standar diet ginjal.
-          // (portion di KB adalah representasi URT, bukan multiplier berat.)
           sessionItems.add(
             KidneyMenuItem(
               categoryLabel: rule.categoryLabel,
               foodName: dbItem.name,
               weight: rule.weightGrams ?? (50.0 * rule.portion),
-             urt: rule.urt ?? '${rule.portion} porsi',
+              urt: rule.urt ?? '${rule.portion} porsi',
               foodData: dbItem,
             ),
           );
@@ -277,8 +279,6 @@ class KidneyDynamicMenuService {
   // Helper: peta nama bahan standar → categoryLabel KB ginjal
   // ---------------------------------------------------------------------------
 
-  /// Mengembalikan categoryLabel yang dipakai Knowledge Base ginjal,
-  /// atau null jika bahan tidak perlu masuk ke menu.
   String? _mapIngredientToCategory(String ingredientName) {
     final lower = ingredientName.toLowerCase();
 
@@ -298,7 +298,7 @@ class KidneyDynamicMenuService {
     // Lauk Hewani
     if (lower.contains('telur') ||
         lower.contains('daging') ||
-        lower.contains('ayam') ||
+        RegExp(r'\bayam\b').hasMatch(lower) || // Perbaikan Bug "bayam" -> "ayam"
         lower.contains('ikan') ||
         lower.contains('udang')) {
       return 'Lauk Hewani';
@@ -318,9 +318,12 @@ class KidneyDynamicMenuService {
 
     // Buah
     if (lower.contains('buah') ||
-        lower.contains('pepaya') ||
-        lower.contains('jeruk') ||
-        lower.contains('apel')) {
+        (RegExp(r'\bpepaya\b').hasMatch(lower) &&
+            !lower.contains('daun') &&
+            !lower.contains('sayur')) ||
+        RegExp(r'\bjeruk\b').hasMatch(lower) ||
+        RegExp(r'\bapel\b').hasMatch(lower) ||
+        RegExp(r'\bpir\b').hasMatch(lower)) {
       return 'Buah';
     }
 
@@ -330,12 +333,14 @@ class KidneyDynamicMenuService {
     }
 
     // Lemak
-    if (lower.contains('minyak') || lower.contains('margarin')) {
+    if ((RegExp(r'\bminyak\b').hasMatch(lower) && !lower.contains('nasi')) ||
+        lower.contains('margarin')) {
       return 'Lemak';
     }
 
     // Pemanis
-    if (lower.contains('gula') || lower.contains('madu')) {
+    // PERBAIKAN BUG MADURA: Menggunakan \b (word boundary) agar 'madura' tidak terdeteksi
+    if (lower.contains('gula') || RegExp(r'\bmadu\b').hasMatch(lower)) {
       return 'Pemanis';
     }
 

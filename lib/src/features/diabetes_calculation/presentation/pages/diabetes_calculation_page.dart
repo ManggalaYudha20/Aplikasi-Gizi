@@ -474,7 +474,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 16),
-                  Text('Sedang membuat menu...', style: TextStyle(color: Colors.grey)),
+                  Text('Sedang menyusun rekomendasi menu...', style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),

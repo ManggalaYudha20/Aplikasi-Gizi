@@ -10,15 +10,25 @@ final DiseaseGuideline kidneyGuideline = DiseaseGuideline(
     // Pantangan umum ginjal
     'ikan asin', 'santan', 'kelapa', 'minyak kelapa', 'mentega biasa', 
     'margarin biasa', 'ayam dengan kulit',
-    // Pantangan nabati (Kacang-kacangan sering dibatasi ketat)
+    
+    // Pantangan Nabati (Kacang-kacangan sering dibatasi ketat)
     'kacang tanah', 'kacang merah', 'kacang hijau',
+    
     // Tinggi Kalium (Dihindari jika hiperkalemia)
     'bayam', 'daun singkong', 'asparagus', 'kembang kol', 'kangkung',
     'pisang', 'belimbing', 'bit', 'alpukat', 'mangga', 'semangka', 'melon',
     'kentang', 'havermut', 'singkong', 'ubi',
 
-    //non-halal
-    'babi'
+    // --- TAMBAHAN: Minyak / Lemak yang tidak wajar untuk menu harian ---
+    'minyak hiu',         // Suplemen
+    'minyak cucut',       // Nama resmi minyak hiu di TKPI
+    'minyak ikan',        // Suplemen, bukan untuk masak
+    'minyak kacang tanah',// Konsisten dengan pantangan kacang tanah
+    'lemak sapi',         // Gajih sapi (tinggi lemak jenuh/fosfor tersembunyi)
+    'lemak kerbau',       // Gajih hewani
+
+    // Non-halal (Diperluas untuk mencakup produk turunannya)
+    'babi', 'minyak babi', 'lemak babi'
   ],
   conditionalForbiddenFoods: {
   'hiperkalemia': [ 
