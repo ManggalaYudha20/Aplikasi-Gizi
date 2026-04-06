@@ -1,3 +1,5 @@
+//  D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\admin\widgets\fading_snackbar_content.dart
+
 import 'dart:async'; // Perlu import ini untuk Timer
 import 'package:flutter/material.dart';
 
@@ -59,7 +61,7 @@ class _FadingSnackBarContentState extends State<FadingSnackBarContent> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),

@@ -1,4 +1,4 @@
-// lib\src\shared\widgets\bottom_navbar.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\shared\widgets\bottom_navbar.dart
 
 import 'package:flutter/material.dart';
 

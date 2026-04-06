@@ -1,4 +1,4 @@
-// lib/src/features/diabetes_calculation/data/models/diet_info_model.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\diabetes_calculation\data\models\diet_info_model.dart
 
 /// Menyimpan informasi lengkap tentang jenis diet Diabetes Melitus.
 class DietInfo {

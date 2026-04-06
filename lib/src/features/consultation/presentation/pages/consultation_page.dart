@@ -1,8 +1,10 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\consultation\presentation\pages\consultation_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart'; 
-import '../widgets/nutritionist_card.dart'; 
-import 'nutritionist_profile_page.dart'; 
+import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
+import '../widgets/nutritionist_card.dart';
+import 'nutritionist_profile_page.dart';
 
 class ConsultationPage extends StatelessWidget {
   const ConsultationPage({super.key});
@@ -10,8 +12,8 @@ class ConsultationPage extends StatelessWidget {
   /// 1. Tambahkan fungsi ini untuk menentukan jumlah kolom dinamis
   int _getCrossAxisCount(double screenWidth) {
     if (screenWidth >= 1200) return 3; // Desktop lebar / Windows besar
-    if (screenWidth >= 800) return 2;  // Tablet landscape / Windows kecil
-    return 1;                          // Mobile (default, 1 kolom karena card memanjang)
+    if (screenWidth >= 800) return 2; // Tablet landscape / Windows kecil
+    return 1; // Mobile (default, 1 kolom karena card memanjang)
   }
 
   @override
@@ -26,7 +28,7 @@ class ConsultationPage extends StatelessWidget {
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('users')
-              .where('role', whereIn: ['ahli_gizi', 'nutrisionis'] )
+              .where('role', whereIn: ['ahli_gizi', 'nutrisionis'])
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -51,24 +53,30 @@ class ConsultationPage extends StatelessWidget {
             return LayoutBuilder(
               builder: (context, constraints) {
                 final screenWidth = constraints.maxWidth;
-                
+
                 // 3. Ganti ListView.builder menjadi GridView.builder
                 return GridView.builder(
                   padding: const EdgeInsets.all(16.0),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: _getCrossAxisCount(screenWidth), // Jumlah kolom responsif
+                    crossAxisCount: _getCrossAxisCount(
+                      screenWidth,
+                    ), // Jumlah kolom responsif
                     crossAxisSpacing: 16.0, // Jarak horizontal antar card
-                    mainAxisSpacing: 16.0,  // Jarak vertikal antar card
+                    mainAxisSpacing: 16.0, // Jarak vertikal antar card
                     // 4. Gunakan mainAxisExtent agar tinggi card tetap proporsional (tidak gepeng)
-                    mainAxisExtent: 200.0,  
+                    mainAxisExtent: 200.0,
                   ),
                   itemCount: nutritionists.length,
                   itemBuilder: (context, index) {
-                    final data = nutritionists[index].data() as Map<String, dynamic>;
+                    final data =
+                        nutritionists[index].data() as Map<String, dynamic>;
                     final nutritionistId = nutritionists[index].id;
 
-                    final String name = data['displayName'] ?? 'Nama Tidak Diketahui';
-                    final String photoUrl = (data['photoURL'] != null && data['photoURL'].toString().isNotEmpty)
+                    final String name =
+                        data['displayName'] ?? 'Nama Tidak Diketahui';
+                    final String photoUrl =
+                        (data['photoURL'] != null &&
+                            data['photoURL'].toString().isNotEmpty)
                         ? data['photoURL']
                         : 'https://via.placeholder.com/150';
 
@@ -94,7 +102,9 @@ class ConsultationPage extends StatelessWidget {
                         );
                       },
                       onChatPressed: () {
-                        debugPrint('Mulai chat dengan $name (UID: $nutritionistId)');
+                        debugPrint(
+                          'Mulai chat dengan $name (UID: $nutritionistId)',
+                        );
                       },
                     );
                   },

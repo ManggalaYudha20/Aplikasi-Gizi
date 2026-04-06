@@ -1,4 +1,4 @@
-// lib/src/features/food_database/presentation/widgets/food_nutrition_card.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\food_database\presentation\widgets\food_nutrition_card.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
@@ -84,11 +84,7 @@ class FoodNutritionRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const FoodNutritionRow({
-    super.key,
-    required this.label,
-    required this.value,
-  });
+  const FoodNutritionRow({super.key, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -97,10 +93,7 @@ class FoodNutritionRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
-          ),
+          Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
           Text(
             value,
             style: const TextStyle(

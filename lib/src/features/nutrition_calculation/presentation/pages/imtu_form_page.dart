@@ -1,4 +1,4 @@
-// lib/src/features/nutrition_calculation/presentation/pages/imtu_form_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\nutrition_calculation\presentation\pages\imtu_form_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -184,8 +184,12 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
   /// Memetakan string kategori ke warna indikator. Logika warna di page (presentasi).
   Color _resolveColor(String category) {
     final String lower = category.toLowerCase();
-    if (lower.contains('buruk') || lower.contains('severely'))return Colors.red;
-    if (lower.contains('kurang') || lower.contains('wasted'))return Colors.orange;
+    if (lower.contains('buruk') || lower.contains('severely')) {
+      return Colors.red;
+    }
+    if (lower.contains('kurang') || lower.contains('wasted')) {
+      return Colors.orange;
+    }
     if (lower.contains('baik') || lower.contains('normal')) return _kBrandGreen;
     return Colors.red; // overweight & obesitas
   }
@@ -251,7 +255,9 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                           isInteger: true,
                           maxLength: 2,
                           customValidator: (v) {
-                            if (v == null || v.isEmpty) return 'Tahun wajib diisi';
+                            if (v == null || v.isEmpty) {
+                              return 'Tahun wajib diisi';
+                            }
                             final n = int.tryParse(v);
                             if (n == null) return 'Angka tidak valid';
                             if (n < 0 || n > 18) return '5-18 tahun';
@@ -271,7 +277,9 @@ class _IMTUFormPageState extends State<IMTUFormPage> {
                           isInteger: true,
                           maxLength: 2,
                           customValidator: (v) {
-                            if (v == null || v.isEmpty) return 'Bulan wajib diisi';
+                            if (v == null || v.isEmpty) {
+                              return 'Bulan wajib diisi';
+                            }
                             final n = int.tryParse(v);
                             if (n == null) return 'Angka tidak valid';
                             if (n < 0 || n > 11) return '0-11 bulan';

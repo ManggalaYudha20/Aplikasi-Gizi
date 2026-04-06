@@ -1,4 +1,4 @@
-// lib/src/features/nutrition_calculation/services/bbi_calculator_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\nutrition_calculation\services\bbi_calculator_service.dart
 //
 // ─── ATURAN KETAT ───────────────────────────────────────────────────────────
 // File ini adalah Pure Dart — DILARANG mengimpor 'package:flutter/material.dart'
@@ -19,10 +19,10 @@ class BbiCalculatorService {
   static const String categoryMonths0to11 = '0 - 11 Bulan';
 
   /// Label kategori usia untuk anak 1–6 tahun.
-  static const String categoryYears1to6   = '1 - 6 Tahun';
+  static const String categoryYears1to6 = '1 - 6 Tahun';
 
   /// Label kategori usia untuk anak 7–12 tahun.
-  static const String categoryYears7to12  = '7 - 12 Tahun';
+  static const String categoryYears7to12 = '7 - 12 Tahun';
 
   /// Semua pilihan kategori usia anak, urut sesuai tampilan dropdown UI.
   static const List<String> ageCategories = [
@@ -33,7 +33,7 @@ class BbiCalculatorService {
 
   // ── KONSTANTA GENDER ──────────────────────────────────────────────────────
 
-  static const String genderMale   = 'Laki-laki';
+  static const String genderMale = 'Laki-laki';
   static const String genderFemale = 'Perempuan';
 
   // ── FORMULA BBI DEWASA (Usia > 12 Tahun) ─────────────────────────────────
@@ -50,7 +50,7 @@ class BbiCalculatorService {
   /// Melempar [ArgumentError] jika [heightCm] ≤ 0.
   static double calculateAdult({
     required double heightCm,
-    required bool   isMale,
+    required bool isMale,
   }) {
     if (heightCm <= 0) {
       throw ArgumentError('heightCm harus lebih dari 0, diterima: $heightCm');
@@ -59,14 +59,15 @@ class BbiCalculatorService {
     final double base = heightCm - 100.0;
 
     // Menentukan apakah menggunakan persamaan (a) berdasarkan gender dan tinggi badan
-    final bool useFormulaA = (isMale && heightCm >= 160.0) || (!isMale && heightCm >= 150.0);
+    final bool useFormulaA =
+        (isMale && heightCm >= 160.0) || (!isMale && heightCm >= 150.0);
 
     if (useFormulaA) {
       // Persamaan (a): (TB - 100) dikurangi 10% (sama dengan dikali 0.90)
-      return base * 0.90; 
+      return base * 0.90;
     } else {
       // Persamaan (b): (TB - 100) tanpa pengurangan 10%
-      return base; 
+      return base;
     }
   }
 
@@ -89,8 +90,8 @@ class BbiCalculatorService {
     required String category,
   }) {
     if (category == categoryMonths0to11) return (ageValue + 9.0) / 2.0;
-    if (category == categoryYears1to6)   return (2.0 * ageValue) + 8.0;
-    if (category == categoryYears7to12)  return ((7.0 * ageValue) - 5.0) / 2.0;
+    if (category == categoryYears1to6) return (2.0 * ageValue) + 8.0;
+    if (category == categoryYears7to12) return ((7.0 * ageValue) - 5.0) / 2.0;
     return 0.0;
   }
 
@@ -109,9 +110,9 @@ class BbiCalculatorService {
     required int ageYears,
     required int totalAgeMonths,
   }) {
-    if (totalAgeMonths < 12)              return categoryMonths0to11;
-    if (ageYears >= 1 && ageYears <= 6)   return categoryYears1to6;
-    if (ageYears >= 7 && ageYears <= 12)  return categoryYears7to12;
+    if (totalAgeMonths < 12) return categoryMonths0to11;
+    if (ageYears >= 1 && ageYears <= 6) return categoryYears1to6;
+    if (ageYears >= 7 && ageYears <= 12) return categoryYears7to12;
     return null; // Usia di luar rentang anak
   }
 
@@ -131,9 +132,10 @@ class BbiCalculatorService {
     required DateTime birthDate,
     required DateTime checkDate,
   }) {
-    int years  = checkDate.year - birthDate.year;
-    int months = (checkDate.year - birthDate.year) * 12 +
-                 (checkDate.month - birthDate.month);
+    int years = checkDate.year - birthDate.year;
+    int months =
+        (checkDate.year - birthDate.year) * 12 +
+        (checkDate.month - birthDate.month);
 
     // Koreksi jika hari belum mencapai hari ulang tahun bulan ini
     if (checkDate.day < birthDate.day) {
@@ -152,10 +154,14 @@ class BbiCalculatorService {
   /// di dalam widget.
   static String getChildFormulaDescription(String category) {
     switch (category) {
-      case categoryMonths0to11: return 'Rumus: (Usia bulan + 9) / 2';
-      case categoryYears1to6:   return 'Rumus: (2 × Usia tahun) + 8';
-      case categoryYears7to12:  return 'Rumus: ((7 × Usia tahun) − 5) / 2';
-      default:                  return 'Berat Badan Ideal Anak';
+      case categoryMonths0to11:
+        return 'Rumus: (Usia bulan + 9) / 2';
+      case categoryYears1to6:
+        return 'Rumus: (2 × Usia tahun) + 8';
+      case categoryYears7to12:
+        return 'Rumus: ((7 × Usia tahun) − 5) / 2';
+      default:
+        return 'Berat Badan Ideal Anak';
     }
   }
 

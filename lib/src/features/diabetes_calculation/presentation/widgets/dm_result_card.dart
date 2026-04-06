@@ -1,4 +1,4 @@
-// lib/src/features/diabetes_calculation/presentation/widgets/dm_result_card.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\diabetes_calculation\presentation\widgets\dm_result_card.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/dm_meal_session_model.dart';
@@ -59,13 +59,25 @@ class DmResultCard extends StatelessWidget {
           ),
           const Divider(height: 24),
           const SizedBox(height: 8),
-          _row('Protein (15%)', '${result.calculatedProteinGram.toStringAsFixed(1)} g/hari'),
-          _row('Lemak (25%)', '${result.calculatedFatGram.toStringAsFixed(1)} g/hari'),
-          _row('Karbohidrat (60%)', '${result.calculatedCarbsGram.toStringAsFixed(1)} g/hari'),
+          _row(
+            'Protein (15%)',
+            '${result.calculatedProteinGram.toStringAsFixed(1)} g/hari',
+          ),
+          _row(
+            'Lemak (25%)',
+            '${result.calculatedFatGram.toStringAsFixed(1)} g/hari',
+          ),
+          _row(
+            'Karbohidrat (60%)',
+            '${result.calculatedCarbsGram.toStringAsFixed(1)} g/hari',
+          ),
           _row('BB Ideal', '${result.bbIdeal.round()} kg'),
           _row('BMR', '${result.bmr.round()} kkal/hari'),
           _row('Kategori IMT', result.bmiCategory),
-          _row('Koreksi Aktivitas', '+${result.activityCorrection.round()} kkal/hari'),
+          _row(
+            'Koreksi Aktivitas',
+            '+${result.activityCorrection.round()} kkal/hari',
+          ),
           if (result.ageCorrection > 0)
             _row('Koreksi Usia', '-${result.ageCorrection.round()} kkal/hari'),
           if (result.weightCorrection != 0)

@@ -1,4 +1,4 @@
-// lib/src/features/diabetes_calculation/data/models/dm_meal_session_model.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\diabetes_calculation\data\models\dm_meal_session_model.dart
 
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/diet_info_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/food_group_diet_model.dart';
@@ -12,9 +12,9 @@ import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/fo
 /// Satu item makanan dalam satu sesi waktu makan pada tampilan UI.
 class DmMenuItem {
   final String categoryLabel; // Label tampilan, mis. "Lauk Hewani"
-  String foodName;            // Nama makanan, mis. "Ayam Goreng"
-  dynamic portion;            // Porsi: angka (double) atau 'S' (sekehendak)
-  FoodItem? foodData;         // Data lengkap dari Firestore (untuk hitung gizi)
+  String foodName; // Nama makanan, mis. "Ayam Goreng"
+  dynamic portion; // Porsi: angka (double) atau 'S' (sekehendak)
+  FoodItem? foodData; // Data lengkap dari Firestore (untuk hitung gizi)
 
   DmMenuItem({
     required this.categoryLabel,

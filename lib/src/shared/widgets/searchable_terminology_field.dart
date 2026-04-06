@@ -1,6 +1,8 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\shared\widgets\searchable_terminology_field.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../features/expert_system/data/models/terminology_item.dart'; // Pastikan path import ini sesuai
+import '../../features/expert_system/data/models/terminology_item.dart';
 
 class SearchableTerminologyField extends StatelessWidget {
   final String label;

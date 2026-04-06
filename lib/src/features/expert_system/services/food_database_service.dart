@@ -1,4 +1,4 @@
-// lib/src/features/disease_calculation/services/food_database_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\expert_system\services\food_database_service.dart
 
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,9 +18,7 @@ class FoodDatabaseService {
           .get();
 
       if (snapshot.docs.isNotEmpty) {
-        return snapshot.docs
-            .map((doc) => FoodItem.fromFirestore(doc))
-            .toList();
+        return snapshot.docs.map((doc) => FoodItem.fromFirestore(doc)).toList();
       }
       return [];
     } catch (e) {
@@ -43,9 +41,8 @@ class FoodDatabaseService {
         // Logika persis FoodListPage: Cek Nama ATAU Kode
         final matchesName = item.name.toLowerCase().contains(lowerQuery);
         final matchesCode = item.code.toLowerCase().contains(lowerQuery);
-        return matchesName || matchesCode; 
+        return matchesName || matchesCode;
       }).toList();
-      
     } catch (e) {
       debugPrint('Error searching food: $e');
       return [];
@@ -53,7 +50,9 @@ class FoodDatabaseService {
   }
 
   // --- 3. Random Food (Tetap dipertahankan) ---
-  Future<FoodItem?> getRandomFoodItemByCategory(String firestoreCategory) async {
+  Future<FoodItem?> getRandomFoodItemByCategory(
+    String firestoreCategory,
+  ) async {
     try {
       final snapshot = await _db
           .collection('food_items')
@@ -70,16 +69,19 @@ class FoodDatabaseService {
       return null;
     }
   }
-// Tambahkan method ini di dalam class FoodDatabaseService
+  // Tambahkan method ini di dalam class FoodDatabaseService
 
   // Tambahkan parameter {bool requiresOlahan = false}
-  Future<List<FoodItem>?> getAllFoodItemsByCategory(String category, {bool requiresOlahan = false}) async {
+  Future<List<FoodItem>?> getAllFoodItemsByCategory(
+    String category, {
+    bool requiresOlahan = false,
+  }) async {
     try {
       // Buat dasar query-nya terlebih dahulu
       var query = FirebaseFirestore.instance
-          .collection('food_items') 
+          .collection('food_items')
           .where('kelompok_makanan', isEqualTo: category);
-          
+
       // Jika butuh olahan, tambahkan filter tambahan 'mentah_olahan'
       if (requiresOlahan) {
         query = query.where('mentah_olahan', isEqualTo: 'Olahan');
@@ -88,12 +90,15 @@ class FoodDatabaseService {
       final querySnapshot = await query.get();
 
       if (querySnapshot.docs.isEmpty) {
-        debugPrint("Data kosong di Firestore untuk kategori: $category (Butuh Olahan: $requiresOlahan)");
+        debugPrint(
+          "Data kosong di Firestore untuk kategori: $category (Butuh Olahan: $requiresOlahan)",
+        );
         return null;
       }
 
-      return querySnapshot.docs.map((doc) => FoodItem.fromFirestore(doc)).toList();
-
+      return querySnapshot.docs
+          .map((doc) => FoodItem.fromFirestore(doc))
+          .toList();
     } catch (e) {
       debugPrint("Error fetching all foods for category $category: $e");
       return null;

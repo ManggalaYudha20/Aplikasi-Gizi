@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\shared\widgets\menu_button.dart
+
 import 'package:flutter/material.dart';
 
 class MenuButton extends StatelessWidget {
@@ -22,7 +24,9 @@ class MenuButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color.fromARGB(255, 0, 148, 68),
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

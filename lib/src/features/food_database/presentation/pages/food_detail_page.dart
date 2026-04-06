@@ -1,4 +1,4 @@
-// lib/src/features/food_database/presentation/pages/food_detail_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\food_database\presentation\pages\food_detail_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
@@ -124,10 +124,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: CustomAppBar(
-        title: widget.foodItem.name,
-        subtitle: '100 gram',
-      ),
+      appBar: CustomAppBar(title: widget.foodItem.name, subtitle: '100 gram'),
       body: SafeArea(
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
@@ -193,7 +190,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                 // ── Portion calculator ────────────────────────────────────
                 _buildPortionCalculator(),
                 const SizedBox(height: 24),
-                
+
                 // ── Action Buttons (Edit & Delete untuk Admin) ────────────
                 RoleBuilder(
                   requiredRole: 'admin',
@@ -201,7 +198,11 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                     return FormActionButtons(
                       // -- Konfigurasi Tombol Edit (Kanan / Submit) --
                       submitText: 'Edit',
-                      submitIcon: const Icon(Icons.edit, size: 20, color: Colors.white),
+                      submitIcon: const Icon(
+                        Icons.edit,
+                        size: 20,
+                        color: Colors.white,
+                      ),
                       onSubmit: () async {
                         final result = await Navigator.push(
                           context,
@@ -214,11 +215,12 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                           Navigator.of(context).pop(true);
                         }
                       },
-                      
+
                       // -- Konfigurasi Tombol Hapus (Kiri / Reset) --
                       resetText: 'Hapus',
                       resetIcon: const Icon(Icons.delete_outline, size: 20),
-                      resetButtonColor: Colors.red, // Membuat background tombol kiri jadi merah
+                      resetButtonColor: Colors
+                          .red, // Membuat background tombol kiri jadi merah
                       onReset: () => FoodDeleteService.deleteFoodItem(
                         context,
                         widget.foodItem,
@@ -328,8 +330,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               if (value == null || value.isEmpty) {
                 return 'Masukkan takaran makanan';
               }
-              if (double.tryParse(value) == null ||
-                  double.parse(value) <= 0) {
+              if (double.tryParse(value) == null || double.parse(value) <= 0) {
                 return 'Masukkan angka yang valid';
               }
               return null;
@@ -344,8 +345,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                 child: OutlinedButton(
                   onPressed: _resetCalculation,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor:
-                        const Color.fromARGB(255, 0, 148, 68),
+                    foregroundColor: const Color.fromARGB(255, 0, 148, 68),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -362,8 +362,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                 child: ElevatedButton(
                   onPressed: _calculateNutrition,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        const Color.fromARGB(255, 0, 148, 68),
+                    backgroundColor: const Color.fromARGB(255, 0, 148, 68),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(

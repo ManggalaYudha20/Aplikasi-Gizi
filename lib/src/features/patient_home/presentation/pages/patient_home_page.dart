@@ -1,11 +1,10 @@
-// lib/src/features/patient_home/presentation/pages/patient_home_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\presentation\pages\patient_home_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/presentation/pages/data_form_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_model.dart';
-//import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/presentation/pages/patient_detail_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/services/user_service.dart';
@@ -61,10 +60,9 @@ class _PatientHomePageState extends State<PatientHomePage> {
   // Logika Firestore tetap di sini; hanya callback yang diteruskan ke card.
   Future<void> _togglePatientStatus(String docId, bool currentStatus) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('patients')
-          .doc(docId)
-          .update({'isCompleted': !currentStatus});
+      await FirebaseFirestore.instance.collection('patients').doc(docId).update(
+        {'isCompleted': !currentStatus},
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -81,9 +79,9 @@ class _PatientHomePageState extends State<PatientHomePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengupdate status: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal mengupdate status: $e')));
       }
     }
   }
@@ -142,8 +140,10 @@ class _PatientHomePageState extends State<PatientHomePage> {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
         ),
         style: const TextStyle(fontSize: 16),
       ),
@@ -163,8 +163,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError || !snapshot.hasData) {
-              return const Center(
-                  child: Text('Gagal memuat data pengguna.'));
+              return const Center(child: Text('Gagal memuat data pengguna.'));
             }
 
             final userRole = snapshot.data;
@@ -211,8 +210,8 @@ class _PatientHomePageState extends State<PatientHomePage> {
                           // Inbox
                           _buildIconContainer(
                             child: StreamBuilder<QuerySnapshot>(
-                              stream:
-                                  SharePatientService().getPendingRequests(),
+                              stream: SharePatientService()
+                                  .getPendingRequests(),
                               builder: (context, snapshot) {
                                 int pendingCount = 0;
                                 if (snapshot.hasData) {
@@ -223,8 +222,10 @@ class _PatientHomePageState extends State<PatientHomePage> {
                                   isLabelVisible: pendingCount > 0,
                                   backgroundColor: Colors.red,
                                   child: IconButton(
-                                    icon: const Icon(Icons.move_to_inbox,
-                                        color: Colors.blue),
+                                    icon: const Icon(
+                                      Icons.move_to_inbox,
+                                      color: Colors.blue,
+                                    ),
                                     tooltip: 'Kotak Masuk Rujukan',
                                     onPressed: () {
                                       Navigator.push(
@@ -246,20 +247,21 @@ class _PatientHomePageState extends State<PatientHomePage> {
 
                     // ── Daftar Pasien ──────────────────────────────────────
                     Expanded(
-                      child: StreamBuilder<
-                          QuerySnapshot<Map<String, dynamic>>>(
+                      child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                         stream: patientQuery.snapshots(
-                            includeMetadataChanges: true),
+                          includeMetadataChanges: true,
+                        ),
                         builder: (context, streamSnapshot) {
                           if (streamSnapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const Center(
-                                child: CircularProgressIndicator());
+                              child: CircularProgressIndicator(),
+                            );
                           }
                           if (streamSnapshot.hasError) {
                             return Center(
-                                child: Text(
-                                    'Error: ${streamSnapshot.error}'));
+                              child: Text('Error: ${streamSnapshot.error}'),
+                            );
                           }
                           if (!streamSnapshot.hasData ||
                               streamSnapshot.data!.docs.isEmpty) {
@@ -267,13 +269,18 @@ class _PatientHomePageState extends State<PatientHomePage> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.people_outline,
-                                      size: 60, color: Colors.grey),
+                                  Icon(
+                                    Icons.people_outline,
+                                    size: 60,
+                                    color: Colors.grey,
+                                  ),
                                   SizedBox(height: 16),
                                   Text(
                                     'Belum ada data pasien',
                                     style: TextStyle(
-                                        fontSize: 18, color: Colors.grey),
+                                      fontSize: 18,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                   Text(
                                     'Tekan tombol + untuk menambah data baru',
@@ -289,8 +296,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
 
                           final filteredPatients = patients.where((doc) {
                             final data = doc.data();
-                            final searchQueryLower =
-                                _searchQuery.toLowerCase();
+                            final searchQueryLower = _searchQuery.toLowerCase();
 
                             bool matchesSearch = false;
                             final String namaLengkap =
@@ -299,17 +305,17 @@ class _PatientHomePageState extends State<PatientHomePage> {
 
                             matchesSearch =
                                 namaLengkap.toLowerCase().contains(
-                                        searchQueryLower) ||
-                                    noRM.toLowerCase().contains(
-                                        searchQueryLower);
+                                  searchQueryLower,
+                                ) ||
+                                noRM.toLowerCase().contains(searchQueryLower);
 
                             if (!matchesSearch &&
-                                (data['tipePasien'] ?? 'dewasa') ==
-                                    'dewasa') {
+                                (data['tipePasien'] ?? 'dewasa') == 'dewasa') {
                               final String diagnosisMedis =
                                   data['diagnosisMedis'] ?? '';
                               if (diagnosisMedis.toLowerCase().contains(
-                                  searchQueryLower)) {
+                                searchQueryLower,
+                              )) {
                                 matchesSearch = true;
                               }
                             }
@@ -330,18 +336,15 @@ class _PatientHomePageState extends State<PatientHomePage> {
                                 timeA?.toDate() ?? DateTime(1900);
                             final DateTime dateB =
                                 timeB?.toDate() ?? DateTime(1900);
-                            final int dateComparison =
-                                dateB.compareTo(dateA);
+                            final int dateComparison = dateB.compareTo(dateA);
                             if (dateComparison != 0) return dateComparison;
 
-                            final String nameA =
-                                (dataA['namaLengkap'] ?? '')
-                                    .toString()
-                                    .toLowerCase();
-                            final String nameB =
-                                (dataB['namaLengkap'] ?? '')
-                                    .toString()
-                                    .toLowerCase();
+                            final String nameA = (dataA['namaLengkap'] ?? '')
+                                .toString()
+                                .toLowerCase();
+                            final String nameB = (dataB['namaLengkap'] ?? '')
+                                .toString()
+                                .toLowerCase();
                             return nameA.compareTo(nameB);
                           });
 
@@ -365,21 +368,22 @@ class _PatientHomePageState extends State<PatientHomePage> {
                                         patient: patientAnak,
                                         onToggleStatus: () =>
                                             _togglePatientStatus(
-                                          patientAnak.id,
-                                          patientAnak.isCompleted,
-                                        ),
+                                              patientAnak.id,
+                                              patientAnak.isCompleted,
+                                            ),
                                       );
                                     } else {
                                       // ── Card Pasien Dewasa ───────────
-                                      final patient =
-                                          Patient.fromFirestore(doc);
+                                      final patient = Patient.fromFirestore(
+                                        doc,
+                                      );
                                       return PatientListCard(
                                         patient: patient,
                                         onToggleStatus: () =>
                                             _togglePatientStatus(
-                                          patient.id,
-                                          patient.isCompleted,
-                                        ),
+                                              patient.id,
+                                              patient.isCompleted,
+                                            ),
                                       );
                                     }
                                   },
@@ -423,8 +427,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (_) => const DataFormAnakPage()),
+                MaterialPageRoute(builder: (_) => const DataFormAnakPage()),
               );
             },
           ),

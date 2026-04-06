@@ -1,4 +1,4 @@
-// lib/src/features/diabetes_calculation/data/models/food_group_diet_model.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\diabetes_calculation\data\models\food_group_diet_model.dart
 
 /// Standar diet golongan bahan makanan berdasarkan tingkat kalori.
 class FoodGroupDiet {

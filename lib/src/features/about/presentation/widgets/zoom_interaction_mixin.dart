@@ -1,12 +1,14 @@
+// lib\src\features\about\presentation\widgets\zoom_interaction_mixin.dart
+
 import 'package:flutter/material.dart';
 
 /// Mixin untuk menangani logika zooming pada TransformationController.
 /// Digunakan pada State kelas yang memiliki InteractiveViewer.
 mixin ZoomInteractionMixin<T extends StatefulWidget> on State<T> {
   late final TransformationController transformationController;
-  
+
   TapDownDetails? _doubleTapDetails;
-  
+
   // State lokal untuk memantau apakah sedang di-zoom atau tidak
   bool isZoomed = false;
 
@@ -53,15 +55,19 @@ mixin ZoomInteractionMixin<T extends StatefulWidget> on State<T> {
     } else {
       // Jika ukuran asli, zoom in ke titik yang disentuh
       final position = _doubleTapDetails!.localPosition;
-      
+
       const double targetScale = 2.5;
       // Rumus translasi agar titik tap tetap di tengah saat di-zoom
       final x = -position.dx * (targetScale - 1);
       final y = -position.dy * (targetScale - 1);
 
       final translationMatrix = Matrix4.translationValues(x, y, 0.0);
-      final scaleMatrix = Matrix4.diagonal3Values(targetScale, targetScale, 1.0);
-      
+      final scaleMatrix = Matrix4.diagonal3Values(
+        targetScale,
+        targetScale,
+        1.0,
+      );
+
       transformationController.value = translationMatrix..multiply(scaleMatrix);
     }
   }

@@ -1,4 +1,4 @@
-// lib\src\shared\widgets\food_filter_model.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\food_database\data\models\food_filter_model.dart
 
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
 
@@ -6,10 +6,7 @@ class FoodFilterModel {
   final String? kelompokMakanan;
   final String? mentahOlahan;
 
-  FoodFilterModel({
-    this.kelompokMakanan,
-    this.mentahOlahan,
-  });
+  FoodFilterModel({this.kelompokMakanan, this.mentahOlahan});
 
   /// Cek apakah ada filter yang aktif
   bool get isDefault {

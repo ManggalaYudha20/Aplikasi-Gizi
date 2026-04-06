@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\consultation\presentation\pages\nutritionist_profile_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 
@@ -14,21 +16,24 @@ class NutritionistProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Mapping data, berikan fallback jika null
-    final String name = nutritionistData['displayName'] ?? 'Nama Tidak Diketahui';
-    final String photoUrl = (nutritionistData['photoURL'] != null && nutritionistData['photoURL'].toString().isNotEmpty)
+    final String name =
+        nutritionistData['displayName'] ?? 'Nama Tidak Diketahui';
+    final String photoUrl =
+        (nutritionistData['photoURL'] != null &&
+            nutritionistData['photoURL'].toString().isNotEmpty)
         ? nutritionistData['photoURL']
         : 'https://via.placeholder.com/150';
     final String role = nutritionistData['spesialisasi'] ?? 'Nutrisionis';
-    final String alumni = nutritionistData['alumni'] ?? 'Universitas Tidak Diketahui';
+    final String alumni =
+        nutritionistData['alumni'] ?? 'Universitas Tidak Diketahui';
     final String strNumber = nutritionistData['nomor_str'] ?? '-';
-    final String description = nutritionistData['deskripsi'] ?? 'Belum ada deskripsi profil untuk Nutrisionis ini.';
+    final String description =
+        nutritionistData['deskripsi'] ??
+        'Belum ada deskripsi profil untuk Nutrisionis ini.';
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(
-        title: 'Profil Nutrisionis',
-        subtitle: '',
-      ),
+      appBar: const CustomAppBar(title: 'Profil Nutrisionis', subtitle: ''),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -54,10 +59,7 @@ class NutritionistProfilePage extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     role,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                   ),
                 ],
               ),
@@ -65,7 +67,7 @@ class NutritionistProfilePage extends StatelessWidget {
             const SizedBox(height: 32),
             const Divider(),
             const SizedBox(height: 16),
-            
+
             // Bagian Biodata
             const Text(
               'Biodata',
@@ -76,7 +78,7 @@ class NutritionistProfilePage extends StatelessWidget {
             const SizedBox(height: 12),
             _buildBiodataRow(Icons.badge, 'No. STR', strNumber),
             const SizedBox(height: 24),
-            
+
             // Bagian Deskripsi
             const Text(
               'Tentang',
@@ -98,7 +100,9 @@ class NutritionistProfilePage extends StatelessWidget {
           child: ElevatedButton(
             key: const ValueKey('btn_profile_start_chat'),
             onPressed: () {
-              debugPrint('Mulai chat dari profil dengan $name (UID: $nutritionistId)');
+              debugPrint(
+                'Mulai chat dari profil dengan $name (UID: $nutritionistId)',
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
@@ -134,7 +138,10 @@ class NutritionistProfilePage extends StatelessWidget {
               ),
               Text(
                 value,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),

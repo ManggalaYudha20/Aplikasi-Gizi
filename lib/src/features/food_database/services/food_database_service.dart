@@ -1,4 +1,4 @@
-// lib/src/features/food_database/services/food_database_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\food_database\services\food_database_service.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
@@ -18,11 +18,16 @@ class FoodDatabaseService {
   /// Mengembalikan [Stream] yang memancarkan daftar [FoodItem] setiap kali
   /// data di Firestore berubah, diurutkan berdasarkan nama (a–z).
   Stream<List<FoodItem>> getFoodItemsStream() {
-    return _collection.orderBy('nama').snapshots().map(
+    return _collection
+        .orderBy('nama')
+        .snapshots()
+        .map(
           (snapshot) => snapshot.docs
-              .map((doc) => FoodItem.fromFirestore(
-                    doc as DocumentSnapshot<Map<String, dynamic>>,
-                  ))
+              .map(
+                (doc) => FoodItem.fromFirestore(
+                  doc as DocumentSnapshot<Map<String, dynamic>>,
+                ),
+              )
               .toList(),
         );
   }

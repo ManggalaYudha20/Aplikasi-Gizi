@@ -1,4 +1,4 @@
-// lib/src/features/statistics/presentation/pages/statistics_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\statistics\presentation\pages\statistics_page.dart
 
 import 'dart:ui' as ui;
 
@@ -22,17 +22,17 @@ import 'package:aplikasi_diagnosa_gizi/src/features/statistics/presentation/widg
 // Centralised key registry – import this file in Katalon helper scripts.
 class StatisticsKeys {
   StatisticsKeys._();
-  static const dateFilterButton  = ValueKey('stats_date_filter_btn');
-  static const categoryDropdown  = ValueKey('stats_category_dropdown');
-  static const chartTypeToggle   = ValueKey('stats_chart_type_toggle');
-  static const pieChartButton    = ValueKey('stats_chart_type_pie_btn');
-  static const barChartButton    = ValueKey('stats_chart_type_bar_btn');
-  static const chartContainer    = ValueKey('stats_chart_container');
+  static const dateFilterButton = ValueKey('stats_date_filter_btn');
+  static const categoryDropdown = ValueKey('stats_category_dropdown');
+  static const chartTypeToggle = ValueKey('stats_chart_type_toggle');
+  static const pieChartButton = ValueKey('stats_chart_type_pie_btn');
+  static const barChartButton = ValueKey('stats_chart_type_bar_btn');
+  static const chartContainer = ValueKey('stats_chart_container');
   static const downloadPdfButton = ValueKey('stats_download_pdf_btn');
   static const summaryCardPasien = ValueKey('stats_summary_card_pasien');
-  static const summaryCardUser   = ValueKey('stats_summary_card_user');
-  static const indicatorList     = ValueKey('stats_indicator_list');
-  static const loadingIndicator  = ValueKey('stats_loading_indicator');
+  static const summaryCardUser = ValueKey('stats_summary_card_user');
+  static const indicatorList = ValueKey('stats_indicator_list');
+  static const loadingIndicator = ValueKey('stats_loading_indicator');
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -102,9 +102,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
   // ─── Stream ──────────────────────────────────────────────────────────────────
   void _updateStream() {
     setState(() {
-      _patientsStream = StatisticsFetchService
-          .buildPatientsQuery(isAdmin: _isAdmin)
-          .snapshots(includeMetadataChanges: false);
+      _patientsStream = StatisticsFetchService.buildPatientsQuery(
+        isAdmin: _isAdmin,
+      ).snapshots(includeMetadataChanges: false);
     });
   }
 
@@ -147,13 +147,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
         );
         if (picked == null) return; // user cancelled
         start = picked.start;
-        end   = picked.end;
+        end = picked.end;
         label =
             "${picked.start.day}/${picked.start.month} – ${picked.end.day}/${picked.end.month}";
         break;
       case DateFilterType.all:
         start = null;
-        end   = null;
+        end = null;
         label = "Semua Waktu";
         break;
     }
@@ -180,13 +180,15 @@ class _StatisticsPageState extends State<StatisticsPage> {
   ///     native ui.Image before the async PDF build begins.
   Future<Uint8List?> _captureChart() async {
     try {
-      final boundary = _chartKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
+      final boundary =
+          _chartKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary == null) return null;
 
       final ui.Image image = await boundary.toImage(pixelRatio: 2.0);
-      final ByteData? byteData =
-          await image.toByteData(format: ui.ImageByteFormat.png);
+      final ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
 
       image.dispose(); // ✅ release native image immediately
 
@@ -224,7 +226,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 }
                 if (snapshot.hasError) {
                   return const Center(
-                      child: Text("Terjadi kesalahan memuat data"));
+                    child: Text("Terjadi kesalahan memuat data"),
+                  );
                 }
 
                 // ── Filter & Aggregate ───────────────────────────────────────
@@ -235,17 +238,18 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 );
                 final int totalPasien = filteredDocs.length;
 
-                final aggregated =
-                    StatisticsFetchService.aggregatePatientData(filteredDocs);
+                final aggregated = StatisticsFetchService.aggregatePatientData(
+                  filteredDocs,
+                );
 
                 // ── Resolve Chart Config ─────────────────────────────────────
                 final ChartConfig chartConfig =
                     StatisticsFetchService.buildChartConfig(
-                  selectedCategory: _selectedCategory,
-                  data: aggregated,
-                  userStats: _userStats,
-                  isAdmin: _isAdmin,
-                );
+                      selectedCategory: _selectedCategory,
+                      data: aggregated,
+                      userStats: _userStats,
+                      isAdmin: _isAdmin,
+                    );
 
                 // ── Layout ───────────────────────────────────────────────────
                 return FadeInTransition(
@@ -279,8 +283,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                               Expanded(
                                 child: _buildSummaryCard(
                                   key: StatisticsKeys.summaryCardUser,
-                                  semanticIdentifier:
-                                      'summary_card_total_user',
+                                  semanticIdentifier: 'summary_card_total_user',
                                   semanticLabel:
                                       'Kartu ringkasan Total Pengguna, ${_userStats?.totalUsers ?? 0} pengguna terdaftar',
                                   title: "Total Pengguna",
@@ -354,8 +357,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                               padding: EdgeInsets.all(sp),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius:
-                                    BorderRadius.circular(cardRadius),
+                                borderRadius: BorderRadius.circular(cardRadius),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.grey.withValues(alpha: 0.1),
@@ -413,16 +415,17 @@ class _StatisticsPageState extends State<StatisticsPage> {
                                 try {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                        content: Text("Membuat File PDF...")),
+                                      content: Text("Membuat File PDF..."),
+                                    ),
                                   );
                                   final Uint8List? chartImage =
                                       await _captureChart();
                                   final dataToSend =
                                       chartConfig.dataMap.length == 1 &&
-                                              chartConfig.dataMap.keys.first ==
-                                                  "Tidak ada data"
-                                          ? {"Tidak ada data": 0.0}
-                                          : chartConfig.dataMap;
+                                          chartConfig.dataMap.keys.first ==
+                                              "Tidak ada data"
+                                      ? {"Tidak ada data": 0.0}
+                                      : chartConfig.dataMap;
 
                                   await StatisticsPdfService.generateAndOpenPdf(
                                     chartTitle: chartConfig.title,
@@ -436,13 +439,15 @@ class _StatisticsPageState extends State<StatisticsPage> {
                                   if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                        content:
-                                            Text("Gagal membuka PDF: $e")),
+                                      content: Text("Gagal membuka PDF: $e"),
+                                    ),
                                   );
                                 }
                               },
-                              icon: const Icon(Icons.download,
-                                  color: Colors.white),
+                              icon: const Icon(
+                                Icons.download,
+                                color: Colors.white,
+                              ),
                               label: const Text(
                                 "Download Laporan PDF",
                                 style: TextStyle(
@@ -506,8 +511,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style: const TextStyle(color: Colors.white, fontSize: 12)),
+            Text(
+              title,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
             const SizedBox(height: 4),
             Text(
               "$count",
@@ -546,8 +553,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
         final String percentageStr = isDummy
             ? "0%"
             : (total > 0
-                ? "${((value / total) * 100).toStringAsFixed(1)}%"
-                : "0%");
+                  ? "${((value / total) * 100).toStringAsFixed(1)}%"
+                  : "0%");
         final String countStr = isDummy ? "0" : "${value.toInt()}";
 
         return Semantics(
@@ -600,7 +607,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 6),
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(20),

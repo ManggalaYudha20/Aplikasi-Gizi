@@ -1,4 +1,4 @@
-// lib/src/features/kidney_calculation/presentation/widgets/kidney_dynamic_menu_section.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\kidney_calculation\presentation\widgets\kidney_dynamic_menu_section.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/data/models/kidney_menu_models.dart';
@@ -9,7 +9,8 @@ import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/services/
 class KidneyDynamicMenuSection extends StatefulWidget {
   final bool isLoading;
   final List<KidneyMealSession>? generatedMenu;
-  final Function(KidneyMenuItem item, int sessionIndex, int itemIndex) onEditItem;
+  final Function(KidneyMenuItem item, int sessionIndex, int itemIndex)
+  onEditItem;
   final String patientName;
 
   const KidneyDynamicMenuSection({
@@ -167,7 +168,11 @@ class _KidneyDynamicMenuSectionState extends State<KidneyDynamicMenuSection> {
                           '${item.weight.toStringAsFixed(0)}g (${item.urt})',
                         ),
                         trailing: IconButton(
-                          icon: const Icon(Icons.edit, size: 20, color: Colors.grey),
+                          icon: const Icon(
+                            Icons.edit,
+                            size: 20,
+                            color: Colors.grey,
+                          ),
                           onPressed: () =>
                               widget.onEditItem(item, sessionIndex, idx),
                         ),

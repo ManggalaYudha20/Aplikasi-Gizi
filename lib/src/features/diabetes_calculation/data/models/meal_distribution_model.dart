@@ -1,4 +1,4 @@
-// lib/src/features/diabetes_calculation/data/models/meal_distribution_model.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\diabetes_calculation\data\models\meal_distribution_model.dart
 
 /// Data nutrisi per satu waktu makan (pagi / snack / siang / malam).
 class MealDistribution {

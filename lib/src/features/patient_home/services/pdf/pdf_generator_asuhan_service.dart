@@ -1,4 +1,4 @@
-// lib/src/features/patient_home/services/pdf/pdf_generator_asuhan_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\services\pdf\pdf_generator_asuhan_service.dart
 //
 // Dipindahkan dari: presentation/pages/pdf_generator_asuhan.dart
 // Perubahan       : Class diubah namanya PdfGeneratorAsuhan → PdfGeneratorAsuhanService.
@@ -21,7 +21,9 @@ class PdfGeneratorAsuhanService {
     final rsLogoData = await rootBundle.load('assets/images/logo.png');
     final sulutLogo = pw.MemoryImage(sulutLogoData.buffer.asUint8List());
     final rsLogo = pw.MemoryImage(rsLogoData.buffer.asUint8List());
-    final DateTime pemeriksaanWita = patient.tanggalPemeriksaan.toUtc().add(const Duration(hours: 8));
+    final DateTime pemeriksaanWita = patient.tanggalPemeriksaan.toUtc().add(
+      const Duration(hours: 8),
+    );
     // Mendefinisikan ukuran F4 (210mm x 330mm)
     //const f4Format = PdfPageFormat(210 * PdfPageFormat.mm, 330 * PdfPageFormat.mm);
 
@@ -125,7 +127,7 @@ class PdfGeneratorAsuhanService {
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
             child: pw.Column(
               children: [
-              _buildAssessmentCategorysatu(
+                _buildAssessmentCategorysatu(
                   'Riwayat Gizi /FH (Food History)',
                   [
                     pw.Row(
@@ -136,11 +138,20 @@ class PdfGeneratorAsuhanService {
                           child: pw.Column(
                             crossAxisAlignment: pw.CrossAxisAlignment.start,
                             children: [
-                              _buildInfoRowSatu('Alergi Makanan', ': ${patient.alergiMakanan ?? '-'}'),
+                              _buildInfoRowSatu(
+                                'Alergi Makanan',
+                                ': ${patient.alergiMakanan ?? '-'}',
+                              ),
                               if (patient.alergiMakanan == 'Ya')
-                                _buildInfoRowSatu('Detail Alergi', ': ${patient.detailAlergi ?? ''}'),
+                                _buildInfoRowSatu(
+                                  'Detail Alergi',
+                                  ': ${patient.detailAlergi ?? ''}',
+                                ),
                               pw.SizedBox(height: 5),
-                              _buildInfoRowSatu('Pola Makan / Asupan (%)', ': ${patient.polaMakan ?? '-'}'),
+                              _buildInfoRowSatu(
+                                'Pola Makan / Asupan (%)',
+                                ': ${patient.polaMakan ?? '-'}',
+                              ),
                             ],
                           ),
                         ),
@@ -151,13 +162,28 @@ class PdfGeneratorAsuhanService {
                             children: [
                               pw.Text(
                                 'Kebiasaan & Aktivitas:',
-                                style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+                                style: pw.TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
                               ),
                               pw.SizedBox(height: 2),
-                              _buildCheckboxRow('Suka Manis/Gula', patient.sukaManis ?? false),
-                              _buildCheckboxRow('Suka Asin/Garam', patient.sukaAsin ?? false),
-                              _buildCheckboxRow('Suka Berlemak/Gorengan', patient.makanBerlemak ?? false),
-                              _buildCheckboxRow('Jarang Olahraga', patient.jarangOlahraga ?? false),
+                              _buildCheckboxRow(
+                                'Suka Manis/Gula',
+                                patient.sukaManis ?? false,
+                              ),
+                              _buildCheckboxRow(
+                                'Suka Asin/Garam',
+                                patient.sukaAsin ?? false,
+                              ),
+                              _buildCheckboxRow(
+                                'Suka Berlemak/Gorengan',
+                                patient.makanBerlemak ?? false,
+                              ),
+                              _buildCheckboxRow(
+                                'Jarang Olahraga',
+                                patient.jarangOlahraga ?? false,
+                              ),
                             ],
                           ),
                         ),
@@ -165,35 +191,32 @@ class PdfGeneratorAsuhanService {
                     ),
                   ],
                 ),
-                _buildAssessmentCategorysatu(
-                  'Biokimia /BD (Biochemical Data)',
-                  [
-                    if (patient.labResults.isEmpty)
-                      pw.Text('-', style: const pw.TextStyle(fontSize: 9))
-                    else
-                      // LOOPING: Tambah i sebanyak 4 setiap iterasi (4 Kolom per baris)
-                      for (var i = 0; i < patient.labResults.length; i += 4)
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.symmetric(vertical: 2),
-                          child: pw.Row(
-                            crossAxisAlignment: pw.CrossAxisAlignment.start,
-                            children: [
-                              // KOLOM 1
-                              _buildCompactLabItem(patient.labResults, i),
-                              
-                              // KOLOM 2
-                              _buildCompactLabItem(patient.labResults, i + 1),
-                              
-                              // KOLOM 3
-                              _buildCompactLabItem(patient.labResults, i + 2),
-                              
-                              // KOLOM 4
-                              _buildCompactLabItem(patient.labResults, i + 3),
-                            ],
-                          ),
+                _buildAssessmentCategorysatu('Biokimia /BD (Biochemical Data)', [
+                  if (patient.labResults.isEmpty)
+                    pw.Text('-', style: const pw.TextStyle(fontSize: 9))
+                  else
+                    // LOOPING: Tambah i sebanyak 4 setiap iterasi (4 Kolom per baris)
+                    for (var i = 0; i < patient.labResults.length; i += 4)
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.symmetric(vertical: 2),
+                        child: pw.Row(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            // KOLOM 1
+                            _buildCompactLabItem(patient.labResults, i),
+
+                            // KOLOM 2
+                            _buildCompactLabItem(patient.labResults, i + 1),
+
+                            // KOLOM 3
+                            _buildCompactLabItem(patient.labResults, i + 2),
+
+                            // KOLOM 4
+                            _buildCompactLabItem(patient.labResults, i + 3),
+                          ],
                         ),
-                  ],
-                ),
+                      ),
+                ]),
                 _buildAssessmentCategorysatu(
                   'Antropometri /AD (Anthropometric Data)',
                   [
@@ -231,8 +254,14 @@ class PdfGeneratorAsuhanService {
                 _buildAssessmentCategorysatu(
                   'Riwayat Personal /CH (Client History)',
                   [
-                    _buildInfoRowSatu('RPS :', ' ${patient.riwayatPenyakitSekarang ?? '-'}'),
-                    _buildInfoRowSatu('RPD :', ' ${patient.riwayatPenyakitDahulu ?? '-'}'),
+                    _buildInfoRowSatu(
+                      'RPS :',
+                      ' ${patient.riwayatPenyakitSekarang ?? '-'}',
+                    ),
+                    _buildInfoRowSatu(
+                      'RPD :',
+                      ' ${patient.riwayatPenyakitDahulu ?? '-'}',
+                    ),
                   ],
                 ),
               ],
@@ -242,13 +271,11 @@ class PdfGeneratorAsuhanService {
           // C, D, E
           _buildSectionHeader('C. DIAGNOSA GIZI'),
           pw.Container(
-            width: double.infinity, // <-- Tambahkan ini agar container mengisi lebar
+            width: double
+                .infinity, // <-- Tambahkan ini agar container mengisi lebar
             padding: const pw.EdgeInsets.all(4),
             decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
-            child: _buildInfoRowSatu(
-              ' ${patient.diagnosaGizi ?? '-'} ',
-              '',
-            ),
+            child: _buildInfoRowSatu(' ${patient.diagnosaGizi ?? '-'} ', ''),
           ),
 
           _buildSectionHeader('D. INTERVENSI GIZI'),
@@ -260,9 +287,9 @@ class PdfGeneratorAsuhanService {
               children: [
                 _buildAssessmentItemRow(
                   'Energi : ${patient.tdee.toStringAsFixed(0)} kkal',
-                  'Protein : ${((15/100) * patient.tdee / 4).toStringAsFixed(0)} gram',
-                  'Lemak : ${((25/100) * patient.tdee / 9).toStringAsFixed(0)} gram',
-                  'Karbohidrat : ${((60/100) * patient.tdee / 4).toStringAsFixed(0)} gram',
+                  'Protein : ${((15 / 100) * patient.tdee / 4).toStringAsFixed(0)} gram',
+                  'Lemak : ${((25 / 100) * patient.tdee / 9).toStringAsFixed(0)} gram',
+                  'Karbohidrat : ${((60 / 100) * patient.tdee / 4).toStringAsFixed(0)} gram',
                 ),
                 _buildAssessmentItemRow(
                   'BM : ${patient.intervensiBentukMakanan ?? '-'}',
@@ -296,10 +323,11 @@ class PdfGeneratorAsuhanService {
                   'Asupan Makanan :',
                   ' ${patient.monevAsupan ?? '-'} ',
                 ),
-                _buildInfoRowSatu('Status gizi :', ' ${patient.monevStatusGizi ?? '-'} '),
-                _buildInfoRowSatu( 
-                  patient.monevHasilLab ?? '-',''
+                _buildInfoRowSatu(
+                  'Status gizi :',
+                  ' ${patient.monevStatusGizi ?? '-'} ',
                 ),
+                _buildInfoRowSatu(patient.monevHasilLab ?? '-', ''),
               ],
             ),
           ),
@@ -380,10 +408,7 @@ class PdfGeneratorAsuhanService {
     // Jika index melebihi jumlah data, kembalikan Container kosong (spacer)
     // agar alignment kolom tetap terjaga
     if (index >= data.length) {
-      return pw.Expanded(
-        flex: 1,
-        child: pw.Container(),
-      );
+      return pw.Expanded(flex: 1, child: pw.Container());
     }
 
     final key = data.keys.elementAt(index);
@@ -395,7 +420,9 @@ class PdfGeneratorAsuhanService {
         padding: const pw.EdgeInsets.only(right: 4),
         child: pw.Text(
           '$key : $value', // Tips: Hapus 'mg/dl' jika ingin muat lebih banyak, atau biarkan jika perlu
-          style: const pw.TextStyle(fontSize: 8), // Font diperkecil sedikit ke 8 agar muat 4 kolom
+          style: const pw.TextStyle(
+            fontSize: 8,
+          ), // Font diperkecil sedikit ke 8 agar muat 4 kolom
           softWrap: true,
         ),
       ),
@@ -472,28 +499,29 @@ class PdfGeneratorAsuhanService {
   }
 
   static pw.Widget _buildInfoRowSatu(String label1, String value1) {
-  return pw.Padding(
-    padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-    child: pw.Row(
-      crossAxisAlignment: pw.CrossAxisAlignment.start, // <-- PENTING: Agar rata atas
-      children: [
-        // Label tidak perlu diubah
-        pw.Text(label1, style: const pw.TextStyle(fontSize: 9)),
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: pw.Row(
+        crossAxisAlignment:
+            pw.CrossAxisAlignment.start, // <-- PENTING: Agar rata atas
+        children: [
+          // Label tidak perlu diubah
+          pw.Text(label1, style: const pw.TextStyle(fontSize: 9)),
 
-        // Hapus SizedBox, karena Expanded akan menangani ruang
-        
-        // Bungkus nilai dengan Expanded
-        pw.Expanded(
-          child: pw.Text(
-            value1,
-            style: const pw.TextStyle(fontSize: 9),
-            // softWrap: true, // Ini adalah default, tapi bisa ditulis eksplisit
+          // Hapus SizedBox, karena Expanded akan menangani ruang
+
+          // Bungkus nilai dengan Expanded
+          pw.Expanded(
+            child: pw.Text(
+              value1,
+              style: const pw.TextStyle(fontSize: 9),
+              // softWrap: true, // Ini adalah default, tapi bisa ditulis eksplisit
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   // Fungsi bantuan untuk membuat header seksi
   static pw.Widget _buildSectionHeader(String title) {
@@ -545,7 +573,7 @@ class PdfGeneratorAsuhanService {
       ],
     );
   }
-  
+
   // --- Fungsi Bantuan untuk Simpan dan Buka File (Sama seperti pdf_generator.dart) ---
   static Future<File> saveDocument({
     required String name,

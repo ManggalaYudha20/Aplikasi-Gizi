@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\admin\repositories\user_repository.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/models/user_model.dart';
 
@@ -5,7 +7,7 @@ class UserRepository {
   final FirebaseFirestore _firestore;
 
   UserRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   // Stream data user yang sudah dikonversi ke List<UserModel>
   Stream<List<UserModel>> getUsersStream() {
@@ -38,8 +40,8 @@ class UserRepository {
       // CATATAN: Sesuaikan nama koleksi 'patients' dan field 'userId' dengan struktur database Anda.
       // Jika pasien berada di sub-koleksi user, gunakan: await userRef.collection('patients').get();
       QuerySnapshot patientSnapshot = await _firestore
-          .collection('patients') 
-          .where('createdBy', isEqualTo: userId) 
+          .collection('patients')
+          .where('createdBy', isEqualTo: userId)
           .get();
 
       // Tambahkan instruksi hapus pasien ke dalam batch

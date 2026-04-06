@@ -1,3 +1,5 @@
+// lib\src\features\about\presentation\widgets\zoomable_image_widget.dart
+
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/about/presentation/widgets/zoom_interaction_mixin.dart';
 
@@ -19,9 +21,8 @@ class ZoomableImageWidget extends StatefulWidget {
   State<ZoomableImageWidget> createState() => _ZoomableImageWidgetState();
 }
 
-class _ZoomableImageWidgetState extends State<ZoomableImageWidget> 
+class _ZoomableImageWidgetState extends State<ZoomableImageWidget>
     with ZoomInteractionMixin {
-  
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -29,7 +30,7 @@ class _ZoomableImageWidgetState extends State<ZoomableImageWidget>
         return InteractiveViewer(
           transformationController: transformationController,
           // Pan hanya aktif jika gambar sedang di-zoom (UX Standard)
-          panEnabled: isZoomed, 
+          panEnabled: isZoomed,
           boundaryMargin: const EdgeInsets.all(20),
           minScale: widget.minScale,
           maxScale: widget.maxScale,
@@ -40,7 +41,7 @@ class _ZoomableImageWidgetState extends State<ZoomableImageWidget>
               widget.assetPath,
               fit: BoxFit.fitWidth,
               // Memastikan lebar gambar mengikuti parent
-              width: constraints.maxWidth, 
+              width: constraints.maxWidth,
             ),
           ),
         );

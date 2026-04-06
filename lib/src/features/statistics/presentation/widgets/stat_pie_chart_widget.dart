@@ -1,4 +1,4 @@
-// lib/src/features/statistics/presentation/widgets/stat_pie_chart_widget.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\statistics\presentation\widgets\stat_pie_chart_widget.dart
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -27,8 +27,7 @@ class StatPieChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double total =
-        dataMap.values.fold(0, (prev, item) => prev + item);
+    final double total = dataMap.values.fold(0, (prev, item) => prev + item);
 
     if (total == 0 ||
         (dataMap.length == 1 && dataMap.keys.first == "Tidak ada data")) {
@@ -54,8 +53,9 @@ class StatPieChartWidget extends StatelessWidget {
         sections: List.generate(dataMap.length, (i) {
           final bool isTouched = i == touchedIndex;
           final double value = dataMap.values.elementAt(i);
-          final String percentage =
-              total > 0 ? (value / total * 100).toStringAsFixed(1) : "0";
+          final String percentage = total > 0
+              ? (value / total * 100).toStringAsFixed(1)
+              : "0";
 
           return PieChartSectionData(
             color: colors[i % colors.length],

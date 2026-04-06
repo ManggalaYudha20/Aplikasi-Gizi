@@ -1,4 +1,4 @@
-// lib\src\features\patient_home\data\models\patient_anak_model.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\data\models\patient_anak_model.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -11,7 +11,7 @@ class PatientAnak {
   final DateTime tanggalLahir;
   final String jenisKelamin;
   final num beratBadan;
-  final num tinggiBadan; 
+  final num tinggiBadan;
   final DateTime tanggalPemeriksaan;
   final String createdBy;
   final String tipePasien; // Wajib: 'anak'
@@ -26,7 +26,7 @@ class PatientAnak {
   final double? zScoreIMTU;
   final String? statusGiziBBTB;
   final String? statusGiziIMTU;
-  
+
   // --- Antropometri Tambahan ---
   final double? lila; // Lingkar Lengan Atas
   final double? lingkarKepala; // LK
@@ -57,7 +57,7 @@ class PatientAnak {
   final String? riwayatPenyakitSekarang;
   final String? riwayatPenyakitDahulu;
   final String? alergiMakanan; // Tambahan umum
-  final String? polaMakan;     // Tambahan umum
+  final String? polaMakan; // Tambahan umum
 
   // 4. Diagnosa Gizi
   final String? diagnosaGizi;
@@ -102,7 +102,7 @@ class PatientAnak {
     this.lingkarKepala,
     this.bbi,
     this.faktorAktivitas,
-  this.faktorStres,
+    this.faktorStres,
     this.labResults = const {},
     this.klinikTD,
     this.klinikNadi,
@@ -126,7 +126,9 @@ class PatientAnak {
     this.monevIndikator,
   });
 
-  factory PatientAnak.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory PatientAnak.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final data = doc.data()!;
 
     // --- FUNGSI BANTUAN (HELPER) ---
@@ -144,7 +146,7 @@ class PatientAnak {
         final v = val.toLowerCase();
         if (v == 'ya') return 2;
         if (v == 'tidak') return 0;
-        
+
         // Mapping Nafsu Makan
         if (v.contains('biasa')) return 0;
         if (v.contains('penurunan')) return 1;
@@ -172,7 +174,9 @@ class PatientAnak {
       diagnosisMedis: data['diagnosisMedis'] ?? '',
 
       // Data anak
-      statusGiziBBU: (data['statusGiziBBU'] as String?) ?? (data['statusGiziAnak'] as String?),
+      statusGiziBBU:
+          (data['statusGiziBBU'] as String?) ??
+          (data['statusGiziAnak'] as String?),
       // Field baru
       statusGiziTBU: data['statusGiziTBU'] as String?,
       // Mengambil 'zScoreBBU', jika null coba ambil 'zScoreBB'
@@ -191,10 +195,10 @@ class PatientAnak {
       lingkarKepala: (data['lingkarKepala'] as num?)?.toDouble(),
       bbi: (data['bbi'] as num?)?.toDouble(),
       faktorAktivitas: data['faktorAktivitas'] as String?,
-  faktorStres: data['faktorStres'] as String?,
-      
+      faktorStres: data['faktorStres'] as String?,
+
       labResults: parsedLabs,
-      
+
       klinikTD: data['klinikTD'] as String?,
       klinikNadi: data['klinikNadi'] as String?,
       klinikSuhu: data['klinikSuhu'] as String?,
@@ -202,24 +206,23 @@ class PatientAnak {
       klinikSPO2: data['klinikSPO2'] as String?,
       klinikKU: data['klinikKU'] as String?,
       klinikKES: data['klinikKES'] as String?,
-      
+
       riwayatPenyakitSekarang: data['riwayatPenyakitSekarang'] as String?,
       riwayatPenyakitDahulu: data['riwayatPenyakitDahulu'] as String?,
       alergiMakanan: data['alergiMakanan'] as String?,
       polaMakan: data['polaMakan'] as String?,
-      
+
       diagnosaGizi: data['diagnosaGizi'] as String?,
-      
+
       intervensiDiet: data['intervensiDiet'] as String?,
       intervensiBentukMakanan: data['intervensiBentukMakanan'] as String?,
       intervensiVia: data['intervensiVia'] as String?,
       intervensiTujuan: data['intervensiTujuan'] as String?,
-      
+
       monevAsupan: data['monevAsupan'] as String?,
       monevHasilLab: data['monevHasilLab'] as String?,
       isCompleted: data['isCompleted'] ?? false,
       monevIndikator: data['monevIndikator'] as String?,
-      
     );
   }
 
@@ -234,7 +237,6 @@ class PatientAnak {
       'tanggalPemeriksaan': tanggalPemeriksaan,
       'createdBy': createdBy,
       'tipePasien': tipePasien, // Wajib ada
-      
       // Data anak
       'statusGiziBBU': statusGiziBBU,
       'statusGiziTBU': statusGiziTBU, // Field baru disimpan
@@ -253,7 +255,7 @@ class PatientAnak {
       'lingkarKepala': lingkarKepala,
       'bbi': bbi,
       'faktorAktivitas': faktorAktivitas,
-  'faktorStres': faktorStres,
+      'faktorStres': faktorStres,
       'labResults': labResults,
       'klinikTD': klinikTD,
       'klinikNadi': klinikNadi,
@@ -329,7 +331,8 @@ class PatientAnak {
     }
   }
 
-  String get tanggalLahirFormatted => DateFormat('d MMMM y','id_ID').format(tanggalLahir);
+  String get tanggalLahirFormatted =>
+      DateFormat('d MMMM y', 'id_ID').format(tanggalLahir);
 
   // 1. Skor Antropometri (Contoh logika sederhana berdasarkan Z-Score)
   int get skorAntropometri {
@@ -360,7 +363,9 @@ class PatientAnak {
 
   Map<String, double> hitungKebutuhanGizi() {
     // 1. Tentukan Berat Badan (Prioritas: BBI -> Berat Aktual)
-    double weightToUse = (bbi != null && bbi! > 0) ? bbi! : beratBadan.toDouble();
+    double weightToUse = (bbi != null && bbi! > 0)
+        ? bbi!
+        : beratBadan.toDouble();
     double heightCm = tinggiBadan.toDouble();
     double ageInYearsFraction = usiaInDays / 365.25;
     bool isMale = jenisKelamin.toLowerCase().contains('laki');
@@ -379,8 +384,14 @@ class PatientAnak {
     }
 
     // 3. Hitung TDEE
-    double fa = SchofieldCalculatorService.activityFactors[faktorAktivitas ?? 'Tanpa Faktor Aktivitas'] ?? 1.0;
-    double fs = SchofieldCalculatorService.stressFactors[faktorStres ?? 'Tanpa Faktor Stres'] ?? 1.0;
+    double fa =
+        SchofieldCalculatorService.activityFactors[faktorAktivitas ??
+            'Tanpa Faktor Aktivitas'] ??
+        1.0;
+    double fs =
+        SchofieldCalculatorService.stressFactors[faktorStres ??
+            'Tanpa Faktor Stres'] ??
+        1.0;
     double tdee = bmr * fa * fs;
 
     // 4. Hitung Makronutrien

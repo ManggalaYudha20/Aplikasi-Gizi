@@ -1,4 +1,4 @@
-// lib/src/features/patient_home/presentation/pages/patient_anak_detail_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\presentation\pages\patient_anak_detail_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/patient_anak_model.dart';
@@ -74,7 +74,8 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                      'Pilih satu atau lebih rekan untuk membagikan salinan data pasien ini.'),
+                    'Pilih satu atau lebih rekan untuk membagikan salinan data pasien ini.',
+                  ),
                   const Divider(),
                   Expanded(
                     child: FutureBuilder<List<Map<String, dynamic>>>(
@@ -83,16 +84,20 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const Center(
-                              child: CircularProgressIndicator());
+                            child: CircularProgressIndicator(),
+                          );
                         }
                         if (snapshot.hasError) {
                           return Center(
-                              child: Text('Error: ${snapshot.error}'));
+                            child: Text('Error: ${snapshot.error}'),
+                          );
                         }
                         if (!snapshot.hasData || snapshot.data!.isEmpty) {
                           return const Center(
-                              child: Text(
-                                  'Tidak ada akun Nutrisionis lain yang ditemukan.'));
+                            child: Text(
+                              'Tidak ada akun Nutrisionis lain yang ditemukan.',
+                            ),
+                          );
                         }
 
                         final nutritionists = snapshot.data!;
@@ -100,12 +105,16 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                           itemCount: nutritionists.length,
                           itemBuilder: (context, index) {
                             final user = nutritionists[index];
-                            final isChecked =
-                                selectedUids.contains(user['uid']);
+                            final isChecked = selectedUids.contains(
+                              user['uid'],
+                            );
                             return CheckboxListTile(
-                              title: Text(user['name'],
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold)),
+                              title: Text(
+                                user['name'],
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               subtitle: Text(user['email']),
                               value: isChecked,
                               activeColor: Colors.blue,
@@ -128,8 +137,9 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed:
-                              isSending ? null : () => Navigator.pop(context),
+                          onPressed: isSending
+                              ? null
+                              : () => Navigator.pop(context),
                           child: const Text('Batal'),
                         ),
                       ),
@@ -142,19 +152,23 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                                   bool? confirm = await showDialog<bool>(
                                     context: context,
                                     builder: (ctx) => AlertDialog(
-                                      title:
-                                          const Text('Konfirmasi Pengiriman'),
+                                      title: const Text(
+                                        'Konfirmasi Pengiriman',
+                                      ),
                                       content: Text(
-                                          'Kirim salinan data "${_currentPatient.namaLengkap}" ke ${selectedUids.length} orang?'),
+                                        'Kirim salinan data "${_currentPatient.namaLengkap}" ke ${selectedUids.length} orang?',
+                                      ),
                                       actions: [
                                         TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(ctx, false),
-                                            child: const Text('Batal')),
+                                          onPressed: () =>
+                                              Navigator.pop(ctx, false),
+                                          child: const Text('Batal'),
+                                        ),
                                         ElevatedButton(
-                                            onPressed: () =>
-                                                Navigator.pop(ctx, true),
-                                            child: const Text('Kirim')),
+                                          onPressed: () =>
+                                              Navigator.pop(ctx, true),
+                                          child: const Text('Kirim'),
+                                        ),
                                       ],
                                     ),
                                   );
@@ -174,21 +188,26 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                                     );
                                     if (context.mounted) {
                                       Navigator.pop(context);
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         const SnackBar(
-                                            content: Text(
-                                                'Berhasil mengirimkan permintaan berbagi!'),
-                                            backgroundColor: Colors.green),
+                                          content: Text(
+                                            'Berhasil mengirimkan permintaan berbagi!',
+                                          ),
+                                          backgroundColor: Colors.green,
+                                        ),
                                       );
                                     }
                                   } catch (e) {
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         SnackBar(
-                                            content: Text('Gagal mengirim: $e'),
-                                            backgroundColor: Colors.red),
+                                          content: Text('Gagal mengirim: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
                                       );
                                     }
                                   } finally {
@@ -200,7 +219,10 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                                   width: 20,
                                   height: 20,
                                   child: CircularProgressIndicator(
-                                      color: Colors.white, strokeWidth: 2))
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
                               : const Text('Kirim'),
                         ),
                       ),
@@ -268,11 +290,16 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             // ── Bagian 1: Data Dasar ──────────────────────────────────────
             _buildSectionTitle('Data Pasien Anak'),
             PatientInfoRow('No. RM', _currentPatient.noRM),
-            PatientInfoRow('Tanggal Lahir', _currentPatient.tanggalLahirFormatted),
+            PatientInfoRow(
+              'Tanggal Lahir',
+              _currentPatient.tanggalLahirFormatted,
+            ),
             PatientInfoRow('Usia', _currentPatient.usiaFormatted),
             PatientInfoRow('Jenis Kelamin', _currentPatient.jenisKelamin),
             PatientInfoRow(
-                'Diagnosis Medis', '${_currentPatient.diagnosisMedis} '),
+              'Diagnosis Medis',
+              '${_currentPatient.diagnosisMedis} ',
+            ),
             PatientInfoRow('Berat Badan', '${_currentPatient.beratBadan} kg'),
             PatientInfoRow(
               'Panjang/Tinggi Badan',
@@ -282,7 +309,9 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
               PatientInfoRow('LILA', '${_currentPatient.lila} cm'),
             if (_currentPatient.lingkarKepala != null)
               PatientInfoRow(
-                  'Lingkar Kepala (LK)', '${_currentPatient.lingkarKepala} cm'),
+                'Lingkar Kepala (LK)',
+                '${_currentPatient.lingkarKepala} cm',
+              ),
             PatientInfoRow(
               'Berat Badan Ideal',
               '${_currentPatient.bbi?.toString() ?? ""} kg',
@@ -299,13 +328,16 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                 label: const Text(
                   'Bagikan Data Pasien ke Nutrisionis Lain',
                   style: TextStyle(
-                      color: Colors.blue, fontWeight: FontWeight.bold),
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.blue),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ),
@@ -321,26 +353,42 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      PatientInfoRow('BMR (Schofield)', '${kebutuhan['bmr']?.toStringAsFixed(0)} kkal/hari',isBold: true,),
                       PatientInfoRow(
-                        'TDEE (Total Energi)', 
-                        '${kebutuhan['tdee']?.toStringAsFixed(0)} kkal/hari', 
-                        isBold: true, 
-                        valueColor: Colors.blue
+                        'BMR (Schofield)',
+                        '${kebutuhan['bmr']?.toStringAsFixed(0)} kkal/hari',
+                        isBold: true,
                       ),
-                      PatientInfoRow('Protein', '${kebutuhan['protein']?.toStringAsFixed(1)} g/hari',isBold: true,),
-                      PatientInfoRow('Lemak', '${kebutuhan['lemak']?.toStringAsFixed(1)} g/hari',isBold: true,),
-                      PatientInfoRow('Karbohidrat', '${kebutuhan['karbo']?.toStringAsFixed(1)} g/hari',isBold: true,),
                       PatientInfoRow(
-                        'Kebutuhan Cairan', 
-                        '${kebutuhan['cairan']?.toStringAsFixed(0)} ml/hari', 
-                        isBold: true, 
-                        valueColor: Colors.lightBlue
+                        'TDEE (Total Energi)',
+                        '${kebutuhan['tdee']?.toStringAsFixed(0)} kkal/hari',
+                        isBold: true,
+                        valueColor: Colors.blue,
+                      ),
+                      PatientInfoRow(
+                        'Protein',
+                        '${kebutuhan['protein']?.toStringAsFixed(1)} g/hari',
+                        isBold: true,
+                      ),
+                      PatientInfoRow(
+                        'Lemak',
+                        '${kebutuhan['lemak']?.toStringAsFixed(1)} g/hari',
+                        isBold: true,
+                      ),
+                      PatientInfoRow(
+                        'Karbohidrat',
+                        '${kebutuhan['karbo']?.toStringAsFixed(1)} g/hari',
+                        isBold: true,
+                      ),
+                      PatientInfoRow(
+                        'Kebutuhan Cairan',
+                        '${kebutuhan['cairan']?.toStringAsFixed(0)} ml/hari',
+                        isBold: true,
+                        valueColor: Colors.lightBlue,
                       ),
                     ],
                   ),
                 );
-              }
+              },
             ),
 
             const Divider(height: 20, thickness: 2, color: Colors.green),
@@ -383,21 +431,27 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             // ── Bagian 3: Skrining Gizi Lanjut ────────────────────────────
             _buildSectionTitle('Skrining Gizi Lanjut'),
             PatientInfoRow(
-                'Skor Status Antropometri',
-                '${_currentPatient.skorAntropometri}'),
+              'Skor Status Antropometri',
+              '${_currentPatient.skorAntropometri}',
+            ),
             PatientInfoRow(
-                'Skor Kehilangan Berat Badan',
-                _currentPatient.kehilanganBeratBadan == 2 ? '2' : '0'),
+              'Skor Kehilangan Berat Badan',
+              _currentPatient.kehilanganBeratBadan == 2 ? '2' : '0',
+            ),
             PatientInfoRow(
-                'Skor Asupan Makanan',
-                '${_currentPatient.kehilanganNafsuMakan ?? 0}'),
+              'Skor Asupan Makanan',
+              '${_currentPatient.kehilanganNafsuMakan ?? 0}',
+            ),
             PatientInfoRow(
-                'Skor Penyakit Berat',
-                _currentPatient.anakSakitBerat == 2 ? '2' : '0'),
+              'Skor Penyakit Berat',
+              _currentPatient.anakSakitBerat == 2 ? '2' : '0',
+            ),
             const Divider(),
             PatientInfoRow(
-                'Total Skor', '${_currentPatient.totalPymsScore}',
-                isBold: true),
+              'Total Skor',
+              '${_currentPatient.totalPymsScore}',
+              isBold: true,
+            ),
             PatientInfoRow(
               'Interpretasi',
               _currentPatient.pymsInterpretation,
@@ -417,23 +471,34 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                     onPressed: () async {
                       final scaffoldContext = ScaffoldMessenger.of(context);
                       try {
-                        scaffoldContext.showSnackBar(const SnackBar(
+                        scaffoldContext.showSnackBar(
+                          const SnackBar(
                             content: Text('Membuat File PDF...'),
-                            duration: Duration(seconds: 1)));
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
                         // ── PdfGeneratorAnakService (renamed) ─────────────
                         final pdfFile = await PdfGeneratorAnakService.generate(
-                            _currentPatient);
+                          _currentPatient,
+                        );
                         await PdfGeneratorAnakService.openFile(pdfFile);
                         if (!mounted) return;
-                        scaffoldContext.showSnackBar(const SnackBar(
+                        scaffoldContext.showSnackBar(
+                          const SnackBar(
                             content: Text('File PDF Berhasil dibuat!'),
-                            backgroundColor: Colors.green));
+                            backgroundColor: Colors.green,
+                          ),
+                        );
                       } catch (e) {
                         if (!mounted) return;
-                        scaffoldContext.showSnackBar(SnackBar(
-                            content:
-                                Text('File PDF Gagal dibuat: ${e.toString()}'),
-                            backgroundColor: Colors.red));
+                        scaffoldContext.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'File PDF Gagal dibuat: ${e.toString()}',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -441,7 +506,8 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -466,27 +532,31 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             // Riwayat Gizi
             ExpansionTile(
               leading: const Icon(Icons.history_edu_outlined),
-              title: const Text('Riwayat Gizi /FH (Food History)',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              childrenPadding:
-                  const EdgeInsets.symmetric(horizontal: 16.0),
+              title: const Text(
+                'Riwayat Gizi /FH (Food History)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 _buildInfoDisplay(
-                    label: 'Alergi Makanan',
-                    value: _currentPatient.alergiMakanan ?? '-'),
+                  label: 'Alergi Makanan',
+                  value: _currentPatient.alergiMakanan ?? '-',
+                ),
                 _buildInfoDisplay(
-                    label: 'Pola Makan / Asupan',
-                    value: _currentPatient.polaMakan),
+                  label: 'Pola Makan / Asupan',
+                  value: _currentPatient.polaMakan,
+                ),
               ],
             ),
 
             // Biokimia
             ExpansionTile(
               leading: const Icon(Icons.science_outlined),
-              title: const Text('Biokimia /BD \n(Biochemical Data)',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              childrenPadding:
-                  const EdgeInsets.symmetric(horizontal: 16.0),
+              title: const Text(
+                'Biokimia /BD \n(Biochemical Data)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 if (_currentPatient.labResults.isEmpty)
                   const Padding(
@@ -503,10 +573,11 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             // Klinik/Fisik
             ExpansionTile(
               leading: const Icon(Icons.monitor_heart_outlined),
-              title: const Text('Klinik /Fisik /PD \n(Physical Data)',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              childrenPadding:
-                  const EdgeInsets.symmetric(horizontal: 16.0),
+              title: const Text(
+                'Klinik /Fisik /PD \n(Physical Data)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 PatientInfoRow(
                   'Tekanan Darah (TD)',
@@ -539,40 +610,49 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                       : '-',
                 ),
                 _buildInfoDisplay(
-                    label: 'Keadaan Umum (KU) :',
-                    value: _currentPatient.klinikKU,
-                    emptyValueMessage: '-'),
+                  label: 'Keadaan Umum (KU) :',
+                  value: _currentPatient.klinikKU,
+                  emptyValueMessage: '-',
+                ),
                 _buildInfoDisplay(
-                    label: 'Kesadaran (KES) :',
-                    value: _currentPatient.klinikKES,
-                    emptyValueMessage: '-'),
+                  label: 'Kesadaran (KES) :',
+                  value: _currentPatient.klinikKES,
+                  emptyValueMessage: '-',
+                ),
               ],
             ),
 
             // Riwayat Personal
             ExpansionTile(
               leading: const Icon(Icons.person_outline),
-              title: const Text('Riwayat Personal /CH \n(Client History)',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              childrenPadding:
-                  const EdgeInsets.symmetric(horizontal: 16.0),
+              title: const Text(
+                'Riwayat Personal /CH \n(Client History)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 _buildInfoDisplay(
-                    label: 'Riwayat Penyakit Sekarang (RPS)',
-                    value: _currentPatient.riwayatPenyakitSekarang),
+                  label: 'Riwayat Penyakit Sekarang (RPS)',
+                  value: _currentPatient.riwayatPenyakitSekarang,
+                ),
                 _buildInfoDisplay(
-                    label: 'Riwayat Penyakit Dahulu (RPD)',
-                    value: _currentPatient.riwayatPenyakitDahulu),
+                  label: 'Riwayat Penyakit Dahulu (RPD)',
+                  value: _currentPatient.riwayatPenyakitDahulu,
+                ),
               ],
             ),
 
             // Diagnosis Gizi
             ExpansionTile(
               leading: const Icon(Icons.medical_services_outlined),
-              title: const Text('Diagnosa Gizi',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              title: const Text(
+                'Diagnosa Gizi',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               childrenPadding: const EdgeInsets.symmetric(
-                  horizontal: 16.0, vertical: 8.0),
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               children: [
                 _buildInfoDisplay(
                   label: 'Diagnosa Gizi:',
@@ -585,17 +665,24 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             // Intervensi
             ExpansionTile(
               leading: const Icon(Icons.food_bank_outlined),
-              title: const Text('Intervensi Gizi',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              childrenPadding:
-                  const EdgeInsets.symmetric(horizontal: 16.0),
+              title: const Text(
+                'Intervensi Gizi',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 PatientInfoRow(
-                    'Jenis Diet', _currentPatient.intervensiDiet ?? '-'),
-                PatientInfoRow('Bentuk Makanan (BM)',
-                    _currentPatient.intervensiBentukMakanan ?? '-'),
+                  'Jenis Diet',
+                  _currentPatient.intervensiDiet ?? '-',
+                ),
                 PatientInfoRow(
-                    'Tujuan Diet', _currentPatient.intervensiTujuan ?? '-'),
+                  'Bentuk Makanan (BM)',
+                  _currentPatient.intervensiBentukMakanan ?? '-',
+                ),
+                PatientInfoRow(
+                  'Tujuan Diet',
+                  _currentPatient.intervensiTujuan ?? '-',
+                ),
                 PatientInfoRow('Via', _currentPatient.intervensiVia ?? '-'),
               ],
             ),
@@ -606,25 +693,30 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             //   • Usia < 5 tahun : tampilkan "Status Gizi BB/U"
             ExpansionTile(
               leading: const Icon(Icons.analytics_outlined),
-              title: const Text('Monitoring dan Evaluasi',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              childrenPadding:
-                  const EdgeInsets.symmetric(horizontal: 16.0),
+              title: const Text(
+                'Monitoring dan Evaluasi',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
                 if (isAnak5Keatas)
                   _buildInfoDisplay(
-                      label: 'Status Gizi IMT/U :',
-                      value: _currentPatient.statusGiziIMTU)
+                    label: 'Status Gizi IMT/U :',
+                    value: _currentPatient.statusGiziIMTU,
+                  )
                 else
                   _buildInfoDisplay(
-                      label: 'Status Gizi BB/U :',
-                      value: _currentPatient.statusGiziBBU),
+                    label: 'Status Gizi BB/U :',
+                    value: _currentPatient.statusGiziBBU,
+                  ),
                 _buildInfoDisplay(
-                    label: 'Indikator Monitoring :',
-                    value: _currentPatient.monevIndikator),
+                  label: 'Indikator Monitoring :',
+                  value: _currentPatient.monevIndikator,
+                ),
                 _buildInfoDisplay(
-                    label: 'Asupan Makanan :',
-                    value: _currentPatient.monevAsupan),
+                  label: 'Asupan Makanan :',
+                  value: _currentPatient.monevAsupan,
+                ),
               ],
             ),
 
@@ -638,23 +730,34 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                     onPressed: () async {
                       final scaffoldContext = ScaffoldMessenger.of(context);
                       try {
-                        scaffoldContext.showSnackBar(const SnackBar(
+                        scaffoldContext.showSnackBar(
+                          const SnackBar(
                             content: Text('Membuat File PDF...'),
-                            duration: Duration(seconds: 1)));
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
                         // ── PdfGeneratorAsuhanAnak (tidak diubah namanya) ─
-                        final pdfFile =
-                            await PdfGeneratorAsuhanAnak.generate(_currentPatient);
+                        final pdfFile = await PdfGeneratorAsuhanAnak.generate(
+                          _currentPatient,
+                        );
                         await PdfGeneratorAsuhanAnak.openFile(pdfFile);
                         if (!mounted) return;
-                        scaffoldContext.showSnackBar(const SnackBar(
+                        scaffoldContext.showSnackBar(
+                          const SnackBar(
                             content: Text('File PDF Berhasil dibuat!'),
-                            backgroundColor: Colors.green));
+                            backgroundColor: Colors.green,
+                          ),
+                        );
                       } catch (e) {
                         if (!mounted) return;
-                        scaffoldContext.showSnackBar(SnackBar(
-                            content:
-                                Text('File PDF Gagal dibuat: ${e.toString()}'),
-                            backgroundColor: Colors.red));
+                        scaffoldContext.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'File PDF Gagal dibuat: ${e.toString()}',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -662,7 +765,8 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -690,20 +794,25 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
     required String? value,
     String emptyValueMessage = 'Tidak ada data.',
   }) {
-    final displayText =
-        (value == null || value.isEmpty) ? emptyValueMessage : value;
+    final displayText = (value == null || value.isEmpty)
+        ? emptyValueMessage
+        : value;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: const TextStyle(fontSize: 16, color: Colors.black54)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 16, color: Colors.black54),
+          ),
           const SizedBox(height: 6),
           SizedBox(
             width: double.infinity,
-            child: Text(displayText,
-                style: const TextStyle(fontSize: 16, color: Colors.black87)),
+            child: Text(
+              displayText,
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
+            ),
           ),
         ],
       ),
@@ -764,16 +873,21 @@ class _PatientAnakDetailPageState extends State<PatientAnakDetailPage> {
             children: [
               Row(
                 children: [
-                  const Text('Z-Score: ',
-                      style: TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.bold)),
-                  Text(zScore?.toStringAsFixed(2) ?? '-',
-                      style: const TextStyle(fontSize: 14)),
+                  const Text(
+                    'Z-Score: ',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    zScore?.toStringAsFixed(2) ?? '-',
+                    style: const TextStyle(fontSize: 14),
+                  ),
                 ],
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),

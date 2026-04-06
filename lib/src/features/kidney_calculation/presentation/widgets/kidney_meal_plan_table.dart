@@ -1,4 +1,4 @@
-// lib/src/features/kidney_calculation/presentation/widgets/kidney_meal_plan_table.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\kidney_calculation\presentation\widgets\kidney_meal_plan_table.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/data/models/kidney_standard_food_model.dart';
@@ -113,10 +113,7 @@ class _DataCell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Text(
-        text,
-        textAlign: center ? TextAlign.center : TextAlign.start,
-      ),
+      child: Text(text, textAlign: center ? TextAlign.center : TextAlign.start),
     );
   }
 }

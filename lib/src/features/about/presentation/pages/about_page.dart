@@ -1,3 +1,5 @@
+// lib\src\features\about\presentation\pages\about_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
@@ -14,16 +16,11 @@ class AboutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: _pageTitle,
-        subtitle: _pageSubtitle,
-      ),
+      appBar: const CustomAppBar(title: _pageTitle, subtitle: _pageSubtitle),
       body: const FadeInTransition(
         child: SingleChildScrollView(
           // Menggunakan widget yang sudah di-abstraksi
-          child: ZoomableImageWidget(
-            assetPath: _aboutImageAsset,
-          ),
+          child: ZoomableImageWidget(assetPath: _aboutImageAsset),
         ),
       ),
     );

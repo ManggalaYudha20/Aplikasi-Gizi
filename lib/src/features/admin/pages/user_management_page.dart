@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\admin\pages\user_management_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/models/user_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/repositories/user_repository.dart';
@@ -32,8 +34,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
   // --- 1. Fungsi penentu jumlah kolom responsif ---
   int _getCrossAxisCount(double screenWidth) {
     if (screenWidth >= 1200) return 3; // Desktop / Layar sangat lebar (3 kolom)
-    if (screenWidth >= 800) return 2;  // Tablet / Layar sedang (2 kolom)
-    return 1;                          // Mobile (1 kolom)
+    if (screenWidth >= 800) return 2; // Tablet / Layar sedang (2 kolom)
+    return 1; // Mobile (1 kolom)
   }
 
   // --- Handlers (Interaksi Pengguna) ---
@@ -95,21 +97,24 @@ class _UserManagementPageState extends State<UserManagementPage> {
         children: UserRole.values
             .where((r) => r != UserRole.unknown && r != UserRole.ahliGizi)
             .map((role) {
-          return SimpleDialogOption(
-            onPressed: () => Navigator.pop(context, role),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(role.label, style: const TextStyle(fontSize: 16)),
-            ),
-          );
-        }).toList(),
+              return SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, role),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(role.label, style: const TextStyle(fontSize: 16)),
+                ),
+              );
+            })
+            .toList(),
       ),
     );
 
     if (selectedRole != null && selectedRole != user.role) {
       try {
         await _repository.updateUserRole(user.id, selectedRole);
-        _showSnackBar('Role ${user.displayName} diubah ke ${selectedRole.label}');
+        _showSnackBar(
+          'Role ${user.displayName} diubah ke ${selectedRole.label}',
+        );
       } catch (e) {
         _showSnackBar(e.toString(), isError: true);
       }
@@ -179,73 +184,82 @@ class _UserManagementPageState extends State<UserManagementPage> {
             onClear: _onClearSearch,
             isNotEmpty: _searchQuery.isNotEmpty,
           ),
-         StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('settings')
-                  .doc('app_settings')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    color: Colors.red.shade50,
-                    child: ListTile(
-                      leading: const Icon(Icons.error_outline, color: Colors.red),
-                      title: const Text('Gagal memuat pengaturan Mode UAT'),
-                      subtitle: Text(snapshot.error.toString(), style: const TextStyle(fontSize: 12)),
-                    ),
-                  );
-                }
-
-                bool isUatMode = false;
-
-                if (snapshot.hasData && snapshot.data!.exists) {
-                  final data = snapshot.data!.data() as Map<String, dynamic>?;
-                  // Cek apakah database masih menyimpan format lama atau format baru
-                  isUatMode = (data?['default_role'] == 'ahli_gizi' || data?['default_role'] == 'nutrisionis');
-                }
-
+          StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('settings')
+                .doc('app_settings')
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
                 return Card(
                   margin: const EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 8.0,
                   ),
-                  color: isUatMode ? Colors.green.shade50 : null,
-                  child: SwitchListTile(
-                    activeThumbColor: Colors.green,
-                    activeTrackColor: Colors.green.shade300,
-                    title: const Text(
-                      'Mode UAT (Otomatis Nutrisionis)',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                  color: Colors.red.shade50,
+                  child: ListTile(
+                    leading: const Icon(Icons.error_outline, color: Colors.red),
+                    title: const Text('Gagal memuat pengaturan Mode UAT'),
                     subtitle: Text(
-                      isUatMode
-                          ? 'Aktif: Pendaftar baru otomatis menjadi Nutrisionis.'
-                          : 'Mati: Pendaftar baru otomatis menjadi Tamu.',
+                      snapshot.error.toString(),
+                      style: const TextStyle(fontSize: 12),
                     ),
-                    value: isUatMode,
-                    onChanged: (bool value) async {
-                      try {
-                        // Simpan dengan format role yang baru ke database
-                        final newRole = value ? 'nutrisionis' : 'tamu';
-
-                        await FirebaseFirestore.instance
-                            .collection('settings')
-                            .doc('app_settings')
-                            .set({
-                          'default_role': newRole,
-                        }, SetOptions(merge: true));
-                            
-                        _showSnackBar('Mode UAT berhasil ${value ? "diaktifkan" : "dimatikan"}');
-                        
-                      } catch (e) {
-                        _showSnackBar('Gagal mengubah mode: $e', isError: true);
-                      }
-                    },
                   ),
                 );
-              },
-            ),
+              }
+
+              bool isUatMode = false;
+
+              if (snapshot.hasData && snapshot.data!.exists) {
+                final data = snapshot.data!.data() as Map<String, dynamic>?;
+                // Cek apakah database masih menyimpan format lama atau format baru
+                isUatMode =
+                    (data?['default_role'] == 'ahli_gizi' ||
+                    data?['default_role'] == 'nutrisionis');
+              }
+
+              return Card(
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                color: isUatMode ? Colors.green.shade50 : null,
+                child: SwitchListTile(
+                  activeThumbColor: Colors.green,
+                  activeTrackColor: Colors.green.shade300,
+                  title: const Text(
+                    'Mode UAT (Otomatis Nutrisionis)',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    isUatMode
+                        ? 'Aktif: Pendaftar baru otomatis menjadi Nutrisionis.'
+                        : 'Mati: Pendaftar baru otomatis menjadi Tamu.',
+                  ),
+                  value: isUatMode,
+                  onChanged: (bool value) async {
+                    try {
+                      // Simpan dengan format role yang baru ke database
+                      final newRole = value ? 'nutrisionis' : 'tamu';
+
+                      await FirebaseFirestore.instance
+                          .collection('settings')
+                          .doc('app_settings')
+                          .set({
+                            'default_role': newRole,
+                          }, SetOptions(merge: true));
+
+                      _showSnackBar(
+                        'Mode UAT berhasil ${value ? "diaktifkan" : "dimatikan"}',
+                      );
+                    } catch (e) {
+                      _showSnackBar('Gagal mengubah mode: $e', isError: true);
+                    }
+                  },
+                ),
+              );
+            },
+          ),
           Expanded(
             child: StreamBuilder<List<UserModel>>(
               stream: _repository.getUsersStream(),
@@ -297,16 +311,17 @@ class _UserManagementPageState extends State<UserManagementPage> {
                     // --- 3. Gunakan GridView.builder sebagai pengganti ListView.builder ---
                     return GridView.builder(
                       padding: const EdgeInsets.only(
-                        bottom: 80, 
-                        left: 16, 
-                        right: 16, 
-                        top: 8
+                        bottom: 80,
+                        left: 16,
+                        right: 16,
+                        top: 8,
                       ),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: _getCrossAxisCount(screenWidth),
                         crossAxisSpacing: 12.0, // Jarak antar kolom
-                        mainAxisSpacing: 12.0,  // Jarak antar baris
-                        mainAxisExtent: 90.0,   // Tinggi standar tile (sesuaikan jika terpotong)
+                        mainAxisSpacing: 12.0, // Jarak antar baris
+                        mainAxisExtent:
+                            90.0, // Tinggi standar tile (sesuaikan jika terpotong)
                       ),
                       itemCount: displayUsers.length,
                       itemBuilder: (context, index) {

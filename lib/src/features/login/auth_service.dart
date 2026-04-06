@@ -1,4 +1,4 @@
-// lib/src/login/auth_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\login\auth_service.dart
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -19,10 +19,10 @@ class AuthService {
   // ─────────────────────────────────────────
   Future<UserCredential?> signInWithGoogle() async {
     if (defaultTargetPlatform != TargetPlatform.android &&
-      defaultTargetPlatform != TargetPlatform.iOS &&
-      defaultTargetPlatform != TargetPlatform.macOS) {
-    throw Exception('Google Sign In tidak didukung di platform ini.');
-  }
+        defaultTargetPlatform != TargetPlatform.iOS &&
+        defaultTargetPlatform != TargetPlatform.macOS) {
+      throw Exception('Google Sign In tidak didukung di platform ini.');
+    }
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
@@ -34,8 +34,9 @@ class AuthService {
         idToken: googleAuth.idToken,
       );
 
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
       final User? user = userCredential.user;
 
       if (user != null) {
@@ -72,11 +73,8 @@ class AuthService {
     String password,
   ) async {
     try {
-      final UserCredential userCredential =
-          await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      final UserCredential userCredential = await _auth
+          .signInWithEmailAndPassword(email: email, password: password);
       final User? user = userCredential.user;
 
       if (user != null) {
@@ -123,11 +121,8 @@ class AuthService {
     String password,
   ) async {
     try {
-      final UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      final UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(email: email, password: password);
       final User? user = userCredential.user;
 
       if (user != null) {
@@ -202,13 +197,13 @@ class AuthService {
   // SIGN OUT
   // ─────────────────────────────────────────
   Future<void> signOut() async {
-  // Google Sign In tidak support Windows
-  if (defaultTargetPlatform == TargetPlatform.android ||
-      defaultTargetPlatform == TargetPlatform.iOS) {
-    await _googleSignIn.signOut();
+    // Google Sign In tidak support Windows
+    if (defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS) {
+      await _googleSignIn.signOut();
+    }
+    await _auth.signOut();
   }
-  await _auth.signOut();
-}
 
   // ─────────────────────────────────────────
   // HAPUS AKUN
@@ -219,7 +214,7 @@ class AuthService {
       if (user != null) {
         // 1. Hapus data pengguna dari Firestore
         await _firestore.collection('users').doc(user.uid).delete();
-        
+
         // 2. Putuskan sesi Google Sign-In lokal (untuk Android/iOS)
         if (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS) {

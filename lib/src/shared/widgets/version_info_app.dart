@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\shared\widgets\version_info_app.dart
+
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -13,7 +15,7 @@ class VersionInfoWidget extends StatelessWidget {
         if (snapshot.hasError) {
           // Tampilkan pesan error kecil untuk debugging (opsional, bisa dihapus saat rilis)
           return Text(
-            'Error memuat versi', 
+            'Error memuat versi',
             style: TextStyle(color: Colors.red[200], fontSize: 10),
           );
         }
@@ -32,7 +34,9 @@ class VersionInfoWidget extends StatelessWidget {
           final info = snapshot.data!;
           // Fallback jika version string kosong (terkadang terjadi di debug mode)
           final version = info.version.isNotEmpty ? info.version : '1.0.0';
-          final buildNumber = info.buildNumber.isNotEmpty ? info.buildNumber : '1';
+          final buildNumber = info.buildNumber.isNotEmpty
+              ? info.buildNumber
+              : '1';
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 20.0),
@@ -41,12 +45,15 @@ class VersionInfoWidget extends StatelessWidget {
               style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
           );
-        } 
-        
+        }
+
         // 4. Default return (jangan return SizedBox kosong agar layout tidak 'jump')
         return const Padding(
-           padding: EdgeInsets.only(bottom: 20.0),
-           child: Text('Memuat versi...', style: TextStyle(color: Colors.grey, fontSize: 12)),
+          padding: EdgeInsets.only(bottom: 20.0),
+          child: Text(
+            'Memuat versi...',
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+          ),
         );
       },
     );

@@ -1,4 +1,4 @@
-// lib/src/features/statistics/services/statistics_fetch_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\statistics\services\statistics_fetch_service.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,8 +17,9 @@ class StatisticsFetchService {
     required bool isAdmin,
   }) {
     final String? uid = FirebaseAuth.instance.currentUser?.uid;
-    Query<Map<String, dynamic>> query =
-        FirebaseFirestore.instance.collection('patients');
+    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection(
+      'patients',
+    );
 
     if (!isAdmin) {
       query = query.where('createdBy', isEqualTo: uid);
@@ -32,15 +33,14 @@ class StatisticsFetchService {
   /// Returns `null` on error (caller should show a toast / ignore silently).
   static Future<UserStats?> fetchUserStats() async {
     try {
-      final snap =
-          await FirebaseFirestore.instance.collection('users').get();
+      final snap = await FirebaseFirestore.instance.collection('users').get();
 
       int admins = 0, nutritionists = 0, guests = 0;
       for (final doc in snap.docs) {
         final role = (doc.data()['role'] as String?) ?? 'tamu';
         if (role == 'admin') {
           admins++;
-        } else if (role == 'ahli_gizi'|| role == 'nutrisionis') {
+        } else if (role == 'ahli_gizi' || role == 'nutrisionis') {
           nutritionists++;
         } else {
           guests++;
@@ -78,7 +78,8 @@ class StatisticsFetchService {
         final ts = data['tanggalPemeriksaan'] as Timestamp;
         final date = ts.toDate();
         return date.isAfter(
-                dateRange.start.subtract(const Duration(seconds: 1))) &&
+              dateRange.start.subtract(const Duration(seconds: 1)),
+            ) &&
             date.isBefore(dateRange.end.add(const Duration(seconds: 1)));
       } catch (_) {
         return false;
@@ -167,8 +168,9 @@ class StatisticsFetchService {
 
       // D. Usia
       if (data['tanggalLahir'] is Timestamp) {
-        final int age =
-            _calculateAge((data['tanggalLahir'] as Timestamp).toDate());
+        final int age = _calculateAge(
+          (data['tanggalLahir'] as Timestamp).toDate(),
+        );
         if (age <= 5) {
           usiaMap["Balita (0-5)"] = usiaMap["Balita (0-5)"]! + 1;
         } else if (age <= 11) {
@@ -305,8 +307,10 @@ class StatisticsFetchService {
       case 'Diagnosis Medis':
         chartTitle = "Diagnosis Medis Terbanyak";
         final sortedKeys = data.diagnosisMap.keys.toList(growable: false)
-          ..sort((k1, k2) =>
-              data.diagnosisMap[k2]!.compareTo(data.diagnosisMap[k1]!));
+          ..sort(
+            (k1, k2) =>
+                data.diagnosisMap[k2]!.compareTo(data.diagnosisMap[k1]!),
+          );
         double countLainnya = 0;
         for (int i = 0; i < sortedKeys.length; i++) {
           if (i < 5) {
@@ -378,10 +382,14 @@ class StatisticsFetchService {
     return ChartConfig(
       title: chartTitle,
       dataMap: chartData,
-      colors: List<dynamic>.from(chartColors).cast<dynamic>().map((c) {
-        // chartColors is already List<Color> – cast is safe.
-        return c as dynamic;
-      }).toList().cast(),
+      colors: List<dynamic>.from(chartColors)
+          .cast<dynamic>()
+          .map((c) {
+            // chartColors is already List<Color> – cast is safe.
+            return c as dynamic;
+          })
+          .toList()
+          .cast(),
     );
   }
 

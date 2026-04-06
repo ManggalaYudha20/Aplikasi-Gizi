@@ -1,4 +1,4 @@
-// lib/src/features/nutrition_calculation/services/nutrition_calculator_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\nutrition_calculation\services\nutrition_calculator_service.dart
 //
 // ─── ATURAN KETAT ───────────────────────────────────────────────────────────
 // File ini adalah Pure Dart — DILARANG mengimpor 'package:flutter/material.dart'
@@ -30,7 +30,7 @@ class NutritionCalculatorService {
 
   // ── KONSTANTA GENDER ──────────────────────────────────────────────────────
 
-  static const String genderMale   = 'Laki-laki';
+  static const String genderMale = 'Laki-laki';
   static const String genderFemale = 'Perempuan';
 
   // ── KALKULASI USIA ────────────────────────────────────────────────────────
@@ -55,9 +55,9 @@ class NutritionCalculatorService {
   static NutritionAllResult calculateAll({
     required DateTime birthDate,
     required DateTime checkDate,
-    required double   weightKg,
-    required double   heightCm,
-    required String   gender,
+    required double weightKg,
+    required double heightCm,
+    required String gender,
   }) {
     final int ageInMonths = calculateAgeInMonths(
       birthDate: birthDate,
@@ -70,7 +70,12 @@ class NutritionCalculatorService {
       bmi: bmi,
       weightForAge: _calculateWeightForAge(ageInMonths, weightKg, gender),
       heightForAge: _calculateHeightForAge(ageInMonths, heightCm, gender),
-      weightForHeight: _calculateWeightForHeight(heightCm, weightKg, gender),
+      weightForHeight: _calculateWeightForHeight(
+        ageInMonths,
+        heightCm,
+        weightKg,
+        gender,
+      ),
       bmiForAge: _calculateBMIForAge(ageInMonths, bmi, gender),
     );
   }
@@ -88,8 +93,8 @@ class NutritionCalculatorService {
   /// [heightCm]         : Tinggi badan dalam sentimeter.
   /// [gender]           : Gunakan [genderMale] atau [genderFemale].
   static ImtuResult calculateIMTUFromRawInputs({
-    required int    ageYears,
-    required int    ageMonthsRemainder,
+    required int ageYears,
+    required int ageMonthsRemainder,
     required double weightKg,
     required double heightCm,
     required String gender,
@@ -108,8 +113,8 @@ class NutritionCalculatorService {
   /// Dipindahkan dari [NutritionCalculationHelper.calculateIMTU5To18].
   /// Logika perhitungan Z-Score dipreservasi 100% tanpa perubahan.
   static ImtuResult calculateIMTU5To18({
-    required int    ageYears,
-    required int    ageMonthsRemainder,
+    required int ageYears,
+    required int ageMonthsRemainder,
     required double bmi,
     required String gender,
   }) {
@@ -134,9 +139,9 @@ class NutritionCalculatorService {
       // Menggunakan SD asimetris (sesuai metode LMS WHO):
       //   Jika BMI ≥ median, gunakan selisih ke +1 SD sebagai SD
       //   Jika BMI <  median, gunakan selisih dari -1 SD ke median sebagai SD
-      final double sdPos  = ref[4] - median;
-      final double sdNeg  = median - ref[2];
-      final double sd     = bmi >= median ? sdPos : sdNeg;
+      final double sdPos = ref[4] - median;
+      final double sdNeg = median - ref[2];
+      final double sd = bmi >= median ? sdPos : sdNeg;
       final double zScore = (bmi - median) / sd;
 
       return ImtuResult(
@@ -160,19 +165,25 @@ class NutritionCalculatorService {
   // dengan perubahan minimal: return type diganti ke value object terstandarisasi.
 
   static NutritionStatusResult _calculateWeightForAge(
-      int age, double weight, String gender) {
+    int age,
+    double weight,
+    String gender,
+  ) {
     final referenceData = gender == genderMale
         ? NutritionStatusData.bbUBoys
         : NutritionStatusData.bbUGirls;
 
     if (!referenceData.containsKey(age)) {
-      return const NutritionStatusResult(zScore: null, category: 'Data tidak tersedia');
+      return const NutritionStatusResult(
+        zScore: null,
+        category: 'Data tidak tersedia',
+      );
     }
 
     final percentiles = referenceData[age]!;
-    final double median  = percentiles[3];
-    final double sd      = percentiles[4] - median;
-    final double zScore  = (weight - median) / sd;
+    final double median = percentiles[3];
+    final double sd = percentiles[4] - median;
+    final double zScore = (weight - median) / sd;
 
     return NutritionStatusResult(
       zScore: zScore,
@@ -181,18 +192,24 @@ class NutritionCalculatorService {
   }
 
   static NutritionStatusResult _calculateHeightForAge(
-      int age, double height, String gender) {
+    int age,
+    double height,
+    String gender,
+  ) {
     final referenceData = gender == genderMale
         ? NutritionStatusData.pbTbUBoys
         : NutritionStatusData.pbTbUGirls;
 
     if (!referenceData.containsKey(age)) {
-      return const NutritionStatusResult(zScore: null, category: 'Data tidak tersedia');
+      return const NutritionStatusResult(
+        zScore: null,
+        category: 'Data tidak tersedia',
+      );
     }
 
     final percentiles = referenceData[age]!;
     final double median = percentiles[3];
-    final double sd     = percentiles[4] - median;
+    final double sd = percentiles[4] - median;
     final double zScore = (height - median) / sd;
 
     return NutritionStatusResult(
@@ -202,14 +219,28 @@ class NutritionCalculatorService {
   }
 
   static NutritionStatusResult _calculateWeightForHeight(
-      double height, double weight, String gender) {
-    final referenceData = gender == genderMale
-        ? NutritionStatusData.bbPbTbUBoys
-        : NutritionStatusData.bbPbTbUGirls;
+    int ageInMonths,
+    double height,
+    double weight,
+    String gender,
+  ) {
+    // Memilih referenceData berdasarkan gender dan usia
+    // (< 24 bulan menggunakan PB, >= 24 bulan menggunakan TB)
+    Map<double, List<double>> referenceData;
+
+    if (gender == genderMale) {
+      referenceData = (ageInMonths < 24)
+          ? NutritionStatusData.bbPbBoys0To24
+          : NutritionStatusData.bbTbBoys24To60;
+    } else {
+      referenceData = (ageInMonths < 24)
+          ? NutritionStatusData.bbPbGirls0To24
+          : NutritionStatusData.bbTbGirls24To60;
+    }
 
     // Mencari kunci tinggi badan terdekat (interpolasi sederhana)
-    double closestHeight  = referenceData.keys.first;
-    double minDifference  = (height - closestHeight).abs();
+    double closestHeight = referenceData.keys.first;
+    double minDifference = (height - closestHeight).abs();
 
     for (final h in referenceData.keys) {
       final double diff = (height - h).abs();
@@ -221,12 +252,15 @@ class NutritionCalculatorService {
 
     // Toleransi 2 cm — di luar itu dianggap data tidak tersedia
     if (minDifference > 2.0) {
-      return const NutritionStatusResult(zScore: null, category: 'Data tidak tersedia');
+      return const NutritionStatusResult(
+        zScore: null,
+        category: 'Data tidak tersedia',
+      );
     }
 
     final percentiles = referenceData[closestHeight]!;
     final double median = percentiles[3];
-    final double sd     = percentiles[4] - median;
+    final double sd = percentiles[4] - median;
     final double zScore = (weight - median) / sd;
 
     return NutritionStatusResult(
@@ -236,23 +270,31 @@ class NutritionCalculatorService {
   }
 
   static NutritionStatusResult _calculateBMIForAge(
-      int age, double bmi, String gender) {
+    int age,
+    double bmi,
+    String gender,
+  ) {
     final referenceData = gender == genderMale
         ? NutritionStatusData.imtUBoys
         : NutritionStatusData.imtUGirls;
 
     if (!referenceData.containsKey(age)) {
-      return const NutritionStatusResult(zScore: null, category: 'Data tidak tersedia');
+      return const NutritionStatusResult(
+        zScore: null,
+        category: 'Data tidak tersedia',
+      );
     }
 
     final percentiles = referenceData[age]!;
     final double median = percentiles[3];
-    final double sd     = percentiles[4] - median;
+    final double sd = percentiles[4] - median;
     final double zScore = (bmi - median) / sd;
 
     return NutritionStatusResult(
       zScore: zScore,
-      category: _getWeightForHeightCategory(zScore), // Kategori IMT/U sama dengan BB/TB
+      category: _getWeightForHeightCategory(
+        zScore,
+      ), // Kategori IMT/U sama dengan BB/TB
     );
   }
 
@@ -312,12 +354,9 @@ class NutritionCalculatorService {
 /// agar type-safe dan IDE-friendly (auto-complete, null-safety).
 class NutritionStatusResult {
   final double? zScore;
-  final String  category;
+  final String category;
 
-  const NutritionStatusResult({
-    required this.zScore,
-    required this.category,
-  });
+  const NutritionStatusResult({required this.zScore, required this.category});
 
   /// Apakah data referensi tersedia untuk usia/tinggi ini?
   bool get hasData => zScore != null;
@@ -329,12 +368,12 @@ class NutritionStatusResult {
 
 /// Hasil kalkulasi lengkap semua indikator status gizi (0–60 bulan).
 class NutritionAllResult {
-  final int    ageInMonths;
+  final int ageInMonths;
   final double bmi;
-  final NutritionStatusResult weightForAge;    // BB/U
-  final NutritionStatusResult heightForAge;    // TB/U
+  final NutritionStatusResult weightForAge; // BB/U
+  final NutritionStatusResult heightForAge; // TB/U
   final NutritionStatusResult weightForHeight; // BB/TB
-  final NutritionStatusResult bmiForAge;       // IMT/U
+  final NutritionStatusResult bmiForAge; // IMT/U
 
   const NutritionAllResult({
     required this.ageInMonths,
@@ -349,10 +388,10 @@ class NutritionAllResult {
 /// Hasil kalkulasi IMT/U untuk usia 5–18 tahun.
 class ImtuResult {
   /// Kunci usia yang digunakan untuk lookup tabel referensi (format: 'tahun-bulan').
-  final String  ageKey;
-  final double  bmi;
+  final String ageKey;
+  final double bmi;
   final double? zScore;
-  final String  category;
+  final String category;
 
   const ImtuResult({
     required this.ageKey,

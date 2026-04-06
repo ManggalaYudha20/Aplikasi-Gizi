@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\presentation\pages\inbox_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/services/share_patient_service.dart';
@@ -13,7 +15,11 @@ class InboxPage extends StatefulWidget {
 class _InboxPageState extends State<InboxPage> {
   final SharePatientService _shareService = SharePatientService();
 
-  Future<void> _handleAccept(String requestId, Map<String, dynamic> patientData, String patientType) async {
+  Future<void> _handleAccept(
+    String requestId,
+    Map<String, dynamic> patientData,
+    String patientType,
+  ) async {
     try {
       showDialog(
         context: context,
@@ -26,14 +32,20 @@ class _InboxPageState extends State<InboxPage> {
       if (mounted) {
         Navigator.pop(context); // Tutup loading
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data pasien berhasil ditambahkan ke daftar Anda!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Data pasien berhasil ditambahkan ke daftar Anda!'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         Navigator.pop(context); // Tutup loading
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Terjadi kesalahan: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -43,14 +55,17 @@ class _InboxPageState extends State<InboxPage> {
     try {
       await _shareService.rejectRequest(requestId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Permintaan ditolak.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Permintaan ditolak.')));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menolak: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Gagal menolak: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -79,7 +94,10 @@ class _InboxPageState extends State<InboxPage> {
                 children: [
                   Icon(Icons.inbox_outlined, size: 80, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('Tidak ada data pasien yang dibagikan ke Anda.', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                  Text(
+                    'Tidak ada data pasien yang dibagikan ke Anda.',
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
                 ],
               ),
             );
@@ -93,7 +111,7 @@ class _InboxPageState extends State<InboxPage> {
             itemBuilder: (context, index) {
               final doc = requests[index];
               final data = doc.data() as Map<String, dynamic>;
-              
+
               final senderName = data['senderName'] ?? 'Seseorang';
               final patientName = data['patientName'] ?? 'Pasien Tanpa Nama';
               final patientType = data['patientType'] ?? 'dewasa';
@@ -102,7 +120,9 @@ class _InboxPageState extends State<InboxPage> {
               return Card(
                 elevation: 3,
                 margin: const EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -112,7 +132,10 @@ class _InboxPageState extends State<InboxPage> {
                         children: [
                           CircleAvatar(
                             backgroundColor: Colors.blue[100],
-                            child: const Icon(Icons.person_add_alt_1, color: Colors.blue),
+                            child: const Icon(
+                              Icons.person_add_alt_1,
+                              color: Colors.blue,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -121,11 +144,19 @@ class _InboxPageState extends State<InboxPage> {
                               children: [
                                 Text(
                                   '$senderName membagikan data pasien',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
                                 ),
                                 Text(
                                   patientType.toUpperCase(),
-                                  style: TextStyle(fontSize: 12, color: patientType == 'anak' ? Colors.orange : Colors.green),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: patientType == 'anak'
+                                        ? Colors.orange
+                                        : Colors.green,
+                                  ),
                                 ),
                               ],
                             ),
@@ -133,20 +164,30 @@ class _InboxPageState extends State<InboxPage> {
                         ],
                       ),
                       const Divider(height: 24),
-                      Text('Nama Pasien: $patientName', style: const TextStyle(fontSize: 16)),
+                      Text(
+                        'Nama Pasien: $patientName',
+                        style: const TextStyle(fontSize: 16),
+                      ),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           TextButton(
                             onPressed: () => _handleReject(doc.id),
-                            child: const Text('Tolak', style: TextStyle(color: Colors.red)),
+                            child: const Text(
+                              'Tolak',
+                              style: TextStyle(color: Colors.red),
+                            ),
                           ),
                           const SizedBox(width: 8),
                           ElevatedButton(
                             onPressed: patientData == null
                                 ? null
-                                : () => _handleAccept(doc.id, patientData, patientType),
+                                : () => _handleAccept(
+                                    doc.id,
+                                    patientData,
+                                    patientType,
+                                  ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
                               foregroundColor: Colors.white,
@@ -154,7 +195,7 @@ class _InboxPageState extends State<InboxPage> {
                             child: const Text('Terima & Simpan'),
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),

@@ -1,4 +1,4 @@
-// lib/src/login/register_screen.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\login\register_screen.dart
 
 import 'package:aplikasi_diagnosa_gizi/src/features/login/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -52,9 +52,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (userCredential?.user != null) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => EmailVerificationScreen(
-              email: _emailController.text.trim(),
-            ),
+            builder: (_) =>
+                EmailVerificationScreen(email: _emailController.text.trim()),
           ),
         );
       } else {
@@ -83,10 +82,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: const CustomAppBar(
-        title: 'Daftar Akun Baru',
-        subtitle: '',
-      ),
+      appBar: const CustomAppBar(title: 'Daftar Akun Baru', subtitle: ''),
       body: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(

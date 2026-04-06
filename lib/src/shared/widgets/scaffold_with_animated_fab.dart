@@ -1,4 +1,4 @@
-// lib/src/shared/widgets/scaffold_with_animated_fab.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\shared\widgets\scaffold_with_animated_fab.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -20,7 +20,8 @@ class ScaffoldWithAnimatedFab extends StatefulWidget {
   });
 
   @override
-  State<ScaffoldWithAnimatedFab> createState() => _ScaffoldWithAnimatedFabState();
+  State<ScaffoldWithAnimatedFab> createState() =>
+      _ScaffoldWithAnimatedFabState();
 }
 
 class _ScaffoldWithAnimatedFabState extends State<ScaffoldWithAnimatedFab> {
@@ -37,17 +38,23 @@ class _ScaffoldWithAnimatedFabState extends State<ScaffoldWithAnimatedFab> {
   // Ganti dengan method yang baru ini
   void _scrollListener() {
     // Cek jika scroll berada di paling bawah halaman
-    final isAtBottom = _scrollController.position.pixels >= _scrollController.position.maxScrollExtent;
+    final isAtBottom =
+        _scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent;
 
     // Logika untuk menyembunyikan tombol saat scroll ke bawah
-    if (_scrollController.position.userScrollDirection == ScrollDirection.reverse) {
-      if (_isButtonVisible && !isAtBottom) { // Tambahkan kondisi !isAtBottom
+    if (_scrollController.position.userScrollDirection ==
+        ScrollDirection.reverse) {
+      if (_isButtonVisible && !isAtBottom) {
+        // Tambahkan kondisi !isAtBottom
         setState(() => _isButtonVisible = false);
       }
     }
 
     // Logika untuk menampilkan tombol saat scroll ke atas ATAU saat di paling bawah
-    if (_scrollController.position.userScrollDirection == ScrollDirection.forward || isAtBottom) {
+    if (_scrollController.position.userScrollDirection ==
+            ScrollDirection.forward ||
+        isAtBottom) {
       if (!_isButtonVisible) {
         setState(() => _isButtonVisible = true);
       }

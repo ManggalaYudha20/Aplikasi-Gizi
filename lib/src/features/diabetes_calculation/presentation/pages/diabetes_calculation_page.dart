@@ -1,4 +1,4 @@
-// lib/src/features/diabetes_calculation/presentation/pages/diabetes_calculation_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\diabetes_calculation\presentation\pages\diabetes_calculation_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -47,18 +47,21 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
 
   final _calculatorService = DiabetesCalculatorService();
   final _foodDbService = FoodDatabaseService();
-  final _expertEngine = ExpertSystemEngine(); 
-  late final _mealPlannerService = DiabetesMealPlannerService(_foodDbService, _expertEngine);
+  final _expertEngine = ExpertSystemEngine();
+  late final _mealPlannerService = DiabetesMealPlannerService(
+    _foodDbService,
+    _expertEngine,
+  );
 
   // ── Controllers ─────────────────────────────────────────────────────────────
-  final _ageController                = TextEditingController();
-  final _weightController             = TextEditingController();
-  final _heightController             = TextEditingController();
-  final _genderController             = TextEditingController();
-  final _activityController           = TextEditingController();
+  final _ageController = TextEditingController();
+  final _weightController = TextEditingController();
+  final _heightController = TextEditingController();
+  final _genderController = TextEditingController();
+  final _activityController = TextEditingController();
   final _hospitalizedStatusController = TextEditingController(text: 'Tidak');
-  final _notesController              = TextEditingController();
-  final _scrollController             = ScrollController();
+  final _notesController = TextEditingController();
+  final _scrollController = ScrollController();
 
   // ── State ────────────────────────────────────────────────────────────────────
   double _stressMetabolic = 20.0;
@@ -67,13 +70,13 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   bool _isGeneratingMenu = false;
 
   // ── Static data ──────────────────────────────────────────────────────────────
-  static const _genders        = ['Laki-laki', 'Perempuan'];
+  static const _genders = ['Laki-laki', 'Perempuan'];
   static const _activityLevels = [
-  'Bed rest (0.1)', 
-  'Ringan (0.2)', 
-  'Sedang (0.3)', 
-  'Berat (0.4)'
-];
+    'Bed rest (0.1)',
+    'Ringan (0.2)',
+    'Sedang (0.3)',
+    'Berat (0.4)',
+  ];
 
   // ── Colour constant (dipakai di action buttons) ───────────────────────────
   static const _kGreen = Color.fromARGB(255, 0, 148, 68);
@@ -112,7 +115,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     setState(() {
       _weightController.text = weight.toString();
       _heightController.text = height.toString();
-      _ageController.text    = _calculateAgeInYears(dob);
+      _ageController.text = _calculateAgeInYears(dob);
 
       final g = gender.toLowerCase();
       if (g.contains('laki') || g.contains('pria') || g == 'l') {
@@ -158,7 +161,7 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
     });
 
     _mealPlannerService
-        .generateDailyPlan(result.totalCalories) 
+        .generateDailyPlan(result.totalCalories)
         .then((menu) {
           if (mounted) {
             setState(() {
@@ -200,17 +203,18 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
   }
 
   /// Format angka: hilangkan desimal jika bulat (1.0 → '1', 1.5 → '1.5').
-  String _formatNumber(double value) =>
-      value == value.toInt() ? value.toInt().toString() : value.toStringAsFixed(1);
+  String _formatNumber(double value) => value == value.toInt()
+      ? value.toInt().toString()
+      : value.toStringAsFixed(1);
 
   // ---------------------------------------------------------------------------
   // BUILD
   // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
-    final size    = MediaQuery.sizeOf(context);
-    final hPad    = size.width * 0.04;
-    final vSpace  = size.height * 0.025;
+    final size = MediaQuery.sizeOf(context);
+    final hPad = size.width * 0.04;
+    final vSpace = size.height * 0.025;
     final vSpaceSm = size.height * 0.02;
 
     return Scaffold(
@@ -260,7 +264,9 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                       prefixIcon: const Icon(Icons.calendar_today),
                       suffixText: 'tahun',
                       validator: (value) {
-                        if (value == null || value.isEmpty) return 'Masukkan usia';
+                        if (value == null || value.isEmpty) {
+                          return 'Masukkan usia';
+                        }
                         final age = int.tryParse(value);
                         if (age == null || age < 1 || age > 120) {
                           return 'Masukkan usia yang valid (1-120 tahun)';
@@ -295,7 +301,9 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                       prefixIcon: const Icon(Icons.monitor_weight),
                       suffixText: 'kg',
                       validator: (value) {
-                        if (value == null || value.isEmpty) return 'Masukkan berat badan';
+                        if (value == null || value.isEmpty) {
+                          return 'Masukkan berat badan';
+                        }
                         final weight = double.tryParse(value);
                         if (weight == null || weight < 1 || weight > 300) {
                           return 'Masukkan berat badan yang valid (1-300 kg)';
@@ -317,7 +325,9 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                       prefixIcon: const Icon(Icons.height),
                       suffixText: 'cm',
                       validator: (value) {
-                        if (value == null || value.isEmpty) return 'Masukkan tinggi badan';
+                        if (value == null || value.isEmpty) {
+                          return 'Masukkan tinggi badan';
+                        }
                         final height = double.tryParse(value);
                         if (height == null || height < 30 || height > 300) {
                           return 'Masukkan tinggi badan yang valid (30-300 cm)';
@@ -382,7 +392,8 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                             max: 40,
                             divisions: 30,
                             label: '${_stressMetabolic.round()}%',
-                            onChanged: (v) => setState(() => _stressMetabolic = v),
+                            onChanged: (v) =>
+                                setState(() => _stressMetabolic = v),
                           ),
                         ],
                       ),
@@ -400,7 +411,10 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                       onSubmit: _calculateDiabetesNutrition,
                       resetButtonColor: Colors.white,
                       resetForegroundColor: _kGreen,
-                      submitIcon: const Icon(Icons.calculate, color: Colors.white),
+                      submitIcon: const Icon(
+                        Icons.calculate,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                   SizedBox(height: size.height * 0.04),
@@ -417,7 +431,8 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                     // 1. Kartu total kalori
                     DmResultCard(
                       result: _result!,
-                      isHospitalized: _hospitalizedStatusController.text == 'Ya',
+                      isHospitalized:
+                          _hospitalizedStatusController.text == 'Ya',
                       stressMetabolic: _stressMetabolic,
                     ),
                     SizedBox(height: vSpaceSm),
@@ -474,7 +489,10 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 16),
-                  Text('Sedang menyusun rekomendasi menu...', style: TextStyle(color: Colors.grey)),
+                  Text(
+                    'Sedang menyusun rekomendasi menu...',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ],
               ),
             ),
@@ -550,7 +568,10 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                             dense: true,
                             title: Text(
                               item.categoryLabel,
-                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
                             ),
                             subtitle: Text(
                               '${item.foodName} $portionText',
@@ -561,7 +582,11 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                               ),
                             ),
                             trailing: IconButton(
-                              icon: const Icon(Icons.edit, size: 20, color: Colors.grey),
+                              icon: const Icon(
+                                Icons.edit,
+                                size: 20,
+                                color: Colors.grey,
+                              ),
                               onPressed: () => _showEditDialog(item),
                             ),
                           );
@@ -575,7 +600,10 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                 const Divider(),
                 const Text(
                   'Catatan Tambahan (Opsional)',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
                 ),
                 const SizedBox(height: 8),
 
@@ -583,7 +611,8 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
                   controller: _notesController,
                   maxLines: 3,
                   decoration: InputDecoration(
-                    hintText: 'Tulis anjuran khusus atau catatan untuk pasien disini...',
+                    hintText:
+                        'Tulis anjuran khusus atau catatan untuk pasien disini...',
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -651,8 +680,9 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
 
   void _downloadPdf() async {
     if (_dailyMenu == null || _dailyMenu!.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Menu belum tersedia.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Menu belum tersedia.')));
       return;
     }
 
@@ -735,7 +765,8 @@ class _DiabetesCalculationPageState extends State<DiabetesCalculationPage> {
       ),
       onChanged:
           onChanged ??
-          (String? newValue) => setState(() => controller.text = newValue ?? ''),
+          (String? newValue) =>
+              setState(() => controller.text = newValue ?? ''),
       selectedItem: controller.text.isEmpty ? null : controller.text,
       validator: (value) =>
           (value == null || value.isEmpty) ? '$label harus dipilih' : null,

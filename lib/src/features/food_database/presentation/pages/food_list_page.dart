@@ -1,4 +1,4 @@
-// lib/src/features/food_database/presentation/pages/food_list_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\food_database\presentation\pages\food_list_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
@@ -43,8 +43,8 @@ class _FoodListPageState extends State<FoodListPage> {
   // --- Fungsi Penentu Jumlah Kolom ---
   int _getCrossAxisCount(double screenWidth) {
     if (screenWidth >= 1200) return 3; // Layar Desktop/Web lebar
-    if (screenWidth >= 800) return 2;  // Layar Tablet
-    return 1;                          // Layar Mobile
+    if (screenWidth >= 800) return 2; // Layar Tablet
+    return 1; // Layar Mobile
   }
 
   void _applyFilters(FoodFilterModel newFilters) {
@@ -164,8 +164,9 @@ class _FoodListPageState extends State<FoodListPage> {
                       final bool matchesSearch =
                           foodItem.name.toLowerCase().contains(_searchQuery) ||
                           foodItem.code.toLowerCase().contains(_searchQuery);
-                      final bool matchesFilter =
-                          _activeFilters.matches(foodItem);
+                      final bool matchesFilter = _activeFilters.matches(
+                        foodItem,
+                      );
                       return matchesSearch && matchesFilter;
                     }).toList();
 
@@ -192,7 +193,8 @@ class _FoodListPageState extends State<FoodListPage> {
                         crossAxisCount: _getCrossAxisCount(screenWidth),
                         crossAxisSpacing: 12.0,
                         mainAxisSpacing: 12.0,
-                        mainAxisExtent: 150.0, // Tinggi konstan Card disesuaikan agar isi tidak terpotong
+                        mainAxisExtent:
+                            150.0, // Tinggi konstan Card disesuaikan agar isi tidak terpotong
                       ),
                       itemCount: filteredItems.length,
                       itemBuilder: (context, index) {
@@ -205,7 +207,8 @@ class _FoodListPageState extends State<FoodListPage> {
                           button: true,
                           child: Card(
                             key: Key(itemKey),
-                            margin: EdgeInsets.zero, // Margin diatur oleh GridView spacing
+                            margin: EdgeInsets
+                                .zero, // Margin diatur oleh GridView spacing
                             elevation: 2,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -233,15 +236,22 @@ class _FoodListPageState extends State<FoodListPage> {
                                           padding: const EdgeInsets.all(8),
                                           decoration: BoxDecoration(
                                             color: const Color.fromARGB(
-                                              255, 0, 148, 68,
+                                              255,
+                                              0,
+                                              148,
+                                              68,
                                             ).withValues(alpha: 0.1),
-                                            borderRadius:
-                                                BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                           child: const Icon(
                                             Icons.restaurant,
                                             color: Color.fromARGB(
-                                              255, 0, 148, 68,
+                                              255,
+                                              0,
+                                              148,
+                                              68,
                                             ),
                                             size: 24,
                                           ),
@@ -275,7 +285,6 @@ class _FoodListPageState extends State<FoodListPage> {
                                       ],
                                     ),
                                     const Spacer(), // Mendorong konten gizi ke bawah
-
                                     // ── Nutrition summary row ───────────
                                     Row(
                                       mainAxisAlignment:
@@ -382,7 +391,7 @@ class _FoodListPageState extends State<FoodListPage> {
 
   // ── Helper widgets ────────────────────────────────────────────────────────
 
- Widget _buildSearchBar() {
+  Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white, // Memberikan background putih
@@ -410,7 +419,8 @@ class _FoodListPageState extends State<FoodListPage> {
                   onPressed: () => _searchController.clear(),
                 )
               : null,
-          border: InputBorder.none, // Menghilangkan garis bawah bawaan TextField
+          border:
+              InputBorder.none, // Menghilangkan garis bawah bawaan TextField
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 14, // Padding tetap agar tidak terlalu gemuk

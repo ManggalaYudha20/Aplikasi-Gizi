@@ -1,4 +1,4 @@
-
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\expert_system\data\models\knowledge_base_model.dart
 
 class DiseaseGuideline {
   final String diseaseId;
@@ -13,6 +13,7 @@ class DiseaseGuideline {
     this.conditionalForbiddenFoods = const {},
   });
 }
+
 class MealItemRule {
   final String categoryLabel;
   final dynamic portion;

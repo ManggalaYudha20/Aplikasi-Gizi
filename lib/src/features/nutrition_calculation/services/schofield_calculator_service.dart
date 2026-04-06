@@ -1,6 +1,8 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\nutrition_calculation\services\schofield_calculator_service.dart
+
 class SchofieldCalculatorService {
   /// Menghitung BMR menggunakan formula Schofield berdasarkan Berat Badan saja.
-  /// 
+  ///
   /// [weightKg] : Berat badan dalam kilogram (kg)
   /// [ageInYears] : Usia anak dalam tahun (bisa desimal, misal 2.5 untuk 2 tahun 6 bulan)
   /// [isMale] : true jika Laki-laki, false jika Perempuan
@@ -21,14 +23,16 @@ class SchofieldCalculatorService {
     'Stres Berat': 1.4,
     'Stres Sangat Berat': 1.5,
   };
-  
+
   static double calculateWithWeightOnly({
     required double weightKg,
     required double ageInYears,
     required bool isMale,
   }) {
     if (ageInYears < 0 || ageInYears > 18) {
-      throw ArgumentError('Formula Schofield didesain untuk anak dan remaja usia 0-18 tahun.');
+      throw ArgumentError(
+        'Formula Schofield didesain untuk anak dan remaja usia 0-18 tahun.',
+      );
     }
 
     if (isMale) {
@@ -54,7 +58,7 @@ class SchofieldCalculatorService {
   }
 
   /// Menghitung BMR menggunakan formula Schofield berdasarkan Berat Badan dan Tinggi Badan.
-  /// 
+  ///
   /// [weightKg] : Berat badan dalam kilogram (kg)
   /// [heightCm] : Tinggi badan dalam centimeter (cm). Akan dikonversi menjadi meter di dalam fungsi.
   /// [ageInYears] : Usia anak dalam tahun
@@ -66,7 +70,9 @@ class SchofieldCalculatorService {
     required bool isMale,
   }) {
     if (ageInYears < 0 || ageInYears > 18) {
-      throw ArgumentError('Formula Schofield didesain untuk anak dan remaja usia 0-18 tahun.');
+      throw ArgumentError(
+        'Formula Schofield didesain untuk anak dan remaja usia 0-18 tahun.',
+      );
     }
 
     // Mengubah tinggi dari cm ke meter karena koefisien formula Schofield menggunakan Meter (H)

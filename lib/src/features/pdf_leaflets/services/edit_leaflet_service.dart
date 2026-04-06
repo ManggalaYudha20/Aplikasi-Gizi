@@ -1,4 +1,4 @@
-// lib/src/features/pdf_leaflets/services/edit_leaflet_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\pdf_leaflets\services\edit_leaflet_service.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/data/models/leaflet_model.dart';
@@ -13,9 +13,7 @@ class EditLeafletService {
   ) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => AddLeafletPage(leaflet: leaflet),
-      ),
+      MaterialPageRoute(builder: (context) => AddLeafletPage(leaflet: leaflet)),
     );
 
     return result == true;

@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\account_page\widgets\role_badge.dart
+
 import 'package:flutter/material.dart';
 
 class RoleBadge extends StatelessWidget {
@@ -27,15 +29,15 @@ class RoleBadge extends StatelessWidget {
       label: 'badge_role_$roleName',
       container: true,
       child: Container(
-        key: Key('role_badge_$roleName'), // Memudahkan QA mencari berdasarkan role tertentu
+        key: Key(
+          'role_badge_$roleName',
+        ), // Memudahkan QA mencari berdasarkan role tertentu
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           // Menggunakan withValues (Flutter terbaru) atau withOpacity
-          color: roleColor.withValues(alpha: 0.1), 
+          color: roleColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: roleColor.withValues(alpha: 0.3),
-          ),
+          border: Border.all(color: roleColor.withValues(alpha: 0.3)),
         ),
         child: Text(
           roleName,

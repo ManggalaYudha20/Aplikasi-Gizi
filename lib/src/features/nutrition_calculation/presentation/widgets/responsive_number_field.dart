@@ -1,4 +1,4 @@
-// lib/src/features/nutrition_calculation/presentation/widgets/responsive_number_field.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\nutrition_calculation\presentation\widgets\responsive_number_field.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -100,10 +100,10 @@ class ResponsiveNumberField extends StatelessWidget {
     this.suffixText,
     this.semanticLabel,
     this.semanticHint,
-    this.isInteger    = false,
-    this.maxLength    = 5,
+    this.isInteger = false,
+    this.maxLength = 5,
     this.customValidator,
-    this.readOnly     = false,
+    this.readOnly = false,
     this.onTap,
   });
 
@@ -112,10 +112,10 @@ class ResponsiveNumberField extends StatelessWidget {
     // Jika tidak ada label Semantics, widget tetap dibungkus Semantics agar
     // patern pemanggilan dari page konsisten — tidak perlu kondisional di page.
     final Widget field = TextFormField(
-      key:          widgetKey,
-      controller:   controller,
-      readOnly:     readOnly,
-      onTap:        onTap,
+      key: widgetKey,
+      controller: controller,
+      readOnly: readOnly,
+      onTap: onTap,
       keyboardType: isInteger
           ? TextInputType.number
           : const TextInputType.numberWithOptions(decimal: true),
@@ -127,8 +127,8 @@ class ResponsiveNumberField extends StatelessWidget {
           FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
       ],
       decoration: InputDecoration(
-        labelText:  label,
-        border:     const OutlineInputBorder(),
+        labelText: label,
+        border: const OutlineInputBorder(),
         prefixIcon: prefixIcon,
         suffixText: suffixText,
       ),
@@ -139,10 +139,10 @@ class ResponsiveNumberField extends StatelessWidget {
     // Semantics node kosong yang bisa membingungkan screen reader.
     if (semanticLabel != null || semanticHint != null) {
       return Semantics(
-        label:     semanticLabel,
-        hint:      semanticHint,
+        label: semanticLabel,
+        hint: semanticHint,
         textField: true,
-        child:     field,
+        child: field,
       );
     }
 

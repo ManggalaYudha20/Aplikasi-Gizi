@@ -1,4 +1,4 @@
-// lib/src/features/nutrition_info/presentation/pages/nutrition_info_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\menu_beranda\presentation\pages\nutrition_info_page.dart
 
 import 'package:flutter/material.dart';
 
@@ -144,7 +144,11 @@ class NutritionInfoPage extends StatelessWidget {
           // Header
           Row(
             children: [
-              Icon(Icons.add, color: Color(0xFF009444), size: _responsiveSize(screenWidth, base: 24)),
+              Icon(
+                Icons.add,
+                color: Color(0xFF009444),
+                size: _responsiveSize(screenWidth, base: 24),
+              ),
               SizedBox(width: _responsiveSize(screenWidth, base: 8)),
               Text(
                 'Hitung Kebutuhan Gizi',
@@ -165,7 +169,7 @@ class NutritionInfoPage extends StatelessWidget {
                 child: _buildQuickCalcCard(
                   screenWidth: screenWidth,
                   title: 'Dewasa',
-                  icon: Icons.face, 
+                  icon: Icons.face,
                   iconColor: Colors.blue[300]!,
                   bgColor: Colors.blue[50]!,
                   buttonColor: Colors.blue,
@@ -185,7 +189,7 @@ class NutritionInfoPage extends StatelessWidget {
                 child: _buildQuickCalcCard(
                   screenWidth: screenWidth,
                   title: 'Anak',
-                  icon: Icons.child_care, 
+                  icon: Icons.child_care,
                   iconColor: Colors.green[300]!,
                   bgColor: Colors.green[50]!,
                   buttonColor: Colors.green,
@@ -230,7 +234,11 @@ class NutritionInfoPage extends StatelessWidget {
             children: [
               SizedBox(height: _responsiveSize(screenWidth, base: 16)),
               // Ilustrasi
-              Icon(icon, size: _responsiveSize(screenWidth, base: 50), color: iconColor),
+              Icon(
+                icon,
+                size: _responsiveSize(screenWidth, base: 50),
+                color: iconColor,
+              ),
               SizedBox(height: _responsiveSize(screenWidth, base: 8)),
               // Judul
               Text(
@@ -245,7 +253,9 @@ class NutritionInfoPage extends StatelessWidget {
               // Tombol bawah
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: _responsiveSize(screenWidth, base: 10)),
+                padding: EdgeInsets.symmetric(
+                  vertical: _responsiveSize(screenWidth, base: 10),
+                ),
                 decoration: BoxDecoration(
                   color: buttonColor,
                   borderRadius: const BorderRadius.vertical(
@@ -278,6 +288,7 @@ class NutritionInfoPage extends StatelessWidget {
       ),
     );
   }
+
   // WIDGET BARU: Menu melebar (full-width) dengan icon di kiri
   Widget _buildWideMenuButton(
     BuildContext context,
@@ -314,8 +325,10 @@ class NutritionInfoPage extends StatelessWidget {
               children: [
                 // Icon di sebelah kiri
                 Container(
-                  padding: EdgeInsets.all(_responsiveSize(screenWidth, base: 12)),
-                 
+                  padding: EdgeInsets.all(
+                    _responsiveSize(screenWidth, base: 12),
+                  ),
+
                   child: Icon(
                     item.icon,
                     color: Colors.white,
@@ -372,10 +385,10 @@ class NutritionInfoPage extends StatelessWidget {
               final double gridSpacing = (screenWidth * 0.04).clamp(10.0, 30.0);
               // --- LOGIKA PEMISAHAN MENU ---
               int crossAxisCount = _getCrossAxisCount(screenWidth);
-              
+
               // Mencari tahu apakah ada menu yang "sisa" (tidak pas masuk ke kolom genap)
               int remainder = menuItems.length % crossAxisCount;
-              
+
               // Jumlah item yang pas dimasukkan ke grid
               int gridItemCount = menuItems.length - remainder;
               List<_MenuConfig> gridItems = menuItems.sublist(0, gridItemCount);
@@ -398,11 +411,16 @@ class NutritionInfoPage extends StatelessWidget {
                       child: _buildQuickCalcBanner(context, screenWidth),
                     ),
 
-if (gridItems.isNotEmpty)
+                    if (gridItems.isNotEmpty)
                       GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        padding: EdgeInsets.fromLTRB(horizontalPadding, 24.0, horizontalPadding, 12.0),
+                        padding: EdgeInsets.fromLTRB(
+                          horizontalPadding,
+                          24.0,
+                          horizontalPadding,
+                          12.0,
+                        ),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: crossAxisCount,
                           crossAxisSpacing: gridSpacing,
@@ -417,14 +435,17 @@ if (gridItems.isNotEmpty)
                             button: true,
                             enabled: true,
                             identifier: 'btn_${item.id}',
-                            child: MenuButton( // Ini tetap menggunakan custom widget bawaan Anda
+                            child: MenuButton(
+                              // Ini tetap menggunakan custom widget bawaan Anda
                               key: ValueKey('menu_btn_${item.id}'),
                               text: item.label,
                               icon: item.icon,
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => item.destinationPage),
+                                  MaterialPageRoute(
+                                    builder: (context) => item.destinationPage,
+                                  ),
                                 );
                               },
                             ),
@@ -436,10 +457,12 @@ if (gridItems.isNotEmpty)
                     if (wideItems.isNotEmpty)
                       Padding(
                         padding: EdgeInsets.fromLTRB(
-                          horizontalPadding, 
-                          gridItems.isNotEmpty ? 0 : 24.0, // Sesuaikan padding jika grid kosong
-                          horizontalPadding, 
-                          24.0
+                          horizontalPadding,
+                          gridItems.isNotEmpty
+                              ? 0
+                              : 24.0, // Sesuaikan padding jika grid kosong
+                          horizontalPadding,
+                          24.0,
                         ),
                         child: Column(
                           children: wideItems.map((item) {
@@ -447,12 +470,15 @@ if (gridItems.isNotEmpty)
                               label: item.semanticsLabel,
                               button: true,
                               enabled: true,
-                              child: _buildWideMenuButton(context, item, screenWidth),
+                              child: _buildWideMenuButton(
+                                context,
+                                item,
+                                screenWidth,
+                              ),
                             );
                           }).toList(),
                         ),
                       ),
-
                   ],
                 ),
               );

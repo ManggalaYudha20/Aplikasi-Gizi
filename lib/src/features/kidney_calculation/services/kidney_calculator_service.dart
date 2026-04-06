@@ -1,4 +1,4 @@
-// lib/src/features/kidney_calculation/services/kidney_calculator_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\kidney_calculation\services\kidney_calculator_service.dart
 
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/data/models/kidney_diet_nutrition_model.dart';
 
@@ -34,8 +34,10 @@ class KidneyCalculatorService {
       // Hemodialisis: 1.2 g/kg BBI (standar buku panduan)
       proteinNeeds = 1.2 * idealBodyWeight;
     } else {
-      assert(proteinFactor != null,
-          'proteinFactor harus diisi untuk pasien pre-dialisis.');
+      assert(
+        proteinFactor != null,
+        'proteinFactor harus diisi untuk pasien pre-dialisis.',
+      );
       proteinNeeds = proteinFactor! * idealBodyWeight;
     }
 
@@ -69,7 +71,8 @@ class KidneyCalculatorService {
   int _getRecommendedDiet(double calculatedProtein, bool isDialysis) {
     final List<int> options = isDialysis ? [60, 65, 70] : [30, 35, 40];
     return options.reduce(
-      (a, b) => (a - calculatedProtein).abs() < (b - calculatedProtein).abs() ? a : b,
+      (a, b) =>
+          (a - calculatedProtein).abs() < (b - calculatedProtein).abs() ? a : b,
     );
   }
 }

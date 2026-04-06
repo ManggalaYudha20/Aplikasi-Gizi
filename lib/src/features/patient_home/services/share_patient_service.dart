@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\services\share_patient_service.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -13,16 +15,18 @@ class SharePatientService {
     try {
       final snapshot = await _firestore
           .collection('users')
-          .where('role', whereIn: ['ahli_gizi', 'admin','nutrisionis'])
+          .where('role', whereIn: ['ahli_gizi', 'admin', 'nutrisionis'])
           .get();
 
       return snapshot.docs
           .where((doc) => doc.id != currentUser.uid) // Filter diri sendiri
-          .map((doc) => {
-                'uid': doc.id,
-                'name': doc.data()['displayName'] ?? 'Tanpa Nama',
-                'email': doc.data()['email'] ?? '',
-              })
+          .map(
+            (doc) => {
+              'uid': doc.id,
+              'name': doc.data()['displayName'] ?? 'Tanpa Nama',
+              'email': doc.data()['email'] ?? '',
+            },
+          )
           .toList();
     } catch (e) {
       throw Exception('Gagal mengambil data nutrisionis: $e');
@@ -37,7 +41,9 @@ class SharePatientService {
     required String patientType, // 'dewasa' atau 'anak'
   }) async {
     final currentUser = _auth.currentUser;
-    if (currentUser == null) throw Exception("Sesi telah berakhir, silakan login ulang.");
+    if (currentUser == null) {
+      throw Exception("Sesi telah berakhir, silakan login ulang.");
+    }
 
     final senderName = currentUser.displayName ?? 'Rekan Nutrisionis';
 
@@ -46,7 +52,7 @@ class SharePatientService {
 
     for (String receiverId in receiverIds) {
       DocumentReference docRef = _firestore.collection('share_requests').doc();
-      
+
       batch.set(docRef, {
         'senderId': currentUser.uid,
         'senderName': senderName,
@@ -76,7 +82,11 @@ class SharePatientService {
   }
 
   // 4. Menerima Data (Menyalin ke koleksi pasien penerima)
-  Future<void> acceptRequest(String requestId, Map<String, dynamic> patientData, String patientType) async {
+  Future<void> acceptRequest(
+    String requestId,
+    Map<String, dynamic> patientData,
+    String patientType,
+  ) async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) throw Exception("Sesi berakhir");
 
@@ -87,26 +97,30 @@ class SharePatientService {
     newData.remove('id');
 
     // 2. GANTI createdBy menjadi UID Nutrisionis yang MENERIMA (B)
-    newData['createdBy'] = currentUser.uid; 
+    newData['createdBy'] = currentUser.uid;
 
     // 3. Pastikan tipePasien tersimpan sesuai data aslinya ('dewasa' atau 'anak')
     newData['tipePasien'] = patientType;
 
     // 4. Konversi format tanggal kembali ke Timestamp Firestore
     if (newData['tanggalLahir'] is String) {
-      newData['tanggalLahir'] = Timestamp.fromDate(DateTime.parse(newData['tanggalLahir']));
+      newData['tanggalLahir'] = Timestamp.fromDate(
+        DateTime.parse(newData['tanggalLahir']),
+      );
     }
-    newData['tanggalPemeriksaan'] = FieldValue.serverTimestamp(); 
+    newData['tanggalPemeriksaan'] = FieldValue.serverTimestamp();
 
     WriteBatch batch = _firestore.batch();
 
-   // 1. Simpan data ke koleksi pasien tujuan
+    // 1. Simpan data ke koleksi pasien tujuan
     DocumentReference newPatientRef = _firestore.collection('patients').doc();
     batch.set(newPatientRef, newData);
 
     // 2. HAPUS dokumen dari share_requests daripada hanya update status
     // Dengan dihapus, data tidak akan menumpuk di Firebase
-    DocumentReference requestRef = _firestore.collection('share_requests').doc(requestId);
+    DocumentReference requestRef = _firestore
+        .collection('share_requests')
+        .doc(requestId);
     batch.delete(requestRef);
 
     await batch.commit();

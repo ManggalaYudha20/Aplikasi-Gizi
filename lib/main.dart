@@ -1,4 +1,5 @@
-// lib/main.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\main.dart
+
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/firebase_options.dart';
 import 'package:aplikasi_diagnosa_gizi/src/app/auth_wrapper.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -19,11 +21,11 @@ Future<void> main() async {
   );
 
   if (defaultTargetPlatform == TargetPlatform.android ||
-    defaultTargetPlatform == TargetPlatform.iOS) {
-  await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.debug,
-  );
-}
+      defaultTargetPlatform == TargetPlatform.iOS) {
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.debug,
+    );
+  }
 
   runApp(const MyApp());
 }
@@ -38,9 +40,7 @@ class MyApp extends StatelessWidget {
       title: 'NutriAssist by RSUD Prov.Sulut',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF009444),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF009444)),
       ),
       locale: const Locale('id', 'ID'),
       supportedLocales: const [Locale('id', 'ID')],

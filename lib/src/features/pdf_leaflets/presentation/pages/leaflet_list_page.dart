@@ -1,4 +1,4 @@
-// lib/src/features/pdf_leaflets/presentation/pages/leaflet_list_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\pdf_leaflets\presentation\pages\leaflet_list_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -38,8 +38,8 @@ class _LeafletListPageState extends State<LeafletListPage> {
   // --- Fungsi Penentu Jumlah Kolom ---
   int _getCrossAxisCount(double screenWidth) {
     if (screenWidth >= 1200) return 3; // Desktop
-    if (screenWidth >= 800) return 2;  // Tablet
-    return 1;                          // Mobile
+    if (screenWidth >= 800) return 2; // Tablet
+    return 1; // Mobile
   }
 
   @override
@@ -59,7 +59,10 @@ class _LeafletListPageState extends State<LeafletListPage> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 800),
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 16.0,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -103,7 +106,9 @@ class _LeafletListPageState extends State<LeafletListPage> {
           // Daftar Leaflet (Menggunakan GridView agar responsif)
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('leaflets').snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('leaflets')
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return const Center(
@@ -118,10 +123,15 @@ class _LeafletListPageState extends State<LeafletListPage> {
 
                 final data = snapshot.data!.docs;
                 final leaflets = data
-                    .map((doc) => Leaflet.fromFirestore(
-                          doc as DocumentSnapshot<Map<String, dynamic>>,
-                        ))
-                    .where((leaflet) => leaflet.title.toLowerCase().contains(_searchQuery))
+                    .map(
+                      (doc) => Leaflet.fromFirestore(
+                        doc as DocumentSnapshot<Map<String, dynamic>>,
+                      ),
+                    )
+                    .where(
+                      (leaflet) =>
+                          leaflet.title.toLowerCase().contains(_searchQuery),
+                    )
                     .toList();
 
                 if (leaflets.isEmpty) {
@@ -143,7 +153,8 @@ class _LeafletListPageState extends State<LeafletListPage> {
                     crossAxisCount: _getCrossAxisCount(screenWidth),
                     crossAxisSpacing: 12.0,
                     mainAxisSpacing: 12.0,
-                    mainAxisExtent: 100.0, // Sesuaikan tinggi ideal Card di sini
+                    mainAxisExtent:
+                        100.0, // Sesuaikan tinggi ideal Card di sini
                   ),
                   itemCount: leaflets.length,
                   itemBuilder: (context, index) {
@@ -168,9 +179,7 @@ class _LeafletListPageState extends State<LeafletListPage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const AddLeafletPage(),
-                ),
+                MaterialPageRoute(builder: (context) => const AddLeafletPage()),
               );
             },
             backgroundColor: const Color.fromARGB(255, 0, 148, 68),

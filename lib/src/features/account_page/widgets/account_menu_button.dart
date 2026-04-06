@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\account_page\widgets\account_menu_button.dart
+
 import 'package:flutter/material.dart';
 
 class AccountMenuButton extends StatelessWidget {
@@ -7,7 +9,7 @@ class AccountMenuButton extends StatelessWidget {
   final Color? textColor;
   final Color? iconColor;
   // Tambahkan identifier unik jika diperlukan dari luar
-  final String? testId; 
+  final String? testId;
 
   const AccountMenuButton({
     super.key,
@@ -23,14 +25,14 @@ class AccountMenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       // 1. Membungkus dengan Semantics agar terdeteksi sebagai satu elemen interaktif
-      label: 'button_$label', 
+      label: 'button_$label',
       button: true,
       enabled: true,
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
           // 2. Menambahkan Key untuk identifikasi spesifik di widget tree Flutter
-          key: Key(testId ?? 'btn_$label'), 
+          key: Key(testId ?? 'btn_$label'),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
@@ -39,7 +41,8 @@ class AccountMenuButton extends StatelessWidget {
             children: [
               Icon(icon, color: iconColor),
               const SizedBox(width: 12),
-              Expanded( // Menggunakan Expanded agar Text tidak overflow
+              Expanded(
+                // Menggunakan Expanded agar Text tidak overflow
                 child: Text(
                   label,
                   style: TextStyle(

@@ -1,4 +1,4 @@
-// lib/src/features/patient_home/presentation/widgets/patient_info_row.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\presentation\widgets\patient_info_row.dart
 //
 // Reusable widget yang diekstrak dari _buildInfoRow() pada:
 //   - patient_detail_page.dart

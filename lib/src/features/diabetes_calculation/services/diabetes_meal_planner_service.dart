@@ -1,4 +1,4 @@
-// lib/src/features/diabetes_calculation/services/diabetes_meal_planner_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\diabetes_calculation\services\diabetes_meal_planner_service.dart
 
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/dm_meal_session_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/expert_system_engine.dart';
@@ -71,7 +71,7 @@ class DiabetesMealPlannerService {
               : portionValue.toString();
         } else {
           // Tangkap nilai non-angka, misalnya string 'S'
-          formattedPortion = portionValue.toString(); 
+          formattedPortion = portionValue.toString();
         }
 
         sessionItems.add(
@@ -79,7 +79,8 @@ class DiabetesMealPlannerService {
             categoryLabel: categoryLabel,
             foodName:
                 selectedFood?.name ?? 'Belum ada data $dbCategory yang aman',
-            portion: formattedPortion, // Mengakomodasi double '1.5' atau String 'S'
+            portion:
+                formattedPortion, // Mengakomodasi double '1.5' atau String 'S'
             foodData: selectedFood,
           ),
         );
@@ -152,31 +153,39 @@ class DiabetesMealPlannerService {
 
   /// AI Constraint Filtering: Mencari makanan yang TIDAK mengandung kata kunci terlarang
   /// AI Constraint Filtering: Mengambil semua data, filter pantangan, lalu pilih acak
- Future<FoodItem?> _getValidFoodItem(String dbCategory, List<String> forbiddenKeywords) async {
-    
+  Future<FoodItem?> _getValidFoodItem(
+    String dbCategory,
+    List<String> forbiddenKeywords,
+  ) async {
     // 1. Tentukan kategori mana saja yang WAJIB berupa 'olahan'
     final List<String> wajibOlahan = [
-      'Serealia', 'Umbi', 'Kacang', 'Sayur', 'Daging', 'Ikan dsb', 'Telur'
+      'Serealia',
+      'Umbi',
+      'Kacang',
+      'Sayur',
+      'Daging',
+      'Ikan dsb',
+      'Telur',
     ];
-    
+
     // Cek apakah kategori saat ini ada di dalam daftar wajib olahan
     bool isOlahanRequired = wajibOlahan.contains(dbCategory);
 
     // 2. Ambil data dengan mengirimkan parameter requiresOlahan ke Database Service
     final allItems = await _dbService.getAllFoodItemsByCategory(
-      dbCategory, 
+      dbCategory,
       requiresOlahan: isOlahanRequired, // <-- Lempar nilai boolean ke DB
     );
-    
+
     if (allItems == null || allItems.isEmpty) return null;
 
     // 3. Filter khusus untuk pantangan DM (Tetap seperti semula)
     final validItems = allItems.where((item) {
       final itemName = item.name.toLowerCase();
       bool isForbidden = forbiddenKeywords.any(
-        (keyword) => itemName.contains(keyword.toLowerCase())
+        (keyword) => itemName.contains(keyword.toLowerCase()),
       );
-      return !isForbidden; 
+      return !isForbidden;
     }).toList();
 
     if (validItems.isEmpty) return null;

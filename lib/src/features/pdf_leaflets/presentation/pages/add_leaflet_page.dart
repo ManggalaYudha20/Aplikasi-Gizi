@@ -1,4 +1,4 @@
-// lib/src/features/pdf_leaflets/presentation/pages/add_leaflet_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\pdf_leaflets\presentation\pages\add_leaflet_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,10 +9,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/form_action_buttons.da
 class AddLeafletPage extends StatefulWidget {
   final Leaflet? leaflet;
 
-  const AddLeafletPage({
-    super.key,
-    this.leaflet,
-  });
+  const AddLeafletPage({super.key, this.leaflet});
 
   @override
   State<AddLeafletPage> createState() => _AddLeafletPageState();
@@ -34,12 +31,11 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
     super.initState();
     _isEditing = widget.leaflet != null;
 
-    _titleController =
-        TextEditingController(text: widget.leaflet?.title ?? '');
-    _descriptionController =
-        TextEditingController(text: widget.leaflet?.description ?? '');
-    _urlController =
-        TextEditingController(text: widget.leaflet?.url ?? '');
+    _titleController = TextEditingController(text: widget.leaflet?.title ?? '');
+    _descriptionController = TextEditingController(
+      text: widget.leaflet?.description ?? '',
+    );
+    _urlController = TextEditingController(text: widget.leaflet?.url ?? '');
   }
 
   @override
@@ -98,10 +94,7 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -157,7 +150,8 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
                   key: const Key('leaflet_url_input'),
                   controller: _urlController,
                   label: 'URL PDF',
-                  hint: 'Link Google Drive akan otomatis diubah ke format preview',
+                  hint:
+                      'Link Google Drive akan otomatis diubah ke format preview',
                   icon: Icons.link,
                   isUrl: true,
                   maxLines: 3,
@@ -171,8 +165,7 @@ class _AddLeafletPageState extends State<AddLeafletPage> {
                   child: FormActionButtons(
                     onReset: _resetForm,
                     resetButtonColor: Colors.white,
-                    resetForegroundColor:
-                        const Color.fromARGB(255, 0, 148, 68),
+                    resetForegroundColor: const Color.fromARGB(255, 0, 148, 68),
                     onSubmit: _isLoading ? () {} : _submitLeaflet,
                     submitText: _isEditing ? 'Simpan' : 'Tambah',
                     submitIcon: _isEditing

@@ -1,5 +1,4 @@
-// lib/src/features/statistics/services/statistics_pdf_service.dart
-// ⚠️  No changes from original – file retained as-is per refactor plan.
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\statistics\services\statistics_pdf_service.dart
 
 import 'dart:io';
 import 'package:flutter/material.dart' show DateTimeRange, debugPrint;
@@ -34,21 +33,22 @@ class StatisticsPdfService {
     ]);
 
     final sulutLogo = pw.MemoryImage(results[0].buffer.asUint8List());
-    final rsLogo    = pw.MemoryImage(results[1].buffer.asUint8List());
+    final rsLogo = pw.MemoryImage(results[1].buffer.asUint8List());
 
-    final pw.MemoryImage? chartImage =
-        chartImageBytes != null ? pw.MemoryImage(chartImageBytes) : null;
+    final pw.MemoryImage? chartImage = chartImageBytes != null
+        ? pw.MemoryImage(chartImageBytes)
+        : null;
 
     // 2. Timestamps & formatted strings.
-    final DateTime nowWita =
-        DateTime.now().toUtc().add(const Duration(hours: 8));
+    final DateTime nowWita = DateTime.now().toUtc().add(
+      const Duration(hours: 8),
+    );
     final String printDate =
         "${DateFormat('EEEE, dd MMMM yyyy, HH:mm', 'id_ID').format(nowWita)} WITA";
     final String periodLabel = _buildPeriodLabel(dateRange);
 
     // 3. Build table rows.
-    final List<List<String>> tableRows =
-        _buildTableRows(dataMap: dataMap);
+    final List<List<String>> tableRows = _buildTableRows(dataMap: dataMap);
 
     // 4. Assemble PDF document.
     final pw.Document pdf = pw.Document();
@@ -80,8 +80,7 @@ class StatisticsPdfService {
 
   static String _buildPeriodLabel(DateTimeRange? dateRange) {
     if (dateRange == null) return "Semua Waktu";
-    final String start =
-        DateFormat('dd/MM/yyyy').format(dateRange.start);
+    final String start = DateFormat('dd/MM/yyyy').format(dateRange.start);
     final String end = DateFormat('dd/MM/yyyy').format(dateRange.end);
     return "$start – $end";
   }
@@ -91,16 +90,14 @@ class StatisticsPdfService {
   static List<List<String>> _buildTableRows({
     required Map<String, double> dataMap,
   }) {
-    final double total =
-        dataMap.values.fold(0, (prev, v) => prev + v);
+    final double total = dataMap.values.fold(0, (prev, v) => prev + v);
 
     return dataMap.entries.map((entry) {
       final bool isDummy = entry.key == "Tidak ada data";
       final String percentage = (!isDummy && total > 0)
           ? "${((entry.value / total) * 100).toStringAsFixed(1)}%"
           : "0%";
-      final String count =
-          isDummy ? "0 Orang" : "${entry.value.toInt()} Orang";
+      final String count = isDummy ? "0 Orang" : "${entry.value.toInt()} Orang";
       return [entry.key, count, percentage];
     }).toList();
   }
@@ -232,8 +229,7 @@ class StatisticsPdfService {
       children: [
         pw.Text(
           "Rincian Data:",
-          style:
-              pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
         ),
         pw.SizedBox(height: 5),
         _buildTable(rows),
@@ -249,17 +245,14 @@ class StatisticsPdfService {
         fontWeight: pw.FontWeight.bold,
         color: PdfColors.white,
       ),
-      headerDecoration:
-          const pw.BoxDecoration(color: PdfColors.green700),
-      rowDecoration:
-          const pw.BoxDecoration(color: PdfColors.grey100),
+      headerDecoration: const pw.BoxDecoration(color: PdfColors.green700),
+      rowDecoration: const pw.BoxDecoration(color: PdfColors.grey100),
       cellAlignments: {
         0: pw.Alignment.centerLeft,
         1: pw.Alignment.centerRight,
         2: pw.Alignment.centerRight,
       },
-      cellPadding: const pw.EdgeInsets.symmetric(
-          horizontal: 10, vertical: 8),
+      cellPadding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       border: null,
     );
   }
@@ -277,8 +270,7 @@ class StatisticsPdfService {
         children: [
           pw.Text(
             "Total Pasien Terdaftar:",
-            style: pw.TextStyle(
-                fontSize: 14, fontWeight: pw.FontWeight.bold),
+            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
           ),
           pw.Text(
             "$total Pasien",
@@ -297,21 +289,18 @@ class StatisticsPdfService {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.end,
       children: [
-        pw.Text('Mengetahui,',
-            style: const pw.TextStyle(fontSize: 10)),
+        pw.Text('Mengetahui,', style: const pw.TextStyle(fontSize: 10)),
         pw.SizedBox(height: 40),
         pw.Text(
           'Administrator / Ahli Gizi',
-          style:
-              pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
         ),
         pw.SizedBox(height: 20),
         pw.Align(
           alignment: pw.Alignment.centerLeft,
           child: pw.Text(
             "* Dokumen ini digenerate secara otomatis oleh Sistem Aplikasi Diagnosa Gizi.",
-            style: const pw.TextStyle(
-                fontSize: 8, color: PdfColors.grey600),
+            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
           ),
         ),
       ],

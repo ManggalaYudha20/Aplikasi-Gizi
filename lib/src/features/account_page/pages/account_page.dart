@@ -1,4 +1,4 @@
-// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\account\pages\account_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\account_page\pages\account_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -54,8 +54,8 @@ class AccountPage extends StatelessWidget {
 
           final data = snapshot.data;
           // Ambil rawRole di sini
-          final String rawRole = data != null && data.exists 
-              ? (data.get('role')?.toString() ?? '') 
+          final String rawRole = data != null && data.exists
+              ? (data.get('role')?.toString() ?? '')
               : '';
 
           return FadeInTransition(
@@ -82,7 +82,9 @@ class AccountPage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // LOGIKA FILTER ROLE: Hanya tampil jika ahli_gizi ATAU admin
-                      if (rawRole == 'ahli_gizi' || rawRole == 'admin' || rawRole == 'nutrisionis' ) ...[
+                      if (rawRole == 'ahli_gizi' ||
+                          rawRole == 'admin' ||
+                          rawRole == 'nutrisionis') ...[
                         AccountMenuButton(
                           testId: 'btn_backup_restore',
                           label: 'Cadangan',
@@ -94,19 +96,26 @@ class AccountPage extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => BackupPage(currentUserId: user.uid,userRole: rawRole,),
+                                  builder: (context) => BackupPage(
+                                    currentUserId: user.uid,
+                                    userRole: rawRole,
+                                  ),
                                 ),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Anda harus login terlebih dahulu.')),
+                                const SnackBar(
+                                  content: Text(
+                                    'Anda harus login terlebih dahulu.',
+                                  ),
+                                ),
                               );
                             }
                           },
                         ),
                         const SizedBox(height: 12),
                       ],
-                      
+
                       AccountMenuButton(
                         testId: 'btn_logout',
                         label: 'Keluar',
@@ -120,14 +129,18 @@ class AccountPage extends StatelessWidget {
                               await authService.signOut();
                               if (context.mounted) {
                                 Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                                  MaterialPageRoute(
+                                    builder: (context) => const LoginScreen(),
+                                  ),
                                   (Route<dynamic> route) => false,
                                 );
                               }
                             } catch (e) {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Gagal keluar akun: $e')),
+                                  SnackBar(
+                                    content: Text('Gagal keluar akun: $e'),
+                                  ),
                                 );
                               }
                             }
@@ -147,43 +160,62 @@ class AccountPage extends StatelessWidget {
                           context,
                           onConfirm: () async {
                             try {
-                              final currentUser = FirebaseAuth.instance.currentUser;
+                              final currentUser =
+                                  FirebaseAuth.instance.currentUser;
                               if (currentUser == null) return;
 
-                              
-                              final lastSignIn = currentUser.metadata.lastSignInTime;
-                              if (lastSignIn != null && DateTime.now().difference(lastSignIn).inMinutes > 5) {
+                              final lastSignIn =
+                                  currentUser.metadata.lastSignInTime;
+                              if (lastSignIn != null &&
+                                  DateTime.now()
+                                          .difference(lastSignIn)
+                                          .inMinutes >
+                                      5) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Sesi login terlalu lama. Demi keamanan, silakan LOGOUT dan LOGIN kembali sebelum menghapus akun.'),
+                                    content: Text(
+                                      'Sesi login terlalu lama. Demi keamanan, silakan LOGOUT dan LOGIN kembali sebelum menghapus akun.',
+                                    ),
                                     duration: Duration(seconds: 5),
                                     backgroundColor: Colors.orange,
                                   ),
                                 );
-                                return; 
+                                return;
                               }
-                            
 
                               showDialog(
                                 context: context,
                                 barrierDismissible: false,
-                                builder: (context) => const Center(child: CircularProgressIndicator()),
+                                builder: (context) => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
                               );
 
                               // 1. Hapus data di Firestore terlebih dahulu
-                              await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).delete();
-                              
+                              await FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(currentUser.uid)
+                                  .delete();
+
                               // 2. Hapus Autentikasi dari Firebase Auth
                               await currentUser.delete();
 
-                              if (context.mounted) Navigator.pop(context); // Tutup dialog loading
+                              if (context.mounted) {
+                                Navigator.pop(context);
+                              }
                               if (context.mounted) {
                                 Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                                  MaterialPageRoute(
+                                    builder: (context) => const LoginScreen(),
+                                  ),
                                   (Route<dynamic> route) => false,
                                 );
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Akun berhasil dihapus secara permanen.')),
+                                  const SnackBar(
+                                    content: Text(
+                                      'Akun berhasil dihapus secara permanen.',
+                                    ),
+                                  ),
                                 );
                               }
                             } on FirebaseAuthException catch (e) {
@@ -192,7 +224,9 @@ class AccountPage extends StatelessWidget {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Sesi terlalu lama. Silakan logout dan login kembali.'),
+                                      content: Text(
+                                        'Sesi terlalu lama. Silakan logout dan login kembali.',
+                                      ),
                                       duration: Duration(seconds: 5),
                                     ),
                                   );
@@ -200,7 +234,11 @@ class AccountPage extends StatelessWidget {
                               } else {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Gagal menghapus akun: ${e.message}')),
+                                    SnackBar(
+                                      content: Text(
+                                        'Gagal menghapus akun: ${e.message}',
+                                      ),
+                                    ),
                                   );
                                 }
                               }
@@ -208,14 +246,15 @@ class AccountPage extends StatelessWidget {
                               if (context.mounted) Navigator.pop(context);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Terjadi kesalahan: $e')),
+                                  SnackBar(
+                                    content: Text('Terjadi kesalahan: $e'),
+                                  ),
                                 );
                               }
                             }
                           },
                         ),
                       ),
-
                     ],
                   ),
                 ),
@@ -228,7 +267,11 @@ class AccountPage extends StatelessWidget {
   }
 
   // Fungsi _buildUserProfile disesuaikan agar menerima DocumentSnapshot (data) langsung
-  Widget _buildUserProfile(BuildContext context, User user, DocumentSnapshot data) {
+  Widget _buildUserProfile(
+    BuildContext context,
+    User user,
+    DocumentSnapshot data,
+  ) {
     final String rawRole = data.get('role')?.toString() ?? '';
     final String formattedRole = RoleFormatter.format(rawRole);
     final String displayName = data.get('displayName') ?? 'User';
@@ -244,9 +287,7 @@ class AccountPage extends StatelessWidget {
             child: CircleAvatar(
               radius: 50,
               backgroundColor: Colors.grey.shade200,
-              backgroundImage: photoUrl != null
-                  ? NetworkImage(photoUrl)
-                  : null,
+              backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
               child: photoUrl == null
                   ? const Icon(Icons.person, size: 50, color: Colors.grey)
                   : null,
@@ -259,23 +300,22 @@ class AccountPage extends StatelessWidget {
           child: Text(
             displayName,
             key: const Key('text_display_name'),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         const SizedBox(height: 8),
-        RoleBadge(
-          key: const Key('badge_role'), 
-          roleName: formattedRole
-        ),
+        RoleBadge(key: const Key('badge_role'), roleName: formattedRole),
         const SizedBox(height: 8),
         Semantics(
           label: 'user_email',
           child: Text(
             user.email ?? '',
             key: const Key('text_user_email'),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
           ),
         ),
       ],

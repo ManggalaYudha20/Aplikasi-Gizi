@@ -1,4 +1,4 @@
-// lib/src/features/home/presentation/pages/data_form_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\presentation\pages\data_form_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -214,7 +214,7 @@ class _DataFormPageState extends State<DataFormPage> {
       _addDiagnosisItem();
     }
   }
-  
+
   void _addMonevLabItem(String? type, String value) {
     // BATASAN BARU: Maksimal 6 Form
     if (_monevLabItems.length >= 6) {
@@ -236,7 +236,7 @@ class _DataFormPageState extends State<DataFormPage> {
       );
     });
   }
-  
+
   void _addLabItem(String? type, String value) {
     if (_labItems.length >= 6) return; // Batasan Max 6
     setState(() {
@@ -274,20 +274,29 @@ class _DataFormPageState extends State<DataFormPage> {
 
   void _generateExpertDiagnosis() {
     // ── Validasi minimal ──────────────────────────────────────────────────────
-    if (_beratBadanController.text.isEmpty || _tinggiBadanController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Gagal: Harap lengkapi Berat Badan dan Tinggi Badan.'),
-        backgroundColor: Colors.red,
-      ));
+    if (_beratBadanController.text.isEmpty ||
+        _tinggiBadanController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal: Harap lengkapi Berat Badan dan Tinggi Badan.'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
-    final bool isLabEmpty = _labItems.every((i) => i.valueController.text.isEmpty);
+    final bool isLabEmpty = _labItems.every(
+      (i) => i.valueController.text.isEmpty,
+    );
     if (isLabEmpty && _klinikTDController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Peringatan: Data Lab & Klinis kosong. Hasil mungkin kurang spesifik.'),
-        backgroundColor: Colors.orange,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Peringatan: Data Lab & Klinis kosong. Hasil mungkin kurang spesifik.',
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
     }
 
     // ── Kumpulkan nilai lab ke Map ────────────────────────────────────────────
@@ -299,25 +308,27 @@ class _DataFormPageState extends State<DataFormPage> {
 
     // ── Panggil service — semua parsing & logika ada di sana ─────────────────
     final result = DiseaseExpertService().buildAndRun(
-      beratBadanText:  _beratBadanController.text,
+      beratBadanText: _beratBadanController.text,
       tinggiBadanText: _tinggiBadanController.text,
-      tanggalLahir:    _selectedDate,
-      labValues:       labMap,
-      sistolikText:    _sistolikController.text,
-      diastolikText:   _diastolikController.text,
-      tdText:          _klinikTDController.text,
-      diagnosisMedis:  _diagnosisMedisController.text,
-      sukaManis:       _sukaManis,
-      sukaAsin:        _sukaAsin,
-      makanBerlemak:   _makanBerlemak,
-      jarangOlahraga:  _jarangOlahraga,
+      tanggalLahir: _selectedDate,
+      labValues: labMap,
+      sistolikText: _sistolikController.text,
+      diastolikText: _diastolikController.text,
+      tdText: _klinikTDController.text,
+      diagnosisMedis: _diagnosisMedisController.text,
+      sukaManis: _sukaManis,
+      sukaAsin: _sukaAsin,
+      makanBerlemak: _makanBerlemak,
+      jarangOlahraga: _jarangOlahraga,
     );
 
     // ── Hitung IMT lokal untuk teks Signs ─────────────────────────────────────
     final double? bb = double.tryParse(_beratBadanController.text);
     final double? tb = double.tryParse(_tinggiBadanController.text);
     double imt = 0;
-    if (bb != null && tb != null && tb > 0) imt = bb / ((tb / 100) * (tb / 100));
+    if (bb != null && tb != null && tb > 0) {
+      imt = bb / ((tb / 100) * (tb / 100));
+    }
 
     // ── Update UI ─────────────────────────────────────────────────────────────
     setState(() {
@@ -332,52 +343,60 @@ class _DataFormPageState extends State<DataFormPage> {
       final diagnosesToApply = result.suggestedDiagnoses.take(3).toList();
 
       for (final diag in diagnosesToApply) {
-        _diagnosisItems.add(DiagnosisInput(
-          p: '[${diag.code}] ${diag.label}',
-          e: diag.category,
-          s: DiseaseExpertService.buildSigns(
-            diag,
-            gds:          double.tryParse(labMap['GDS'] ?? ''),
-            gdp:          double.tryParse(labMap['GDP'] ?? ''),
-            hba1c:        double.tryParse(labMap['HbA1c'] ?? ''),
-            ureum:        double.tryParse(labMap['Ureum'] ?? ''),
-            kreatinin:    double.tryParse(labMap['Kreatinin'] ?? ''),
-            kolesterol:   double.tryParse(labMap['Kolesterol Total'] ?? ''),
-            ldl:          double.tryParse(labMap['LDL'] ?? ''),
-            hdl:          double.tryParse(labMap['HDL'] ?? ''),
-            trigliserida: double.tryParse(labMap['Trigliserida'] ?? ''),
-            kalium:       double.tryParse(labMap['Kalium'] ?? ''),
-            natrium:      double.tryParse(labMap['Natrium'] ?? ''),
-            hgb:          double.tryParse(labMap['HGB'] ?? ''),
-            sistolik:     int.tryParse(_sistolikController.text),
-            diastolik:    int.tryParse(_diastolikController.text),
-            imt:          imt,
-            sukaAsin:     _sukaAsin,
+        _diagnosisItems.add(
+          DiagnosisInput(
+            p: '[${diag.code}] ${diag.label}',
+            e: diag.category,
+            s: DiseaseExpertService.buildSigns(
+              diag,
+              gds: double.tryParse(labMap['GDS'] ?? ''),
+              gdp: double.tryParse(labMap['GDP'] ?? ''),
+              hba1c: double.tryParse(labMap['HbA1c'] ?? ''),
+              ureum: double.tryParse(labMap['Ureum'] ?? ''),
+              kreatinin: double.tryParse(labMap['Kreatinin'] ?? ''),
+              kolesterol: double.tryParse(labMap['Kolesterol Total'] ?? ''),
+              ldl: double.tryParse(labMap['LDL'] ?? ''),
+              hdl: double.tryParse(labMap['HDL'] ?? ''),
+              trigliserida: double.tryParse(labMap['Trigliserida'] ?? ''),
+              kalium: double.tryParse(labMap['Kalium'] ?? ''),
+              natrium: double.tryParse(labMap['Natrium'] ?? ''),
+              hgb: double.tryParse(labMap['HGB'] ?? ''),
+              sistolik: int.tryParse(_sistolikController.text),
+              diastolik: int.tryParse(_diastolikController.text),
+              imt: imt,
+              sukaAsin: _sukaAsin,
+            ),
           ),
-        ));
+        );
       }
       if (_diagnosisItems.isEmpty) _addDiagnosisItem();
 
       // 2. Intervensi (MAKS 3 TERMINOLOGI)
       if (_intervensiDietController.text.isEmpty) {
-        _intervensiDietController.text =
-            result.suggestedInterventions.take(3).map((i) => '[${i.code}] ${i.label}').join('\n');
+        _intervensiDietController.text = result.suggestedInterventions
+            .take(3)
+            .map((i) => '[${i.code}] ${i.label}')
+            .join('\n');
       }
 
       // 3. Monitoring (MAKS 3 TERMINOLOGI)
       if (_monevIndikatorController.text.isEmpty) {
-        _monevIndikatorController.text =
-            result.suggestedMonitoring.take(3).map((m) => '[${m.code}] ${m.label}').join('\n');
+        _monevIndikatorController.text = result.suggestedMonitoring
+            .take(3)
+            .map((m) => '[${m.code}] ${m.label}')
+            .join('\n');
       }
 
       // 4. Tujuan Intervensi: Dikosongkan sesuai permintaan
-      _intervensiTujuanController.clear(); 
+      _intervensiTujuanController.clear();
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('Saran diagnosa otomatis berhasil dimuat.'),
-      backgroundColor: Colors.green,
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Saran diagnosa otomatis berhasil dimuat.'),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   void _initializeFormWithPatientData() {
@@ -390,7 +409,9 @@ class _DataFormPageState extends State<DataFormPage> {
     _tinggiBadanController.text = patient.tinggiBadan.toString();
     _jenisKelaminController.text = patient.jenisKelamin;
     _aktivitasController.text = patient.aktivitas;
-    _faktorStressController.text = patient.faktorStress.isNotEmpty ? patient.faktorStress : 'Normal';
+    _faktorStressController.text = patient.faktorStress.isNotEmpty
+        ? patient.faktorStress
+        : 'Normal';
     _kehilanganNafsuMakanController.text = patient.kehilanganNafsuMakan ?? '';
     _alergiMakananController.text = patient.alergiMakanan ?? 'Tidak';
     _selectedDate = patient.tanggalLahir;
@@ -427,8 +448,8 @@ class _DataFormPageState extends State<DataFormPage> {
       patient.labResults.forEach((key, value) {
         String cleanValue = value;
         if (value.contains(' ')) {
-           // Ambil bagian angkanya saja (misal "100 mg/dL" -> "100")
-           cleanValue = value.split(' ')[0]; 
+          // Ambil bagian angkanya saja (misal "100 mg/dL" -> "100")
+          cleanValue = value.split(' ')[0];
         }
         _addLabItem(key, cleanValue);
       });
@@ -454,14 +475,17 @@ class _DataFormPageState extends State<DataFormPage> {
     _monevAsupanController.text = patient.monevAsupan ?? '';
     _monevLabItems.clear(); // Reset list dulu
     String fullMonevData = patient.monevHasilLab ?? '';
-    
+
     // Cek apakah format baru (mengandung header)
-    if (fullMonevData.contains('Hasil Lab:') || fullMonevData.contains('Catatan Tambahan:')) {
-      
+    if (fullMonevData.contains('Hasil Lab:') ||
+        fullMonevData.contains('Catatan Tambahan:')) {
       // 1. Ambil bagian Catatan Tambahan
       if (fullMonevData.contains('Catatan Tambahan:')) {
         // Ambil semua teks SETELAH 'Catatan Tambahan:'
-        _monevHasilLabController.text = fullMonevData.split('Catatan Tambahan:').last.trim();
+        _monevHasilLabController.text = fullMonevData
+            .split('Catatan Tambahan:')
+            .last
+            .trim();
       } else {
         _monevHasilLabController.clear();
       }
@@ -473,7 +497,7 @@ class _DataFormPageState extends State<DataFormPage> {
         if (measuredPart.contains('Catatan Tambahan:')) {
           measuredPart = measuredPart.split('Catatan Tambahan:').first;
         }
-        
+
         // Split per baris
         List<String> lines = measuredPart.trim().split('\n');
         for (String line in lines) {
@@ -481,7 +505,7 @@ class _DataFormPageState extends State<DataFormPage> {
           // Format line: "- GDS: 100 mg/dL"
           if (line.startsWith('-')) {
             // Hapus dash di depan
-            line = line.substring(1).trim(); 
+            line = line.substring(1).trim();
             // Cari posisi titik dua
             int colonIndex = line.indexOf(':');
             if (colonIndex != -1) {
@@ -492,10 +516,12 @@ class _DataFormPageState extends State<DataFormPage> {
 
               // Validasi apakah Type ada di daftar opsi kita
               if (_labOptions.contains(type)) {
-                 _monevLabItems.add(LabInputItem(
+                _monevLabItems.add(
+                  LabInputItem(
                     valueController: TextEditingController(text: cleanVal),
                     selectedType: type,
-                 ));
+                  ),
+                );
               }
             }
           }
@@ -852,8 +878,8 @@ class _DataFormPageState extends State<DataFormPage> {
         for (var item in _labItems) {
           if (item.selectedType != null &&
               item.valueController.text.isNotEmpty) {
-              String rawValue = item.valueController.text.trim();
-               String unit = _labUnits[item.selectedType] ?? '';
+            String rawValue = item.valueController.text.trim();
+            String unit = _labUnits[item.selectedType] ?? '';
 
             labResultsMap[item.selectedType!] = '$rawValue $unit'.trim();
           }
@@ -894,31 +920,32 @@ class _DataFormPageState extends State<DataFormPage> {
 
         StringBuffer combinedMonevLab = StringBuffer();
 
-      // 1. Masukkan data dari Form Dinamis
-      List<String> dynamicResults = [];
-      for (var item in _monevLabItems) {
-        if (item.selectedType != null && item.valueController.text.isNotEmpty) {
-          String rawVal = item.valueController.text.trim();
-          String unit = _labUnits[item.selectedType] ?? '';
-          dynamicResults.add("- ${item.selectedType}: $rawVal $unit");
+        // 1. Masukkan data dari Form Dinamis
+        List<String> dynamicResults = [];
+        for (var item in _monevLabItems) {
+          if (item.selectedType != null &&
+              item.valueController.text.isNotEmpty) {
+            String rawVal = item.valueController.text.trim();
+            String unit = _labUnits[item.selectedType] ?? '';
+            dynamicResults.add("- ${item.selectedType}: $rawVal $unit");
+          }
         }
-      }
-      
-      if (dynamicResults.isNotEmpty) {
-        combinedMonevLab.writeln("Hasil Lab:");
-        combinedMonevLab.writeln(dynamicResults.join('\n'));
-        combinedMonevLab.writeln(); // Spasi antar section
-      }
 
-      // 2. Masukkan data dari Catatan Tambahan (Input lama)
-      if (_monevHasilLabController.text.isNotEmpty) {
-        combinedMonevLab.writeln("Catatan Tambahan:");
-        combinedMonevLab.writeln(_monevHasilLabController.text);
-      }
+        if (dynamicResults.isNotEmpty) {
+          combinedMonevLab.writeln("Hasil Lab:");
+          combinedMonevLab.writeln(dynamicResults.join('\n'));
+          combinedMonevLab.writeln(); // Spasi antar section
+        }
 
-      // Simpan hasil gabungan ke variabel string biasa (Bukan replace controller)
-      // agar tidak mengubah tampilan UI saat loading
-      String finalMonevLabString = combinedMonevLab.toString().trim();
+        // 2. Masukkan data dari Catatan Tambahan (Input lama)
+        if (_monevHasilLabController.text.isNotEmpty) {
+          combinedMonevLab.writeln("Catatan Tambahan:");
+          combinedMonevLab.writeln(_monevHasilLabController.text);
+        }
+
+        // Simpan hasil gabungan ke variabel string biasa (Bukan replace controller)
+        // agar tidak mengubah tampilan UI saat loading
+        String finalMonevLabString = combinedMonevLab.toString().trim();
 
         // --- Siapkan data untuk Firestore ---
         final patientData = {
@@ -943,7 +970,9 @@ class _DataFormPageState extends State<DataFormPage> {
           'beratBadanDulu': double.tryParse(_beratBadanDuluController.text),
           'jenisKelamin': _jenisKelaminController.text,
           'aktivitas': _aktivitasController.text,
-          'faktorStress': _faktorStressController.text.isNotEmpty ? _faktorStressController.text : 'Normal', // -> Tambahkan ini
+          'faktorStress': _faktorStressController.text.isNotEmpty
+              ? _faktorStressController.text
+              : 'Normal', // -> Tambahkan ini
           'kehilanganNafsuMakan': _kehilanganNafsuMakanController.text,
           'alergiMakanan': _alergiMakananController.text,
 
@@ -1042,7 +1071,9 @@ class _DataFormPageState extends State<DataFormPage> {
             tinggiBadan: tinggiBadan,
             jenisKelamin: _jenisKelaminController.text,
             aktivitas: _aktivitasController.text,
-            faktorStress: _faktorStressController.text.isNotEmpty ? _faktorStressController.text : 'Normal', // -> Tambahkan ini
+            faktorStress: _faktorStressController.text.isNotEmpty
+                ? _faktorStressController.text
+                : 'Normal', // -> Tambahkan ini
             kehilanganNafsuMakan: _kehilanganNafsuMakanController.text,
             imt: imt,
             skorIMT: skorIMT,
@@ -1341,12 +1372,15 @@ class _DataFormPageState extends State<DataFormPage> {
                   ),
                   const SizedBox(height: 16),
 
-                 _buildCustomDropdown(
-                    controller: _faktorStressController, // Pastikan controller ini sudah dideklarasikan di atas
+                  _buildCustomDropdown(
+                    controller:
+                        _faktorStressController, // Pastikan controller ini sudah dideklarasikan di atas
                     label: 'Faktor Stres / Kondisi Klinis',
                     prefixIcon: const Icon(Icons.healing),
-                    items: _stressOptions, // Pastikan list opsi sudah ditambahkan di atas
-                    focusNode: _focusNodes[34], // Gunakan index FocusNode yang kosong
+                    items:
+                        _stressOptions, // Pastikan list opsi sudah ditambahkan di atas
+                    focusNode:
+                        _focusNodes[34], // Gunakan index FocusNode yang kosong
                     showSearch: true,
                     // Tambahkan onChanged agar UI langsung bereaksi saat opsi Demam dipilih
                     onChanged: (String? value) {
@@ -1370,19 +1404,25 @@ class _DataFormPageState extends State<DataFormPage> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.info_outline, color: Colors.orange),
+                            const Icon(
+                              Icons.info_outline,
+                              color: Colors.orange,
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 'Suhu badan digunakan untuk menghitung penambahan TDEE (13% per 1°C di atas 37°C). Pastikan Anda juga mengisi nilai "Suhu Badan (SB)" di form Klinik/Fisik/PD di bawah.',
-                                style: TextStyle(color: Colors.orange[800], fontSize: 13),
+                                style: TextStyle(
+                                  color: Colors.orange[800],
+                                  fontSize: 13,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                    
+
                   const SizedBox(height: 16),
 
                   _buildTextFormField(
@@ -1601,9 +1641,10 @@ class _DataFormPageState extends State<DataFormPage> {
                                 decoration: InputDecoration(
                                   labelText: 'Hasil',
                                   border: OutlineInputBorder(),
-                                  suffixText: _labItems[index].selectedType != null
-                                ? _labUnits[_labItems[index].selectedType]
-                                : '',
+                                  suffixText:
+                                      _labItems[index].selectedType != null
+                                      ? _labUnits[_labItems[index].selectedType]
+                                      : '',
                                 ),
                                 validator: (val) {
                                   if (_labItems[index].selectedType != null &&
@@ -1643,13 +1684,10 @@ class _DataFormPageState extends State<DataFormPage> {
 
                   _buildSectionHeader('Klinik/Fisik/PD'),
 
-                    const Text(
-                        'Tekanan Darah (TD)',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                  const Text(
+                    'Tekanan Darah (TD)',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 10),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1872,101 +1910,143 @@ class _DataFormPageState extends State<DataFormPage> {
                               LayoutBuilder(
                                 builder: (context, constraints) {
                                   return Autocomplete<TerminologyItem>(
-  // 1. Data yang akan ditampilkan berdasarkan ketikan user
-  optionsBuilder: (TextEditingValue textEditingValue) {
-    if (textEditingValue.text.isEmpty) {
-      return const Iterable<TerminologyItem>.empty();
-    }
-    // Menggunakan logic matches() dari TerminologyItem
-    return DiagnosisTerminology.allDiagnoses.where((TerminologyItem option) {
-      return option.matches(textEditingValue.text);
-    });
-  },
+                                    // 1. Data yang akan ditampilkan berdasarkan ketikan user
+                                    optionsBuilder:
+                                        (TextEditingValue textEditingValue) {
+                                          if (textEditingValue.text.isEmpty) {
+                                            return const Iterable<
+                                              TerminologyItem
+                                            >.empty();
+                                          }
+                                          // Menggunakan logic matches() dari TerminologyItem
+                                          return DiagnosisTerminology
+                                              .allDiagnoses
+                                              .where((TerminologyItem option) {
+                                                return option.matches(
+                                                  textEditingValue.text,
+                                                );
+                                              });
+                                        },
 
-  // 2. Apa yang ditampilkan di text field saat item dipilih
-  displayStringForOption: (TerminologyItem option) =>
-      '[${option.code}] ${option.label}',
+                                    // 2. Apa yang ditampilkan di text field saat item dipilih
+                                    displayStringForOption:
+                                        (TerminologyItem option) =>
+                                            '[${option.code}] ${option.label}',
 
-  // 3. Aksi saat item dipilih
-  onSelected: (TerminologyItem selection) {
-    // Update controller manual agar tersimpan di state
-    _diagnosisItems[index].pController.text =
-        '[${selection.code}] ${selection.label}';
-  },
+                                    // 3. Aksi saat item dipilih
+                                    onSelected: (TerminologyItem selection) {
+                                      // Update controller manual agar tersimpan di state
+                                      _diagnosisItems[index].pController.text =
+                                          '[${selection.code}] ${selection.label}';
+                                    },
 
-  // 4. Membangun Text Field-nya
-  fieldViewBuilder: (
-    context,
-    fieldTextEditingController,
-    fieldFocusNode,
-    onFieldSubmitted,
-  ) {
-    // Sinkronisasi: Paksa Autocomplete mengikuti nilai controller kita
-    // Hapus pengecekan ".isEmpty" agar sistem bisa menimpa teks kapan saja
-    if (_diagnosisItems[index].pController.text != fieldTextEditingController.text) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          fieldTextEditingController.text =
-              _diagnosisItems[index].pController.text;
-        }
-      });
-    }
+                                    // 4. Membangun Text Field-nya
+                                    fieldViewBuilder:
+                                        (
+                                          context,
+                                          fieldTextEditingController,
+                                          fieldFocusNode,
+                                          onFieldSubmitted,
+                                        ) {
+                                          // Sinkronisasi: Paksa Autocomplete mengikuti nilai controller kita
+                                          // Hapus pengecekan ".isEmpty" agar sistem bisa menimpa teks kapan saja
+                                          if (_diagnosisItems[index]
+                                                  .pController
+                                                  .text !=
+                                              fieldTextEditingController.text) {
+                                            WidgetsBinding.instance
+                                                .addPostFrameCallback((_) {
+                                                  if (context.mounted) {
+                                                    fieldTextEditingController
+                                                            .text =
+                                                        _diagnosisItems[index]
+                                                            .pController
+                                                            .text;
+                                                  }
+                                                });
+                                          }
 
-    // Listener: Jika user mengetik manual, simpan ke controller kita
-    fieldTextEditingController.addListener(() {
-      if (_diagnosisItems[index].pController.text != fieldTextEditingController.text) {
-        _diagnosisItems[index].pController.text =
-            fieldTextEditingController.text;
-      }
-    });
+                                          // Listener: Jika user mengetik manual, simpan ke controller kita
+                                          fieldTextEditingController
+                                              .addListener(() {
+                                                if (_diagnosisItems[index]
+                                                        .pController
+                                                        .text !=
+                                                    fieldTextEditingController
+                                                        .text) {
+                                                  _diagnosisItems[index]
+                                                          .pController
+                                                          .text =
+                                                      fieldTextEditingController
+                                                          .text;
+                                                }
+                                              });
 
-    return TextFormField(
-      controller: fieldTextEditingController,
-      focusNode: fieldFocusNode,
-      maxLength: 200,
-      textInputAction: TextInputAction.done,
-      decoration: const InputDecoration(
-        labelText: 'Problem (P)',
-        isDense: true,
-        border: OutlineInputBorder(),
-        suffixIcon: Icon(Icons.search),
-      ),
-      maxLines: null,
-    );
-  },
+                                          return TextFormField(
+                                            controller:
+                                                fieldTextEditingController,
+                                            focusNode: fieldFocusNode,
+                                            maxLength: 200,
+                                            textInputAction:
+                                                TextInputAction.done,
+                                            decoration: const InputDecoration(
+                                              labelText: 'Problem (P)',
+                                              isDense: true,
+                                              border: OutlineInputBorder(),
+                                              suffixIcon: Icon(Icons.search),
+                                            ),
+                                            maxLines: null,
+                                          );
+                                        },
 
-  // 5. Tampilan List Saran (Dropdown di bawah)
-  optionsViewBuilder: (context, onSelected, options) {
-    return Align(
-      alignment: Alignment.topLeft,
-      child: Material(
-        elevation: 4.0,
-        child: SizedBox(
-          width: constraints.maxWidth, // Lebar menyesuaikan form
-          height: 200, // Tinggi maksimal dropdown
-          child: ListView.builder(
-            padding: const EdgeInsets.all(8.0),
-            itemCount: options.length,
-            itemBuilder: (BuildContext context, int i) {
-              final TerminologyItem option = options.elementAt(i);
-              return ListTile(
-                title: Text(
-                  '${option.code} - ${option.label}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                // Ganti definition dengan category
-                subtitle: Text(option.category),
-                onTap: () {
-                  onSelected(option);
-                },
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  },
-);
+                                    // 5. Tampilan List Saran (Dropdown di bawah)
+                                    optionsViewBuilder: (context, onSelected, options) {
+                                      return Align(
+                                        alignment: Alignment.topLeft,
+                                        child: Material(
+                                          elevation: 4.0,
+                                          child: SizedBox(
+                                            width: constraints
+                                                .maxWidth, // Lebar menyesuaikan form
+                                            height:
+                                                200, // Tinggi maksimal dropdown
+                                            child: ListView.builder(
+                                              padding: const EdgeInsets.all(
+                                                8.0,
+                                              ),
+                                              itemCount: options.length,
+                                              itemBuilder:
+                                                  (
+                                                    BuildContext context,
+                                                    int i,
+                                                  ) {
+                                                    final TerminologyItem
+                                                    option = options.elementAt(
+                                                      i,
+                                                    );
+                                                    return ListTile(
+                                                      title: Text(
+                                                        '${option.code} - ${option.label}',
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      // Ganti definition dengan category
+                                                      subtitle: Text(
+                                                        option.category,
+                                                      ),
+                                                      onTap: () {
+                                                        onSelected(option);
+                                                      },
+                                                    );
+                                                  },
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
                                 },
                               ),
                               const SizedBox(height: 8),
@@ -2107,108 +2187,120 @@ class _DataFormPageState extends State<DataFormPage> {
                   const SizedBox(height: 16),
 
                   const Text(
-  "Hasil Lab (Terukur):",
-  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-),
-const SizedBox(height: 8),
-
-ListView.builder(
-  shrinkWrap: true,
-  physics: const NeverScrollableScrollPhysics(),
-  itemCount: _monevLabItems.length,
-  itemBuilder: (context, index) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // DROPDOWN JENIS LAB (MONEV)
-          Expanded(
-            flex: 2,
-            child: DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Jenis Tes',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 15,
-                ),
-              ),
-              initialValue: _monevLabItems[index].selectedType,
-              items: _labOptions.map((String type) {
-                return DropdownMenuItem<String>(
-                  value: type,
-                  child: Text(
-                    type,
-                    style: const TextStyle(fontSize: 13),
+                    "Hasil Lab (Terukur):",
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                   ),
-                );
-              }).toList(),
-              onChanged: (val) {
-                setState(() {
-                  _monevLabItems[index].selectedType = val;
-                });
-              },
-            ),
-          ),
-          const SizedBox(width: 10),
+                  const SizedBox(height: 8),
 
-          // INPUT HASIL LAB (MONEV)
-          Expanded(
-            flex: 2,
-            child: TextFormField(
-              controller: _monevLabItems[index].valueController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Hasil',
-                border: const OutlineInputBorder(),
-                // Tampilkan satuan otomatis
-                suffixText: _monevLabItems[index].selectedType != null
-                    ? _labUnits[_monevLabItems[index].selectedType]
-                    : '',
-              ),
-            ),
-          ),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _monevLabItems.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // DROPDOWN JENIS LAB (MONEV)
+                            Expanded(
+                              flex: 2,
+                              child: DropdownButtonFormField<String>(
+                                decoration: const InputDecoration(
+                                  labelText: 'Jenis Tes',
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 15,
+                                  ),
+                                ),
+                                initialValue:
+                                    _monevLabItems[index].selectedType,
+                                items: _labOptions.map((String type) {
+                                  return DropdownMenuItem<String>(
+                                    value: type,
+                                    child: Text(
+                                      type,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (val) {
+                                  setState(() {
+                                    _monevLabItems[index].selectedType = val;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
 
-          // TOMBOL HAPUS ITEM
-          if (_monevLabItems.length > 1 || index > 0)
-            IconButton(
-              icon: const Icon(Icons.remove_circle, color: Colors.red),
-              onPressed: () {
-                setState(() {
-                  _monevLabItems[index].valueController.dispose();
-                  _monevLabItems.removeAt(index);
-                });
-              },
-            ),
-        ],
-      ),
-    );
-  },
-),
+                            // INPUT HASIL LAB (MONEV)
+                            Expanded(
+                              flex: 2,
+                              child: TextFormField(
+                                controller:
+                                    _monevLabItems[index].valueController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: 'Hasil',
+                                  border: const OutlineInputBorder(),
+                                  // Tampilkan satuan otomatis
+                                  suffixText:
+                                      _monevLabItems[index].selectedType != null
+                                      ? _labUnits[_monevLabItems[index]
+                                            .selectedType]
+                                      : '',
+                                ),
+                              ),
+                            ),
 
-OutlinedButton.icon(
-  onPressed: _monevLabItems.length >= 6 
-      ? null // Disable tombol
-      : () => _addMonevLabItem(null, ''),
-  icon: const Icon(Icons.add),
-  label: Text(_monevLabItems.length >= 6 
-      ? 'Batas Maksimal Tercapai (6)' 
-      : 'Tambah Hasil Lab Monev'),
-),
-const SizedBox(height: 16),
-// --- AKHIR TAMBAHAN FORM DINAMIS MONEV ---
+                            // TOMBOL HAPUS ITEM
+                            if (_monevLabItems.length > 1 || index > 0)
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.remove_circle,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _monevLabItems[index].valueController
+                                        .dispose();
+                                    _monevLabItems.removeAt(index);
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
 
-// FORM LAMA (Berubah Fungsi jadi Catatan)
-_buildTextFormField(
-  controller: _monevHasilLabController,
-  label: 'Catatan Tambahan Hasil Lab', // Ganti Label
-  prefixIcon: const Icon(Icons.note_alt_outlined), // Ganti Icon biar beda
-  focusNode: _focusNodes[33],
-  maxLength: 500,
-  maxLines: 2,
-  validator: (value) => null,
-),
+                  OutlinedButton.icon(
+                    onPressed: _monevLabItems.length >= 6
+                        ? null // Disable tombol
+                        : () => _addMonevLabItem(null, ''),
+                    icon: const Icon(Icons.add),
+                    label: Text(
+                      _monevLabItems.length >= 6
+                          ? 'Batas Maksimal Tercapai (6)'
+                          : 'Tambah Hasil Lab Monev',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // --- AKHIR TAMBAHAN FORM DINAMIS MONEV ---
+
+                  // FORM LAMA (Berubah Fungsi jadi Catatan)
+                  _buildTextFormField(
+                    controller: _monevHasilLabController,
+                    label: 'Catatan Tambahan Hasil Lab', // Ganti Label
+                    prefixIcon: const Icon(
+                      Icons.note_alt_outlined,
+                    ), // Ganti Icon biar beda
+                    focusNode: _focusNodes[33],
+                    maxLength: 500,
+                    maxLines: 2,
+                    validator: (value) => null,
+                  ),
                 ],
               ),
             ),

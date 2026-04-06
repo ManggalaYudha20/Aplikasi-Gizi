@@ -1,4 +1,4 @@
-// lib/src/features/patient_home/presentation/widgets/patient_list_card.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\presentation\widgets\patient_list_card.dart
 //
 // Berisi dua widget card yang diekstrak dari patient_home_page.dart:
 //   - PatientListCard         → untuk pasien dewasa  (ex _buildPatientCard)
@@ -46,15 +46,18 @@ class PatientListCard extends StatelessWidget {
 
     if (statusGizi.contains('Kurang') || statusGizi.contains('Buruk')) {
       statusColor = Colors.orange;
-    } else if (statusGizi.contains('Lebih') || statusGizi.contains('Obesitas')) {
+    } else if (statusGizi.contains('Lebih') ||
+        statusGizi.contains('Obesitas')) {
       statusColor = Colors.red;
     } else if (statusGizi.contains('Baik') || statusGizi.contains('Normal')) {
       statusColor = Colors.green;
     }
 
     // ── Format Tanggal & Usia ──────────────────────────────────────────────
-    final String formattedDate =
-        DateFormat('dd MMM yyyy', 'id_ID').format(patient.tanggalPemeriksaan);
+    final String formattedDate = DateFormat(
+      'dd MMM yyyy',
+      'id_ID',
+    ).format(patient.tanggalPemeriksaan);
 
     final DateTime today = DateTime.now();
     int age = today.year - patient.tanggalLahir.year;
@@ -85,16 +88,18 @@ class PatientListCard extends StatelessWidget {
                   PatientDetailPage(patient: patient),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                const begin = Offset(-1.0, 0.0);
-                const end = Offset.zero;
-                const curve = Curves.easeInOut;
-                final tween =
-                    Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                return SlideTransition(
-                  position: animation.drive(tween),
-                  child: child,
-                );
-              },
+                    const begin = Offset(-1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    final tween = Tween(
+                      begin: begin,
+                      end: end,
+                    ).chain(CurveTween(curve: curve));
+                    return SlideTransition(
+                      position: animation.drive(tween),
+                      child: child,
+                    );
+                  },
               transitionDuration: const Duration(milliseconds: 400),
             ),
           );
@@ -126,15 +131,16 @@ class PatientListCard extends StatelessWidget {
                           ),
                           Text(
                             formattedDate,
-                            style:
-                                TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
                           ),
                         ],
                       ),
                       Text(
                         '${patient.jenisKelamin} | $age Tahun | No.RM: ${patient.noRM}',
-                        style:
-                            TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 8),
                       const Divider(height: 1, thickness: 0.5),
@@ -150,7 +156,9 @@ class PatientListCard extends StatelessWidget {
                                 const Text(
                                   'Diagnosis Medis',
                                   style: TextStyle(
-                                      fontSize: 10, color: Colors.grey),
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                                 Text(
                                   patient.diagnosisMedis,
@@ -173,11 +181,15 @@ class PatientListCard extends StatelessWidget {
                                 const Text(
                                   'Status Gizi',
                                   style: TextStyle(
-                                      fontSize: 10, color: Colors.grey),
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   child: Text(
                                     statusGizi,
                                     textAlign: TextAlign.right,
@@ -247,14 +259,17 @@ class PatientAnakListCard extends StatelessWidget {
 
     if (statusGizi.contains('kurang') || statusGizi.contains('buruk')) {
       statusColor = Colors.orange;
-    } else if (statusGizi.contains('lebih') || statusGizi.contains('Obesitas')) {
+    } else if (statusGizi.contains('lebih') ||
+        statusGizi.contains('Obesitas')) {
       statusColor = Colors.red;
     } else if (statusGizi.contains('baik') || statusGizi.contains('normal')) {
       statusColor = Colors.green;
     }
 
-    final String formattedDate =
-        DateFormat('dd MMM yyyy', 'id_ID').format(patient.tanggalPemeriksaan);
+    final String formattedDate = DateFormat(
+      'dd MMM yyyy',
+      'id_ID',
+    ).format(patient.tanggalPemeriksaan);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -277,16 +292,18 @@ class PatientAnakListCard extends StatelessWidget {
                   PatientAnakDetailPage(patient: patient),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                const begin = Offset(-1.0, 0.0);
-                const end = Offset.zero;
-                const curve = Curves.easeInOut;
-                final tween =
-                    Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                return SlideTransition(
-                  position: animation.drive(tween),
-                  child: child,
-                );
-              },
+                    const begin = Offset(-1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    final tween = Tween(
+                      begin: begin,
+                      end: end,
+                    ).chain(CurveTween(curve: curve));
+                    return SlideTransition(
+                      position: animation.drive(tween),
+                      child: child,
+                    );
+                  },
               transitionDuration: const Duration(milliseconds: 400),
             ),
           );
@@ -318,15 +335,16 @@ class PatientAnakListCard extends StatelessWidget {
                           ),
                           Text(
                             formattedDate,
-                            style:
-                                TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
                           ),
                         ],
                       ),
                       Text(
                         '${patient.jenisKelamin} | ${patient.usiaFormatted} | No.RM: ${patient.noRM}',
-                        style:
-                            TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 8),
                       const Divider(height: 1, thickness: 0.5),

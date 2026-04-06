@@ -1,4 +1,4 @@
-// lib/src/shared/widgets/food_filter_sheet.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\food_database\presentation\widgets\food_filter_sheet.dart
 
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart'; // Pastikan import ini ada
@@ -68,12 +68,15 @@ class _FoodFilterSheetState extends State<FoodFilterSheet> {
                 _tempFilters.kelompokMakanan ?? "Semua Kelompok Makanan",
             popupProps: PopupProps.menu(
               showSearchBox: false, // Search box dihilangkan
-              fit: FlexFit.loose, // Tinggi menyesuaikan konten (tidak full screen)
-              constraints: const BoxConstraints(maxHeight: 150), // Batas tinggi agar bisa di-scroll
-              
+              fit: FlexFit
+                  .loose, // Tinggi menyesuaikan konten (tidak full screen)
+              constraints: const BoxConstraints(
+                maxHeight: 150,
+              ), // Batas tinggi agar bisa di-scroll
               // Props untuk styling menu dropdown agar terlihat rapi
               menuProps: MenuProps(
-                elevation: 4, // Memberikan bayangan agar terlihat 'mengambang' di bawah form
+                elevation:
+                    4, // Memberikan bayangan agar terlihat 'mengambang' di bawah form
               ),
 
               // Scrollbar tetap ada
@@ -122,25 +125,36 @@ class _FoodFilterSheetState extends State<FoodFilterSheet> {
               showSearchBox: false,
               fit: FlexFit.loose,
               constraints: const BoxConstraints(maxHeight: 100),
-              
+
               menuProps: MenuProps(
                 borderRadius: BorderRadius.circular(12),
                 elevation: 4,
-                positionCallback: (RenderBox findRenderObject, RenderBox overlay) {
-                // Mencari posisi global dari tombol dropdown (form)
-                Offset localToGlobal = findRenderObject.localToGlobal(Offset.zero, ancestor: overlay);
-                
-                // Menentukan tinggi menu sesuai constraints Anda (95)
-                // Tambahkan sedikit buffer (misal 5) jika ingin ada jarak
-                double menuHeight = 110.0; 
+                positionCallback:
+                    (RenderBox findRenderObject, RenderBox overlay) {
+                      // Mencari posisi global dari tombol dropdown (form)
+                      Offset localToGlobal = findRenderObject.localToGlobal(
+                        Offset.zero,
+                        ancestor: overlay,
+                      );
 
-                return RelativeRect.fromLTRB(
-                  localToGlobal.dx, // Kiri (sama dengan tombol)
-                  localToGlobal.dy - menuHeight, // Atas (Posisi Tombol - Tinggi Menu)
-                  overlay.size.width - (localToGlobal.dx + findRenderObject.size.width), // Kanan (sama dengan tombol)
-                  overlay.size.height - localToGlobal.dy, // Bawah (diangkur ke Bagian Atas Tombol)
-                );
-              },
+                      // Menentukan tinggi menu sesuai constraints Anda (95)
+                      // Tambahkan sedikit buffer (misal 5) jika ingin ada jarak
+                      double menuHeight = 110.0;
+
+                      return RelativeRect.fromLTRB(
+                        localToGlobal.dx, // Kiri (sama dengan tombol)
+                        localToGlobal.dy -
+                            menuHeight, // Atas (Posisi Tombol - Tinggi Menu)
+                        overlay.size.width -
+                            (localToGlobal.dx +
+                                findRenderObject
+                                    .size
+                                    .width), // Kanan (sama dengan tombol)
+                        overlay.size.height -
+                            localToGlobal
+                                .dy, // Bawah (diangkur ke Bagian Atas Tombol)
+                      );
+                    },
               ),
 
               scrollbarProps: const ScrollbarProps(

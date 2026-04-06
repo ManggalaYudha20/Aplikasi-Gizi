@@ -1,4 +1,4 @@
-// lib/src/features/kidney_calculation/presentation/widgets/kidney_result_card.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\kidney_calculation\presentation\widgets\kidney_result_card.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/data/models/kidney_diet_nutrition_model.dart';
@@ -48,10 +48,10 @@ class KidneyResultCard extends StatelessWidget {
     final status = imt < 18.5
         ? 'BB Kurang'
         : imt < 25
-            ? 'Normal'
-            : imt < 30
-                ? 'BB Lebih'
-                : 'Obesitas';
+        ? 'Normal'
+        : imt < 30
+        ? 'BB Lebih'
+        : 'Obesitas';
     return (imt, status);
   }
 
@@ -67,7 +67,7 @@ class KidneyResultCard extends StatelessWidget {
     final factorExplanationText = result.isDialysis
         ? '*Pasien hemodialisis membutuhkan asupan protein lebih tinggi (1.2 g/kg BBI).'
         : '*Pasien pre-dialisis membutuhkan asupan protein lebih rendah '
-          '(${proteinFactorValue}g/kg BBI) untuk memperlambat laju penyakit.';
+              '(${proteinFactorValue}g/kg BBI) untuk memperlambat laju penyakit.';
 
     return Container(
       key: cardKey,
@@ -90,16 +90,32 @@ class KidneyResultCard extends StatelessWidget {
             ),
           ),
           const Divider(height: 24),
-          _row('Berat Badan Ideal (BBI)',
-              '${result.idealBodyWeight.toStringAsFixed(1)} kg', 'result_bbi'),
-          _row('Berat Badan Aktual',
-              '${currentWeight.toStringAsFixed(1)} kg', 'result_bb_aktual'),
-          _row('Indeks Massa Tubuh (IMT)',
-              '${imt.toStringAsFixed(1)} ($nutritionalStatus)', 'result_imt'),
+          _row(
+            'Berat Badan Ideal (BBI)',
+            '${result.idealBodyWeight.toStringAsFixed(1)} kg',
+            'result_bbi',
+          ),
+          _row(
+            'Berat Badan Aktual',
+            '${currentWeight.toStringAsFixed(1)} kg',
+            'result_bb_aktual',
+          ),
+          _row(
+            'Indeks Massa Tubuh (IMT)',
+            '${imt.toStringAsFixed(1)} ($nutritionalStatus)',
+            'result_imt',
+          ),
           if (result.bmr > 0)
-            _row('BMR', '${result.bmr.toStringAsFixed(1)} kkal/hari', 'result_bmr'),
-          _row('Kebutuhan Protein Harian',
-              '${result.proteinNeeds.toStringAsFixed(1)} gram', 'result_protein_needs'),
+            _row(
+              'BMR',
+              '${result.bmr.toStringAsFixed(1)} kkal/hari',
+              'result_bmr',
+            ),
+          _row(
+            'Kebutuhan Protein Harian',
+            '${result.proteinNeeds.toStringAsFixed(1)} gram',
+            'result_protein_needs',
+          ),
           const SizedBox(height: 16),
           const Text(
             'Rekomendasi Diet:',

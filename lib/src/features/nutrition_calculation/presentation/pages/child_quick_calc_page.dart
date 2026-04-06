@@ -1,4 +1,4 @@
-// lib/src/features/nutrition_calculation/presentation/pages/child_quick_calc_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\nutrition_calculation\presentation\pages\child_quick_calc_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -214,7 +214,7 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
     required double tdee,
   }) {
     // Gunakan BBI jika valid, jika tidak gunakan aktual
-    double weightToUse = (bbi > 0) ? bbi : weight;
+    double weightToUse = weight;
     double proteinPerKg = 0;
 
     // Referensi Protein RDA/AKG Anak (g/kg BB)
@@ -237,7 +237,7 @@ class _ChildQuickCalcPageState extends State<ChildQuickCalcPage> {
     }
 
     double totalProtein = proteinPerKg * weightToUse;
-    double totalLemak = (0.35 * tdee) / 9; // 35% dari TDEE
+    double totalLemak = (0.20 * tdee) / 9; // 20% dari TDEE diare
     double totalKarbo = (tdee - (totalProtein * 4) - (totalLemak * 9)) / 4;
     if (totalKarbo < 0) totalKarbo = 0;
 

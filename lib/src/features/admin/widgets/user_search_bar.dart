@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\admin\widgets\user_search_bar.dart
+
 import 'package:flutter/material.dart';
 
 class UserSearchBar extends StatelessWidget {
@@ -23,7 +25,9 @@ class UserSearchBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:0.1), // Kompatibel dengan Flutter lama/baru
+            color: Colors.grey.withValues(
+              alpha: 0.1,
+            ), // Kompatibel dengan Flutter lama/baru
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, 2),

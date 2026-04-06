@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\shared\widgets\patient_picker_widget.dart
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,11 +8,17 @@ import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/data/models/pat
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/widgets/fading_snackbar_content.dart';
 
 class PatientPickerWidget extends StatefulWidget {
-  final Function(double weight, double height, String gender, DateTime birthDate) onPatientSelected;
+  final Function(
+    double weight,
+    double height,
+    String gender,
+    DateTime birthDate,
+  )
+  onPatientSelected;
   final String userRole;
 
   const PatientPickerWidget({
-    super.key, 
+    super.key,
     required this.onPatientSelected,
     required this.userRole,
   });
@@ -22,8 +30,8 @@ class PatientPickerWidget extends StatefulWidget {
 class PatientPickerWidgetState extends State<PatientPickerWidget> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  
-  String? _selectedPatientId; 
+
+  String? _selectedPatientId;
 
   Stream<QuerySnapshot<Map<String, dynamic>>>? _patientStream;
 
@@ -48,20 +56,20 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
     if (!mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
-    
+
     // Hapus antrian snackbar sebelumnya agar tidak menumpuk
-    messenger.clearSnackBars(); 
+    messenger.clearSnackBars();
 
     // Konfigurasi Durasi
-    const totalDuration = Duration(milliseconds: 3000); 
-    const fadeOutDuration = Duration(milliseconds: 1500); 
-    
+    const totalDuration = Duration(milliseconds: 3000);
+    const fadeOutDuration = Duration(milliseconds: 1500);
+
     messenger.showSnackBar(
       SnackBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         behavior: SnackBarBehavior.floating,
-        duration: totalDuration, 
+        duration: totalDuration,
         margin: EdgeInsets.zero,
         content: FadingSnackBarContent(
           message: message,
@@ -80,8 +88,10 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
     try {
       // KITA HAPUS fetch ke collection 'users' di sini karena widget.userRole sudah membawa data tersebut.
       // Ini menghilangkan delay/loading saat widget dimuat.
-      
-      Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('patients');
+
+      Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection(
+        'patients',
+      );
 
       // Logic Query menggunakan widget.userRole secara langsung
       if (widget.userRole == 'admin') {
@@ -134,7 +144,7 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
             ],
           ),
         ),
-        
+
         // --- SEARCH BAR ---
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
@@ -144,7 +154,10 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
               hintText: 'Cari nama atau No. RM...',
               prefixIcon: const Icon(Icons.search, size: 20),
               isDense: true,
-              contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 10,
+                horizontal: 12,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: Colors.grey[300]!),
@@ -153,14 +166,14 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: Colors.grey[300]!),
               ),
-              suffixIcon: _searchQuery.isNotEmpty 
-                ? IconButton(
-                    icon: const Icon(Icons.clear, size: 18),
-                    onPressed: () {
-                      resetSelection(); // Gunakan metode resetSelection di sini juga
-                    },
-                  ) 
-                : null,
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, size: 18),
+                      onPressed: () {
+                        resetSelection(); // Gunakan metode resetSelection di sini juga
+                      },
+                    )
+                  : null,
             ),
             style: const TextStyle(fontSize: 13),
             onChanged: (value) {
@@ -174,95 +187,101 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
         const SizedBox(height: 8),
 
         SizedBox(
-          height: 140, 
+          height: 140,
           // Jika role bukan tamu tapi stream belum siap, tampilkan loading
-          child: _patientStream == null 
-            ? const Center(child: CircularProgressIndicator()) 
-            : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: _patientStream, 
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+          child: _patientStream == null
+              ? const Center(child: CircularProgressIndicator())
+              : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: _patientStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                  if (snapshot.hasError) {
-                    return const SizedBox.shrink();
-                  }
+                    if (snapshot.hasError) {
+                      return const SizedBox.shrink();
+                    }
 
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return _buildEmptyState('Belum ada data pasien.');
-                  }
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return _buildEmptyState('Belum ada data pasien.');
+                    }
 
-                  final allDocs = snapshot.data!.docs;
+                    final allDocs = snapshot.data!.docs;
 
-                  final filteredDocs = allDocs.where((doc) {
-                    final data = doc.data();
-                    final String nama = (data['namaLengkap'] ?? '').toString().toLowerCase();
-                    final String norm = (data['noRM'] ?? '').toString().toLowerCase();
-                    
-                    return nama.contains(_searchQuery) || norm.contains(_searchQuery);
-                  }).toList();
-
-                  if (filteredDocs.isEmpty) {
-                    return _buildEmptyState('Pasien tidak ditemukan.');
-                  }
-
-                  return ListView.builder(
-                    key: const PageStorageKey('patient_list_scroll'), 
-                    scrollDirection: Axis.horizontal,
-                    itemCount: filteredDocs.length,
-                    itemBuilder: (context, index) {
-                      final doc = filteredDocs[index];
+                    final filteredDocs = allDocs.where((doc) {
                       final data = doc.data();
-                      final String docId = doc.id;
+                      final String nama = (data['namaLengkap'] ?? '')
+                          .toString()
+                          .toLowerCase();
+                      final String norm = (data['noRM'] ?? '')
+                          .toString()
+                          .toLowerCase();
 
-                      final String tipePasien = data['tipePasien'] ?? 'dewasa';
-                      final bool isAnak = tipePasien == 'anak';
-                      
-                      String nama;
-                      String noRM;
-                      DateTime tglLahir;
-                      double berat;
-                      double tinggi;
-                      String gender;
+                      return nama.contains(_searchQuery) ||
+                          norm.contains(_searchQuery);
+                    }).toList();
 
-                      try {
-                        if (isAnak) {
-                           final patient = PatientAnak.fromFirestore(doc);
-                           nama = patient.namaLengkap;
-                           noRM = patient.noRM;
-                           tglLahir = patient.tanggalLahir;
-                           berat = patient.beratBadan.toDouble();
-                           tinggi = patient.tinggiBadan.toDouble();
-                           gender = patient.jenisKelamin;
-                        } else {
-                           final patient = Patient.fromFirestore(doc);
-                           nama = patient.namaLengkap;
-                           noRM = patient.noRM;
-                           tglLahir = patient.tanggalLahir;
-                           berat = patient.beratBadan.toDouble();
-                           tinggi = patient.tinggiBadan.toDouble();
-                           gender = patient.jenisKelamin;
+                    if (filteredDocs.isEmpty) {
+                      return _buildEmptyState('Pasien tidak ditemukan.');
+                    }
+
+                    return ListView.builder(
+                      key: const PageStorageKey('patient_list_scroll'),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: filteredDocs.length,
+                      itemBuilder: (context, index) {
+                        final doc = filteredDocs[index];
+                        final data = doc.data();
+                        final String docId = doc.id;
+
+                        final String tipePasien =
+                            data['tipePasien'] ?? 'dewasa';
+                        final bool isAnak = tipePasien == 'anak';
+
+                        String nama;
+                        String noRM;
+                        DateTime tglLahir;
+                        double berat;
+                        double tinggi;
+                        String gender;
+
+                        try {
+                          if (isAnak) {
+                            final patient = PatientAnak.fromFirestore(doc);
+                            nama = patient.namaLengkap;
+                            noRM = patient.noRM;
+                            tglLahir = patient.tanggalLahir;
+                            berat = patient.beratBadan.toDouble();
+                            tinggi = patient.tinggiBadan.toDouble();
+                            gender = patient.jenisKelamin;
+                          } else {
+                            final patient = Patient.fromFirestore(doc);
+                            nama = patient.namaLengkap;
+                            noRM = patient.noRM;
+                            tglLahir = patient.tanggalLahir;
+                            berat = patient.beratBadan.toDouble();
+                            tinggi = patient.tinggiBadan.toDouble();
+                            gender = patient.jenisKelamin;
+                          }
+                        } catch (e) {
+                          return const SizedBox.shrink();
                         }
-                      } catch (e) {
-                        return const SizedBox.shrink(); 
-                      }
 
-                      return _buildPatientCard(
-                        context: context, 
-                        docId: docId, 
-                        name: nama, 
-                        noRM: noRM, 
-                        dob: tglLahir, 
-                        weight: berat, 
-                        height: tinggi, 
-                        gender: gender,
-                        isChild: isAnak
-                      );
-                    },
-                  );
-                },
-              ),
+                        return _buildPatientCard(
+                          context: context,
+                          docId: docId,
+                          name: nama,
+                          noRM: noRM,
+                          dob: tglLahir,
+                          weight: berat,
+                          height: tinggi,
+                          gender: gender,
+                          isChild: isAnak,
+                        );
+                      },
+                    );
+                  },
+                ),
         ),
         const SizedBox(height: 10), // Sedikit jarak
         const Divider(),
@@ -305,7 +324,7 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
     if (days < 0) {
       months--;
     }
-    
+
     if (years > 0) {
       return '$years thn ${months > 0 ? '$months bln' : ''}';
     } else {
@@ -313,30 +332,30 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
     }
   }
 
- Widget _buildPatientCard({
-    required BuildContext context, 
-    required String docId, 
-    required String name, 
-    required String noRM, 
-    required DateTime dob, 
-    required double weight, 
-    required double height, 
+  Widget _buildPatientCard({
+    required BuildContext context,
+    required String docId,
+    required String name,
+    required String noRM,
+    required DateTime dob,
+    required double weight,
+    required double height,
     required String gender,
     required bool isChild,
   }) {
     final bool isSelected = _selectedPatientId == docId;
 
     return Card(
-      elevation: isSelected ? 4 : 2, 
+      elevation: isSelected ? 4 : 2,
       margin: const EdgeInsets.only(right: 12, bottom: 4, top: 4, left: 2),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: isSelected 
-          ? const BorderSide(color: Colors.green, width: 2.0) 
-          : BorderSide.none,
+        side: isSelected
+            ? const BorderSide(color: Colors.green, width: 2.0)
+            : BorderSide.none,
       ),
-      color: isSelected ? Colors.green[50] : null, 
-      
+      color: isSelected ? Colors.green[50] : null,
+
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
@@ -349,16 +368,11 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
             _selectedPatientId = docId;
           });
 
-          widget.onPatientSelected(
-            weight,
-            height,
-            gender,
-            dob
-          );
-          
-        _showSnackBar('Data $name terpilih!');
+          widget.onPatientSelected(weight, height, gender, dob);
+
+          _showSnackBar('Data $name terpilih!');
         },
-        child: SizedBox( 
+        child: SizedBox(
           width: 140,
           child: Stack(
             children: [
@@ -372,30 +386,36 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
                     Row(
                       children: [
                         Icon(
-                          isChild ? Icons.child_care : Icons.person, 
-                          size: 16, 
-                          color: isChild ? Colors.orange : Colors.blue
+                          isChild ? Icons.child_care : Icons.person,
+                          size: 16,
+                          color: isChild ? Colors.orange : Colors.blue,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             'No. RM : $noRM',
-                            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[600],
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    
+
                     // --- Nama Pasien ---
                     Text(
                       name,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    
+
                     const SizedBox(height: 8),
                     const Divider(height: 8),
 
@@ -411,14 +431,18 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    
+
                     // 2. Baris Jenis Kelamin
                     Row(
                       children: [
                         Icon(
-                          gender.toLowerCase().contains('laki') ? Icons.male : Icons.female, 
-                          size: 12, 
-                          color: gender.toLowerCase().contains('laki') ? Colors.blue : Colors.pink
+                          gender.toLowerCase().contains('laki')
+                              ? Icons.male
+                              : Icons.female,
+                          size: 12,
+                          color: gender.toLowerCase().contains('laki')
+                              ? Colors.blue
+                              : Colors.pink,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
@@ -433,7 +457,7 @@ class PatientPickerWidgetState extends State<PatientPickerWidget> {
                   ],
                 ),
               ),
-              
+
               // Icon Centang jika dipilih
               if (isSelected)
                 Positioned(

@@ -3,13 +3,13 @@ import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/data/m
 
 /// Constants for percentile indices to improve readability
 class PercentileIndices {
-  static const int p3 = 0;    // 3rd percentile
-  static const int p10 = 1;   // 10th percentile
-  static const int p25 = 2;   // 25th percentile
-  static const int p50 = 3;   // 50th percentile (median)
-  static const int p75 = 4;   // 75th percentile
-  static const int p85 = 5;   // 85th percentile
-  static const int p97 = 6;   // 97th percentile
+  static const int p3 = 0; // 3rd percentile
+  static const int p10 = 1; // 10th percentile
+  static const int p25 = 2; // 25th percentile
+  static const int p50 = 3; // 50th percentile (median)
+  static const int p75 = 4; // 75th percentile
+  static const int p85 = 5; // 85th percentile
+  static const int p97 = 6; // 97th percentile
 }
 
 /// Helper class for weight-for-height calculations
@@ -97,18 +97,40 @@ void main() {
     // Test cases with meaningful descriptions
     final testCases = [
       TestCase(
-        description: '75cm boy with 9.5kg weight',
-        referenceData: NutritionStatusData.bbPbTbUBoys,
+        description: '75cm boy with 9.5kg weight (< 24 months)',
+        referenceData:
+            NutritionStatusData.bbPbBoys0To24, // Gunakan map 0-24 bulan (PB)
         targetHeight: 75.0,
         testWeight: 9.5,
         gender: 'boy',
+        // ageInMonths: 12, // <-- Pertimbangkan menambahkan parameter umur ke class TestCase Anda jika menguji service
       ),
       TestCase(
-        description: '80cm girl with 10.5kg weight',
-        referenceData: NutritionStatusData.bbPbTbUGirls,
+        description: '80cm girl with 10.5kg weight (< 24 months)',
+        referenceData:
+            NutritionStatusData.bbPbGirls0To24, // Gunakan map 0-24 bulan (PB)
         targetHeight: 80.0,
         testWeight: 10.5,
         gender: 'girl',
+        // ageInMonths: 15,
+      ),
+      TestCase(
+        description: '90cm boy with 13.0kg weight (>= 24 months)',
+        referenceData:
+            NutritionStatusData.bbTbBoys24To60, // Gunakan map 24-60 bulan (TB)
+        targetHeight: 90.0,
+        testWeight: 13.0,
+        gender: 'boy',
+        // ageInMonths: 36,
+      ),
+      TestCase(
+        description: '95cm girl with 14.0kg weight (>= 24 months)',
+        referenceData:
+            NutritionStatusData.bbTbGirls24To60, // Gunakan map 24-60 bulan (TB)
+        targetHeight: 95.0,
+        testWeight: 14.0,
+        gender: 'girl',
+        // ageInMonths: 40,
       ),
     ];
 
@@ -122,19 +144,28 @@ void main() {
 
         // Extract percentiles with validation
         final percentiles = testCase.referenceData[closestHeight];
-        expect(percentiles, isNotNull,
-            reason:
-                'Percentiles data should exist for height ${closestHeight}cm');
+        expect(
+          percentiles,
+          isNotNull,
+          reason: 'Percentiles data should exist for height ${closestHeight}cm',
+        );
 
         // Calculate statistical parameters
-        final parameters =
-            WeightForHeightCalculator.extractParameters(percentiles!);
+        final parameters = WeightForHeightCalculator.extractParameters(
+          percentiles!,
+        );
 
         // Validate parameters
-        expect(parameters['median'], greaterThan(0.0),
-            reason: 'Median weight should be positive');
-        expect(parameters['standardDeviation'], greaterThan(0.0),
-            reason: 'Standard deviation should be positive');
+        expect(
+          parameters['median'],
+          greaterThan(0.0),
+          reason: 'Median weight should be positive',
+        );
+        expect(
+          parameters['standardDeviation'],
+          greaterThan(0.0),
+          reason: 'Standard deviation should be positive',
+        );
 
         // Calculate Z-score
         final zScore = WeightForHeightCalculator.calculateZScore(
@@ -145,8 +176,11 @@ void main() {
 
         // Comprehensive assertions
         expect(zScore, isA<double>());
-        expect(zScore.isFinite, isTrue,
-            reason: 'Z-score should be a finite number');
+        expect(
+          zScore.isFinite,
+          isTrue,
+          reason: 'Z-score should be a finite number',
+        );
 
         // Log results with context
         /*
@@ -161,9 +195,12 @@ void main() {
         */
 
         // Additional validation: Z-score should be within reasonable bounds
-        expect(zScore.abs(), lessThanOrEqualTo(5.0),
-            reason:
-                'Z-score should be within reasonable bounds (±5) for test data');
+        expect(
+          zScore.abs(),
+          lessThanOrEqualTo(5.0),
+          reason:
+              'Z-score should be within reasonable bounds (±5) for test data',
+        );
       });
     }
 

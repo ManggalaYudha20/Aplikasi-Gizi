@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\reference\data\models\reference_data.dart
+
 import 'package:flutter/material.dart';
 import '../../widgets/reference_widgets.dart';
 
@@ -110,7 +112,7 @@ class ReferenceData {
       title: 'Faktor Aktivitas',
       headers: ['Tingkat Aktivitas', 'Faktor Aktivitas'],
       data: [
-        [ 'Tanpa Faktor Aktivitas','1.0'],
+        ['Tanpa Faktor Aktivitas', '1.0'],
         ['Aktivitas Sangat Ringan', '1,1'],
         ['Aktivitas Ringan', '1,2'],
         ['Aktivitas Sedang', '1,3'],
@@ -141,12 +143,12 @@ class ReferenceData {
       title: 'Faktor Stress',
       headers: ['Tingkat Stress', 'Faktor Stress'],
       data: [
-        [ 'Tanpa Faktor Stress','1.0'],
-        [ 'Stres Sangat Ringan','1.1'],
-        [ 'Stres Ringan','1.2'],
-        [ 'Stress Sedang','1.3'],
-        [ 'Stress Berat','1.4'],
-        [ 'Stress Sangat Berat','1.5'],
+        ['Tanpa Faktor Stress', '1.0'],
+        ['Stres Sangat Ringan', '1.1'],
+        ['Stres Ringan', '1.2'],
+        ['Stress Sedang', '1.3'],
+        ['Stress Berat', '1.4'],
+        ['Stress Sangat Berat', '1.5'],
       ],
     ),
     ReferenceTableItem(
@@ -162,7 +164,7 @@ class ReferenceData {
         ['Gemuk Sekali', '> 27.0'],
       ],
     ),
-     ReferenceTableItem(
+    ReferenceTableItem(
       id: 'table_imt_asia',
       title: 'Penilaian IMT Asia',
       subtitle: 'Standar Asia Pasifik',
@@ -204,7 +206,10 @@ class ReferenceData {
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
-          _buildColoredFormulaBox('Total Protein = (0,6 s/d 0,8) x BBI', Colors.orange),
+          _buildColoredFormulaBox(
+            'Total Protein = (0,6 s/d 0,8) x BBI',
+            Colors.orange,
+          ),
           const SizedBox(height: 12),
           const Text(
             'Pasien Hemodialisis (HD Rutin)',
@@ -214,7 +219,8 @@ class ReferenceData {
           _buildColoredFormulaBox('Total Protein = (1,2) x BBI', Colors.red),
         ],
       ),
-      note: 'Keterangan:\n'
+      note:
+          'Keterangan:\n'
           ' BBI = Berat Badan Ideal (dihitung dengan rumus Broca).\n'
           ' Rumus ini memastikan ginjal tidak bekerja terlalu berat akibat kelebihan protein dari berat badan aktual (jika pasien obesitas/edema).\n'
           ' Min. 50% protein harus bernilai biologis tinggi (telur, daging, ikan).',
@@ -226,9 +232,14 @@ class ReferenceData {
       formulaContent: Text(
         'Total = (BBI x Kalori Basal) + Aktivitas - Usia +/- Koreksi BB +/- Stress Metabolik',
         textAlign: TextAlign.center,
-        style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+        style: TextStyle(
+          fontFamily: 'monospace',
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
       ),
-      note: 'Sumber: Pedoman Pengelolaan dan Pencegahan Diabetes Melitus Tipe 2 Dewasa di Indonesia 2024, Hal. 53-54.\n\n'
+      note:
+          'Sumber: Pedoman Pengelolaan dan Pencegahan Diabetes Melitus Tipe 2 Dewasa di Indonesia 2024, Hal. 53-54.\n\n'
           'Rincian Faktor:\n'
           ' Kalori Basal: Pria (30 kal/kg BBI), Wanita (25 kal/kg BBI)\n'
           ' Koreksi Usia: 40-59 th (-5%), 60-69 th (-10%), >70 th (-20%)\n'
@@ -243,7 +254,8 @@ class ReferenceData {
         '(a) (Tinggi Badan (cm) - 100) - 10%) \n(b) (Tinggi Badan (cm) - 100)',
         style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
       ),
-      note: 'Pada persamaan (a) digunakan Bagi pria dengan tinggi badan ≥ 160 cm dan wanita dengan tinggi badan ≥ 150 cm. sedangkan Bagi pria dengan tinggi badan < 160 cm dan wanita dengan tinggi badan < 150 cm menggunakan persamaan (b)',
+      note:
+          'Pada persamaan (a) digunakan Bagi pria dengan tinggi badan ≥ 160 cm dan wanita dengan tinggi badan ≥ 150 cm. sedangkan Bagi pria dengan tinggi badan < 160 cm dan wanita dengan tinggi badan < 150 cm menggunakan persamaan (b)',
     ),
     const FormulaItem(
       id: 'formula_bbi_anak',
@@ -259,7 +271,10 @@ class ReferenceData {
       id: 'formula_imt',
       title: 'Indeks Massa Tubuh (IMT)',
       formulaName: 'Standar WHO / Kemenkes',
-      formulaContent: FractionText('Berat Badan (kg)', 'Tinggi Badan (m) x Tinggi Badan (m)'),
+      formulaContent: FractionText(
+        'Berat Badan (kg)',
+        'Tinggi Badan (m) x Tinggi Badan (m)',
+      ),
       note: 'Kategori: Kurus (<18.5), Normal (18.5-25.0), Gemuk (>25.0).',
     ),
     const FormulaItem(
@@ -273,7 +288,11 @@ class ReferenceData {
         'Persamaan Mifflin-St Jeor :\n'
         'Pria: 5+(9,99 x BB)+(6,25 x TB)-(4,92 x U)\n\n'
         'Wanita: 161-(9,99 x BB)+(6,25 x TB)-(4,92 x U)',
-        style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 10.5),
+        style: TextStyle(
+          fontFamily: 'monospace',
+          fontWeight: FontWeight.bold,
+          fontSize: 10.5,
+        ),
       ),
       note: 'BB = Berat Badan (kg)\nTB = Tinggi Badan (cm)\nU = Usia (Tahun)',
     ),
@@ -285,7 +304,8 @@ class ReferenceData {
         'BMR x Faktor Aktivitas x Faktor Stress',
         style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
       ),
-      note: 'TDEE adalah perkiraan jumlah total kalori yang dibakar oleh tubuh dalam satu hari (24 jam).',
+      note:
+          'TDEE adalah perkiraan jumlah total kalori yang dibakar oleh tubuh dalam satu hari (24 jam).',
     ),
     const FormulaItem(
       id: 'formula_makronutrien',
@@ -296,21 +316,31 @@ class ReferenceData {
         children: [
           Text(
             ' Protein (15%) = (15% x TDEE) / 4',
-            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             ' Lemak (25%) = (25% x TDEE) / 9',
-            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             ' Karbohidrat (60%) = (60% x TDEE) / 4',
-            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
-      note: 'Keterangan Nilai Konversi Kalori:\n'
+      note:
+          'Keterangan Nilai Konversi Kalori:\n'
           ' 1 gram Protein = 4 kkal\n'
           ' 1 gram Lemak = 9 kkal\n'
           ' 1 gram Karbohidrat = 4 kkal\n\n'
@@ -332,11 +362,16 @@ class ReferenceData {
             ' 7-10 thn  : E=70 kkal/kg, P=1.0 g/kg\n'
             ' 11-14 thn : (L: 55 kkal, P: 47 kkal), P=1.0 g/kg\n'
             ' > 14 thn  : (L: 45 kkal, P: 40 kkal), P=0.8 g/kg',
-            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 11),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+            ),
           ),
         ],
       ),
-      note: 'Catatan:\n'
+      note:
+          'Catatan:\n'
           'E = Energi (Kkal), P = Protein (Gram). '
           'Perhitungan menggunakan Berat Badan Ideal (BBI) jika tersedia, '
           'atau menggunakan berat badan aktual untuk target tumbuh kejar (catch-up growth).',
@@ -351,28 +386,45 @@ class ReferenceData {
         children: [
           Text(
             'Total Energi = Kalori/kg x Berat Badan',
-            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             'Protein = Protein/kg x Berat Badan',
-            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             'Lemak (35%) = (35% x Total Energi) / 9',
-            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             'Karbohidrat = (Total Energi - (Protein x 4) - (Lemak x 9)) / 4',
-            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 11),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+            ),
           ),
         ],
       ),
-      note: 'Keterangan:\n'
-          'Rentang kebutuhan lemak anak umumnya 30-40% untuk usia 1-3 tahun dan 25-35% untuk 4-18 tahun. '
-          'Aplikasi ini menggunakan nilai rata-rata 35%. Karbohidrat dihitung dari sisa total energi setelah dikurangi kalori dari protein dan lemak.',
+      note:
+          'Keterangan:\n'
+          'Rentang kebutuhan lemak anak sehat umumnya 30-40% untuk usia 1-3 tahun dan 25-35% untuk 4-18 tahun. '
+          'Aplikasi ini menggunakan nilai rata-rata 20% untuk mencegah pasien diare. Karbohidrat dihitung dari sisa total energi setelah dikurangi kalori dari protein dan lemak.',
     ),
 
     const FormulaItem(
@@ -384,21 +436,34 @@ class ReferenceData {
         children: [
           Text(
             ' 1 - 10 kg  : 100 ml / kg BB',
-            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             ' 11 - 20 kg : 1000 ml + 50 ml',
-            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             ' > 20 kg    : 1500 ml + 20 ml',
-            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 12),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
           ),
         ],
       ),
-      note: 'Keterangan:\n'
+      note:
+          'Keterangan:\n'
           'Rumus ini digunakan untuk menghitung kebutuhan cairan pemeliharaan harian (maintenance fluid) pada anak berdasarkan berat badannya.',
     ),
     const FormulaItem(
@@ -433,7 +498,8 @@ class ReferenceData {
           ),
         ],
       ),
-      note: 'Keterangan:\n'
+      note:
+          'Keterangan:\n'
           ' Nilai Riil: Hasil pengukuran (BB, TB, atau IMT) pasien.\n'
           ' Median & SD: Nilai standar WHO sesuai jenis kelamin dan umur pasien.\n'
           ' Indikator yang dihitung meliputi: BB/U (Berat Badan menurut Umur), TB/U (Tinggi Badan menurut Umur), BB/TB (Berat Badan menurut Tinggi Badan), dan IMT/U (Indeks Massa Tubuh menurut Umur).',
@@ -462,11 +528,16 @@ class ReferenceData {
             ' < 3 thn   : (16.252 x W) + (1023.3 x H) - 413.5\n'
             ' 3-10 thn  : (16.969 x W) + (161.8 x H) + 371.2\n'
             ' 10-18 thn : (8.365 x W) + (465 x H) + 200.0',
-            style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 11),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+            ),
           ),
         ],
       ),
-      note: 'Keterangan:\n'
+      note:
+          'Keterangan:\n'
           'W = Berat Badan dalam Kilogram (kg)\n'
           'H = Tinggi Badan dalam Meter (m)\n'
           'Formula Schofield direkomendasikan secara internasional (termasuk oleh WHO/FAO/UNU) '
@@ -485,7 +556,11 @@ class ReferenceData {
       ),
       child: Text(
         text,
-        style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 13),
+        style: const TextStyle(
+          fontFamily: 'monospace',
+          fontWeight: FontWeight.bold,
+          fontSize: 13,
+        ),
       ),
     );
   }

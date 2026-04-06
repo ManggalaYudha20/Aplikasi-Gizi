@@ -1,4 +1,4 @@
-// lib/src/login/email_verification_screen.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\login\email_verification_screen.dart
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -100,8 +100,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar('Gagal mengirim ulang. Coba beberapa saat lagi.',
-          isError: true);
+      _showSnackBar(
+        'Gagal mengirim ulang. Coba beberapa saat lagi.',
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _isResending = false);
     }
@@ -121,8 +123,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor:
-            isError ? Colors.red.shade700 : const Color(0xFF008C45),
+        backgroundColor: isError
+            ? Colors.red.shade700
+            : const Color(0xFF008C45),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -204,7 +207,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
             ),
           ),
           const TextSpan(
-            text: '\n\nBuka email tersebut dan klik link verifikasi,'
+            text:
+                '\n\nBuka email tersebut dan klik link verifikasi,'
                 ' lalu kembali ke sini.',
           ),
         ],
@@ -307,10 +311,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       onPressed: _cancelAndBackToLogin,
       child: const Text(
         'Kembali ke halaman login',
-        style: TextStyle(
-          color: Colors.grey,
-          fontWeight: FontWeight.w500,
-        ),
+        style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
       ),
     );
   }

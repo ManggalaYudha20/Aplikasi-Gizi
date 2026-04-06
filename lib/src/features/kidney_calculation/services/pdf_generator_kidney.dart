@@ -1,4 +1,4 @@
-// lib/src/features/kidney_calculation/services/pdf_generator_kidney.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\kidney_calculation\services\pdf_generator_kidney.dart
 
 import 'dart:io';
 import 'package:flutter/services.dart';
@@ -60,7 +60,10 @@ Future<Uint8List> generateKidneyPdfBytes(
               pw.Container(
                 color: PdfColors.teal50,
                 width: double.infinity,
-                padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                padding: const pw.EdgeInsets.symmetric(
+                  vertical: 5,
+                  horizontal: 10,
+                ),
                 child: pw.Text(
                   session.sessionName,
                   style: pw.TextStyle(
@@ -73,7 +76,10 @@ Future<Uint8List> generateKidneyPdfBytes(
               pw.SizedBox(height: 5),
               pw.TableHelper.fromTextArray(
                 context: context,
-                border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+                border: pw.TableBorder.all(
+                  color: PdfColors.grey400,
+                  width: 0.5,
+                ),
                 headerStyle: pw.TextStyle(
                   fontWeight: pw.FontWeight.bold,
                   fontSize: 10,
@@ -96,12 +102,14 @@ Future<Uint8List> generateKidneyPdfBytes(
                   3: pw.Alignment.centerLeft,
                 },
                 data: session.items
-                    .map((item) => [
-                          item.categoryLabel,
-                          item.foodName,
-                          item.weight.toStringAsFixed(0),
-                          item.urt,
-                        ])
+                    .map(
+                      (item) => [
+                        item.categoryLabel,
+                        item.foodName,
+                        item.weight.toStringAsFixed(0),
+                        item.urt,
+                      ],
+                    )
                     .toList(),
               ),
               pw.SizedBox(height: 15),
@@ -136,7 +144,7 @@ Future<void> saveAndOpenKidneyPdf(
   String? catatan,
 ) async {
   try {
-    final bytes  = await generateKidneyPdfBytes(menu, namaPasien, catatan);
+    final bytes = await generateKidneyPdfBytes(menu, namaPasien, catatan);
     final output = await getApplicationDocumentsDirectory();
     final fileName =
         'Menu_Ginjal_${namaPasien.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';

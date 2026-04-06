@@ -1,4 +1,4 @@
-// lib/src/features/disease_calculation/presentation/widgets/food_search_delegate.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\expert_system\services\food_search_delegate.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/food_database_service.dart';
@@ -25,7 +25,9 @@ class FoodSearchDelegate extends SearchDelegate<FoodItem?> {
           icon: const Icon(Icons.clear),
           onPressed: () {
             query = '';
-            showSuggestions(context); // Refresh agar kembali menampilkan semua list
+            showSuggestions(
+              context,
+            ); // Refresh agar kembali menampilkan semua list
           },
         ),
     ];
@@ -57,7 +59,7 @@ class FoodSearchDelegate extends SearchDelegate<FoodItem?> {
     // Jika kosong -> panggil getAllFoodItems()
     // Jika ada teks -> panggil searchFoodByName()
     Future<List<FoodItem>> fetchFuture;
-    
+
     if (query.isEmpty) {
       fetchFuture = _dbService.getAllFoodItems();
     } else {
@@ -80,7 +82,9 @@ class FoodSearchDelegate extends SearchDelegate<FoodItem?> {
           if (query.isNotEmpty) {
             return Center(child: Text('Tidak ada hasil untuk "$query"'));
           }
-          return const Center(child: Text("Belum ada data makanan di database"));
+          return const Center(
+            child: Text("Belum ada data makanan di database"),
+          );
         }
 
         final results = snapshot.data!;
@@ -114,8 +118,12 @@ class FoodSearchDelegate extends SearchDelegate<FoodItem?> {
                             width: 50,
                             height: 50,
                             decoration: BoxDecoration(
-                              color: const Color.fromARGB(255, 0, 148, 68)
-                                  .withValues(alpha: 0.1),
+                              color: const Color.fromARGB(
+                                255,
+                                0,
+                                148,
+                                68,
+                              ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(

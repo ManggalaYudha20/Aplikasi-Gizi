@@ -1,4 +1,4 @@
-// lib/src/shared/widgets/fade_in_transition.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\shared\widgets\fade_in_transition.dart
 
 import 'package:flutter/material.dart';
 
@@ -31,10 +31,7 @@ class _FadeInTransitionState extends State<FadeInTransition>
       duration: widget.duration, // Menggunakan durasi dari properti widget
     );
 
-    _fadeAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeIn,
-    );
+    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
 
     _controller.forward();
   }
@@ -48,9 +45,6 @@ class _FadeInTransitionState extends State<FadeInTransition>
   @override
   Widget build(BuildContext context) {
     // Terapkan animasi pada widget 'child' yang diberikan
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: widget.child,
-    );
+    return FadeTransition(opacity: _fadeAnimation, child: widget.child);
   }
 }

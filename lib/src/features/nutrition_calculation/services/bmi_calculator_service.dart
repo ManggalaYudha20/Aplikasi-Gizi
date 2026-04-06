@@ -1,4 +1,4 @@
-// lib/src/features/nutrition_calculation/services/bmi_calculator_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\nutrition_calculation\services\bmi_calculator_service.dart
 //
 // ─── ATURAN KETAT ───────────────────────────────────────────────────────────
 // File ini adalah Pure Dart — DILARANG mengimpor 'package:flutter/material.dart'
@@ -28,10 +28,10 @@ class BmiCalculatorService {
 
   // ── NAMA KATEGORI ──────────────────────────────────────────────────────────
 
-  static const String categoryKurusSekali   = 'Kurus Sekali';
-  static const String categoryKurus   = 'Kurus';
-  static const String categoryNormal  = 'Normal';
-  static const String categoryGemuk   = 'Gemuk';
+  static const String categoryKurusSekali = 'Kurus Sekali';
+  static const String categoryKurus = 'Kurus';
+  static const String categoryNormal = 'Normal';
+  static const String categoryGemuk = 'Gemuk';
   static const String categoryObesitas = 'Obesitas';
 
   // ── KALKULASI UTAMA ────────────────────────────────────────────────────────
@@ -68,10 +68,10 @@ class BmiCalculatorService {
   /// Mengembalikan [BmiClassification] yang berisi nama kategori dan
   /// kode kategori terstandarisasi untuk keperluan logika downstream.
   static BmiClassification classify(double bmi) {
-    if (bmi < _kUnderweightLow)     return BmiClassification.kurusSekali;
-    if (bmi < _kNormalLow)     return BmiClassification.kurus;
+    if (bmi < _kUnderweightLow) return BmiClassification.kurusSekali;
+    if (bmi < _kNormalLow) return BmiClassification.kurus;
     if (bmi < _kOverweightLow) return BmiClassification.normal;
-    if (bmi < _kObeseLow)      return BmiClassification.gemuk;
+    if (bmi < _kObeseLow) return BmiClassification.gemuk;
     return BmiClassification.obesitas;
   }
 
@@ -105,11 +105,16 @@ enum BmiClassification {
   /// Nama kategori dalam Bahasa Indonesia untuk ditampilkan di UI.
   String get label {
     switch (this) {
-      case BmiClassification.kurusSekali:    return BmiCalculatorService.categoryKurusSekali;
-      case BmiClassification.kurus:    return BmiCalculatorService.categoryKurus;
-      case BmiClassification.normal:   return BmiCalculatorService.categoryNormal;
-      case BmiClassification.gemuk:    return BmiCalculatorService.categoryGemuk;
-      case BmiClassification.obesitas: return BmiCalculatorService.categoryObesitas;
+      case BmiClassification.kurusSekali:
+        return BmiCalculatorService.categoryKurusSekali;
+      case BmiClassification.kurus:
+        return BmiCalculatorService.categoryKurus;
+      case BmiClassification.normal:
+        return BmiCalculatorService.categoryNormal;
+      case BmiClassification.gemuk:
+        return BmiCalculatorService.categoryGemuk;
+      case BmiClassification.obesitas:
+        return BmiCalculatorService.categoryObesitas;
     }
   }
 
@@ -124,10 +129,8 @@ class BmiResult {
   final double bmi;
   final BmiClassification classification;
 
-  const BmiResult({
-    required double value,
-    required this.classification,
-  }) : bmi = value;
+  const BmiResult({required double value, required this.classification})
+    : bmi = value;
 
   /// Label kategori siap pakai untuk widget Text di UI.
   String get categoryLabel => classification.label;

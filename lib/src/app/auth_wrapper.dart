@@ -1,4 +1,4 @@
-// lib/src/app/auth_wrapper.dart
+// lib\src\app\auth_wrapper.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/login/auth_service.dart';
@@ -32,9 +32,7 @@ class AuthWrapper extends StatelessWidget {
         // User sudah login → MainScreen
         if (snapshot.hasData) {
           // Bungkus MainScreen dengan SessionWrapper
-          return const SessionWrapper(
-            child: MainScreen(),
-          );
+          return const SessionWrapper(child: MainScreen());
         }
 
         // Belum login → LoginScreen

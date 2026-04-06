@@ -1,4 +1,4 @@
-// lib/src/shared/widgets/patient_filter_form.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\services\patient_filter_form.dart
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -74,7 +74,10 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Filter Pasien', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text(
+            'Filter Pasien',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
 
           // --- Filter Status Penyelesaian (DropdownSearch) ---
@@ -89,22 +92,35 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
                 borderRadius: BorderRadius.circular(12),
                 elevation: 4,
                 // Logika posisi DI BAWAH form
-                positionCallback: (RenderBox findRenderObject, RenderBox overlay) {
-                  Offset localToGlobal = findRenderObject.localToGlobal(Offset.zero, ancestor: overlay);
-                  return RelativeRect.fromLTRB(
-                    localToGlobal.dx,
-                    localToGlobal.dy + findRenderObject.size.height, // Mulai dari bawah tombol
-                    overlay.size.width - (localToGlobal.dx + findRenderObject.size.width),
-                    0, // Biarkan memanjang ke bawah
-                  );
-                },
+                positionCallback:
+                    (RenderBox findRenderObject, RenderBox overlay) {
+                      Offset localToGlobal = findRenderObject.localToGlobal(
+                        Offset.zero,
+                        ancestor: overlay,
+                      );
+                      return RelativeRect.fromLTRB(
+                        localToGlobal.dx,
+                        localToGlobal.dy +
+                            findRenderObject
+                                .size
+                                .height, // Mulai dari bawah tombol
+                        overlay.size.width -
+                            (localToGlobal.dx + findRenderObject.size.width),
+                        0, // Biarkan memanjang ke bawah
+                      );
+                    },
               ),
             ),
             dropdownDecoratorProps: DropDownDecoratorProps(
               dropdownSearchDecoration: InputDecoration(
                 labelText: 'Status Penyelesaian',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
               ),
             ),
             onChanged: (String? newValue) {
@@ -127,7 +143,7 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
               });
             },
           ),
-          
+
           const SizedBox(height: 16),
 
           // --- Filter Status Gizi (DropdownSearch) ---
@@ -137,7 +153,7 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
               'Gizi Kurang (Underweight)',
               'Gizi Baik (Normal)',
               'Gizi Lebih (Overweight)',
-              'Obesitas'
+              'Obesitas',
             ],
             selectedItem: _tempFilters.statusGizi ?? 'Semua Status Gizi',
             popupProps: PopupProps.menu(
@@ -148,28 +164,44 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
                 borderRadius: BorderRadius.circular(12),
                 elevation: 4,
                 // Logika posisi DI BAWAH form
-                positionCallback: (RenderBox findRenderObject, RenderBox overlay) {
-                  Offset localToGlobal = findRenderObject.localToGlobal(Offset.zero, ancestor: overlay);
-                  return RelativeRect.fromLTRB(
-                    localToGlobal.dx,
-                    localToGlobal.dy + findRenderObject.size.height,
-                    overlay.size.width - (localToGlobal.dx + findRenderObject.size.width),
-                    0,
-                  );
-                },
+                positionCallback:
+                    (RenderBox findRenderObject, RenderBox overlay) {
+                      Offset localToGlobal = findRenderObject.localToGlobal(
+                        Offset.zero,
+                        ancestor: overlay,
+                      );
+                      return RelativeRect.fromLTRB(
+                        localToGlobal.dx,
+                        localToGlobal.dy + findRenderObject.size.height,
+                        overlay.size.width -
+                            (localToGlobal.dx + findRenderObject.size.width),
+                        0,
+                      );
+                    },
               ),
-              scrollbarProps: const ScrollbarProps(thumbVisibility: true, thickness: 6, radius: Radius.circular(10)),
+              scrollbarProps: const ScrollbarProps(
+                thumbVisibility: true,
+                thickness: 6,
+                radius: Radius.circular(10),
+              ),
             ),
             dropdownDecoratorProps: DropDownDecoratorProps(
               dropdownSearchDecoration: InputDecoration(
                 labelText: 'Status Gizi',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
               ),
             ),
             onChanged: (String? newValue) {
               setState(() {
-                final valueToSave = newValue == 'Semua Status Gizi' ? null : newValue;
+                final valueToSave = newValue == 'Semua Status Gizi'
+                    ? null
+                    : newValue;
                 _tempFilters = PatientFilterModel(
                   statusGizi: valueToSave,
                   dateRange: _tempFilters.dateRange,
@@ -199,15 +231,20 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
                 borderRadius: BorderRadius.circular(12),
                 elevation: 4,
                 // Logika posisi DI BAWAH form
-                positionCallback: (RenderBox findRenderObject, RenderBox overlay) {
-                  Offset localToGlobal = findRenderObject.localToGlobal(Offset.zero, ancestor: overlay);
-                  return RelativeRect.fromLTRB(
-                    localToGlobal.dx,
-                    localToGlobal.dy + findRenderObject.size.height,
-                    overlay.size.width - (localToGlobal.dx + findRenderObject.size.width),
-                    0,
-                  );
-                },
+                positionCallback:
+                    (RenderBox findRenderObject, RenderBox overlay) {
+                      Offset localToGlobal = findRenderObject.localToGlobal(
+                        Offset.zero,
+                        ancestor: overlay,
+                      );
+                      return RelativeRect.fromLTRB(
+                        localToGlobal.dx,
+                        localToGlobal.dy + findRenderObject.size.height,
+                        overlay.size.width -
+                            (localToGlobal.dx + findRenderObject.size.width),
+                        0,
+                      );
+                    },
               ),
               scrollbarProps: const ScrollbarProps(
                 thumbVisibility: true,
@@ -218,13 +255,20 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
             dropdownDecoratorProps: DropDownDecoratorProps(
               dropdownSearchDecoration: InputDecoration(
                 labelText: 'Kelompok Usia',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
               ),
             ),
             onChanged: (String? newValue) {
               setState(() {
-                final valueToSave = newValue == 'Semua Kelompok Usia' ? null : newValue;
+                final valueToSave = newValue == 'Semua Kelompok Usia'
+                    ? null
+                    : newValue;
                 _tempFilters = PatientFilterModel(
                   statusGizi: _tempFilters.statusGizi,
                   dateRange: _tempFilters.dateRange,
@@ -238,7 +282,10 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
           const SizedBox(height: 16),
 
           // --- Filter Tanggal ---
-          Text('Tanggal Pemeriksaan', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+          Text(
+            'Tanggal Pemeriksaan',
+            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+          ),
           InkWell(
             onTap: () => _selectDateRange(context),
             child: Container(
@@ -249,7 +296,11 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.calendar_today_outlined, color: Colors.grey, size: 20),
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    color: Colors.grey,
+                    size: 20,
+                  ),
                   const SizedBox(width: 10),
                   Text(_formatDateRange(_tempFilters.dateRange)),
                 ],
@@ -282,7 +333,7 @@ class _PatientFilterSheetState extends State<PatientFilterSheet> {
                 },
               ),
             ],
-          )
+          ),
         ],
       ),
     );

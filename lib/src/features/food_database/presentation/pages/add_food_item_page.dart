@@ -1,4 +1,4 @@
-// lib/src/features/food_database/presentation/pages/add_food_item_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\food_database\presentation\pages\add_food_item_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -64,15 +64,33 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
     super.initState();
 
     final controllers = [
-      _namaController, _kodeController, _mentahOlahanController,
-      _kelompokMakananController, _porsiGramController, _airController,
-      _kaloriController, _proteinController, _lemakController,
-      _karbohidratController, _seratController, _abuController,
-      _kalsiumController, _fosforController, _besiController,
-      _natriumController, _kaliumController, _tembagaController,
-      _sengController, _retinolController, _betaKarotenController,
-      _karotenTotalController, _thiaminController, _riboflavinController,
-      _niasinController, _vitaminCController, _bddController,
+      _namaController,
+      _kodeController,
+      _mentahOlahanController,
+      _kelompokMakananController,
+      _porsiGramController,
+      _airController,
+      _kaloriController,
+      _proteinController,
+      _lemakController,
+      _karbohidratController,
+      _seratController,
+      _abuController,
+      _kalsiumController,
+      _fosforController,
+      _besiController,
+      _natriumController,
+      _kaliumController,
+      _tembagaController,
+      _sengController,
+      _retinolController,
+      _betaKarotenController,
+      _karotenTotalController,
+      _thiaminController,
+      _riboflavinController,
+      _niasinController,
+      _vitaminCController,
+      _bddController,
     ];
 
     for (int i = 0; i < controllers.length; i++) {
@@ -153,7 +171,10 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
     if (!FormValidatorUtils.validateAndScroll(
       context: context,
       formKey: _formKey,
-      focusNodes: _focusNodes,)) {return;}
+      focusNodes: _focusNodes,
+    )) {
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -287,10 +308,7 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
                   const SizedBox(height: 20),
                   const Text(
                     'Input Data Makanan',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
 
@@ -325,9 +343,18 @@ class _AddFoodItemPageState extends State<AddFoodItemPage> {
                     label: 'Kelompok Makanan',
                     icon: Icons.group,
                     items: const [
-                      'Serealia', 'Umbi', 'Kacang', 'Sayur', 'Buah',
-                      'Daging', 'Ikan dsb', 'Telur', 'Susu', 'Lemak',
-                      'Gula', 'Bumbu',
+                      'Serealia',
+                      'Umbi',
+                      'Kacang',
+                      'Sayur',
+                      'Buah',
+                      'Daging',
+                      'Ikan dsb',
+                      'Telur',
+                      'Susu',
+                      'Lemak',
+                      'Gula',
+                      'Bumbu',
                     ],
                     focusNode: _focusNodes[3],
                   ),

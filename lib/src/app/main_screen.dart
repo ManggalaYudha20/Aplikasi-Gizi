@@ -1,4 +1,4 @@
-// lib/src/app/main_screen.dart
+// lib\src\app\main_screen.dart
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/bottom_navbar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/patient_home/presentation/pages/patient_home_page.dart';
@@ -39,42 +39,42 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _fetchUserRoleAndSetupMenu() async {
-  // Hanya gunakan Firebase Performance di Android/iOS
-  final bool usePerformance =
-      defaultTargetPlatform == TargetPlatform.android ||
-      defaultTargetPlatform == TargetPlatform.iOS;
+    // Hanya gunakan Firebase Performance di Android/iOS
+    final bool usePerformance =
+        defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
 
-  Trace? trace;
-  if (usePerformance) {
-    trace = FirebasePerformance.instance.newTrace('fetch_user_role');
-    await trace.start();
-  }
-
-  try {
-    final role = await _userService.getUserRole();
-
-    if (mounted) {
-      setState(() {
-        _userRole = role ?? 'tamu';
-        _setupNavigationMenu();
-        _isLoading = false;
-      });
+    Trace? trace;
+    if (usePerformance) {
+      trace = FirebasePerformance.instance.newTrace('fetch_user_role');
+      await trace.start();
     }
-  } finally {
-    await trace?.stop(); // ← pakai ?. agar aman saat trace null
+
+    try {
+      final role = await _userService.getUserRole();
+
+      if (mounted) {
+        setState(() {
+          _userRole = role ?? 'tamu';
+          _setupNavigationMenu();
+          _isLoading = false;
+        });
+      }
+    } finally {
+      await trace?.stop(); // ← pakai ?. agar aman saat trace null
+    }
   }
-}
 
   void _setupNavigationMenu() {
     // Halaman & item didefinisikan di sini (tidak berubah dari semula)
     final allPages = <Widget>[
       NutritionInfoPage(userRole: _userRole), // 0 — Beranda
-      const PatientHomePage(),                // 1 — Daftar Pasien
-      const StatisticsPage(),                 // 2 — Statistik
+      const PatientHomePage(), // 1 — Daftar Pasien
+      const StatisticsPage(), // 2 — Statistik
       AccountPage(
         authService: _authService,
         userService: _userService,
-      ),                                      // 3 — Akun
+      ), // 3 — Akun
     ];
 
     const allNavItems = <BottomNavigationBarItem>[
@@ -83,14 +83,8 @@ class _MainScreenState extends State<MainScreen> {
         icon: Icon(Icons.folder_shared),
         label: 'Daftar Pasien',
       ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.pie_chart),
-        label: 'Statistik',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.person),
-        label: 'Profil Akun',
-      ),
+      BottomNavigationBarItem(icon: Icon(Icons.pie_chart), label: 'Statistik'),
+      BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil Akun'),
     ];
 
     // Filter berdasarkan role — logika tidak diubah
@@ -116,8 +110,7 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     // Guard: pastikan index valid setelah perubahan role
-    final safeIndex =
-        _currentIndex >= _activePages.length ? 0 : _currentIndex;
+    final safeIndex = _currentIndex >= _activePages.length ? 0 : _currentIndex;
 
     // LayoutBuilder → deteksi lebar layar untuk tata-letak responsif
     return LayoutBuilder(

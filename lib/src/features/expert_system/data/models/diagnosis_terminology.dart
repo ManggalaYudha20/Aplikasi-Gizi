@@ -1,4 +1,4 @@
-// lib/src/features/disease_calculation/data/diagnosis_terminology.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\expert_system\data\models\diagnosis_terminology.dart
 
 import 'terminology_item.dart';
 
@@ -12,7 +12,6 @@ class _Domain {
 
 class DiagnosisTerminology {
   static const List<TerminologyItem> allDiagnoses = [
-
     // ══════════════════════════════════════════════════════════════
     // DOMAIN NI — ASUPAN
     // ══════════════════════════════════════════════════════════════

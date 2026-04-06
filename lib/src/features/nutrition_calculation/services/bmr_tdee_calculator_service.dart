@@ -1,4 +1,4 @@
-// lib/src/features/nutrition_calculation/services/bmr_tdee_calculator_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\nutrition_calculation\services\bmr_tdee_calculator_service.dart
 //
 // ─── ATURAN KETAT ───────────────────────────────────────────────────────────
 // File ini adalah Pure Dart — DILARANG mengimpor 'package:flutter/material.dart'
@@ -20,11 +20,11 @@ class BmrTdeeCalculatorService {
   // Single Source of Truth yang bisa diakses service maupun UI.
 
   static const Map<String, double> activityFactors = {
-    'Sangat Jarang'    : 1.200,
-    'Aktivitas Ringan' : 1.375,
-    'Aktivitas Sedang' : 1.550,
-    'Aktivitas Berat'  : 1.725,
-    'Sangat Aktif'     : 1.900,
+    'Sangat Jarang': 1.200,
+    'Aktivitas Ringan': 1.375,
+    'Aktivitas Sedang': 1.550,
+    'Aktivitas Berat': 1.725,
+    'Sangat Aktif': 1.900,
   };
 
   // ── FAKTOR STRES ───────────────────────────────────────────────────────────
@@ -34,35 +34,35 @@ class BmrTdeeCalculatorService {
 
   static const String feverKey = 'Demam (per 1°C)';
   static const double feverMultiplierPerDegree = 0.13;
-  static const double normalBodyTemperature    = 37.0;
+  static const double normalBodyTemperature = 37.0;
 
   static const Map<String, double> stressFactors = {
-    'Normal'                       : 1.00,
-    feverKey                       : feverMultiplierPerDegree, // Lihat catatan di atas
-    'Peritonitis'                  : 1.35,
-    'Cedera Jaringan Lunak Ringan' : 1.14,
-    'Cedera Jaringan Lunak Berat'  : 1.37,
-    'Patah Tulang Multiple Ringan' : 1.20,
-    'Patah Tulang Multiple Berat'  : 1.35,
-    'Sepsis Ringan'                : 1.40,
-    'Sepsis Berat'                 : 1.80,
-    'Luka Bakar 0-20%'             : 1.25,
-    'Luka Bakar 20-40%'            : 1.675,
-    'Luka Bakar 40-100%'           : 1.95,
-    'Puasa'                        : 0.70,
-    'Payah Gagal Jantung Ringan'   : 1.30,
-    'Payah Gagal Jantung Berat'    : 1.50,
-    'Kanker'                       : 1.30,
+    'Normal': 1.00,
+    feverKey: feverMultiplierPerDegree, // Lihat catatan di atas
+    'Peritonitis': 1.35,
+    'Cedera Jaringan Lunak Ringan': 1.14,
+    'Cedera Jaringan Lunak Berat': 1.37,
+    'Patah Tulang Multiple Ringan': 1.20,
+    'Patah Tulang Multiple Berat': 1.35,
+    'Sepsis Ringan': 1.40,
+    'Sepsis Berat': 1.80,
+    'Luka Bakar 0-20%': 1.25,
+    'Luka Bakar 20-40%': 1.675,
+    'Luka Bakar 40-100%': 1.95,
+    'Puasa': 0.70,
+    'Payah Gagal Jantung Ringan': 1.30,
+    'Payah Gagal Jantung Berat': 1.50,
+    'Kanker': 1.30,
   };
 
   // ── NAMA FORMULA ──────────────────────────────────────────────────────────
 
   static const String formulaMifflin = 'Mifflin-St Jeor';
-  static const String formulaHarris  = 'Harris-Benedict';
+  static const String formulaHarris = 'Harris-Benedict';
 
   // ── KONSTANTA GENDER ──────────────────────────────────────────────────────
 
-  static const String genderMale   = 'Laki-laki';
+  static const String genderMale = 'Laki-laki';
   static const String genderFemale = 'Perempuan';
 
   // ── FORMULA BMR ───────────────────────────────────────────────────────────
@@ -82,16 +82,16 @@ class BmrTdeeCalculatorService {
   static double calculateBmrHarrisBenedict({
     required double weightKg,
     required double heightCm,
-    required int    ageYears,
-    required bool   isMale,
+    required int ageYears,
+    required bool isMale,
   }) {
     _assertPositive(weightKg, 'weightKg');
     _assertPositive(heightCm, 'heightCm');
     _assertPositive(ageYears.toDouble(), 'ageYears');
 
     return isMale
-        ? 66.47  + (13.75  * weightKg) + (5.003 * heightCm) - (6.755 * ageYears)
-        : 655.1  + (9.563  * weightKg) + (1.850 * heightCm) - (4.676 * ageYears);
+        ? 66.47 + (13.75 * weightKg) + (5.003 * heightCm) - (6.755 * ageYears)
+        : 655.1 + (9.563 * weightKg) + (1.850 * heightCm) - (4.676 * ageYears);
   }
 
   /// Menghitung BMR menggunakan formula Harris-Benedict versi TDEE (koefisien berbeda).
@@ -106,16 +106,19 @@ class BmrTdeeCalculatorService {
   static double calculateBmrHarrisBenedictRevised({
     required double weightKg,
     required double heightCm,
-    required int    ageYears,
-    required bool   isMale,
+    required int ageYears,
+    required bool isMale,
   }) {
     _assertPositive(weightKg, 'weightKg');
     _assertPositive(heightCm, 'heightCm');
     _assertPositive(ageYears.toDouble(), 'ageYears');
 
     return isMale
-        ? 88.362  + (13.397 * weightKg) + (4.799 * heightCm) - (5.677 * ageYears)
-        : 447.593 + (9.247  * weightKg) + (3.098 * heightCm) - (4.330 * ageYears);
+        ? 88.362 + (13.397 * weightKg) + (4.799 * heightCm) - (5.677 * ageYears)
+        : 447.593 +
+              (9.247 * weightKg) +
+              (3.098 * heightCm) -
+              (4.330 * ageYears);
   }
 
   /// Menghitung BMR menggunakan formula Mifflin-St Jeor (1990).
@@ -128,8 +131,8 @@ class BmrTdeeCalculatorService {
   static double calculateBmrMifflinStJeor({
     required double weightKg,
     required double heightCm,
-    required int    ageYears,
-    required bool   isMale,
+    required int ageYears,
+    required bool isMale,
   }) {
     _assertPositive(weightKg, 'weightKg');
     _assertPositive(heightCm, 'heightCm');
@@ -149,8 +152,8 @@ class BmrTdeeCalculatorService {
   static double calculateBmrByFormula({
     required double weightKg,
     required double heightCm,
-    required int    ageYears,
-    required bool   isMale,
+    required int ageYears,
+    required bool isMale,
     required String formula,
   }) {
     if (formula == formulaHarris) {
@@ -210,8 +213,8 @@ class BmrTdeeCalculatorService {
   static TdeeResult calculateTdee({
     required double weightKg,
     required double heightCm,
-    required int    ageYears,
-    required bool   isMale,
+    required int ageYears,
+    required bool isMale,
     required String activityCondition,
     required String stressCondition,
     double bodyTemperatureC = normalBodyTemperature,
@@ -223,8 +226,7 @@ class BmrTdeeCalculatorService {
       isMale: isMale,
     );
 
-    final double activityFactor =
-        activityFactors[activityCondition] ?? 1.0;
+    final double activityFactor = activityFactors[activityCondition] ?? 1.0;
 
     final double stressFactor = calculateStressFactor(
       stressCondition: stressCondition,
@@ -237,8 +239,8 @@ class BmrTdeeCalculatorService {
     //   Karbohidrat : 60% energi → 4 kkal/g
     //   Lemak       : 25% energi → 9 kkal/g
     //   Protein     : 15% energi → 4 kkal/g
-    final double carbsGram   = (tdee * 0.60) / 4.0;
-    final double fatGram     = (tdee * 0.25) / 9.0;
+    final double carbsGram = (tdee * 0.60) / 4.0;
+    final double fatGram = (tdee * 0.25) / 9.0;
     final double proteinGram = (tdee * 0.15) / 4.0;
 
     return TdeeResult(
@@ -295,7 +297,9 @@ class BmrTdeeCalculatorService {
   // ── PRIVATE GUARD ─────────────────────────────────────────────────────────
 
   static void _assertPositive(double value, String name) {
-    if (value <= 0) throw ArgumentError('$name harus lebih dari 0, diterima: $value');
+    if (value <= 0) {
+      throw ArgumentError('$name harus lebih dari 0, diterima: $value');
+    }
   }
 }
 

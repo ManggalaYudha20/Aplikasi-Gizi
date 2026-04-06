@@ -1,4 +1,4 @@
-// lib/src/features/food_database/services/food_delete_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\food_database\services\food_delete_service.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
@@ -35,7 +35,7 @@ class FoodDeleteService {
           ),
           // Menyesuaikan teks agar lebih informatif
           content: Text(
-            'Apakah Anda yakin ingin menghapus "${foodItem.name}" secara permanen? '           
+            'Apakah Anda yakin ingin menghapus "${foodItem.name}" secara permanen? ',
           ),
           actions: [
             TextButton(

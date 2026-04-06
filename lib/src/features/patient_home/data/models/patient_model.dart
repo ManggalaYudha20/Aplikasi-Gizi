@@ -1,4 +1,4 @@
-// lib/src/features/home/data/models/patient_model.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\data\models\patient_model.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -62,8 +62,8 @@ class Patient {
     required this.diagnosisMedis,
     required this.beratBadan,
     required this.tinggiBadan,
-    required this.jenisKelamin, 
-    required this.aktivitas, 
+    required this.jenisKelamin,
+    required this.aktivitas,
     this.faktorStress = 'Normal',
     required this.imt,
     required this.skorIMT,
@@ -71,7 +71,7 @@ class Patient {
     required this.skorEfekPenyakit,
     required this.totalSkor,
     required this.tanggalPemeriksaan,
-    this.lila, 
+    this.lila,
     this.tl,
     this.beratBadanDulu,
     this.kehilanganNafsuMakan,
@@ -116,16 +116,20 @@ class Patient {
     }
 
     // 2. Cek field lama (Format Lama), jika ada, masukkan ke Map
-    if (data['biokimiaGDS'] != null && data['biokimiaGDS'].toString().isNotEmpty) {
+    if (data['biokimiaGDS'] != null &&
+        data['biokimiaGDS'].toString().isNotEmpty) {
       parsedLabs['GDS'] = data['biokimiaGDS'].toString();
     }
-    if (data['biokimiaUreum'] != null && data['biokimiaUreum'].toString().isNotEmpty) {
+    if (data['biokimiaUreum'] != null &&
+        data['biokimiaUreum'].toString().isNotEmpty) {
       parsedLabs['Ureum'] = data['biokimiaUreum'].toString();
     }
-    if (data['biokimiaHGB'] != null && data['biokimiaHGB'].toString().isNotEmpty) {
+    if (data['biokimiaHGB'] != null &&
+        data['biokimiaHGB'].toString().isNotEmpty) {
       parsedLabs['HGB'] = data['biokimiaHGB'].toString();
     }
-    if (data['biokimiaENT'] != null && data['biokimiaENT'].toString().isNotEmpty) {
+    if (data['biokimiaENT'] != null &&
+        data['biokimiaENT'].toString().isNotEmpty) {
       parsedLabs['ENT'] = data['biokimiaENT'].toString();
     }
     return Patient(
@@ -183,7 +187,7 @@ class Patient {
     );
   }
 
-   Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMap() {
     return {
       'noRM': noRM,
       'namaLengkap': namaLengkap,
@@ -221,7 +225,7 @@ class Patient {
       'intervensiTujuan': intervensiTujuan,
       'monevAsupan': monevAsupan,
       'monevStatusGizi': monevStatusGizi,
-      'monevHasilLab' : monevHasilLab,
+      'monevHasilLab': monevHasilLab,
       'klinikKU': klinikKU,
       'klinikKES': klinikKES,
       'klinikSPO2': klinikSPO2,
@@ -255,9 +259,15 @@ class Patient {
   // 2. Basal Metabolic Rate (BMR) - Harris Benedict
   double get bmr {
     if (jenisKelamin == 'Laki-laki') {
-      return 66.47 + (13.75 * beratBadan) + (5.003 * tinggiBadan) - (6.755 * usia);
+      return 66.47 +
+          (13.75 * beratBadan) +
+          (5.003 * tinggiBadan) -
+          (6.755 * usia);
     } else {
-      return 655.1 + (9.563 * beratBadan) + (1.850 * tinggiBadan) - (4.676 * usia);
+      return 655.1 +
+          (9.563 * beratBadan) +
+          (1.850 * tinggiBadan) -
+          (4.676 * usia);
     }
   }
 
@@ -283,35 +293,67 @@ class Patient {
     }
     double stressFactorValue = 1.0; // Default (Normal)
     switch (faktorStress) {
-      case 'Normal': stressFactorValue = 1.00; break;
+      case 'Normal':
+        stressFactorValue = 1.00;
+        break;
       case 'Demam (per 1°C)':
         // Mengambil suhu dari input klinikSuhu, default 37 jika kosong
         double temp = double.tryParse(klinikSuhu ?? '') ?? 37.0;
         stressFactorValue = temp > 37 ? 1.0 + (0.13 * (temp - 37)) : 1.0;
         break;
-      case 'Peritonitis': stressFactorValue = 1.35; break;
-      case 'Cedera Jaringan Lunak Ringan': stressFactorValue = 1.14; break;
-      case 'Cedera Jaringan Lunak Berat': stressFactorValue = 1.37; break;
-      case 'Patah Tulang Multiple Ringan': stressFactorValue = 1.20; break;
-      case 'Patah Tulang Multiple Berat': stressFactorValue = 1.35; break;
-      case 'Sepsis Ringan': stressFactorValue = 1.40; break;
-      case 'Sepsis Berat': stressFactorValue = 1.80; break;
-      case 'Luka Bakar 0-20%': stressFactorValue = 1.25; break;
-      case 'Luka Bakar 20-40%': stressFactorValue = 1.675; break;
-      case 'Luka Bakar 40-100%': stressFactorValue = 1.95; break;
-      case 'Puasa': stressFactorValue = 0.70; break;
-      case 'Payah Gagal Jantung Ringan': stressFactorValue = 1.30; break;
-      case 'Payah Gagal Jantung Berat': stressFactorValue = 1.50; break;
-      case 'Kanker': stressFactorValue = 1.30; break;
-      default: stressFactorValue = 1.0;
+      case 'Peritonitis':
+        stressFactorValue = 1.35;
+        break;
+      case 'Cedera Jaringan Lunak Ringan':
+        stressFactorValue = 1.14;
+        break;
+      case 'Cedera Jaringan Lunak Berat':
+        stressFactorValue = 1.37;
+        break;
+      case 'Patah Tulang Multiple Ringan':
+        stressFactorValue = 1.20;
+        break;
+      case 'Patah Tulang Multiple Berat':
+        stressFactorValue = 1.35;
+        break;
+      case 'Sepsis Ringan':
+        stressFactorValue = 1.40;
+        break;
+      case 'Sepsis Berat':
+        stressFactorValue = 1.80;
+        break;
+      case 'Luka Bakar 0-20%':
+        stressFactorValue = 1.25;
+        break;
+      case 'Luka Bakar 20-40%':
+        stressFactorValue = 1.675;
+        break;
+      case 'Luka Bakar 40-100%':
+        stressFactorValue = 1.95;
+        break;
+      case 'Puasa':
+        stressFactorValue = 0.70;
+        break;
+      case 'Payah Gagal Jantung Ringan':
+        stressFactorValue = 1.30;
+        break;
+      case 'Payah Gagal Jantung Berat':
+        stressFactorValue = 1.50;
+        break;
+      case 'Kanker':
+        stressFactorValue = 1.30;
+        break;
+      default:
+        stressFactorValue = 1.0;
     }
 
     return bmr * activityFactor * stressFactorValue;
   }
+
   double get kebutuhanProtein => (tdee * 0.15) / 4;
   double get kebutuhanLemak => (tdee * 0.25) / 9;
   double get kebutuhanKarbo => (tdee * 0.60) / 4;
-  
+
   String get interpretasi {
     if (totalSkor == 0) return 'Resiko rendah';
     if (totalSkor == 1) return 'Resiko menengah';
@@ -319,6 +361,7 @@ class Patient {
     if (totalSkor >= 4) return 'Resiko sangat tinggi';
     return 'Tidak diketahui';
   }
+
   // BARU: Getter untuk status gizi berdasarkan IMT
   String get statusGizi {
     if (imt < 18.5) {
@@ -331,6 +374,7 @@ class Patient {
       return 'Obesitas';
     }
   }
-  
-  String get tanggalLahirFormatted => DateFormat('d MMMM y','id_ID').format(tanggalLahir);
+
+  String get tanggalLahirFormatted =>
+      DateFormat('d MMMM y', 'id_ID').format(tanggalLahir);
 }

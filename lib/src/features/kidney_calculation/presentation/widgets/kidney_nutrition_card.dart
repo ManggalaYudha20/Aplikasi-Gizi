@@ -1,4 +1,4 @@
-// lib/src/features/kidney_calculation/presentation/widgets/kidney_nutrition_card.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\kidney_calculation\presentation\widgets\kidney_nutrition_card.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/data/models/kidney_diet_nutrition_model.dart';
@@ -50,18 +50,18 @@ class KidneyNutritionCard extends StatelessWidget {
             ),
           ),
           const Divider(height: 24),
-          _row('Energi',      '${nutritionInfo.energi} kkal',   'nut_energi'),
-          _row('Protein',     '${nutritionInfo.protein} g',      'nut_protein'),
-          _row('Lemak',       '${nutritionInfo.lemak} g',        'nut_lemak'),
-          _row('Karbohidrat', '${nutritionInfo.karbohidrat} g',  'nut_karbo'),
-          _row('Kalsium',     '${nutritionInfo.kalsium} mg',     'nut_kalsium'),
-          _row('Zat Besi',    '${nutritionInfo.zatBesi} mg',     'nut_besi'),
-          _row('Fosfor',      '${nutritionInfo.fosfor} mg',      'nut_fosfor'),
-          _row('Vitamin A',   '${nutritionInfo.vitaminA} RE',    'nut_vit_a'),
-          _row('Tiamin',      '${nutritionInfo.tiamin} mg',      'nut_tiamin'),
-          _row('Vitamin C',   '${nutritionInfo.vitaminC} mg',    'nut_vit_c'),
-          _row('Natrium',     '${nutritionInfo.natrium} mg',     'nut_natrium'),
-          _row('Kalium',      '${nutritionInfo.kalium} mg',      'nut_kalium'),
+          _row('Energi', '${nutritionInfo.energi} kkal', 'nut_energi'),
+          _row('Protein', '${nutritionInfo.protein} g', 'nut_protein'),
+          _row('Lemak', '${nutritionInfo.lemak} g', 'nut_lemak'),
+          _row('Karbohidrat', '${nutritionInfo.karbohidrat} g', 'nut_karbo'),
+          _row('Kalsium', '${nutritionInfo.kalsium} mg', 'nut_kalsium'),
+          _row('Zat Besi', '${nutritionInfo.zatBesi} mg', 'nut_besi'),
+          _row('Fosfor', '${nutritionInfo.fosfor} mg', 'nut_fosfor'),
+          _row('Vitamin A', '${nutritionInfo.vitaminA} RE', 'nut_vit_a'),
+          _row('Tiamin', '${nutritionInfo.tiamin} mg', 'nut_tiamin'),
+          _row('Vitamin C', '${nutritionInfo.vitaminC} mg', 'nut_vit_c'),
+          _row('Natrium', '${nutritionInfo.natrium} mg', 'nut_natrium'),
+          _row('Kalium', '${nutritionInfo.kalium} mg', 'nut_kalium'),
         ],
       ),
     );

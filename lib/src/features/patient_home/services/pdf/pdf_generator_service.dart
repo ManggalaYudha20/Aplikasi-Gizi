@@ -1,4 +1,4 @@
-// lib/src/features/patient_home/services/pdf/pdf_generator_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\services\pdf\pdf_generator_service.dart
 //
 // Dipindahkan dari: presentation/pages/pdf_generator.dart
 // Perubahan       : Class diubah namanya PdfGenerator → PdfGeneratorService.
@@ -97,9 +97,13 @@ class PdfGeneratorService {
 
               // Patient Info
               _buildInfoRow('No RM', ': ${patient.noRM}', ''),
-              _buildInfoRow('Nama Lengkap',': ${patient.namaLengkap}','',),
-              _buildInfoRow('Tanggal Lahir',': ${patient.tanggalLahirFormatted}','',),
-              _buildInfoRow('Jenis Kelamin',': ${patient.jenisKelamin}','',),
+              _buildInfoRow('Nama Lengkap', ': ${patient.namaLengkap}', ''),
+              _buildInfoRow(
+                'Tanggal Lahir',
+                ': ${patient.tanggalLahirFormatted}',
+                '',
+              ),
+              _buildInfoRow('Jenis Kelamin', ': ${patient.jenisKelamin}', ''),
               pw.SizedBox(height: 5),
 
               pw.Container(

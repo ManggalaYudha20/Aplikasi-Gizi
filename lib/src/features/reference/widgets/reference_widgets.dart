@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\reference\widgets\reference_widgets.dart
+
 import 'package:flutter/material.dart';
 
 /// Widget untuk menampilkan kartu Sumber Data
@@ -18,7 +20,7 @@ class DataSourceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Semantics(
       identifier: semanticId,
       label: 'Kartu sumber data: $title',
@@ -48,7 +50,9 @@ class DataSourceCard extends StatelessWidget {
                     Text(
                       description,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.textTheme.bodyMedium?.color?.withValues(alpha:0.7),
+                        color: theme.textTheme.bodyMedium?.color?.withValues(
+                          alpha: 0.7,
+                        ),
                       ),
                     ),
                   ],
@@ -98,19 +102,23 @@ class FormulaTile extends StatelessWidget {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha:0.3), // Pengganti grey[50]
+            color: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.3,
+            ), // Pengganti grey[50]
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   "Rumus:",
-                  style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 5),
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha:0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(child: formulaContent),
@@ -118,7 +126,9 @@ class FormulaTile extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   "Catatan:",
-                  style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text(
                   note,
@@ -184,7 +194,7 @@ class ReferenceTableWidget extends StatelessWidget {
                 // --- Header Row ---
                 TableRow(
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha:0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(8),
                     ),

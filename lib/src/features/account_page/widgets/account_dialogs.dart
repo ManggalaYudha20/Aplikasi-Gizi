@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\account_page\widgets\account_dialogs.dart
+
 import 'package:flutter/material.dart';
 
 class AccountDialogs {
@@ -41,6 +43,7 @@ class AccountDialogs {
       },
     );
   }
+
   static Future<void> showDeleteAccountConfirmation(
     BuildContext context, {
     required VoidCallback onConfirm,
@@ -95,7 +98,11 @@ class AccountDialogs {
               : Container(
                   color: Colors.white,
                   padding: const EdgeInsets.all(20),
-                  child: const Icon(Icons.person, size: 100, color: Colors.grey),
+                  child: const Icon(
+                    Icons.person,
+                    size: 100,
+                    color: Colors.grey,
+                  ),
                 ),
         ),
       ),

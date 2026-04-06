@@ -1,4 +1,4 @@
-// lib/src/features/nutrition_calculation/presentation/widgets/formula_menu_button.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\nutrition_calculation\presentation\widgets\formula_menu_button.dart
 
 import 'package:flutter/material.dart';
 
@@ -49,7 +49,7 @@ class FormulaMenuButton extends StatelessWidget {
   final String fullName;
 
   final IconData icon;
-  final Color    color;
+  final Color color;
   final VoidCallback onTap;
 
   const FormulaMenuButton({
@@ -66,13 +66,13 @@ class FormulaMenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       // [QA] label deskriptif untuk TalkBack / VoiceOver
-      label:      'Navigasi ke Kalkulator $name',
+      label: 'Navigasi ke Kalkulator $name',
       // [QA] identifier stabil untuk Katalon Object Spy
       identifier: keyId,
-      button:     true,
+      button: true,
       child: GestureDetector(
         // [QA] key stabil untuk Flutter Integration Test (Flutter Driver)
-        key:   ValueKey(keyId),
+        key: ValueKey(keyId),
         onTap: onTap,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -81,7 +81,7 @@ class FormulaMenuButton extends StatelessWidget {
 
             // ── Ikon Lingkaran ─────────────────────────────────────────────
             Container(
-              width:  100,
+              width: 100,
               height: 100,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -89,9 +89,9 @@ class FormulaMenuButton extends StatelessWidget {
                 border: Border.all(color: color, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color:      color.withValues(alpha: 0.3),
+                    color: color.withValues(alpha: 0.3),
                     blurRadius: 8,
-                    offset:     const Offset(0, 4),
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
@@ -105,9 +105,9 @@ class FormulaMenuButton extends StatelessWidget {
                       name,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize:   12,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color:      color,
+                        color: color,
                       ),
                     ),
                   ],
@@ -122,12 +122,9 @@ class FormulaMenuButton extends StatelessWidget {
               child: Text(
                 fullName,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color:    Colors.black87,
-                ),
-                maxLines:  2,
-                overflow:  TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12, color: Colors.black87),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

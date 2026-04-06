@@ -1,4 +1,4 @@
-// lib/src/shared/utils/form_validator_utils.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\shared\widgets\form_validator_utils.dart
 
 import 'package:flutter/material.dart';
 
@@ -22,11 +22,11 @@ class FormValidatorUtils {
       if (node.context != null) {
         // Cari FormFieldState terdekat dari widget yang memiliki fokus.
         // Ini adalah perbaikan dari kode sebelumnya.
-        final formFieldState = node.context!.findAncestorStateOfType<FormFieldState>();
+        final formFieldState = node.context!
+            .findAncestorStateOfType<FormFieldState>();
 
         // Periksa apakah field ini memiliki error.
         if (formFieldState != null && formFieldState.hasError) {
-          
           // 3. Jika ditemukan, scroll ke field tersebut.
           Scrollable.ensureVisible(
             node.context!,
@@ -38,7 +38,7 @@ class FormValidatorUtils {
           });
 
           // Hentikan proses setelah menemukan dan scroll ke error pertama.
-          return false; 
+          return false;
         }
       }
     }

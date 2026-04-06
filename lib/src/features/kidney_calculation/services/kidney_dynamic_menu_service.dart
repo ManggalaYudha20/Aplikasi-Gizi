@@ -1,11 +1,9 @@
-// lib/src/features/kidney_calculation/services/kidney_dynamic_menu_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\kidney_calculation\services\kidney_dynamic_menu_service.dart
 
 import 'dart:math';
-
 import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/food_database_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/data/models/kidney_menu_models.dart';
-// kidney_knowledge_base tidak diimport langsung — sudah terdaftar di ExpertSystemEngine
 import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/expert_system_engine.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/services/kidney_meal_planner_service.dart';
 
@@ -135,7 +133,7 @@ class KidneyDynamicMenuService {
             // Untuk nama masakan panjang, tetap pakai contains
             return lowerName.contains(term);
           });
-          
+
           if (isMatch && matchedKey == 'buah') {
             if (lowerName.contains('daun') ||
                 lowerName.contains('sayur') ||
@@ -298,7 +296,9 @@ class KidneyDynamicMenuService {
     // Lauk Hewani
     if (lower.contains('telur') ||
         lower.contains('daging') ||
-        RegExp(r'\bayam\b').hasMatch(lower) || // Perbaikan Bug "bayam" -> "ayam"
+        RegExp(
+          r'\bayam\b',
+        ).hasMatch(lower) || // Perbaikan Bug "bayam" -> "ayam"
         lower.contains('ikan') ||
         lower.contains('udang')) {
       return 'Lauk Hewani';

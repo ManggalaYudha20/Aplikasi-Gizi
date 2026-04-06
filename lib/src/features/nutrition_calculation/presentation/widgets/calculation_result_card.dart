@@ -1,4 +1,4 @@
-// lib/src/features/nutrition_calculation/presentation/widgets/calculation_result_card.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\nutrition_calculation\presentation\widgets\calculation_result_card.dart
 
 import 'package:flutter/material.dart';
 
@@ -81,28 +81,29 @@ class CalculationResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double sw          = MediaQuery.sizeOf(context).width;
-    final Color  cardColor   = color ?? _kBrandGreen;
-    final double pad         = sw * 0.04;
-    final double fontBase14  = _responsiveFont(sw, base: 14);
-    final double fontBase16  = _responsiveFont(sw, base: 16);
-    final double fontBase18  = _responsiveFont(sw, base: 18);
-    final double fontBase24  = _responsiveFont(sw, base: 24);
+    final double sw = MediaQuery.sizeOf(context).width;
+    final Color cardColor = color ?? _kBrandGreen;
+    final double pad = sw * 0.04;
+    final double fontBase14 = _responsiveFont(sw, base: 14);
+    final double fontBase16 = _responsiveFont(sw, base: 16);
+    final double fontBase18 = _responsiveFont(sw, base: 18);
+    final double fontBase24 = _responsiveFont(sw, base: 24);
 
-    final String autoLabel = semanticsLabel ??
+    final String autoLabel =
+        semanticsLabel ??
         '$title: $value'
-        '${category != null ? ", Kategori $category" : ""}';
+            '${category != null ? ", Kategori $category" : ""}';
 
     return Semantics(
-      label:      autoLabel,
+      label: autoLabel,
       liveRegion: true, // Screen-reader otomatis membacakan saat nilai berubah
       child: Container(
-        key:     containerKey,
+        key: containerKey,
         padding: EdgeInsets.all(pad),
         decoration: BoxDecoration(
-          color:        cardColor.withValues(alpha: 0.1),
+          color: cardColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
-          border:       Border.all(color: cardColor, width: 2.0),
+          border: Border.all(color: cardColor, width: 2.0),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -112,9 +113,9 @@ class CalculationResultCard extends StatelessWidget {
               title,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize:   fontBase18,
+                fontSize: fontBase18,
                 fontWeight: FontWeight.bold,
-                color:      cardColor,
+                color: cardColor,
               ),
             ),
 
@@ -125,9 +126,9 @@ class CalculationResultCard extends StatelessWidget {
               value,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize:   fontBase24,
+                fontSize: fontBase24,
                 fontWeight: FontWeight.bold,
-                color:      cardColor,
+                color: cardColor,
               ),
             ),
 
@@ -138,9 +139,9 @@ class CalculationResultCard extends StatelessWidget {
                 'Kategori: $category',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize:   fontBase16,
+                  fontSize: fontBase16,
                   fontWeight: FontWeight.bold,
-                  color:      cardColor,
+                  color: cardColor,
                 ),
               ),
             ],
@@ -151,10 +152,7 @@ class CalculationResultCard extends StatelessWidget {
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: fontBase14,
-                  color:    Colors.black54,
-                ),
+                style: TextStyle(fontSize: fontBase14, color: Colors.black54),
               ),
             ],
 
@@ -194,11 +192,11 @@ class CalculationResultCard extends StatelessWidget {
 @immutable
 class ZScoreResultCard extends StatelessWidget {
   final ValueKey<String>? containerKey;
-  final String            title;
-  final double?           zScore;
-  final String            category;
-  final Color             color;
-  final String?           additionalInfo;
+  final String title;
+  final double? zScore;
+  final String category;
+  final Color color;
+  final String? additionalInfo;
 
   /// Label Semantics. Jika null, dibentuk otomatis.
   final String? semanticsLabel;
@@ -216,24 +214,26 @@ class ZScoreResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double sw         = MediaQuery.sizeOf(context).width;
-    final double pad        = sw * 0.04;
+    final double sw = MediaQuery.sizeOf(context).width;
+    final double pad = sw * 0.04;
     final double fontBase14 = _responsiveFont(sw, base: 14);
 
-    final String autoLabel = semanticsLabel ??
+    final String autoLabel =
+        semanticsLabel ??
         '$title — Z-Score: ${zScore?.toStringAsFixed(2) ?? "-"}, '
-        'Kategori: $category';
+            'Kategori: $category';
 
     return Semantics(
       label: autoLabel,
-      value: 'Z-Score: ${zScore?.toStringAsFixed(2) ?? "-"}, Kategori: $category',
+      value:
+          'Z-Score: ${zScore?.toStringAsFixed(2) ?? "-"}, Kategori: $category',
       child: Container(
-        key:     containerKey,
+        key: containerKey,
         padding: EdgeInsets.all(pad),
         decoration: BoxDecoration(
-          color:        color.withValues(alpha: 0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
-          border:       Border.all(color: color, width: 2.0),
+          border: Border.all(color: color, width: 2.0),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,9 +242,9 @@ class ZScoreResultCard extends StatelessWidget {
             Text(
               title,
               style: TextStyle(
-                fontSize:   fontBase14,
+                fontSize: fontBase14,
                 fontWeight: FontWeight.bold,
-                color:      Colors.black,
+                color: Colors.black,
               ),
             ),
 
@@ -255,7 +255,7 @@ class ZScoreResultCard extends StatelessWidget {
               'Z-Score: ${zScore?.toStringAsFixed(2) ?? "-"}',
               style: TextStyle(
                 fontSize: fontBase14,
-                color:    Colors.grey.shade700,
+                color: Colors.grey.shade700,
               ),
             ),
 
@@ -267,18 +267,18 @@ class ZScoreResultCard extends StatelessWidget {
                 Text(
                   'Kategori: ',
                   style: TextStyle(
-                    fontSize:   fontBase14,
+                    fontSize: fontBase14,
                     fontWeight: FontWeight.bold,
-                    color:      color,
+                    color: color,
                   ),
                 ),
                 Expanded(
                   child: Text(
                     category,
                     style: TextStyle(
-                      fontSize:   fontBase14,
+                      fontSize: fontBase14,
                       fontWeight: FontWeight.bold,
-                      color:      color,
+                      color: color,
                     ),
                   ),
                 ),
@@ -292,7 +292,7 @@ class ZScoreResultCard extends StatelessWidget {
                 additionalInfo!,
                 style: TextStyle(
                   fontSize: fontBase14,
-                  color:    Colors.grey.shade700,
+                  color: Colors.grey.shade700,
                 ),
               ),
             ],

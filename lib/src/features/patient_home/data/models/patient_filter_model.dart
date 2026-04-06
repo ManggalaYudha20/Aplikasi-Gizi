@@ -1,4 +1,5 @@
-// lib/src/shared/widgets/patient_filter_model.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\data\models\patient_filter_model.dart
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -22,7 +23,10 @@ class PatientFilterModel {
 
   /// Cek apakah ada filter yang aktif
   bool get isDefault {
-    return statusGizi == null && dateRange == null && ageGroup == null && isCompleted == null;
+    return statusGizi == null &&
+        dateRange == null &&
+        ageGroup == null &&
+        isCompleted == null;
   }
 
   /// Fungsi utama untuk memfilter
@@ -33,14 +37,14 @@ class PatientFilterModel {
 
     if (isCompleted != null) {
       // Ambil status dari database, default false jika tidak ada
-      final bool statusData = data['isCompleted'] ?? false; 
-      
+      final bool statusData = data['isCompleted'] ?? false;
+
       // Jika status di data beda dengan filter yang diinginkan, return false
       if (statusData != isCompleted) return false;
     }
 
     // --- Filter 1: Status Gizi (Kondisional) ---
-    bool matchesStatusGizi = true; 
+    bool matchesStatusGizi = true;
     if (statusGizi != null) {
       // 1. Ubah Filter ke Huruf Kecil (Lowercase)
       //    Contoh: "Gizi Baik (Normal)" -> "gizi baik (normal)"
@@ -63,16 +67,18 @@ class PatientFilterModel {
         // Ambil data dan ubah ke huruf kecil
         final String statusIMTU = (data['statusGiziIMTU'] ?? '').toLowerCase();
         final String statusBBU = (data['statusGiziBBU'] ?? '').toLowerCase();
-        final String statusLegacy = (data['statusGiziAnak'] ?? '').toLowerCase(); // Data lama
+        final String statusLegacy = (data['statusGiziAnak'] ?? '')
+            .toLowerCase(); // Data lama
 
         // Cek apakah data mengandung kata kunci (menggunakan keyword yang lebih pendek/fleksibel)
-        matchesStatusGizi = statusIMTU.contains(keyword) || 
-                            statusBBU.contains(keyword) ||
-                            statusLegacy.contains(keyword);
-                            
+        matchesStatusGizi =
+            statusIMTU.contains(keyword) ||
+            statusBBU.contains(keyword) ||
+            statusLegacy.contains(keyword);
       } else {
         // Logika Dewasa (Juga di-lowercase)
-        final String statusGiziDewasa = (data['monevStatusGizi'] ?? '').toLowerCase();
+        final String statusGiziDewasa = (data['monevStatusGizi'] ?? '')
+            .toLowerCase();
         matchesStatusGizi = statusGiziDewasa.contains(keyword);
       }
     }
@@ -80,8 +86,8 @@ class PatientFilterModel {
     if (!matchesStatusGizi) return false;
 
     // --- Ambil data tanggal universal ---
-    final DateTime? tglPemeriksaan =
-        (data['tanggalPemeriksaan'] as Timestamp?)?.toDate();
+    final DateTime? tglPemeriksaan = (data['tanggalPemeriksaan'] as Timestamp?)
+        ?.toDate();
     final DateTime? tglLahir = (data['tanggalLahir'] as Timestamp?)?.toDate();
 
     // Jika data tanggal penting tidak ada, anggap tidak cocok
@@ -92,7 +98,8 @@ class PatientFilterModel {
     if (dateRange != null) {
       final rangeStart = dateRange!.start;
       final rangeEnd = dateRange!.end.add(const Duration(days: 1));
-      matchesDateRange = !tglPemeriksaan.isBefore(rangeStart) &&
+      matchesDateRange =
+          !tglPemeriksaan.isBefore(rangeStart) &&
           tglPemeriksaan.isBefore(rangeEnd);
     }
     // Jika gagal filter, langsung hentikan

@@ -1,4 +1,4 @@
-// lib/src/features/pdf_leaflets/presentation/widgets/leaflet_card_widget.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\pdf_leaflets\presentation\widgets\leaflet_card_widget.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/data/models/leaflet_model.dart';
@@ -6,13 +6,10 @@ import 'package:aplikasi_diagnosa_gizi/src/features/pdf_leaflets/presentation/pa
 
 class LeafletCardWidget extends StatelessWidget {
   final Leaflet leaflet;
-  
+
   // screenWidth dihapus karena tidak lagi diperlukan
 
-  const LeafletCardWidget({
-    super.key,
-    required this.leaflet,
-  });
+  const LeafletCardWidget({super.key, required this.leaflet});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +18,7 @@ class LeafletCardWidget extends StatelessWidget {
       button: true,
       child: Card(
         // Margin dinolkan karena GridView.builder sudah memberikan jarak (spacing)
-        margin: EdgeInsets.zero, 
+        margin: EdgeInsets.zero,
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         // Center digunakan agar isi otomatis berada di tengah secara vertikal

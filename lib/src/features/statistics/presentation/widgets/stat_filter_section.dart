@@ -1,4 +1,4 @@
-// lib/src/features/statistics/presentation/widgets/stat_filter_section.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\statistics\presentation\widgets\stat_filter_section.dart
 
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
@@ -68,7 +68,8 @@ class StatFilterSection extends StatelessWidget {
         // ── Category Dropdown ─────────────────────────────────────────────────
         Semantics(
           identifier: 'stats_category_dropdown',
-          label: 'Dropdown pilih kategori statistik, dipilih: $selectedCategory',
+          label:
+              'Dropdown pilih kategori statistik, dipilih: $selectedCategory',
           child: Container(
             padding: EdgeInsets.symmetric(
               horizontal: spacing,
@@ -136,61 +137,69 @@ class StatFilterSection extends StatelessWidget {
           child: PopupMenuButton<DateFilterType>(
             initialValue: selectedFilterType,
             onSelected: onFilterSelected,
-            itemBuilder: (context) =>
-                const <PopupMenuEntry<DateFilterType>>[
+            itemBuilder: (context) => const <PopupMenuEntry<DateFilterType>>[
               PopupMenuItem(
                 value: DateFilterType.thisWeek,
-                child: Row(children: [
-                  Icon(Icons.calendar_view_week, color: Colors.grey),
-                  SizedBox(width: 8),
-                  Text('Minggu Ini'),
-                ]),
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_view_week, color: Colors.grey),
+                    SizedBox(width: 8),
+                    Text('Minggu Ini'),
+                  ],
+                ),
               ),
               PopupMenuItem(
                 value: DateFilterType.thisMonth,
-                child: Row(children: [
-                  Icon(Icons.calendar_month, color: Colors.grey),
-                  SizedBox(width: 8),
-                  Text('Bulan Ini'),
-                ]),
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_month, color: Colors.grey),
+                    SizedBox(width: 8),
+                    Text('Bulan Ini'),
+                  ],
+                ),
               ),
               PopupMenuItem(
                 value: DateFilterType.thisYear,
-                child: Row(children: [
-                  Icon(Icons.calendar_today, color: Colors.grey),
-                  SizedBox(width: 8),
-                  Text('Tahun Ini'),
-                ]),
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_today, color: Colors.grey),
+                    SizedBox(width: 8),
+                    Text('Tahun Ini'),
+                  ],
+                ),
               ),
               PopupMenuDivider(),
               PopupMenuItem(
                 value: DateFilterType.custom,
-                child: Row(children: [
-                  Icon(Icons.date_range, color: Colors.grey),
-                  SizedBox(width: 8),
-                  Text('Pilih Tanggal Sendiri (Custom)'),
-                ]),
+                child: Row(
+                  children: [
+                    Icon(Icons.date_range, color: Colors.grey),
+                    SizedBox(width: 8),
+                    Text('Pilih Tanggal Sendiri (Custom)'),
+                  ],
+                ),
               ),
               PopupMenuDivider(),
               PopupMenuItem(
                 value: DateFilterType.all,
-                child: Row(children: [
-                  Icon(Icons.all_inclusive, color: Color(0xFF009444)),
-                  SizedBox(width: 8),
-                  Text(
-                    'Semua Waktu (Reset)',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF009444),
+                child: Row(
+                  children: [
+                    Icon(Icons.all_inclusive, color: Color(0xFF009444)),
+                    SizedBox(width: 8),
+                    Text(
+                      'Semua Waktu (Reset)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF009444),
+                      ),
                     ),
-                  ),
-                ]),
+                  ],
+                ),
               ),
             ],
             child: Container(
               margin: EdgeInsets.only(bottom: spacing),
-              padding:
-                  EdgeInsets.symmetric(horizontal: spacing, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: spacing, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -215,8 +224,7 @@ class StatFilterSection extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const Icon(Icons.arrow_drop_down,
-                      color: Color(0xFF009444)),
+                  const Icon(Icons.arrow_drop_down, color: Color(0xFF009444)),
                 ],
               ),
             ),
@@ -224,9 +232,10 @@ class StatFilterSection extends StatelessWidget {
         ),
 
         // ── Chart Type Toggle ─────────────────────────────────────────────────
-       // ── Chart Type Toggle ─────────────────────────────────────────────────
+        // ── Chart Type Toggle ─────────────────────────────────────────────────
         Align(
-          alignment: Alignment.centerLeft, // Ubah ke Alignment.center jika ingin posisinya di tengah
+          alignment: Alignment
+              .centerLeft, // Ubah ke Alignment.center jika ingin posisinya di tengah
           child: Semantics(
             identifier: 'stats_chart_type_toggle',
             label: 'Toggle jenis grafik, terpilih: $chartType',
@@ -287,8 +296,7 @@ class _ChartTypeButton extends StatelessWidget {
       child: InkWell(
         onTap: () => onTap(type),
         child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: isSelected ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(8),

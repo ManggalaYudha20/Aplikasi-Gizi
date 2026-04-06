@@ -1,4 +1,4 @@
-//lib\src\shared\services\user_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\shared\services\user_service.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -22,8 +22,10 @@ class UserService {
     }
 
     try {
-      final docSnapshot =
-          await _firestore.collection('users').doc(user.uid).get();
+      final docSnapshot = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
       if (docSnapshot.exists) {
         // Jika dokumen ada, kembalikan nilai dari field 'role'.
@@ -45,12 +47,9 @@ class UserService {
     if (user == null) {
       throw Exception('Tidak ada user yang login');
     }
-    
+
     // Pastikan nama collection sesuai database Anda (biasanya 'users')
-    return FirebaseFirestore.instance
-        .collection('users') 
-        .doc(user.uid)
-        .get();
+    return FirebaseFirestore.instance.collection('users').doc(user.uid).get();
   }
 
   // Anda bisa menambahkan fungsi lain di sini di masa depan,

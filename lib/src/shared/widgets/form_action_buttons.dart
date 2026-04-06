@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\shared\widgets\form_action_buttons.dart
+
 import 'package:flutter/material.dart';
 
 class FormActionButtons extends StatelessWidget {
@@ -108,12 +110,7 @@ class FormActionButtons extends StatelessWidget {
                     resetIcon!,
                     const SizedBox(width: 8),
                   ],
-                  Text(
-                    resetText,
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
+                  Text(resetText, style: TextStyle(fontSize: 16)),
                 ],
               ),
             ),

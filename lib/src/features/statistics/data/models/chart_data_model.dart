@@ -1,4 +1,4 @@
-// lib/src/features/statistics/data/models/chart_data_model.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\statistics\data\models\chart_data_model.dart
 
 import 'package:flutter/material.dart';
 
@@ -77,10 +77,7 @@ class AggregatedPatientData {
 /// Role distribution fetched from the `users` Firestore collection.
 /// Only visible to admin users.
 class UserStats {
-  const UserStats({
-    required this.totalUsers,
-    required this.roleCounts,
-  });
+  const UserStats({required this.totalUsers, required this.roleCounts});
 
   final int totalUsers;
 

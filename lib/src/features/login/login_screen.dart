@@ -1,4 +1,4 @@
-// lib/src/login/login_screen.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\login\login_screen.dart
 
 import 'package:aplikasi_diagnosa_gizi/src/features/login/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -224,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 const SizedBox(height: 24),
                               ],
                               if (_isGoogleSignInSupported) ...[
-                               if (!_isAndroid) _buildOrDivider(),
+                                if (!_isAndroid) _buildOrDivider(),
                                 const SizedBox(height: 24),
                                 _buildGoogleLoginButton(),
                               ],

@@ -1,4 +1,4 @@
-// lib/src/features/statistics/presentation/widgets/stat_bar_chart_widget.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\statistics\presentation\widgets\stat_bar_chart_widget.dart
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -20,8 +20,7 @@ class StatBarChartWidget extends StatelessWidget {
       return const Center(child: Text("Data Kosong"));
     }
 
-    double maxY =
-        dataMap.values.fold(0, (prev, v) => v > prev ? v : prev);
+    double maxY = dataMap.values.fold(0, (prev, v) => v > prev ? v : prev);
     maxY = maxY + (maxY * 0.2);
     if (maxY == 0) maxY = 10;
 
@@ -34,8 +33,7 @@ class StatBarChartWidget extends StatelessWidget {
           touchTooltipData: BarTouchTooltipData(
             getTooltipColor: (_) => Colors.blueGrey,
             getTooltipItem: (group, _, rod, __) {
-              final String label =
-                  dataMap.keys.elementAt(group.x.toInt());
+              final String label = dataMap.keys.elementAt(group.x.toInt());
               return BarTooltipItem(
                 '$label\n',
                 const TextStyle(
@@ -100,12 +98,13 @@ class StatBarChartWidget extends StatelessWidget {
             ),
           ),
           topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false)),
+            sideTitles: SideTitles(showTitles: false),
+          ),
           rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false)),
+            sideTitles: SideTitles(showTitles: false),
+          ),
         ),
-        gridData:
-            const FlGridData(show: true, drawVerticalLine: false),
+        gridData: const FlGridData(show: true, drawVerticalLine: false),
         borderData: FlBorderData(show: false),
         barGroups: List.generate(dataMap.length, (index) {
           return BarChartGroupData(

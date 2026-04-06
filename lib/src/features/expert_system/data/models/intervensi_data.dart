@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\expert_system\data\models\intervensi_data.dart
+
 import 'terminology_item.dart'; // Make sure this path is correct
 
 class IntervensiData {

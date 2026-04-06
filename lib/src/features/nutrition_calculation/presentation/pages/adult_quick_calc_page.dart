@@ -1,4 +1,4 @@
-// lib/src/features/nutrition_calculation/presentation/pages/adult_quick_calc_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\nutrition_calculation\presentation\pages\adult_quick_calc_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -507,7 +507,9 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
                                   setState(() {
                                     _hospitalizedStatusController.text =
                                         value ?? 'Tidak';
-                                    if (value == 'Tidak') _stressMetabolic = 20.0;
+                                    if (value == 'Tidak') {
+                                      _stressMetabolic = 20.0;
+                                    }
                                   });
                                 },
                               ),
@@ -950,7 +952,6 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
                   '${ckdKarbo.toStringAsFixed(0)} g/hari',
                 ),
                 const Divider(height: 8),
-
 
                 _buildResultRow(
                   'Rekomendasi Diet',

@@ -1,4 +1,4 @@
-// lib/src/features/kidney_calculation/presentation/pages/kidney_calculation_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\kidney_calculation\presentation\pages\kidney_calculation_page.dart
 
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +20,8 @@ import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/services/
 import 'package:aplikasi_diagnosa_gizi/src/features/kidney_calculation/services/kidney_meal_planner_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/food_database_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/food_search_delegate.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart' as db;
+import 'package:aplikasi_diagnosa_gizi/src/features/food_database/data/models/food_item_model.dart'
+    as db;
 import 'package:aplikasi_diagnosa_gizi/src/features/expert_system/services/expert_system_engine.dart';
 
 // ── Widgets modul ginjal ───────────────────────────────────────────────────
@@ -67,14 +68,17 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
   @override
   void initState() {
     super.initState();
-    _menuGenerator = KidneyDynamicMenuService(FoodDatabaseService(), ExpertSystemEngine());
-    _heightController        = TextEditingController();
-    _ageController           = TextEditingController();
-    _dialysisController      = TextEditingController(text: 'Tidak');
-    _genderController        = TextEditingController();
+    _menuGenerator = KidneyDynamicMenuService(
+      FoodDatabaseService(),
+      ExpertSystemEngine(),
+    );
+    _heightController = TextEditingController();
+    _ageController = TextEditingController();
+    _dialysisController = TextEditingController(text: 'Tidak');
+    _genderController = TextEditingController();
     _proteinFactorController = TextEditingController(text: '0.6 (Rendah)');
     _currentWeightController = TextEditingController();
-    _scrollController        = ScrollController();
+    _scrollController = ScrollController();
   }
 
   @override
@@ -95,11 +99,11 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     if (!_formKey.currentState!.validate()) return;
     FocusManager.instance.primaryFocus?.unfocus();
 
-    final height             = double.tryParse(_heightController.text) ?? 0;
-    final age                = int.tryParse(_ageController.text) ?? 0;
-    final isDialysis         = _dialysisController.text == 'Ya';
+    final height = double.tryParse(_heightController.text) ?? 0;
+    final age = int.tryParse(_ageController.text) ?? 0;
+    final isDialysis = _dialysisController.text == 'Ya';
     final proteinFactorValue = _proteinFactorController.text.split(' ')[0];
-    final proteinFactor      = double.tryParse(proteinFactorValue);
+    final proteinFactor = double.tryParse(proteinFactorValue);
 
     final result = _calculatorService.calculate(
       height: height,
@@ -112,9 +116,9 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     final mealPlan = KidneyMealPlans.getPlan(result.recommendedDiet);
 
     setState(() {
-      _result           = result;
-      _mealPlan         = mealPlan;
-      _generatedMenu    = null;
+      _result = result;
+      _mealPlan = mealPlan;
+      _generatedMenu = null;
       _isGeneratingMenu = true;
     });
 
@@ -128,7 +132,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
       );
       if (mounted) {
         setState(() {
-          _generatedMenu    = dynamicMenu;
+          _generatedMenu = dynamicMenu;
           _isGeneratingMenu = false;
         });
       }
@@ -186,10 +190,10 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
     DateTime dob,
   ) {
     setState(() {
-      _heightController.text       = height.toString();
-      _ageController.text          = _calculateAgeInYears(dob);
+      _heightController.text = height.toString();
+      _ageController.text = _calculateAgeInYears(dob);
       _currentWeightController.text = weight.toString();
-      _isHighPotassium             = false;
+      _isHighPotassium = false;
 
       final g = gender.toLowerCase();
       if (g.contains('laki') || g.contains('pria') || g == 'l') {
@@ -200,8 +204,8 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
         _genderController.text = gender;
       }
 
-      _result        = null;
-      _mealPlan      = null;
+      _result = null;
+      _mealPlan = null;
       _generatedMenu = null;
     });
   }
@@ -216,10 +220,10 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
       _dialysisController.text = 'Tidak';
       _genderController.clear();
       _proteinFactorController.text = '0.6 (Rendah)';
-      _result           = null;
-      _mealPlan         = null;
-      _generatedMenu    = null;
-      _isHighPotassium  = false;
+      _result = null;
+      _mealPlan = null;
+      _generatedMenu = null;
+      _isHighPotassium = false;
     });
   }
 
@@ -240,14 +244,17 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
   // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
-    final size         = MediaQuery.sizeOf(context);
+    final size = MediaQuery.sizeOf(context);
     final paddingValue = size.width * 0.04;
-    final gapSmall     = size.height * 0.015;
-    final gapMedium    = size.height * 0.025;
-    final gapLarge     = size.height * 0.04;
+    final gapSmall = size.height * 0.015;
+    final gapMedium = size.height * 0.025;
+    final gapLarge = size.height * 0.04;
 
-    final canAccessMenu = ['admin', 'ahli gizi', 'nutrisionis']
-        .contains(widget.userRole.toLowerCase());
+    final canAccessMenu = [
+      'admin',
+      'ahli gizi',
+      'nutrisionis',
+    ].contains(widget.userRole.toLowerCase());
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -369,7 +376,9 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                     toggled: _isHighPotassium,
                     child: SwitchListTile(
                       key: const ValueKey('input_switch_potassium'),
-                      title: const Text('Kondisi Kalium Tinggi (Hiperkalemia)?'),
+                      title: const Text(
+                        'Kondisi Kalium Tinggi (Hiperkalemia)?',
+                      ),
                       subtitle: const Text(
                         'Aktifkan untuk menyaring pisang, bayam, alpukat, dll.',
                       ),
@@ -390,7 +399,10 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
                       onSubmit: _calculateAndGenerateMenu,
                       resetButtonColor: Colors.white,
                       resetForegroundColor: kKidneyGreen,
-                      submitIcon: const Icon(Icons.calculate, color: Colors.white),
+                      submitIcon: const Icon(
+                        Icons.calculate,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                   SizedBox(height: gapLarge),
@@ -425,8 +437,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
           label: 'Kartu Hasil Perhitungan',
           child: KidneyResultCard(
             result: _result!,
-            currentWeight:
-                double.tryParse(_currentWeightController.text) ?? 0,
+            currentWeight: double.tryParse(_currentWeightController.text) ?? 0,
             heightCm: double.tryParse(_heightController.text) ?? 0,
             proteinFactorLabel: _proteinFactorController.text,
             cardKey: _resultCardKey,
@@ -523,8 +534,12 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
           suffixText: suffixText,
         ),
         validator: (value) {
-          if (value == null || value.isEmpty) return '$label tidak boleh kosong';
-          if (double.tryParse(value) == null) return 'Masukkan angka yang valid';
+          if (value == null || value.isEmpty) {
+            return '$label tidak boleh kosong';
+          }
+          if (double.tryParse(value) == null) {
+            return 'Masukkan angka yang valid';
+          }
           return null;
         },
       ),
@@ -569,10 +584,9 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
         ),
         onChanged: onChanged,
         selectedItem: selectedItem,
-        validator: (value) =>
-            (value == null && controller.text.isEmpty)
-                ? '$label harus dipilih'
-                : null,
+        validator: (value) => (value == null && controller.text.isEmpty)
+            ? '$label harus dipilih'
+            : null,
       ),
     );
   }

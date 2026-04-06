@@ -1,4 +1,4 @@
-// lib/src/features/diabetes_calculation/services/pdf_generator_dm.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\diabetes_calculation\services\pdf_generator_dm.dart
 
 import 'dart:io';
 import 'package:flutter/services.dart';
@@ -56,17 +56,26 @@ Future<Uint8List> generateDmPdfBytes(
               pw.Container(
                 color: PdfColors.grey200,
                 width: double.infinity,
-                padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                padding: const pw.EdgeInsets.symmetric(
+                  vertical: 5,
+                  horizontal: 10,
+                ),
                 child: pw.Text(
                   session.sessionName,
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
               ),
               pw.SizedBox(height: 5),
               pw.TableHelper.fromTextArray(
                 context: context,
                 border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+                headerStyle: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  fontSize: 10,
+                ),
                 cellStyle: const pw.TextStyle(fontSize: 10),
                 cellPadding: const pw.EdgeInsets.all(5),
                 headers: ['Bahan Makanan', 'Menu Makanan', 'Penukar'],
@@ -81,11 +90,13 @@ Future<Uint8List> generateDmPdfBytes(
                   2: pw.Alignment.center,
                 },
                 data: session.items
-                    .map((item) => [
-                          item.categoryLabel,
-                          item.foodName,
-                          _formatPdfPortion(item.portion),
-                        ])
+                    .map(
+                      (item) => [
+                        item.categoryLabel,
+                        item.foodName,
+                        _formatPdfPortion(item.portion),
+                      ],
+                    )
                     .toList(),
               ),
               pw.SizedBox(height: 15),
@@ -109,7 +120,10 @@ Future<Uint8List> generateDmPdfBytes(
               children: [
                 pw.Text(
                   'Catatan Tambahan:',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
                 pw.SizedBox(height: 5),
                 pw.Text(catatan, style: const pw.TextStyle(fontSize: 10)),

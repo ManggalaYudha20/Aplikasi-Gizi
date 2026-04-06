@@ -1,4 +1,4 @@
-// lib/src/features/pdf_leaflets/presentation/pages/pdf_viewer_page.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\pdf_leaflets\presentation\pages\pdf_viewer_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
@@ -115,14 +115,13 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                         key: const Key('pdf_delete_button'),
                         onPressed: () =>
                             DeleteLeafletService.handleLeafletDelete(
-                          context: context,
-                          leaflet: widget.leaflet!,
-                        ),
+                              context: context,
+                              leaflet: widget.leaflet!,
+                            ),
                         heroTag: 'delete',
                         tooltip: 'Hapus',
                         backgroundColor: Colors.red,
-                        child:
-                            const Icon(Icons.delete, color: Colors.white),
+                        child: const Icon(Icons.delete, color: Colors.white),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -132,8 +131,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                       child: FloatingActionButton.small(
                         key: const Key('pdf_edit_button'),
                         onPressed: () async {
-                          final result =
-                              await EditLeafletService.showEditPage(
+                          final result = await EditLeafletService.showEditPage(
                             context,
                             widget.leaflet!,
                           );
@@ -144,8 +142,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                         },
                         heroTag: 'edit',
                         tooltip: 'Edit',
-                        backgroundColor:
-                            const Color.fromARGB(255, 0, 148, 68),
+                        backgroundColor: const Color.fromARGB(255, 0, 148, 68),
                         child: const Icon(Icons.edit, color: Colors.white),
                       ),
                     ),

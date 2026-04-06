@@ -1,4 +1,4 @@
-// lib/src/features/patient_home/services/pdf/pdf_generator_anak_service.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\patient_home\services\pdf\pdf_generator_anak_service.dart
 //
 // Dipindahkan dari: presentation/pages/pdf_generator_anak.dart
 // Perubahan       : Class diubah namanya PdfGeneratorAnak → PdfGeneratorAnakService.
@@ -89,10 +89,25 @@ class PdfGeneratorAnakService {
               pw.Center(child: pw.Text('(Diisi oleh Dietisien/Nutrisionis)')),
               pw.SizedBox(height: 10),
 
-              _buildInfoRow('No RM', ': ${patient.noRM}', 'Tanggal Lahir',': ${patient.tanggalLahirFormatted}'),
-              _buildInfoRow('Nama Lengkap', ': ${patient.namaLengkap}', 'Tgl Periksa',': ${DateFormat('d MMMM y','id_ID').format(patient.tanggalPemeriksaan)}'),
-              _buildInfoRow('Jenis Kelamin', ': ${patient.jenisKelamin}', '',''),
-            
+              _buildInfoRow(
+                'No RM',
+                ': ${patient.noRM}',
+                'Tanggal Lahir',
+                ': ${patient.tanggalLahirFormatted}',
+              ),
+              _buildInfoRow(
+                'Nama Lengkap',
+                ': ${patient.namaLengkap}',
+                'Tgl Periksa',
+                ': ${DateFormat('d MMMM y', 'id_ID').format(patient.tanggalPemeriksaan)}',
+              ),
+              _buildInfoRow(
+                'Jenis Kelamin',
+                ': ${patient.jenisKelamin}',
+                '',
+                '',
+              ),
+
               pw.SizedBox(height: 5),
 
               pw.Container(
@@ -101,7 +116,11 @@ class PdfGeneratorAnakService {
                 child: pw.Column(
                   mainAxisSize: pw.MainAxisSize.min,
                   children: [
-                    _buildInfoRow('Diagnosis Medis', ': ${patient.diagnosisMedis}', ''),
+                    _buildInfoRow(
+                      'Diagnosis Medis',
+                      ': ${patient.diagnosisMedis}',
+                      '',
+                    ),
                     pw.SizedBox(height: 5),
                     _buildInfoRow(
                       'BB = ${patient.beratBadan} kg',
@@ -123,8 +142,8 @@ class PdfGeneratorAnakService {
 
               pw.Text(
                 '*) Penyakit yang beresiko terjadi gangguan gizi diantaranya : dirawat di HCU/ICU, penurunan kesadaran, kegawatan abdomen (pendarahan, ileus, peritonitis, asites massif, tumor intraadomen besar, post operasi), gangguan pernapasan berat, keganasan dengan komplikasi, gagal jantung, gagal ginjal kronik, gagal hati, diabetes melitus, atau kondisi sakit berat lainnya',
-              textAlign: pw.TextAlign.justify,
-              style : pw.TextStyle(fontSize: 10)
+                textAlign: pw.TextAlign.justify,
+                style: pw.TextStyle(fontSize: 10),
               ),
               pw.SizedBox(height: 5),
 

@@ -1,4 +1,4 @@
-// lib/src/features/food_database/data/models/food_item_model.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\food_database\data\models\food_item_model.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -135,12 +135,28 @@ class FoodItem {
   Map<String, num> get nutritionPer100g {
     if (portionGram == 0) {
       return {
-        'air': 0, 'energi': 0, 'protein': 0, 'lemak': 0,
-        'karbohidrat': 0, 'serat': 0, 'abu': 0, 'kalsium': 0,
-        'fosfor': 0, 'besi': 0, 'natrium': 0, 'kalium': 0,
-        'tembaga': 0, 'seng': 0, 'retinol': 0, 'betaKaroten': 0,
-        'karotenTotal': 0, 'thiamin': 0, 'riboflavin': 0,
-        'niasin': 0, 'vitaminC': 0, 'bdd': 0,
+        'air': 0,
+        'energi': 0,
+        'protein': 0,
+        'lemak': 0,
+        'karbohidrat': 0,
+        'serat': 0,
+        'abu': 0,
+        'kalsium': 0,
+        'fosfor': 0,
+        'besi': 0,
+        'natrium': 0,
+        'kalium': 0,
+        'tembaga': 0,
+        'seng': 0,
+        'retinol': 0,
+        'betaKaroten': 0,
+        'karotenTotal': 0,
+        'thiamin': 0,
+        'riboflavin': 0,
+        'niasin': 0,
+        'vitaminC': 0,
+        'bdd': 0,
       };
     }
     final num ratio = 100 / portionGram;
@@ -233,8 +249,6 @@ class FoodItem {
   /// Mengembalikan hanya nilai gizi yang signifikan (> 0).
   Map<String, num> get significantNutrition {
     final all = allNutrition;
-    return Map.fromEntries(
-      all.entries.where((entry) => entry.value > 0),
-    );
+    return Map.fromEntries(all.entries.where((entry) => entry.value > 0));
   }
 }

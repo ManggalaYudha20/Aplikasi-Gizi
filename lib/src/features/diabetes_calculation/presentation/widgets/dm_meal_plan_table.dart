@@ -1,4 +1,4 @@
-// lib/src/features/diabetes_calculation/presentation/widgets/dm_meal_plan_table.dart
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\diabetes_calculation\presentation\widgets\dm_meal_plan_table.dart
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/models/dm_meal_session_model.dart';
@@ -12,15 +12,15 @@ import 'package:aplikasi_diagnosa_gizi/src/features/diabetes_calculation/data/mo
 class DmSemanticKeys {
   const DmSemanticKeys._();
 
-  static const patientPicker    = ValueKey('patientPicker');
-  static const ageField         = ValueKey('ageField');
-  static const genderDropdown   = ValueKey('genderDropdown');
-  static const weightField      = ValueKey('weightField');
-  static const heightField      = ValueKey('heightField');
+  static const patientPicker = ValueKey('patientPicker');
+  static const ageField = ValueKey('ageField');
+  static const genderDropdown = ValueKey('genderDropdown');
+  static const weightField = ValueKey('weightField');
+  static const heightField = ValueKey('heightField');
   static const activityDropdown = ValueKey('activityDropdown');
   static const hospitalizedDropdown = ValueKey('hospitalizedDropdown');
-  static const stressSlider     = ValueKey('stressSlider');
-  static const btnDownloadPdf   = ValueKey('btnDownloadPdf');
+  static const stressSlider = ValueKey('stressSlider');
+  static const btnDownloadPdf = ValueKey('btnDownloadPdf');
 
   /// Key dinamis per baris distribusi waktu makan (e.g. 'mealRow_Pagi').
   static ValueKey mealRow(String mealName) =>
@@ -177,7 +177,11 @@ class DmMealDistributionTable extends StatelessWidget {
                 color: color,
                 border: Border.all(color: Colors.grey.shade300, width: 0.5),
               ),
-              child: Text(mealName, textAlign: TextAlign.center, style: cellStyle),
+              child: Text(
+                mealName,
+                textAlign: TextAlign.center,
+                style: cellStyle,
+              ),
             ),
             // ── Kolom bahan makanan & penukar ──────────────────────────────
             Expanded(
@@ -200,7 +204,9 @@ class DmMealDistributionTable extends StatelessWidget {
     const cellPadding = EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0);
 
     return Container(
-      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400)),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade400),
+      ),
       child: Column(
         children: [
           // Header baris
@@ -211,23 +217,43 @@ class DmMealDistributionTable extends StatelessWidget {
               children: [
                 SizedBox(
                   width: 80,
-                  child: Text('Waktu', style: headerStyle, textAlign: TextAlign.center),
+                  child: Text(
+                    'Waktu',
+                    style: headerStyle,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 Expanded(
                   flex: 3,
-                  child: Text('Bahan Makanan', style: headerStyle, textAlign: TextAlign.center),
+                  child: Text(
+                    'Bahan Makanan',
+                    style: headerStyle,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text('Penukar', style: headerStyle, textAlign: TextAlign.center),
+                  child: Text(
+                    'Penukar',
+                    style: headerStyle,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ],
             ),
           ),
           _buildRowGroup('Pagi', distribution.pagi, color: Colors.white),
-          _buildRowGroup('Pukul 10.00', distribution.snackPagi, color: Colors.grey.shade100),
+          _buildRowGroup(
+            'Pukul 10.00',
+            distribution.snackPagi,
+            color: Colors.grey.shade100,
+          ),
           _buildRowGroup('Siang', distribution.siang, color: Colors.white),
-          _buildRowGroup('Pukul 16.00', distribution.snackSore, color: Colors.grey.shade100),
+          _buildRowGroup(
+            'Pukul 16.00',
+            distribution.snackSore,
+            color: Colors.grey.shade100,
+          ),
           _buildRowGroup('Malam', distribution.malam, color: Colors.white),
         ],
       ),

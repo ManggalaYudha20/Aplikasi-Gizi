@@ -1,3 +1,5 @@
+// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\consultation\presentation\widgets\nutritionist_card.dart
+
 import 'package:flutter/material.dart';
 
 class NutritionistCard extends StatelessWidget {
@@ -25,14 +27,17 @@ class NutritionistCard extends StatelessWidget {
     return Card(
       elevation: 0,
       margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias, // Agar efek inkwell tidak keluar batas border
+      clipBehavior:
+          Clip.antiAlias, // Agar efek inkwell tidak keluar batas border
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
         side: BorderSide(color: Colors.grey.shade300, width: 1),
       ),
       child: InkWell(
         onTap: onCardTap,
-        key: ValueKey('card_nutritionist_${name.replaceAll(' ', '_')}'), // Key untuk Katalon
+        key: ValueKey(
+          'card_nutritionist_${name.replaceAll(' ', '_')}',
+        ), // Key untuk Katalon
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Row(
@@ -59,7 +64,7 @@ class NutritionistCard extends StatelessWidget {
                     Text(
                       name,
                       maxLines: 2,
-                      overflow: TextOverflow.ellipsis ,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -70,7 +75,7 @@ class NutritionistCard extends StatelessWidget {
                     Text(
                       role,
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis ,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade600,
@@ -88,13 +93,16 @@ class NutritionistCard extends StatelessWidget {
                     const SizedBox(height: 16),
                     // Tombol Chat (Harga Dihapus)
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.end, // Memastikan tombol tetap di kanan
+                      mainAxisAlignment: MainAxisAlignment
+                          .end, // Memastikan tombol tetap di kanan
                       children: [
                         Semantics(
                           label: 'Tombol mulai chat dengan $name',
                           button: true,
                           child: ElevatedButton(
-                            key: ValueKey('btn_chat_${name.replaceAll(' ', '_')}'),
+                            key: ValueKey(
+                              'btn_chat_${name.replaceAll(' ', '_')}',
+                            ),
                             onPressed: onChatPressed,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
