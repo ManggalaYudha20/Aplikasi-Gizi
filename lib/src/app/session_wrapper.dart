@@ -39,71 +39,93 @@ class _SessionWrapperState extends State<SessionWrapper> {
   }
 
   void _startListening() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    _userDocSubscription = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .snapshots()
-        .listen((doc) async {
-      if (!mounted) return;
-
-      // ── KONDISI 1: Dokumen tidak ada ───────────────────────────────────
-      if (!doc.exists) {
-        // Toleransi race condition saat akun baru saja dibuat
-        await Future.delayed(const Duration(seconds: 2));
-        if (!mounted) return;
-
-        final verify = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-
-        if (!verify.exists && mounted && !_isDialogShowing) {
-          _showDeletedAccountDialog();
-        }
+    // 1. Pantau status autentikasi dari Firebase Auth terlebih dahulu
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user == null) {
+        // Jika akun di Firebase Auth dihapus, hentikan listener
+        _userDocSubscription?.cancel();
         return;
       }
 
-      // ── KONDISI 2: Ambil role dari dokumen ─────────────────────────────
-      final data = doc.data();
-      final role = data?['role'] as String?;
-      if (role == null) return;
+      // Pastikan listener lama dibatalkan sebelum membuat listener baru
+      _userDocSubscription?.cancel();
 
-      if (!_roleReady) {
-        // Snapshot pertama: simpan role awal
-        _currentRole = role;
-
-        // Tunggu 2 detik agar semua auth-event Firebase settled
-        // (email/password login bisa emit beberapa authStateChanges
-        // yang menyebabkan SessionWrapper di-recreate)
-        await Future.delayed(const Duration(seconds: 2));
+      // 2. Mulai pantau dokumen user di Firestore
+      _userDocSubscription = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots()
+          .listen((doc) async {
         if (!mounted) return;
 
-        // Re-ambil role terbaru setelah jeda
-        final freshDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-        final freshRole = freshDoc.data()?['role'] as String?;
-        _currentRole = freshRole ?? role;
-        _roleReady = true;
+        // ── KONDISI 1: Dokumen tidak ada ───────────────────────────────────
+        if (!doc.exists) {
+          await Future.delayed(const Duration(seconds: 2));
+          if (!mounted) return;
 
-        debugPrint('SessionWrapper: role awal = $_currentRole');
-        return;
-      }
+          // Verifikasi ulang (tambahkan penanganan error jika akses langsung ditolak)
+         DocumentSnapshot? verify;
+          try {
+            verify = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid)
+                .get();
+          } catch (e) {
+            // Jika ditolak (permission-denied), biarkan verify tetap null
+            verify = null; 
+          }
 
-      // ── KONDISI 3: Role berubah setelah initial load selesai ──────────
-      if (role != _currentRole) {
-        debugPrint('SessionWrapper: role berubah $_currentRole → $role');
-        _currentRole = role; // update segera agar tidak trigger dua kali
-        if (!_isDialogShowing) {
-          _showRoleChangedDialog();
+          // Sekarang pengecekan verify == null valid dan aman
+          if ((verify == null || !verify.exists) && mounted && !_isDialogShowing) {
+            _showDeletedAccountDialog();
+          }
+          return;
         }
-      }
-    }, onError: (e) {
-      debugPrint('SessionWrapper stream error: $e');
+
+        // ── KONDISI 2: Ambil role dari dokumen ─────────────────────────────
+        final data = doc.data();
+        final role = data?['role'] as String?;
+        if (role == null) return;
+
+        if (!_roleReady) {
+          _currentRole = role;
+          await Future.delayed(const Duration(seconds: 2));
+          if (!mounted) return;
+
+          final freshDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get()
+              .catchError((_) => doc); // Fallback ke dokumen awal jika error
+              
+          final freshRole = freshDoc.data()?['role'] as String?;
+          _currentRole = freshRole ?? role;
+          _roleReady = true;
+
+          debugPrint('SessionWrapper: role awal = $_currentRole');
+          return;
+        }
+
+        // ── KONDISI 3: Role berubah ────────────────────────────────────────
+        if (role != _currentRole) {
+          debugPrint('SessionWrapper: role berubah $_currentRole → $role');
+          _currentRole = role;
+          if (!_isDialogShowing) {
+            _showRoleChangedDialog();
+          }
+        }
+      }, onError: (e) {
+        debugPrint('SessionWrapper stream error: $e');
+        
+        // PENANGANAN KRUSIAL: Tangkap error Permission Denied
+        // Jika dokumen dihapus dan rule menolak akses, kick user tersebut
+        if (e is FirebaseException && e.code == 'permission-denied') {
+          if (mounted && !_isDialogShowing) {
+             debugPrint('SessionWrapper: Akses ditolak, mengeluarkan akun...');
+            _showDeletedAccountDialog();
+          }
+        }
+      });
     });
   }
 

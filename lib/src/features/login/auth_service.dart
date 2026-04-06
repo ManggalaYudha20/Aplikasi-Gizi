@@ -217,11 +217,29 @@ class AuthService {
     try {
       final User? user = _auth.currentUser;
       if (user != null) {
+        // 1. Hapus data pengguna dari Firestore
         await _firestore.collection('users').doc(user.uid).delete();
+        
+        // 2. Putuskan sesi Google Sign-In lokal (untuk Android/iOS)
+        if (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS) {
+          try {
+            await _googleSignIn.disconnect(); // Cabut akses sepenuhnya
+          } catch (e) {
+            debugPrint('Google disconnect failed, trying signout: $e');
+            await _googleSignIn.signOut(); // Fallback jika disconnect gagal
+          }
+        }
+
+        // 3. Hapus akun dari Firebase Auth
         await user.delete();
       }
+    } on FirebaseAuthException catch (e) {
+      debugPrint('FirebaseAuth Error saat menghapus akun: ${e.message}');
+      rethrow; // <-- Menggunakan rethrow untuk mempertahankan stack trace asli
     } catch (e) {
-      debugPrint('Error saat menghapus akun: $e');
+      debugPrint('Error umum saat menghapus akun: $e');
+      throw Exception('Gagal menghapus akun. Silakan coba lagi.');
     }
   }
 
