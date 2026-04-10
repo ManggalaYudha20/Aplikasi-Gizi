@@ -41,7 +41,7 @@ class _Keys {
 class _Str {
   const _Str._();
   static const appBarTitle = 'Dewasa';
-  static const appBarSubtitle = 'Hitung kebutuhan gizi';
+  static const appBarSubtitle = 'Hitung kebutuhan gizi (18+ Tahun)';
   static const sectionTitle = 'Input Data Pasien';
 
   static const weightLabel = 'Berat Badan';
@@ -50,8 +50,8 @@ class _Str {
   static const heightUnit = 'cm';
   static const ageLabel = 'Usia';
   static const ageUnit = 'tahun';
-  static const activityLabel = 'Faktor Aktivitas (Umum)';
-  static const stressLabel = 'Faktor Stress (Umum)';
+  static const activityLabel = 'Faktor Aktivitas';
+  static const stressLabel = 'Faktor Stress';
   static const tempLabel = 'Suhu Tubuh';
   static const tempUnit = '°C';
 
@@ -604,6 +604,7 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
                                     '0.7 (Sedang)',
                                     '0.8 (Tinggi)',
                                   ],
+                                  menuHeight: 170,
                                 ),
                               ],
                             ],

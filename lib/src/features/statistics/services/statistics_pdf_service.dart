@@ -82,7 +82,7 @@ class StatisticsPdfService {
     if (dateRange == null) return "Semua Waktu";
     final String start = DateFormat('dd/MM/yyyy').format(dateRange.start);
     final String end = DateFormat('dd/MM/yyyy').format(dateRange.end);
-    return "$start – $end";
+    return "$start - $end";
   }
 
   /// Converts [dataMap] into a list of [category, count, percentage] rows.

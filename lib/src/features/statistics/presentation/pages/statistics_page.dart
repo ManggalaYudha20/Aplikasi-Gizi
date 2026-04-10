@@ -1,7 +1,6 @@
-// D:\flutter sdk\aplikasi_diagnosa_gizi\lib\src\features\statistics\presentation\pages\statistics_page.dart
+// lib/src/features/statistics/presentation/pages/statistics_page.dart
 
 import 'dart:ui' as ui;
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -14,12 +13,13 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dar
 import 'package:aplikasi_diagnosa_gizi/src/features/statistics/data/models/chart_data_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/statistics/services/statistics_fetch_service.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/statistics/services/statistics_pdf_service.dart';
+
+import 'package:aplikasi_diagnosa_gizi/src/features/statistics/services/date_filter_logic.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/statistics/presentation/widgets/stat_bar_chart_widget.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/statistics/presentation/widgets/stat_filter_section.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/statistics/presentation/widgets/stat_pie_chart_widget.dart';
 
 // ─── QA Key Constants ─────────────────────────────────────────────────────────
-// Centralised key registry – import this file in Katalon helper scripts.
 class StatisticsKeys {
   StatisticsKeys._();
   static const dateFilterButton = ValueKey('stats_date_filter_btn');
@@ -44,11 +44,10 @@ class StatisticsPage extends StatefulWidget {
 }
 
 class _StatisticsPageState extends State<StatisticsPage> {
-  // ─── State ──────────────────────────────────────────────────────────────────
-  DateFilterType _selectedFilterType = DateFilterType.all;
-  DateTimeRange? _selectedDateRange;
-  String _filterLabel = "Semua Waktu";
+  // ─── Panggil Controller Logic Tanggal ───────────────────────────────────────
+  late final DateFilterLogic _dateLogic;
 
+  // ─── State ──────────────────────────────────────────────────────────────────
   final GlobalKey _chartKey = GlobalKey();
   int _touchedIndex = -1;
   String _chartType = 'Pie';
@@ -56,10 +55,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   UserStats? _userStats;
   bool _isAdmin = false;
-
   Stream<QuerySnapshot>? _patientsStream;
 
-  // ─── Category Options (grown via _initData if admin) ───────────────────────
+  // ─── Category Options ───────────────────────────────────────────────────────
   final List<String> _categoryOptions = [
     'Kategori Pasien',
     'Jenis Kelamin',
@@ -75,6 +73,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
   @override
   void initState() {
     super.initState();
+    // Inisialisasi logic tanggal dan pasang callback-nya
+    _dateLogic = DateFilterLogic(
+      onUpdate: () {
+        setState(() {}); // Paksa re-build UI saat tanggal berubah
+        _updateStream(); // Minta data baru dari Firebase
+      },
+    );
     _initData();
   }
 
@@ -108,76 +113,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     });
   }
 
-  // ─── Date Filter ─────────────────────────────────────────────────────────────
-  Future<void> _handleDateFilter(DateFilterType type) async {
-    final DateTime now = DateTime.now();
-    DateTime? start;
-    DateTime? end = now;
-    String label = "Semua Waktu";
-
-    switch (type) {
-      case DateFilterType.thisWeek:
-        start = DateTime(now.year, now.month, now.day - (now.weekday - 1));
-        label = "Minggu Ini";
-        break;
-      case DateFilterType.thisMonth:
-        start = DateTime(now.year, now.month, 1);
-        label = "Bulan Ini";
-        break;
-      case DateFilterType.thisYear:
-        start = DateTime(now.year, 1, 1);
-        label = "Tahun Ini";
-        break;
-      case DateFilterType.custom:
-        final DateTimeRange? picked = await showDateRangePicker(
-          context: context,
-          firstDate: DateTime(2023),
-          lastDate: now,
-          initialDateRange: _selectedDateRange,
-          builder: (context, child) => Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: const ColorScheme.light(
-                primary: Color(0xFF009444),
-                onPrimary: Colors.white,
-                onSurface: Colors.black,
-              ),
-            ),
-            child: child!,
-          ),
-        );
-        if (picked == null) return; // user cancelled
-        start = picked.start;
-        end = picked.end;
-        label =
-            "${picked.start.day}/${picked.start.month} – ${picked.end.day}/${picked.end.month}";
-        break;
-      case DateFilterType.all:
-        start = null;
-        end = null;
-        label = "Semua Waktu";
-        break;
-    }
-
-    setState(() {
-      _selectedFilterType = type;
-      _filterLabel = label;
-      _selectedDateRange = (start != null && end != null)
-          ? DateTimeRange(
-              start: start,
-              end: DateTime(end.year, end.month, end.day, 23, 59, 59),
-            )
-          : null;
-    });
-    _updateStream();
-  }
-
   // ─── Chart Capture ────────────────────────────────────────────────────────────
-  /// Captures the chart as a PNG byte array for embedding in the PDF.
-  ///
-  /// **Memory notes:**
-  ///   • pixelRatio 2.0 for balanced quality/memory.
-  ///   • `image.dispose()` called immediately after toByteData to free the
-  ///     native ui.Image before the async PDF build begins.
   Future<Uint8List?> _captureChart() async {
     try {
       final boundary =
@@ -190,8 +126,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
         format: ui.ImageByteFormat.png,
       );
 
-      image.dispose(); // ✅ release native image immediately
-
+      image.dispose();
       return byteData?.buffer.asUint8List();
     } catch (e) {
       debugPrint("Error capturing chart: $e");
@@ -234,7 +169,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 final allDocs = snapshot.data?.docs ?? [];
                 final filteredDocs = StatisticsFetchService.filterDocsByDate(
                   allDocs,
-                  _selectedDateRange,
+                  _dateLogic.selectedDateRange, // Ambil dari logic
                 );
                 final int totalPasien = filteredDocs.length;
 
@@ -242,7 +177,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   filteredDocs,
                 );
 
-                // ── Resolve Chart Config ─────────────────────────────────────
                 final ChartConfig chartConfig =
                     StatisticsFetchService.buildChartConfig(
                       selectedCategory: _selectedCategory,
@@ -258,7 +192,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Summary Card(s)
+                        // Summary Card(s) (Dipotong untuk kerapian, sisanya sama dengan aslinya)
                         if (_isAdmin)
                           Row(
                             children: [
@@ -315,8 +249,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
                           ),
 
                         SizedBox(height: sp * 1.5),
+                        Divider(color: Colors.grey.shade200),
 
-                        // Filter Section (category + date + chart type toggle)
+                        // Filter Section
                         StatFilterSection(
                           categoryOptions: _categoryOptions,
                           selectedCategory: _selectedCategory,
@@ -324,9 +259,27 @@ class _StatisticsPageState extends State<StatisticsPage> {
                             _selectedCategory = value;
                             _touchedIndex = -1;
                           }),
-                          selectedFilterType: _selectedFilterType,
-                          filterLabel: _filterLabel,
-                          onFilterSelected: _handleDateFilter,
+
+                          // Gunakan state dan fungsi dari DateFilterLogic
+                          selectedFilterType: _dateLogic.selectedFilterType,
+                          filterLabel: _dateLogic.filterLabel,
+                          onFilterSelected: (type) =>
+                              _dateLogic.handleDateFilter(context, type),
+                          onPreviousDate:
+                              (_dateLogic.selectedFilterType ==
+                                      DateFilterType.all ||
+                                  _dateLogic.selectedFilterType ==
+                                      DateFilterType.custom)
+                              ? null
+                              : () => _dateLogic.shiftDate(-1),
+                          onNextDate:
+                              (_dateLogic.selectedFilterType ==
+                                      DateFilterType.all ||
+                                  _dateLogic.selectedFilterType ==
+                                      DateFilterType.custom)
+                              ? null
+                              : () => _dateLogic.shiftDate(1),
+
                           chartType: _chartType,
                           onChartTypeChanged: (type) =>
                               setState(() => _chartType = type),
@@ -345,7 +298,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                         ),
                         SizedBox(height: sp),
 
-                        // Chart Container (RepaintBoundary for PDF capture)
+                        // Chart Container
                         Semantics(
                           identifier: 'stats_chart_container',
                           label: 'Grafik statistik: ${chartConfig.title}',
@@ -433,7 +386,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
                                     dataMap: dataToSend,
                                     totalPasien: totalPasien,
                                     chartImageBytes: chartImage,
-                                    dateRange: _selectedDateRange,
+                                    dateRange: _dateLogic
+                                        .selectedDateRange, // Ambil dari logic
                                   );
                                 } catch (e) {
                                   if (!context.mounted) return;
@@ -475,7 +429,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     );
   }
 
-  // ─── Private Widget Helpers ──────────────────────────────────────────────────
+  // ─── Private Widget Helpers (Sama seperti sebelumnya) ──────────────────────────
 
   Widget _buildSummaryCard({
     required Key key,

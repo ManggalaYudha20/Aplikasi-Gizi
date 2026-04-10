@@ -2,11 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/models/user_model.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/admin/models/user_filter_model.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/repositories/user_repository.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/logic/user_management_logic.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/widgets/user_search_bar.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/widgets/user_list_tile.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/widgets/fading_snackbar_content.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/admin/widgets/user_filter_sheet.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -24,6 +26,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
   // UI State
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
+  UserFilterModel _currentFilter = UserFilterModel();
 
   @override
   void dispose() {
@@ -165,6 +168,29 @@ class _UserManagementPageState extends State<UserManagementPage> {
       }
     }
   }
+  // Tambahkan fungsi ini di bawah handlers yang lain
+  void _openFilterSheet() async {
+    final result = await showModalBottomSheet<UserFilterModel>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => UserFilterSheet(
+        currentFilters: _currentFilter,
+        onResetPressed: () {
+          setState(() {
+            _currentFilter = UserFilterModel();
+          });
+          Navigator.pop(context); // Tutup sheet setelah reset
+        },
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _currentFilter = result;
+      });
+    }
+  }
 
   // --- Build UI ---
 
@@ -178,11 +204,44 @@ class _UserManagementPageState extends State<UserManagementPage> {
       ),
       body: Column(
         children: [
-          UserSearchBar(
-            controller: _searchController,
-            onChanged: _onSearchChanged,
-            onClear: _onClearSearch,
-            isNotEmpty: _searchQuery.isNotEmpty,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: UserSearchBar(
+                    controller: _searchController,
+                    onChanged: _onSearchChanged,
+                    onClear: _onClearSearch,
+                    isNotEmpty: _searchQuery.isNotEmpty,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Tombol Filter
+                Container(
+                  decoration: BoxDecoration(
+                    color: _currentFilter.isFiltering 
+                        ? Colors.green.shade50 
+                        : Colors.white,
+                    border: Border.all(
+                      color: _currentFilter.isFiltering 
+                          ? Colors.green 
+                          : Colors.grey.shade300,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.filter_list,
+                      color: _currentFilter.isFiltering 
+                          ? Colors.green 
+                          : Colors.grey.shade700,
+                    ),
+                    onPressed: _openFilterSheet,
+                  ),
+                ),
+              ],
+            ),
           ),
           StreamBuilder<DocumentSnapshot>(
             stream: FirebaseFirestore.instance
@@ -228,7 +287,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   activeThumbColor: Colors.green,
                   activeTrackColor: Colors.green.shade300,
                   title: const Text(
-                    'Mode UAT (Otomatis Nutrisionis)',
+                    'Mode Auto-Nutrisionis',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(
@@ -250,7 +309,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                           }, SetOptions(merge: true));
 
                       _showSnackBar(
-                        'Mode UAT berhasil ${value ? "diaktifkan" : "dimatikan"}',
+                        'Mode berhasil ${value ? "diaktifkan" : "dimatikan"}',
                       );
                     } catch (e) {
                       _showSnackBar('Gagal mengubah mode: $e', isError: true);
@@ -276,10 +335,25 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
                 final allUsers = snapshot.data ?? [];
 
-                final displayUsers = UserManagementLogic.processUsers(
+                var displayUsers = UserManagementLogic.processUsers(
                   allUsers: allUsers,
                   searchQuery: _searchQuery,
                 );
+
+                // 2. --- TERAPKAN LOGIKA FILTER ROLE DI SINI ---
+                if (_currentFilter.isFiltering) {
+                  displayUsers = displayUsers.where((user) {
+                    // Jika filter yang dipilih adalah Nutrisionis, 
+                    // loloskan user dengan role Nutrisionis (baru) ATAU Ahli Gizi (lama)
+                    if (_currentFilter.role == UserRole.nutrisionis) {
+                      return user.role == UserRole.nutrisionis || 
+                             user.role == UserRole.ahliGizi;
+                    }
+                    
+                    // Untuk role lain (seperti Admin atau Tamu), filter seperti biasa
+                    return user.role == _currentFilter.role;
+                  }).toList();
+                }
 
                 if (displayUsers.isEmpty) {
                   return Center(

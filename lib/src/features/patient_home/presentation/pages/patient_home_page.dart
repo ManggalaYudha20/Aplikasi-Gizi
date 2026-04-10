@@ -131,7 +131,7 @@ class _PatientHomePageState extends State<PatientHomePage> {
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Cari nama atau No. RM pasien...',
+          hintText: 'Cari Nama Pasien...',
           prefixIcon: const Icon(Icons.search, color: Colors.grey),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
