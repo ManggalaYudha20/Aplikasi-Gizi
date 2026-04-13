@@ -278,13 +278,13 @@ class Patient {
       case 'Sangat Jarang':
         activityFactor = 1.2;
         break;
-      case 'Ringan':
+      case 'Aktivitas Ringan':
         activityFactor = 1.375;
         break;
-      case 'Sedang':
+      case 'Aktivitas Sedang':
         activityFactor = 1.55;
         break;
-      case 'Berat':
+      case 'Aktivitas Berat':
         activityFactor = 1.725;
         break;
       case 'Sangat Aktif':

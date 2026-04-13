@@ -574,7 +574,7 @@ class PdfGeneratorAsuhanAnak {
     );
 
     return saveDocument(
-      name: 'asuhan_gizi_anak_${patient.namaLengkap}_${patient.noRM}.pdf',
+      name: '${patient.namaLengkap}_${DateFormat('d-M-y / HH:mm').format(pemeriksaanWita)} WITA.pdf',
       pdf: pdf,
     );
   }

@@ -363,9 +363,7 @@ class PatientAnak {
 
   Map<String, double> hitungKebutuhanGizi() {
     // 1. Tentukan Berat Badan (Prioritas: BBI -> Berat Aktual)
-    double weightToUse = (bbi != null && bbi! > 0)
-        ? bbi!
-        : beratBadan.toDouble();
+    double weightToUse = beratBadan.toDouble();
     double heightCm = tinggiBadan.toDouble();
     double ageInYearsFraction = usiaInDays / 365.25;
     bool isMale = jenisKelamin.toLowerCase().contains('laki');
@@ -415,7 +413,7 @@ class PatientAnak {
     }
 
     double totalProtein = proteinPerKg * weightToUse;
-    double totalLemak = (0.35 * tdee) / 9; // 35% dari TDEE
+    double totalLemak = (0.20 * tdee) / 9; // 20% dari TDEE
     double totalKarbo = (tdee - (totalProtein * 4) - (totalLemak * 9)) / 4;
     if (totalKarbo < 0) totalKarbo = 0;
 

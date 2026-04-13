@@ -805,7 +805,7 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
                 // --- SECTION MAKRONUTRIEN (UMUM) ---
                 _buildResultRow(
                   'IMT (BMI)',
-                  '${result.bmiResult.bmi.toStringAsFixed(1)} (${result.bmiResult.categoryLabel})',
+                  '${result.bmiResult.bmi.toStringAsFixed(2)} (${result.bmiResult.categoryLabel})',
                 ),
                 const Divider(height: 16),
                 _buildResultRow(
@@ -815,34 +815,34 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
                 const Divider(height: 16),
                 _buildResultRow(
                   'TDEE (Total Energi)',
-                  '${result.tdeeResult.tdee.toStringAsFixed(0)} kkal/hari',
+                  '${result.tdeeResult.tdee.toStringAsFixed(1)} kkal/hari',
                   isHighlight: true,
                   color: color,
                 ),
                 const Divider(height: 16),
                 _buildResultRow(
                   'Protein (15%)',
-                  '${result.tdeeResult.proteinGram.toStringAsFixed(0)} g/hari',
+                  '${result.tdeeResult.proteinGram.toStringAsFixed(1)} g/hari',
                 ),
                 const Divider(height: 16),
                 _buildResultRow(
                   'Lemak (25%)',
-                  '${result.tdeeResult.fatGram.toStringAsFixed(0)} g/hari',
+                  '${result.tdeeResult.fatGram.toStringAsFixed(1)} g/hari',
                 ),
                 const Divider(height: 16),
                 _buildResultRow(
                   'Karbohidrat (60%)',
-                  '${result.tdeeResult.carbsGram.toStringAsFixed(0)} g/hari',
+                  '${result.tdeeResult.carbsGram.toStringAsFixed(1)} g/hari',
                 ),
                 const Divider(height: 16),
                 _buildResultRow(
                   'BMR (Harris-Benedict)',
-                  '${result.bmrHarris.toStringAsFixed(0)} kkal/hari',
+                  '${result.bmrHarris.toStringAsFixed(2)} kkal/hari',
                 ),
                 const Divider(height: 16),
                 _buildResultRow(
                   'BMR (Mifflin-St Jeor)',
-                  '${result.bmrMifflin.toStringAsFixed(0)} kkal/hari',
+                  '${result.bmrMifflin.toStringAsFixed(2)} kkal/hari',
                 ),
 
                 const Divider(height: 16, thickness: 2),

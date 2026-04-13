@@ -1361,6 +1361,8 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                         .toList(),
                     focusNode:
                         _focusNodes[28], // sesuaikan index focusNode yang aman/belum terpakai
+                    itemAsString: (String key) =>
+                        '$key (${SchofieldCalculatorService.activityFactors[key]})',
                   ),
                   const SizedBox(height: 16),
                   _buildCustomDropdown(
@@ -1370,6 +1372,8 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
                     items: SchofieldCalculatorService.stressFactors.keys
                         .toList(),
                     focusNode: _focusNodes[29], // sesuaikan index focusNode
+                    itemAsString: (String key) =>
+                        '$key (${SchofieldCalculatorService.stressFactors[key]})',
                   ),
                   const SizedBox(height: 16),
                   _buildCustomDropdown(
@@ -2305,6 +2309,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
     //bool showSearch = false,
     void Function(String?)? onChanged,
     String? Function(String?)? validator,
+    String Function(String)? itemAsString,
   }) {
     return DropdownSearch<String>(
       popupProps: PopupProps.menu(
@@ -2312,6 +2317,7 @@ class _DataFormAnakPageState extends State<DataFormAnakPage> {
         fit: FlexFit.loose,
         constraints: const BoxConstraints(maxHeight: 240),
       ),
+      itemAsString: itemAsString,
       items: items,
       dropdownDecoratorProps: DropDownDecoratorProps(
         dropdownSearchDecoration: InputDecoration(

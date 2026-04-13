@@ -20,11 +20,11 @@ class BmrTdeeCalculatorService {
   // Single Source of Truth yang bisa diakses service maupun UI.
 
   static const Map<String, double> activityFactors = {
-    'Sangat Jarang': 1.200,
+    'Sangat Jarang': 1.2,
     'Aktivitas Ringan': 1.375,
-    'Aktivitas Sedang': 1.550,
+    'Aktivitas Sedang': 1.55,
     'Aktivitas Berat': 1.725,
-    'Sangat Aktif': 1.900,
+    'Sangat Aktif': 1.9,
   };
 
   // ── FAKTOR STRES ───────────────────────────────────────────────────────────
@@ -94,32 +94,7 @@ class BmrTdeeCalculatorService {
         : 655.1 + (9.563 * weightKg) + (1.850 * heightCm) - (4.676 * ageYears);
   }
 
-  /// Menghitung BMR menggunakan formula Harris-Benedict versi TDEE (koefisien berbeda).
-  ///
-  /// ⚠️  Perhatian: Koefisien formula ini BERBEDA dari versi di [BmrFormPage].
-  /// Ini adalah koefisien yang dipakai secara spesifik di halaman TDEE
-  /// (tdee_form_page.dart), sesuai dengan literatur klinis yang berbeda versi.
-  ///
-  /// Formula:
-  ///   Laki-laki  : 88.362 + (13.397 × BB) + (4.799 × TB) − (5.677 × U)
-  ///   Perempuan  : 447.593 + (9.247 × BB) + (3.098 × TB) − (4.330 × U)
-  static double calculateBmrHarrisBenedictRevised({
-    required double weightKg,
-    required double heightCm,
-    required int ageYears,
-    required bool isMale,
-  }) {
-    _assertPositive(weightKg, 'weightKg');
-    _assertPositive(heightCm, 'heightCm');
-    _assertPositive(ageYears.toDouble(), 'ageYears');
 
-    return isMale
-        ? 88.362 + (13.397 * weightKg) + (4.799 * heightCm) - (5.677 * ageYears)
-        : 447.593 +
-              (9.247 * weightKg) +
-              (3.098 * heightCm) -
-              (4.330 * ageYears);
-  }
 
   /// Menghitung BMR menggunakan formula Mifflin-St Jeor (1990).
   ///
@@ -219,7 +194,7 @@ class BmrTdeeCalculatorService {
     required String stressCondition,
     double bodyTemperatureC = normalBodyTemperature,
   }) {
-    final double bmr = calculateBmrHarrisBenedictRevised(
+    final double bmr = calculateBmrHarrisBenedict(
       weightKg: weightKg,
       heightCm: heightCm,
       ageYears: ageYears,

@@ -1361,9 +1361,9 @@ class _DataFormPageState extends State<DataFormPage> {
                     prefixIcon: const Icon(Icons.directions_run),
                     items: [
                       'Sangat Jarang',
-                      'Ringan',
-                      'Sedang',
-                      'Berat',
+                      'Aktivitas Ringan',
+                      'Aktivitas Sedang',
+                      'Aktivitas Berat',
                       'Sangat Aktif',
                     ],
                     focusNode:
