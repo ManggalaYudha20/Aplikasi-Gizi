@@ -574,7 +574,7 @@ class PdfGeneratorAsuhanAnak {
     );
 
     return saveDocument(
-      name: '${patient.namaLengkap}_${DateFormat('d-M-y / HH:mm').format(pemeriksaanWita)} WITA.pdf',
+      name: '${patient.namaLengkap}_${DateFormat('d-M-y_HH-mm').format(pemeriksaanWita)} WITA.pdf',
       pdf: pdf,
     );
   }
