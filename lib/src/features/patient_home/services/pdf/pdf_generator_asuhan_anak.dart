@@ -833,7 +833,7 @@ class PdfGeneratorAsuhanAnak {
       'KH (gram)',
     ];
 
-    final energiTotal = rda['energi'] ?? 0;
+    final energiTotal = rda['tdee'] ?? 0;
     final proteinGram = rda['protein'] ?? 0;
     final lemakGram = rda['lemak'] ?? 0;
     final karboGram = rda['karbo'] ?? 0;
