@@ -276,7 +276,7 @@ class StatFilterSection extends StatelessWidget {
               identifier: 'stats_chart_type_toggle',
               label: 'Toggle jenis grafik, terpilih: $chartType',
               child: Container(
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(11),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade200,
                   borderRadius: BorderRadius.circular(
