@@ -12,7 +12,7 @@ import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/menu_button.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/fade_in_transition.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/about/presentation/pages/about_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/reference/presentation/pages/reference_page.dart';
-import 'package:aplikasi_diagnosa_gizi/src/features/consultation/presentation/pages/consultation_page.dart';
+//import 'package:aplikasi_diagnosa_gizi/src/features/consultation/presentation/pages/consultation_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/adult_quick_calc_page.dart';
 import 'package:aplikasi_diagnosa_gizi/src/features/nutrition_calculation/presentation/pages/child_quick_calc_page.dart';
 
@@ -80,13 +80,13 @@ class NutritionInfoPage extends StatelessWidget {
           destinationPage: const UserManagementPage(),
           semanticsLabel: 'Tombol masuk ke halaman admin manajemen pengguna',
         ),
-        _MenuConfig(
+        /*_MenuConfig(
           id: 'konsultasi',
           label: 'Konsultasi Gizi',
           icon: Icons.medical_information,
           destinationPage: const ConsultationPage(),
           semanticsLabel: 'Tombol masuk ke halaman konsultasi gizi',
-        ),
+        ),*/
       ]);
     }
 
