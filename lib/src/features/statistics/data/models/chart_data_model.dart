@@ -41,6 +41,7 @@ class AggregatedPatientData {
     required this.totalPerempuan,
     required this.statusGiziMap,
     required this.statusGiziAnakBBUMap,
+    required this.statusGiziAnakIMTUMap,
     required this.diagnosisMap,
     required this.usiaMap,
     required this.bbMap,
@@ -57,6 +58,7 @@ class AggregatedPatientData {
 
   /// Status gizi anak – BB/U axis.
   final Map<String, double> statusGiziAnakBBUMap;
+  final Map<String, double> statusGiziAnakIMTUMap;
 
   /// Medical diagnosis distribution (top-5 + "Lainnya" bucketing is applied
   /// later in [StatisticsFetchService.buildChartConfig]).

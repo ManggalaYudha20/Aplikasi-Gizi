@@ -63,6 +63,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     'Jenis Kelamin',
     'Status Gizi (Dewasa)',
     'Status Gizi Anak (BB/U)',
+    'Status Gizi Anak (IMT/U)',
     'Usia',
     'Diagnosis Medis',
     'Berat Badan',

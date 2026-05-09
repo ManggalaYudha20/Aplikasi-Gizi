@@ -97,6 +97,7 @@ class StatisticsFetchService {
 
     final Map<String, double> statusGiziMap = {};
     final Map<String, double> statusGiziAnakBBUMap = {};
+    final Map<String, double> statusGiziAnakIMTUMap = {};
     final Map<String, double> diagnosisMap = {};
 
     final Map<String, double> usiaMap = {
@@ -128,16 +129,52 @@ class StatisticsFetchService {
       // A. Tipe & Gender
       if (tipe == 'anak') {
         totalAnak++;
-        String statusBBU = _cleanString(data['statusGiziBBU']);
-        if (statusBBU == "Tidak Diketahui") {
-          statusBBU = _cleanString(data['statusGiziAnak']);
+
+        // --- HITUNG USIA DALAM BULAN UNTUK AKURASI GIZI ---
+        int ageInMonths = -1;
+        if (data['tanggalLahir'] is Timestamp) {
+          final birthDate = (data['tanggalLahir'] as Timestamp).toDate();
+          final today = DateTime.now();
+          ageInMonths = (today.year - birthDate.year) * 12 + today.month - birthDate.month;
+          if (today.day < birthDate.day) {
+            ageInMonths--;
+          }
         }
-        if (statusBBU != "Tidak Diketahui") {
-          final key = statusBBU.length > 1
-              ? statusBBU[0].toUpperCase() + statusBBU.substring(1)
-              : statusBBU;
-          statusGiziAnakBBUMap[key] = (statusGiziAnakBBUMap[key] ?? 0) + 1;
+
+       // --- Proses BB/U ---
+        if (ageInMonths > 60) {
+          // Jika usia > 60 bulan, mutlak bukan usia BB/U. Abaikan data database.
+          statusGiziAnakBBUMap["Bukan Usia BB/U (> 5 Thn)"] = 
+              (statusGiziAnakBBUMap["Bukan Usia BB/U (> 5 Thn)"] ?? 0) + 1;
+        } else {
+          // Usia <= 60 bulan (atau usia tidak diketahui / ageInMonths == -1)
+          String statusBBU = _cleanString(data['statusGiziBBU']);
+          if (statusBBU == "Tidak Diketahui") {
+            statusBBU = _cleanString(data['statusGiziAnak']);
+          }
+          
+          if (statusBBU != "Tidak Diketahui") {
+            final key = statusBBU.length > 1
+                ? statusBBU[0].toUpperCase() + statusBBU.substring(1)
+                : statusBBU;
+            statusGiziAnakBBUMap[key] = (statusGiziAnakBBUMap[key] ?? 0) + 1;
+          } else {
+            statusGiziAnakBBUMap["Belum Ada Data"] = 
+                (statusGiziAnakBBUMap["Belum Ada Data"] ?? 0) + 1;
+          }
         }
+
+        // --- Proses IMT/U ---
+          String statusIMTU = _cleanString(data['statusGiziIMTU']);
+          if (statusIMTU != "Tidak Diketahui") {
+            final key = statusIMTU.length > 1 
+                ? statusIMTU[0].toUpperCase() + statusIMTU.substring(1) 
+                : statusIMTU;
+            statusGiziAnakIMTUMap[key] = (statusGiziAnakIMTUMap[key] ?? 0) + 1;
+          } else {
+            statusGiziAnakIMTUMap["Belum Ada Data"] = 
+                (statusGiziAnakIMTUMap["Belum Ada Data"] ?? 0) + 1;
+          }
       } else {
         totalDewasa++;
       }
@@ -229,6 +266,7 @@ class StatisticsFetchService {
       totalPerempuan: totalPerempuan,
       statusGiziMap: statusGiziMap,
       statusGiziAnakBBUMap: statusGiziAnakBBUMap,
+      statusGiziAnakIMTUMap: statusGiziAnakIMTUMap,
       diagnosisMap: diagnosisMap,
       usiaMap: usiaMap,
       bbMap: bbMap,
@@ -301,6 +339,20 @@ class StatisticsFetchService {
           Colors.orangeAccent,
           Colors.blueAccent,
           Colors.purpleAccent,
+          Colors.grey.shade400,
+        ];
+        break;
+
+        case 'Status Gizi Anak (IMT/U)':
+        chartTitle = "Status Gizi Anak (IMT/U)";
+        rawData = data.statusGiziAnakIMTUMap;
+        chartColors = [
+          Colors.teal,
+          Colors.amber,
+          Colors.deepOrange,
+          Colors.indigo,
+          Colors.pinkAccent,
+          Colors.grey.shade400,
         ];
         break;
 
