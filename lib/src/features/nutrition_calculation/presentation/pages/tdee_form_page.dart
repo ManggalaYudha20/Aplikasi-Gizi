@@ -306,6 +306,10 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                       // [REFACTOR] Ambil key dari Service, bukan Map lokal
                       items: BmrTdeeCalculatorService.activityFactors.keys
                           .toList(),
+                      itemAsString: (String item) {
+                        final value = BmrTdeeCalculatorService.activityFactors[item];
+                        return '$item ($value)';
+                      },
                     ),
                   ),
 
@@ -324,6 +328,14 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
                       prefixIcon: const Icon(Icons.healing),
                       items: BmrTdeeCalculatorService.stressFactors.keys
                           .toList(),
+                      itemAsString: (String item) {
+                        final value = BmrTdeeCalculatorService.stressFactors[item];
+                        // Khusus untuk demam tampilkan keterangan tambahannya
+                        if (item == BmrTdeeCalculatorService.feverKey) {
+                           return 'Demam (+$value per °C di atas normal)';
+                        }
+                        return '$item ($value)';
+                      },
                       onChanged: (String? value) {
                         final scope = FocusScope.of(context);
                         setState(() {
@@ -542,9 +554,11 @@ class _TdeeFormPageState extends State<TdeeFormPage> {
     required List<String> items,
     void Function(String?)? onChanged,
     double? menuHeight,
+    String Function(String)? itemAsString,
   }) {
     return DropdownSearch<String>(
       key: widgetKey,
+      itemAsString: itemAsString,
       onBeforePopupOpening: (_) {
         FocusScope.of(context).unfocus();
         return Future.value(true);

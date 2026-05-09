@@ -290,6 +290,10 @@ class _SchofieldFormPageState extends State<SchofieldFormPage> {
                     items: SchofieldCalculatorService.activityFactors.keys
                         .toList(),
                     menuHeight: 250,
+                    itemAsString: (String item) {
+                      final value = SchofieldCalculatorService.activityFactors[item];
+                      return '$item ($value)';
+                    },
                   ),
                   SizedBox(height: sw * 0.04),
 
@@ -301,6 +305,10 @@ class _SchofieldFormPageState extends State<SchofieldFormPage> {
                     items: SchofieldCalculatorService.stressFactors.keys
                         .toList(),
                     menuHeight: 250,
+                    itemAsString: (String item) {
+                      final value = SchofieldCalculatorService.stressFactors[item];
+                      return '$item ($value)';
+                    },
                   ),
 
                   SizedBox(height: sw * 0.08),
@@ -389,9 +397,11 @@ class _SchofieldFormPageState extends State<SchofieldFormPage> {
     required List<String> items,
     void Function(String?)? onChanged,
     double? menuHeight,
+    String Function(String)? itemAsString,
   }) {
     return DropdownSearch<String>(
       key: widgetKey,
+      itemAsString: itemAsString,
       popupProps: PopupProps.menu(
         showSearchBox: false,
         constraints: BoxConstraints(maxHeight: menuHeight ?? 180),
