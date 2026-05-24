@@ -71,24 +71,24 @@ class DmResultCard extends StatelessWidget {
             'Karbohidrat (60%)',
             '${result.calculatedCarbsGram.toStringAsFixed(1)} g/hari',
           ),
-          _row('BB Ideal', '${result.bbIdeal.round()} kg'),
-          _row('BMR', '${result.bmr.round()} kkal/hari'),
+          _row('BB Ideal', '${result.bbIdeal.toStringAsFixed(2)} kg'),
+          _row('BMR', '${result.bmr.toStringAsFixed(2)} kkal/hari'),
           _row('Kategori IMT', result.bmiCategory),
           _row(
             'Koreksi Aktivitas',
-            '+${result.activityCorrection.round()} kkal/hari',
+            '+${result.activityCorrection.toStringAsFixed(2)} kkal/hari',
           ),
           if (result.ageCorrection > 0)
-            _row('Koreksi Usia', '-${result.ageCorrection.round()} kkal/hari'),
+            _row('Koreksi Usia', '-${result.ageCorrection.toStringAsFixed(2)} kkal/hari'),
           if (result.weightCorrection != 0)
             _row(
               'Koreksi Berat Badan',
-              '${result.weightCorrection > 0 ? '+' : ''}${result.weightCorrection.round()} kkal/hari',
+              '${result.weightCorrection > 0 ? '+' : ''}${result.weightCorrection.toStringAsFixed(2)} kkal/hari',
             ),
           if (isHospitalized)
             _row(
               'Koreksi Stress Metabolik',
-              '+${((stressMetabolic / 100) * result.bmr).round()} kkal/hari',
+              '+${((stressMetabolic / 100) * result.bmr).toStringAsFixed(2)} kkal/hari',
             ),
           const SizedBox(height: 8),
           Center(
