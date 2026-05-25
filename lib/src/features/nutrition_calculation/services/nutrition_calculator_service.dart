@@ -181,9 +181,7 @@ class NutritionCalculatorService {
     }
 
     final percentiles = referenceData[age]!;
-    final double median = percentiles[3];
-    final double sd = percentiles[4] - median;
-    final double zScore = (weight - median) / sd;
+    final double zScore = _calculateAsymmetricZScore(weight, percentiles);
 
     return NutritionStatusResult(
       zScore: zScore,
@@ -208,9 +206,7 @@ class NutritionCalculatorService {
     }
 
     final percentiles = referenceData[age]!;
-    final double median = percentiles[3];
-    final double sd = percentiles[4] - median;
-    final double zScore = (height - median) / sd;
+    final double zScore = _calculateAsymmetricZScore(height, percentiles);
 
     return NutritionStatusResult(
       zScore: zScore,
@@ -259,10 +255,7 @@ class NutritionCalculatorService {
     }
 
     final percentiles = referenceData[closestHeight]!;
-    final double median = percentiles[3];
-    final double sd = percentiles[4] - median;
-    final double zScore = (weight - median) / sd;
-
+    final double zScore = _calculateAsymmetricZScore(weight, percentiles);
     return NutritionStatusResult(
       zScore: zScore,
       category: _getWeightForHeightCategory(zScore),
@@ -286,9 +279,7 @@ class NutritionCalculatorService {
     }
 
     final percentiles = referenceData[age]!;
-    final double median = percentiles[3];
-    final double sd = percentiles[4] - median;
-    final double zScore = (bmi - median) / sd;
+    final double zScore = _calculateAsymmetricZScore(bmi, percentiles);
 
     return NutritionStatusResult(
       zScore: zScore,
@@ -299,6 +290,20 @@ class NutritionCalculatorService {
   }
 
   // ── INTERPRETASI KATEGORI Z-SCORE ─────────────────────────────────────────
+
+  /// Fungsi internal untuk menghitung Z-Score menggunakan metode LMS asimetris
+  static double _calculateAsymmetricZScore(double actualValue, List<double> percentiles) {
+    final double median = percentiles[3];
+    final double sdPos = percentiles[4] - median;
+    final double sdNeg = median - percentiles[2];
+    
+    final double sd = actualValue >= median ? sdPos : sdNeg;
+    
+    // Mencegah pembagian dengan nol jika data referensi salah/kosong
+    if (sd == 0) return 0.0; 
+    
+    return (actualValue - median) / sd;
+  }
 
   static String _getWeightForAgeCategory(double zScore) {
     if (zScore < -3) return 'Sangat kurang (severely underweight)';
