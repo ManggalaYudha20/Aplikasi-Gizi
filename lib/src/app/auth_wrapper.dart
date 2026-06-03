@@ -32,7 +32,9 @@ class AuthWrapper extends StatelessWidget {
         // User sudah login → MainScreen
         if (snapshot.hasData) {
           // Bungkus MainScreen dengan SessionWrapper
-          return const SessionWrapper(child: MainScreen());
+          return  SessionWrapper(
+            key: UniqueKey(),
+            child: MainScreen(key: UniqueKey()));
         }
 
         // Belum login → LoginScreen

@@ -184,13 +184,20 @@ class _SessionWrapperState extends State<SessionWrapper> {
         ),
         actions: [
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              // 1. Refresh data user di Firebase Auth (Penting untuk update Token/Claims)
+              await FirebaseAuth.instance.currentUser?.reload();
+              await FirebaseAuth.instance.currentUser?.getIdTokenResult(true);
+
+              if (!context.mounted) return;
+
               Navigator.of(ctx).pop();
               _isDialogShowing = false;
 
               // Hapus seluruh stack dan jalankan AuthWrapper ulang
+              if (!mounted) return;
               Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AuthWrapper()),
+                MaterialPageRoute(builder: (_) => AuthWrapper(key: UniqueKey())),
                 (route) => false,
               );
             },
