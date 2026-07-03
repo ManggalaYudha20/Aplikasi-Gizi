@@ -21,6 +21,9 @@ class DiabetesCalculatorService {
 
     double activityFactor = 0;
     switch (activity) {
+      case 'Total Bed rest':
+        activityFactor = 0.05;
+        break;
       case 'Bed rest':
         activityFactor = 0.1;
         break;
@@ -32,6 +35,9 @@ class DiabetesCalculatorService {
         break;
       case 'Berat':
         activityFactor = 0.4;
+        break;
+      case 'Sangat Berat':
+        activityFactor = 0.5;
         break;
     }
 

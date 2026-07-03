@@ -20,9 +20,14 @@ class BmrTdeeCalculatorService {
   // Single Source of Truth yang bisa diakses service maupun UI.
 
   static const Map<String, double> activityFactors = {
+    'Total Bed Rest,CVA-ICH': 1.05,
+    'Mobilisasi di tempat tidur': 1.1,
     'Sangat Jarang': 1.2,
+    'Ringan': 1.3,
     'Aktivitas Ringan': 1.375,
+    'Sedang': 1.4,
     'Aktivitas Sedang': 1.55,
+    'Berat': 1.5,
     'Aktivitas Berat': 1.725,
     'Sangat Aktif': 1.9,
   };
@@ -40,6 +45,7 @@ class BmrTdeeCalculatorService {
     'Normal': 1.00,
     feverKey: feverMultiplierPerDegree, // Lihat catatan di atas
     'Peritonitis': 1.35,
+    'Gagal Jantung, bedah minor': 1.10,
     'Cedera Jaringan Lunak Ringan': 1.14,
     'Cedera Jaringan Lunak Berat': 1.37,
     'Patah Tulang Multiple Ringan': 1.20,

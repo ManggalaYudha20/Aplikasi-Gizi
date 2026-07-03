@@ -109,7 +109,7 @@ class ReferenceData {
     ),
     ReferenceTableItem(
       id: 'table_activity_anak',
-      title: 'Faktor Aktivitas',
+      title: 'Faktor Aktivitas Anak',
       headers: ['Tingkat Aktivitas', 'Faktor Aktivitas'],
       data: [
         ['Tanpa Faktor Aktivitas', '1.0'],
@@ -140,7 +140,7 @@ class ReferenceData {
     ),
     ReferenceTableItem(
       id: 'table_stress_anak',
-      title: 'Faktor Stress',
+      title: 'Faktor Stress Anak',
       headers: ['Tingkat Stress', 'Faktor Stress'],
       data: [
         ['Tanpa Faktor Stress', '1.0'],

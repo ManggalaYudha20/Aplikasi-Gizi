@@ -48,8 +48,8 @@ class _Str {
 
   // [REFACTOR] Referensi ke konstanta Service agar Single Source of Truth
   static const List<String> formulaOptions = [
-    BmrTdeeCalculatorService.formulaMifflin,
     BmrTdeeCalculatorService.formulaHarris,
+    BmrTdeeCalculatorService.formulaMifflin,
   ];
   static const List<String> genderOptions = [
     BmrTdeeCalculatorService.genderMale,
