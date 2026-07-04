@@ -13,6 +13,7 @@ class KidneyCalculatorService {
   /// - [proteinFactor] : Wajib diisi jika [isDialysis] = `false` (pre-dialisis).
   KidneyDietResult calculate({
     required double height,
+    required double actualWeight,
     required bool isDialysis,
     required String gender,
     required int age,
@@ -31,14 +32,14 @@ class KidneyCalculatorService {
     // Kebutuhan protein
     final double proteinNeeds;
     if (isDialysis) {
-      // Hemodialisis: 1.2 g/kg BBI (standar buku panduan)
-      proteinNeeds = 1.2 * idealBodyWeight;
+      // Hemodialisis: 1.2 g/kg BBA (standar buku panduan)
+      proteinNeeds = 1.2 * actualWeight;
     } else {
       assert(
         proteinFactor != null,
         'proteinFactor harus diisi untuk pasien pre-dialisis.',
       );
-      proteinNeeds = proteinFactor! * idealBodyWeight;
+      proteinNeeds = proteinFactor! * actualWeight;
     }
 
     final int recommendedDiet = _getRecommendedDiet(proteinNeeds, isDialysis);

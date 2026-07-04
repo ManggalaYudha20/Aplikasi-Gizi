@@ -107,6 +107,7 @@ class _KidneyCalculationPageState extends State<KidneyCalculationPage> {
 
     final result = _calculatorService.calculate(
       height: height,
+      actualWeight: double.tryParse(_currentWeightController.text) ?? 0,
       isDialysis: isDialysis,
       gender: _genderController.text,
       proteinFactor: isDialysis ? null : proteinFactor,

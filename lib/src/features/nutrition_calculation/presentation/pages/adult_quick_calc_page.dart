@@ -218,6 +218,7 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
         ),
         ckdResult: _ckdCalculatorService.calculate(
           height: height,
+          actualWeight: weight,
           isDialysis: isDialysis,
           gender: 'Laki-laki',
           age: age,
@@ -266,6 +267,7 @@ class _AdultQuickCalcPageState extends State<AdultQuickCalcPage> {
         ),
         ckdResult: _ckdCalculatorService.calculate(
           height: height,
+          actualWeight: weight,
           isDialysis: isDialysis,
           gender: 'Perempuan',
           age: age,
