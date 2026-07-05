@@ -213,7 +213,6 @@ class _LoginScreenState extends State<LoginScreen>
                               const Spacer(flex: 2),
                               _buildLoginCard(context),
                               const SizedBox(height: 30),
-                              if (!_isAndroid) ...[
                                 _buildEmailField(),
                                 const SizedBox(height: 16),
                                 _buildPasswordField(),
@@ -221,8 +220,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 _buildLoginButton(),
                                 const SizedBox(height: 8),
                                 _buildRegisterLink(),
-                                const SizedBox(height: 24),
-                              ],
+                                const SizedBox(height: 24),                           
                               if (_isGoogleSignInSupported) ...[
                                 if (!_isAndroid) _buildOrDivider(),
                                 const SizedBox(height: 24),

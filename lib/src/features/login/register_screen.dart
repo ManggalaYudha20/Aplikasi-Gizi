@@ -17,6 +17,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _nipController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isLoading = false;
@@ -26,15 +27,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _nipController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _handleRegister() async {
     if (_nameController.text.isEmpty ||
+        _nipController.text.isEmpty||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty) {
-      _showErrorSnackBar("Semua kolom (Nama, Email, Password) harus diisi");
+      _showErrorSnackBar("Semua kolom (Nama, NIP, Email, Password) harus diisi");
       return;
     }
 
@@ -43,6 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       final userCredential = await _authService.registerWithEmailPassword(
         _nameController.text.trim(),
+        _nipController.text.trim(),
         _emailController.text.trim(),
         _passwordController.text,
       );
@@ -126,6 +130,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 24),
                           _buildNameField(),
                           const SizedBox(height: 16),
+                          _buildNipField(),
+                          const SizedBox(height: 16),
                           _buildEmailField(),
                           const SizedBox(height: 16),
                           _buildPasswordField(),
@@ -151,6 +157,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decoration: InputDecoration(
         labelText: 'Nama Lengkap',
         prefixIcon: const Icon(Icons.person),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _buildNipField() {
+    return TextField(
+      controller: _nipController,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: 'NIP',
+        prefixIcon: const Icon(Icons.badge),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );

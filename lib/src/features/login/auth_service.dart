@@ -117,6 +117,7 @@ class AuthService {
   // ─────────────────────────────────────────
   Future<UserCredential?> registerWithEmailPassword(
     String name,
+    String nip,
     String email,
     String password,
   ) async {
@@ -131,13 +132,44 @@ class AuthService {
         // Kirim email verifikasi otomatis setelah daftar
         await user.sendEmailVerification();
 
-        final defaultRole = await _getDefaultRole();
+        // --- LOGIKA VERIFIKASI ROLE ---
+        String userRole = 'tamu'; // Role bawaan jika tidak terdaftar di whitelist
+bool isVerified = false;
+
+        // 1. Cek berdasarkan Email terlebih dahulu
+        final emailQuery = await _firestore
+            .collection('verified_nutritionists')
+            .where('email', isEqualTo: email)
+            .limit(1)
+            .get();
+
+        if (emailQuery.docs.isNotEmpty) {
+          isVerified = true;
+        } 
+        // 2. Jika email tidak ada di whitelist, cek berdasarkan NIP
+        else if (nip.isNotEmpty) {
+          final nipQuery = await _firestore
+              .collection('verified_nutritionists')
+              .where('NIP', isEqualTo: nip)
+              .limit(1)
+              .get();
+
+          if (nipQuery.docs.isNotEmpty) {
+            isVerified = true;
+          }
+        }
+
+        // Jika salah satu cocok, berikan role nutrisionis
+        if (isVerified) {
+          userRole = 'nutrisionis';
+        }
 
         await _firestore.collection('users').doc(user.uid).set({
           'displayName': name,
           'email': user.email,
+          'nip': nip,
           'photoURL': '',
-          'role': defaultRole,
+          'role': userRole,
           'emailVerified': false,
           'createdAt': FieldValue.serverTimestamp(),
           'lastLogin': FieldValue.serverTimestamp(),

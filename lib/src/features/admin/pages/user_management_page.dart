@@ -11,6 +11,7 @@ import 'package:aplikasi_diagnosa_gizi/src/features/admin/widgets/fading_snackba
 import 'package:aplikasi_diagnosa_gizi/src/features/admin/widgets/user_filter_sheet.dart';
 import 'package:aplikasi_diagnosa_gizi/src/shared/widgets/app_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:aplikasi_diagnosa_gizi/src/features/admin/pages/whitelist_page.dart';
 
 class UserManagementPage extends StatefulWidget {
   const UserManagementPage({super.key});
@@ -168,6 +169,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
       }
     }
   }
+
   // Tambahkan fungsi ini di bawah handlers yang lain
   void _openFilterSheet() async {
     final result = await showModalBottomSheet<UserFilterModel>(
@@ -205,7 +207,10 @@ class _UserManagementPageState extends State<UserManagementPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -220,12 +225,12 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 // Tombol Filter
                 Container(
                   decoration: BoxDecoration(
-                    color: _currentFilter.isFiltering 
-                        ? Colors.green.shade50 
+                    color: _currentFilter.isFiltering
+                        ? Colors.green.shade50
                         : Colors.white,
                     border: Border.all(
-                      color: _currentFilter.isFiltering 
-                          ? Colors.green 
+                      color: _currentFilter.isFiltering
+                          ? Colors.green
                           : Colors.grey.shade300,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -233,8 +238,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   child: IconButton(
                     icon: Icon(
                       Icons.filter_list,
-                      color: _currentFilter.isFiltering 
-                          ? Colors.green 
+                      color: _currentFilter.isFiltering
+                          ? Colors.green
                           : Colors.grey.shade700,
                     ),
                     onPressed: _openFilterSheet,
@@ -319,6 +324,60 @@ class _UserManagementPageState extends State<UserManagementPage> {
               );
             },
           ),
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            color: Colors.green.shade50,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.green.shade200, width: 1),
+            ),
+            child: ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(Icons.how_to_reg, color: Colors.green),
+              ),
+              title: const Text(
+                'Daftar Whitelist Nutrisionis',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+              subtitle: const Text(
+                'Kelola NIP & Email Nutrisionis',
+                style: TextStyle(fontSize: 12),
+              ),
+              trailing: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () {
+                  // Navigasi ke halaman WhitelistPage
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WhitelistPage(),
+                    ),
+                  );
+                },
+                child: const Text('Buka'),
+              ),
+              // Opsional: Membuat seluruh Card bisa diklik
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const WhitelistPage(),
+                  ),
+                );
+              },
+            ),
+          ),
           Expanded(
             child: StreamBuilder<List<UserModel>>(
               stream: _repository.getUsersStream(),
@@ -343,13 +402,13 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 // 2. --- TERAPKAN LOGIKA FILTER ROLE DI SINI ---
                 if (_currentFilter.isFiltering) {
                   displayUsers = displayUsers.where((user) {
-                    // Jika filter yang dipilih adalah Nutrisionis, 
+                    // Jika filter yang dipilih adalah Nutrisionis,
                     // loloskan user dengan role Nutrisionis (baru) ATAU Ahli Gizi (lama)
                     if (_currentFilter.role == UserRole.nutrisionis) {
-                      return user.role == UserRole.nutrisionis || 
-                             user.role == UserRole.ahliGizi;
+                      return user.role == UserRole.nutrisionis ||
+                          user.role == UserRole.ahliGizi;
                     }
-                    
+
                     // Untuk role lain (seperti Admin atau Tamu), filter seperti biasa
                     return user.role == _currentFilter.role;
                   }).toList();
