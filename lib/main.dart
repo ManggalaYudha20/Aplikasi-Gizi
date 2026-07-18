@@ -8,11 +8,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
 
   // Firestore offline persistence — panggil sekali setelah initializeApp
   FirebaseFirestore.instance.settings = const Settings(

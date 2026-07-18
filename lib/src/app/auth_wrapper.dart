@@ -20,6 +20,7 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
+      initialData: _authService.getCurrentUser(),
       stream: _authService.authStateChanges,
       builder: (context, snapshot) {
         // Tampilkan loading saat Firebase belum selesai inisialisasi
