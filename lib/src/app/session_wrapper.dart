@@ -60,28 +60,13 @@ class _SessionWrapperState extends State<SessionWrapper> {
               if (!mounted) return;
 
               // ── KONDISI 1: Dokumen tidak ada ───────────────────────────────────
+              // PENTING: Jangan langsung menendang user keluar saat dokumen
+              // belum terbaca (startup / offline / race condition Firestore).
+              // Firestore hanya mengembalikan snap kosong saat belum sync,
+              // bukan berarti akun dihapus. Biarkan user tetap masuk dan
+              // tunggu error `permission-denied` dari onError sebagai satu-
+              // satunya pemicu valid bahwa akun benar-benar dihapus.
               if (!doc.exists) {
-                await Future.delayed(const Duration(seconds: 2));
-                if (!mounted) return;
-
-                // Verifikasi ulang (tambahkan penanganan error jika akses langsung ditolak)
-                DocumentSnapshot? verify;
-                try {
-                  verify = await FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(user.uid)
-                      .get();
-                } catch (e) {
-                  // Jika ditolak (permission-denied), biarkan verify tetap null
-                  verify = null;
-                }
-
-                // Sekarang pengecekan verify == null valid dan aman
-                if ((verify == null || !verify.exists) &&
-                    mounted &&
-                    !_isDialogShowing) {
-                  _showDeletedAccountDialog();
-                }
                 return;
               }
 
