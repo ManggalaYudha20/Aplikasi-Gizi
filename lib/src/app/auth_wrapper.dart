@@ -19,28 +19,63 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      initialData: _authService.getCurrentUser(),
-      stream: _authService.authStateChanges,
-      builder: (context, snapshot) {
-        // Tampilkan loading saat Firebase belum selesai inisialisasi
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    // Gunakan FutureBuilder untuk mendapatkan status autentikasi awal
+    // yang sudah "settled" dari Firebase (termasuk restore sesi dari disk
+    // setelah kill RAM). Ini mencegah:
+    //   1. Flash halaman Login padahal user sebenarnya sudah login.
+    //   2. Infinite loading karena StreamBuilder tanpa initialData yang
+    //      menunggu event pertama yang mungkin tertunda.
+    //
+    // Setelah status awal didapat, gunakan StreamBuilder untuk merespons
+    // perubahan sesi (login/logout) ke depannya.
+    return FutureBuilder<User?>(
+      future: _getInitialUser(),
+      builder: (context, initSnapshot) {
+        // Masih menunggu Firebase merestore sesi → tampilkan loading.
+        if (initSnapshot.connectionState != ConnectionState.done) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        // User sudah login → MainScreen
-        if (snapshot.hasData) {
-          // Bungkus MainScreen dengan SessionWrapper
-          return  SessionWrapper(
-            key: UniqueKey(),
-            child: MainScreen(key: UniqueKey()));
-        }
+        // Status awal sudah didapat. Sekarang pantau perubahan berikutnya.
+        return StreamBuilder<User?>(
+          initialData: initSnapshot.data,
+          stream: _authService.authStateChanges,
+          builder: (context, snapshot) {
+            final user = snapshot.data;
 
-        // Belum login → LoginScreen
-        return const LoginScreen();
+            // User sudah login → MainScreen (dibungkus SessionWrapper)
+            if (user != null) {
+              return SessionWrapper(
+                key: UniqueKey(),
+                child: MainScreen(key: UniqueKey()),
+              );
+            }
+
+            // Belum login → LoginScreen
+            return const LoginScreen();
+          },
+        );
       },
     );
+  }
+
+  /// Mengambil user saat ini, dengan jaminan Firebase sudah selesai
+  /// inisialisasi. Menunggu event authStateChanges pertama (atau null
+  /// setelah timeout) agar sesi persisten sempat direstore dari disk.
+  Future<User?> _getInitialUser() async {
+    try {
+      // Tunggu event authStateChanges pertama. Ini akan emit null jika
+      // memang belum login, atau User jika sesi berhasil direstore.
+      // Timeout 5 detik sebagai pengaman agar tidak pernah gantung.
+      return await FirebaseAuth.instance
+          .authStateChanges()
+          .first
+          .timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Fallback: kembalikan user saat ini jika stream tidak emit apa-apa.
+      return FirebaseAuth.instance.currentUser;
+    }
   }
 }
